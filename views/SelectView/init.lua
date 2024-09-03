@@ -212,7 +212,7 @@ function SelectView:receive(event)
 end
 
 function SelectView:quit()
-	self:changeScreen("osuMainMenuView")
+	self:changeScreen("mainMenuView")
 end
 
 local gfx = love.graphics

@@ -55,14 +55,19 @@ local char_alias = {
 	percent = "%",
 }
 
+---@param skin_path string
 ---@param group string
 ---@return table<string, string>
-local function getImageFont(group)
+function OsuAssets:getImageFont(skin_path, group)
 	---@type table<string, string>
 	local font = {}
 
 	for _, v in ipairs(characters) do
-		local file = Assets.findImage(("%s-%s"):format(group, v))
+		local file = Assets.findImage(("%s%s-%s"):format(skin_path, group, v))
+
+		if not file then
+			file = ("%s%s-%s@2x.png"):format(self.defaultsDirectory, group, v)
+		end
 
 		if file then
 			local key = char_alias[v] and char_alias[v] or v
@@ -243,10 +248,10 @@ function OsuAssets:new(skin_path, localization_file)
 		self.hasBackButton = false
 	end
 
-	local score_font_path = skin_path .. skin_ini.Fonts.ScorePrefix or skin_path .. "score"
+	local score_font_path = skin_ini.Fonts.ScorePrefix or "score"
 
 	self.imageFonts = {
-		scoreFont = getImageFont(score_font_path),
+		scoreFont = self:getImageFont(skin_path, score_font_path),
 	}
 
 	self.sounds = {

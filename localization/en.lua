@@ -223,6 +223,7 @@ l.textGroups = {
 		vsrgScrollSpeed = "26 - 30 is a good range for a scroll speed.",
 		pauses = "You can pause in this game. We allow you to abuse it.",
 		doubleSetup = "Double setup is allowed. Surprise: You can bind any number of keys to a column.",
+		issues = "Report any issues on our discord server, we can't possibly find them all on our own.",
 	},
 }
 
