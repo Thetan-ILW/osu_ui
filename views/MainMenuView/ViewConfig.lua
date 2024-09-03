@@ -268,7 +268,7 @@ function ViewConfig:header(view)
 	gfx.push()
 
 	---@type audio.bass.BassSource
-	local audio = view.ui.previewModel.audio
+	local audio = view.game.previewModel.audio
 
 	gfx.translate(w - 32, 36)
 
@@ -638,10 +638,10 @@ local function updateFft(view)
 	next_fft_time = love.timer.getTime() + 0.008
 
 	---@type audio.bass.BassSource
-	local audio = view.ui.previewModel.audio
+	local audio = view.game.previewModel.audio
 
 	if view.state == "intro" then
-		audio = snd.welcome
+		audio = snd.welcomePiano
 		---@cast audio audio.bass.BassSource
 	end
 

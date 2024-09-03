@@ -24,3 +24,35 @@ License: https://www.svgrepo.com/page/licensing/#MIT
 ---- menu-input-tab ----
 Link: https://www.svgrepo.com/svg/352066/gamepad
 License: https://www.svgrepo.com/page/licensing/#CC%20Attribution
+
+---- welcome_piano.mp3 ----
+Edits were made
+Link: https://freesound.org/people/eardeer/sounds/385281/
+License: https://creativecommons.org/licenses/by/4.0/
+
+---- welcome.mp3 ----
+Link: https://freesound.org/people/Nchamp13/sounds/501882/
+License: https://creativecommons.org/publicdomain/zero/1.0/
+
+---- check-on.mp3 and check-off.mp3 ----
+Edits were made
+Link: https://freesound.org/people/mariannadeoliveira/sounds/738829/
+License: https://creativecommons.org/publicdomain/zero/1.0/
+
+---- menu-{X}-click.mp3 ----
+Edits were made
+Link: https://freesound.org/people/ascap/sounds/242446/
+License: https://creativecommons.org/licenses/by-nc/4.0/
+
+---- menuhit.mp3 ----
+Edits were made
+Link: https://freesound.org/people/sgossner/sounds/375363/
+License: https://creativecommons.org/publicdomain/zero/1.0/
+
+---- click-short.mp3 ----
+Link: https://freesound.org/people/Department64/sounds/548291/
+License: https://creativecommons.org/licenses/by/4.0/
+
+---- menuback.mp3 ----
+Link: https://freesound.org/people/Mellau/sounds/506052/
+License: https://creativecommons.org/licenses/by-nc/4.0/

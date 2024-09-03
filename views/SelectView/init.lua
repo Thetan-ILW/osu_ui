@@ -43,7 +43,7 @@ function SelectView:load()
 
 	self.uiLockViewConfig = UiLockView(self.game, self.assets)
 
-	BackgroundView.ui = self.ui
+	BackgroundView.game = self.game
 
 	window_height = love.graphics.getHeight()
 	love.mouse.setVisible(false)
@@ -87,6 +87,9 @@ function SelectView:play()
 	if not self.game.selectModel:notechartExists() then
 		return
 	end
+
+	self.assets.sounds.menuHit:stop()
+	self.assets.sounds.menuHit:play()
 
 	local multiplayer_model = self.game.multiplayerModel
 	if multiplayer_model.room and not multiplayer_model.isPlaying then

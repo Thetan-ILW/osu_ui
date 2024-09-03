@@ -146,10 +146,16 @@ function ui.textWithShadow(text, x, ax)
 	ui.text(text, x, ax)
 end
 
+local sound_play_time = {}
+
 ---@param sound audio.Source
 function ui.playSound(sound)
-	if sound:getPosition() > 0.01 then
+	local prev_time = sound_play_time[sound] or 0
+	local current_time = love.timer.getTime()
+
+	if current_time > prev_time + 0.05 then
 		sound:stop()
+		sound_play_time[sound] = current_time
 	end
 
 	sound:play()

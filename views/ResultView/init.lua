@@ -95,7 +95,7 @@ function ResultView:update()
 	background_blur = graphics.blur.result
 
 	self.assets:updateVolume(self.game.configModel)
-	self.ui.previewModel:update()
+	self.game.previewModel:update()
 end
 
 function ResultView:resolutionUpdated()

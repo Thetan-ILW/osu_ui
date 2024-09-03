@@ -52,11 +52,13 @@ local text
 ---@type table<string, love.Font>
 local font
 
----@param assets osu.OsuAssets
+---@param assets osu.ui.OsuAssets
 ---@param game sphere.GameController
-function SettingsView:new(assets, game)
+---@param ui osu.ui.UserInterface
+function SettingsView:new(assets, game, ui)
 	self.assets = assets
 	self.game = game
+	self.ui = ui
 	self.viewConfig = ViewConfig(self, assets)
 	self.visibility = 0
 	self.state = "hidden"
@@ -68,7 +70,7 @@ function SettingsView:new(assets, game)
 	self.hoverTime = 0
 	self.modalActive = true
 
-	local asset_model = game.ui.assetModel
+	local asset_model = ui.assetModel
 	self.osuSkins = asset_model:getOsuSkins()
 	self.skinPreview = SkinPreview(assets, consts.settingsWidth - consts.tabIndentIndent - consts.tabIndent)
 

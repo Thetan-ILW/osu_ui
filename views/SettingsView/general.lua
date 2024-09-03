@@ -26,7 +26,7 @@ return function(assets, view)
 	Elements.currentGroup = "language"
 
 	---@type string[]
-	local localization_list = view.game.ui.assetModel:getLocalizationNames("osu")
+	local localization_list = view.ui.assetModel:getLocalizationNames("osu")
 
 	combo(text.selectLanguage, "English", nil, function()
 		return osu.language, localization_list

@@ -83,13 +83,13 @@ return function(assets, view)
 	Elements.currentGroup = "layout"
 
 	---@type string[]
-	local osu_skins = view.game.ui.assetModel:getOsuSkins()
+	local osu_skins = view.ui.assetModel:getOsuSkins()
 
 	combo(text.uiSkin, "Default", nil, function()
 		return osu.skin, osu_skins
 	end, function(v)
 		osu.skin = v
-		view.game.ui.gameView:reloadView()
+		view.ui.gameView:reloadView()
 	end)
 
 	combo(text.fullscreenType, "desktop", nil, function()

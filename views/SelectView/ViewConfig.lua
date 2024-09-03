@@ -773,7 +773,7 @@ end
 ---@param view osu.ui.SelectView
 local function updateBeat(view)
 	---@type audio.bass.BassSource
-	local audio = view.ui.previewModel.audio
+	local audio = view.game.previewModel.audio
 
 	if audio and audio.getFft then
 		beat = getBeatValue(audio:getFft())
@@ -788,7 +788,7 @@ local function checkFocus()
 	end
 end
 
----@param view osu.SelectView
+---@param view osu.ui.SelectView
 function ViewConfig:draw(view)
 	Layout:draw()
 
