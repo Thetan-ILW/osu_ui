@@ -165,6 +165,7 @@ function MainMenuView:closeGame()
 	end
 
 	self.state = "outro"
+	self.settingsView:processState("hide")
 	self.outroTween = flux.to(self, 1.2, { outroPercent = 1 }):ease("quadout")
 	self.tween = flux.to(self, 0.4, { afkPercent = 0 }):ease("quadout")
 	self.assets.sounds.goodbye:play()

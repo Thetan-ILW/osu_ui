@@ -716,6 +716,9 @@ function ViewConfig:draw(view)
 
 	background(view)
 
+	self:processLogoState(view)
+	self:osuLogo(view)
+
 	local prev_canvas = gfx.getCanvas()
 	local canvas = ui.getCanvas("osuMainMenu")
 
@@ -738,9 +741,6 @@ function ViewConfig:draw(view)
 	gfx.setBlendMode("alpha", "premultiplied")
 	gfx.draw(canvas)
 	gfx.setBlendMode("alpha")
-
-	self:processLogoState(view)
-	self:osuLogo(view)
 end
 
 return ViewConfig

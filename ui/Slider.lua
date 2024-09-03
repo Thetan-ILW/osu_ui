@@ -61,12 +61,8 @@ end
 
 function Slider:playDragSound(percent)
 	local sound = self.assets.sounds.sliderBar
-	if sound:getPosition() > 0.02 then
-		sound:stop()
-		sound:setRate(1 + percent * 0.2)
-	end
-
-	sound:play()
+	sound:setRate(1 + percent * 0.2)
+	ui.playSound(sound)
 end
 
 function Slider:update(has_focus)
@@ -100,8 +96,8 @@ function Slider:update(has_focus)
 		if ui.mousePressed(1) then
 			self.dragging = true
 		end
-		if ui.mousePressed(2) then
-			self.onChange(self.defaultValue or 0)
+		if ui.mousePressed(2) and self.defaultValue then
+			self.onChange(self.defaultValue)
 		end
 		if ui.keyPressed("left") then
 			local new = math.max(self.value - self.params.increment, self.params.min)

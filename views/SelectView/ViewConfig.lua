@@ -534,13 +534,13 @@ function ViewConfig:bottom(view)
 	w, h = Layout:move("base")
 	gfx.translate(0, h)
 
-	if back_button then
+	if self.assets.hasBackButton then
+		drawBottomButton("back")
+	else
 		gfx.translate(0, -58)
 		back_button:update(has_focus)
 		back_button:draw()
 		gfx.translate(0, 58)
-	else
-		drawBottomButton("back")
 	end
 
 	gfx.translate(224, 0)

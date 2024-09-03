@@ -22,7 +22,7 @@ local ui = require("osu_ui.ui")
 local ImageButton = UiElement + {}
 
 ---@param assets osu.ui.OsuAssets
----@param params { idleImage: love.Image, hoverImage: love.Image?, ay?: "top" | "bottom", hoverArea: {w: number, h: number}, hoverSound: audio.Source?, clickSound: audio.Source?}
+---@param params { idleImage: love.Image, hoverImage: love.Image?, ay?: "top" | "bottom", hoverArea: {w: number, h: number, x: number?, y: number?}, hoverSound: audio.Source?, clickSound: audio.Source?}
 ---@param on_click function
 function ImageButton:new(assets, params, on_click)
 	self.assets = assets
@@ -39,10 +39,11 @@ function ImageButton:new(assets, params, on_click)
 
 	self.hoverWidth = params.hoverArea.w
 	self.hoverHeight = params.hoverArea.h
+	self.hoverX = params.hoverArea.x or 0
+	self.hoverY = params.hoverArea.y or 0
 
 	if self.ay == "bottom" then
-		self.hoverX = 0
-		self.hoverY = -self.hoverHeight
+		self.hoverY = -self.hoverHeight + (params.hoverArea.y or 0)
 	end
 
 	self.hoverSound = params.hoverSound or self.assets.sounds.hoverOverRect

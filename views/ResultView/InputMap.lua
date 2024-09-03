@@ -15,18 +15,6 @@ function ResultInputMap:createBindings(view)
 		["submitScore"] = function()
 			view:submitScore()
 		end,
-		["left"] = function()
-			view:switchJudge(-1)
-		end,
-		["right"] = function()
-			view:switchJudge(1)
-		end,
-		["down"] = function()
-			view:scrollScore(1)
-		end,
-		["up"] = function()
-			view:scrollScore(-1)
-		end,
 		["quit"] = function()
 			view:sendQuitSignal()
 		end,

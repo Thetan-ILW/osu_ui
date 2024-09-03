@@ -52,3 +52,16 @@ License: https://creativecommons.org/licenses/by/4.0/
 ---- menuback.mp3 ----
 Link: https://freesound.org/people/Mellau/sounds/506052/
 License: https://creativecommons.org/licenses/by-nc/4.0/
+
+---- select-expand.mp3 ----
+Link: https://freesound.org/people/Porphyr/sounds/191678/
+License: https://creativecommons.org/licenses/by/4.0/
+
+---- sliderbar.mp3 ----
+Link: https://freesound.org/people/LudwigMueller/sounds/548508/
+License: https://creativecommons.org/publicdomain/zero/1.0/
+
+---- menu-background.jpg ----
+Link: https://unsplash.com/photos/sea-of-clouds-nv7WX42LKjU
+License: https://unsplash.com/license
+

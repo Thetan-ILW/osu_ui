@@ -11,11 +11,12 @@ local ImageValueView = require("osu_ui.views.ResultView.ImageValueView")
 local Scoring = require("osu_ui.views.ResultView.Scoring")
 local HitGraph = require("osu_ui.views.ResultView.HitGraph")
 
----@class osu.ui.ResultView : osu.ui.IViewConfig
-local OsuViewConfig = IViewConfig + {}
+local ImageButton = require("osu_ui.ui.ImageButton")
+local BackButton = require("osu_ui.ui.BackButton")
 
----@type osu.OsuAssets
-local assets
+---@class osu.ui.ResultViewConfig : osu.ui.IViewConfig
+local ViewConfig = IViewConfig + {}
+
 ---@type table<string, love.Image>
 local img
 
@@ -60,17 +61,22 @@ local username = ""
 
 local gfx = love.graphics
 
----@type love.Shader
-local buttonHoverShader
-
 ---@type love.Image[]
 local modifierIconImages = {}
 
+---@type osu.ui.ImageButton
+local back_image_button
+---@type osu.ui.BackButton
+local back_button
+---@type osu.ui.ImageButton
+local replay_button
+
 ---@param game sphere.GameController
----@param _assets osu.OsuAssets
+---@param assets osu.ui.OsuAssets
 ---@param after_gameplay boolean
-function OsuViewConfig:new(game, _assets, after_gameplay)
-	assets = _assets
+---@param view osu.ui.ResultView
+function ViewConfig:new(game, assets, after_gameplay, view)
+	self.assets = assets
 	img = assets.images
 	text, font = assets.localization:get("result")
 	assert(text and font)
@@ -191,25 +197,45 @@ function OsuViewConfig:new(game, _assets, after_gameplay)
 	accuracyValue:load()
 	scoreValue:load()
 
-	buttonHoverShader = gfx.newShader([[
-	vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
-        {
-		vec4 texturecolor = Texel(tex, texture_coords);
-		texturecolor.rgb += 0.2;
-		return texturecolor * color;
-        }
-	]])
-
 	if after_gameplay then
 		assets.sounds.applause:play()
 	end
+
+	self:createUI(view)
 end
 
-function OsuViewConfig:unload()
-	assets.sounds.applause:stop()
+---@param view osu.ui.ResultView
+function ViewConfig:createUI(view)
+	local assets = self.assets
+	if assets.hasBackButton then
+		back_image_button = ImageButton(assets, {
+			idleImage = img.menuBack,
+			ay = "bottom",
+			hoverArea = { w = 200, h = 90 },
+			clickSound = assets.sounds.menuBack,
+		}, function()
+			view:quit()
+		end)
+	else
+		back_button = BackButton(assets, { w = 93, h = 90 }, function()
+			view:quit()
+		end)
+	end
+
+	replay_button = ImageButton(assets, {
+		idleImage = img.replay,
+		hoverArea = { w = 380, h = 91, x = 15, y = 15 },
+		clickSound = assets.sounds.menuHit,
+	}, function()
+		view:play("replay")
+	end)
 end
 
-function OsuViewConfig.panels() end
+function ViewConfig:unload()
+	self.assets.sounds.applause:stop()
+end
+
+function ViewConfig.panels() end
 
 ---@param view table
 ---@return boolean
@@ -222,7 +248,7 @@ local function showLoadedScore(view)
 	return scoreItem.id == scoreEntry.id
 end
 
-function OsuViewConfig:loadScore(view)
+function ViewConfig:loadScore(view)
 	isOnlineScore = view.game.configModel.configs.select.scoreSourceName == "online"
 
 	if isOnlineScore then
@@ -359,16 +385,12 @@ function OsuViewConfig:loadScore(view)
 	elseif timeRate == (1.5 * 1.5) then
 		table.insert(modifierIconImages, img.doubleTime)
 		table.insert(modifierIconImages, img.doubleTime)
-	elseif timeRate == (1.5 * 1.5 * 1.5) then
-		table.insert(modifierIconImages, img.doubleTime)
-		table.insert(modifierIconImages, img.doubleTime)
-		table.insert(modifierIconImages, img.doubleTime)
 	elseif timeRate == 0.75 then
 		table.insert(modifierIconImages, img.halfTime)
 	end
 end
 
-function OsuViewConfig:title(view)
+function ViewConfig:title(view)
 	local w, h = Layout:move("title")
 
 	gfx.setColor({ 0, 0, 0, 0.65 })
@@ -446,7 +468,7 @@ local function judgeFrame(image, box, box2)
 	end
 end
 
-function OsuViewConfig:panel()
+function ViewConfig:panel()
 	local w, h = Layout:move("panel")
 
 	gfx.setColor({ 1, 1, 1, 1 })
@@ -478,7 +500,7 @@ function OsuViewConfig:panel()
 	gfx.draw(img.accuracy)
 end
 
-function OsuViewConfig:grade()
+function ViewConfig:grade()
 	local image = img["grade" .. grade]
 
 	if not image then
@@ -496,21 +518,11 @@ end
 local function rightSideButtons(view)
 	local w, h = Layout:move("base", "watch")
 
-	local iw, ih = img.replay:getDimensions()
+	local iw, ih = replay_button:getDimensions()
 	gfx.translate(w - iw, 0)
 
-	local changed, _, hovered = just.button("replayButton", just.is_over(iw, ih))
-
-	if not hovered then
-		gfx.setColor(1, 1, 1, 0.7)
-	end
-
-	if changed then
-		view:play("replay")
-	end
-
-	gfx.draw(img.replay, 0, 0)
-	gfx.setColor(1, 1, 1, 1)
+	replay_button:update(true)
+	replay_button:draw()
 end
 
 local function graphInfo()
@@ -523,10 +535,10 @@ local function graphInfo()
 	gfx.setFont(font.graphInfo)
 
 	gfx.translate(5, 5)
-	just.text(text.mean:format(meanFormatted))
-	just.text(text.maxError:format(maxErrorFormatted))
-	just.text(text.scrollSpeed:format(scrollSpeed))
-	just.text(text.mods:format(modsFormatted))
+	ui.text(text.mean:format(meanFormatted))
+	ui.text(text.maxError:format(maxErrorFormatted))
+	ui.text(text.scrollSpeed:format(scrollSpeed))
+	ui.text(text.mods:format(modsFormatted))
 end
 
 ---@param view table
@@ -545,12 +557,13 @@ local function hitGraph(view)
 		HitGraph.hpGraph:draw(w, h)
 	else
 		h = h * 0.9
+		gfx.translate(0, 5)
 		HitGraph.hitGraph.game = view.game
-		HitGraph.hitGraph:draw(w, h)
+		HitGraph.hitGraph:draw(w, h - 3)
 		HitGraph.earlyHitGraph.game = view.game
-		HitGraph.earlyHitGraph:draw(w, h)
+		HitGraph.earlyHitGraph:draw(w, h - 3)
 		HitGraph.missGraph.game = view.game
-		HitGraph.missGraph:draw(w, h)
+		HitGraph.missGraph:draw(w, h - 3)
 
 		gfx.setColor(0, 0, 0, 0)
 		gfx.rectangle("fill", -2, h / 2, w + 2, 4)
@@ -563,23 +576,16 @@ end
 
 local function backButton(view)
 	local w, h = Layout:move("base")
+	gfx.translate(0, h)
 
-	local iw, ih = img.menuBack:getDimensions()
-
-	gfx.translate(0, h - ih)
-	local changed, _, hovered = just.button("backButton", just.is_over(iw, ih))
-
-	local prev_shader = gfx.getShader()
-
-	if hovered then
-		gfx.setShader(buttonHoverShader)
-	end
-
-	gfx.draw(img.menuBack, 0, 0)
-	gfx.setShader(prev_shader)
-
-	if changed then
-		view:quit()
+	if back_image_button then
+		back_image_button:update(true)
+		back_image_button:draw()
+	else
+		gfx.translate(0, -58)
+		back_button:update(true)
+		back_button:draw()
+		gfx.translate(0, 58)
 	end
 end
 
@@ -602,7 +608,13 @@ local function mods()
 	end
 end
 
-function OsuViewConfig:draw(view)
+---@param view osu.ui.ResultView
+function ViewConfig:resolutionUpdated(view)
+	self:createUI(view)
+end
+
+---@param view osu.ui.ResultView
+function ViewConfig:draw(view)
 	if isOnlineScore then
 		return
 	end
@@ -633,4 +645,4 @@ function OsuViewConfig:draw(view)
 	ui.frame(ppFormatted, -10, 0, w, h, "right", "bottom")
 end
 
-return OsuViewConfig
+return ViewConfig

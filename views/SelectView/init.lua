@@ -4,7 +4,6 @@ local ui = require("osu_ui.ui")
 
 local OsuLayout = require("osu_ui.views.OsuLayout")
 local ViewConfig = require("osu_ui.views.SelectView.ViewConfig")
-local GaussianBlurView = require("sphere.views.GaussianBlurView")
 local BackgroundView = require("sphere.views.BackgroundView")
 local UiLockView = require("osu_ui.views.UiLockView")
 
@@ -19,8 +18,6 @@ local InputMap = require("osu_ui.views.SelectView.InputMap")
 local SelectView = ScreenView + {}
 
 local window_height = 768
-local dim = 0
-local background_blur = 0
 
 local ui_lock = false
 
@@ -35,11 +32,11 @@ function SelectView:load()
 	self.inputMap = InputMap(self, self.actionModel)
 	self.actionModel.enable()
 
-	if self.assets.selectViewConfig then
-		self.viewConfig = self.assets.selectViewConfig()(self, self.assets)
-	else
-		self.viewConfig = ViewConfig(self, self.assets)
-	end
+	--if self.assets.selectViewConfig then
+	--self.viewConfig = self.assets.selectViewConfig()(self, self.assets)
+	--else
+	self.viewConfig = ViewConfig(self, self.assets)
+	--end
 
 	self.uiLockViewConfig = UiLockView(self.game, self.assets)
 
@@ -244,9 +241,7 @@ function SelectView:draw()
 
 	ui.setTextScale(768 / window_height)
 
-	GaussianBlurView:draw(background_blur)
-	BackgroundView:draw(w, h, dim, 0.01)
-	GaussianBlurView:draw(background_blur)
+	BackgroundView:draw(w, h, 0.13, 0.01)
 
 	if ui_lock then
 		self.uiLockViewConfig:draw()

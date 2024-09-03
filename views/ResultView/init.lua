@@ -10,8 +10,8 @@ local BackgroundView = require("sphere.views.BackgroundView")
 
 local InputMap = require("osu_ui.views.ResultView.InputMap")
 
----@class osu.ResultView: osu.ui.ScreenView
----@operator call: osu.ResultView
+---@class osu.ui.ResultView: osu.ui.ScreenView
+---@operator call: osu.ui.ResultView
 local ResultView = ScreenView + {}
 
 ResultView.currentJudgeName = ""
@@ -45,15 +45,15 @@ ResultView.load = thread.coro(function(self)
 		audio_engine.foregroundContainer:setVolume(effects_volume)
 	end
 
-	if self.prevView == self.game.selectView then
+	if self.prevView == self.ui.selectView then
 		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
 	end
 
-	if self.assets.resultViewConfig then
-		self.viewConfig = self.assert.resultViewConfig(self.game, self.assets, is_after_gameplay)
-	else
-		self.viewConfig = ViewConfig(self.game, self.assets, is_after_gameplay)
-	end
+	--if self.assets.resultViewConfig then
+	--	self.viewConfig = self.assert.resultViewConfig(self.game, self.assets, is_after_gameplay, self)
+	--else
+	self.viewConfig = ViewConfig(self.game, self.assets, is_after_gameplay, self)
+	--end
 
 	local configs = self.game.configModel.configs
 	local select = configs.select
@@ -100,6 +100,7 @@ end
 
 function ResultView:resolutionUpdated()
 	window_height = self.assets.localization:updateScale()
+	self.viewConfig:resolutionUpdated(self)
 end
 
 local gfx = love.graphics
@@ -205,42 +206,5 @@ ResultView.play = thread.coro(function(self, mode)
 	self:changeScreen("gameplayView")
 	playing = false
 end)
-
-function ResultView:switchJudge(direction)
-	local configs = self.game.configModel.configs
-	local osu = configs.osu_ui
-
-	local scoreSystems = self.game.rhythmModel.scoreEngine.scoreSystem
-	local ss = osu.scoreSystem
-
-	local scoreSystem
-
-	if ss == "osu!mania" then
-		scoreSystem = scoreSystems.osuMania
-	elseif ss == "osu!legacy" then
-		scoreSystem = scoreSystems.osuLegacy
-	elseif ss == "Etterna" then
-		scoreSystem = scoreSystems.etterna
-	elseif ss == "Lunatic rave 2" then
-		scoreSystem = scoreSystems.lr2
-	end
-
-	if not scoreSystem then
-		return
-	end
-
-	self.currentJudge =
-		math_util.clamp(self.currentJudge + direction, scoreSystem.metadata.range[1], scoreSystem.metadata.range[2])
-
-	local alias = scoreSystem.metadata.rangeValueAlias
-
-	if alias then
-		self.currentJudgeName = scoreSystem.metadata.name:format(alias[self.currentJudge])
-	else
-		self.currentJudgeName = scoreSystem.metadata.name:format(self.currentJudge)
-	end
-
-	self.viewConfig:loadScore(self)
-end
 
 return ResultView
