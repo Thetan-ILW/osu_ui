@@ -13,7 +13,7 @@ local utf8validate = require("utf8validate")
 ---@field sounds table<string, audio.Source>
 ---@field shaders table<string, love.Shader>
 ---@field params table<string, number|string|boolean>
----@field localization skibidi.Localization
+---@field localization osu.ui.Localization
 ---@field selectViewConfig function?
 ---@field resultViewConfig function?
 ---@field hasBackButton boolean

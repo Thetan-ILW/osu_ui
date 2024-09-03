@@ -16,6 +16,7 @@ local function increaseVolume(mv, direction)
 
 	v.master = math_util.clamp(v.master + (direction * 0.05), 0, 1)
 
+	mv.notificationView:show(("Volume: %i%%"):format(v.master * 100), true)
 	mv.assetModel:updateVolume()
 end
 

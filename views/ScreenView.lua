@@ -12,6 +12,7 @@ local delay = require("delay")
 ---@field actionModel osu.ui.ActionModel
 ---@field assetModel osu.ui.AssetModel
 ---@field assets osu.ui.OsuAssets
+---@field notificationView osu.ui.NotificationView
 ---@field changingScreen boolean?
 local ScreenView = class()
 
@@ -36,6 +37,7 @@ function ScreenView:setModal(modal)
 	if not openedModal then
 		self.modal = modal
 		self.modal.mainView = self
+		self.modal.notificationView = self.notificationView
 		self.modal.alpha = 0
 
 		ui.focus()

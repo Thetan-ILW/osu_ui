@@ -226,8 +226,6 @@ function SelectView:drawCursor()
 end
 
 function SelectView:resolutionUpdated()
-	window_height = self.assets.localization:updateScale()
-
 	self.viewConfig:resolutionUpdated(self)
 
 	if self.modal then
@@ -238,8 +236,6 @@ end
 function SelectView:draw()
 	OsuLayout:draw()
 	local w, h = OsuLayout:move("base")
-
-	ui.setTextScale(768 / window_height)
 
 	BackgroundView:draw(w, h, 0.13, 0.01)
 
@@ -252,8 +248,6 @@ function SelectView:draw()
 
 	self:drawModal()
 	self:drawCursor()
-
-	ui.setTextScale(1)
 end
 
 return SelectView

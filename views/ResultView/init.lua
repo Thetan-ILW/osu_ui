@@ -128,16 +128,12 @@ function ResultView:draw()
 	OsuLayout:draw()
 	local w, h = OsuLayout:move("base")
 
-	ui.setTextScale(768 / window_height)
-
 	GaussianBlurView:draw(background_blur)
 	BackgroundView:draw(w, h, dim, 0.01)
 	GaussianBlurView:draw(background_blur)
 
 	self.viewConfig:draw(self)
 	self:drawCursor()
-
-	ui.setTextScale(1)
 end
 
 function ResultView:receive(event)

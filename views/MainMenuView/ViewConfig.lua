@@ -207,6 +207,7 @@ function ViewConfig:button(image)
 	return false
 end
 
+---@param view osu.ui.MainMenuView
 function ViewConfig:header(view)
 	local w, h = Layout:move("base")
 
@@ -277,22 +278,27 @@ function ViewConfig:header(view)
 
 	if self:button(img.musicForwards) then
 		view.game.selectModel:scrollNoteChartSet(1)
+		view.notificationView:show(">> Next")
 	end
 
 	if self:button(img.musicToStart) then
 		audio:setPosition(0)
+		view.notificationView:show("Stop playing")
 	end
 
 	if self:button(img.musicPause) then
 		audio:pause()
+		view.notificationView:show("Pause")
 	end
 
 	if self:button(img.musicPlay) then
 		audio:play()
+		view.notificationView:show("Play")
 	end
 
 	if self:button(img.musicBackwards) then
 		view.game.selectModel:scrollNoteChartSet(-1)
+		view.notificationView:show("<< Prev")
 	end
 	gfx.setColor(1, 1, 1)
 
@@ -472,7 +478,7 @@ function ViewConfig:logoButton(id, x, alpha)
 	return pressed
 end
 
----@param view osu.MainMenuView
+---@param view osu.ui.MainMenuView
 function ViewConfig:logoButtons(view)
 	gfx.setScissor(gfx.getWidth() / 2, 0, gfx.getWidth() / 2, gfx.getHeight())
 
@@ -518,6 +524,7 @@ function ViewConfig:logoButtons(view)
 	if self:logoButton("multi", -300 * x, a) and focus then
 		snd.menuMultiplayerClick:stop()
 		snd.menuMultiplayerClick:play()
+		view.notificationView:show("Not implemented")
 	end
 
 	if self:logoButton("back", -300 * x, a) and focus then
@@ -626,6 +633,10 @@ function ViewConfig:osuDirect(view)
 
 	gfx.draw(img.directButtonOver)
 	gfx.setColor(1, 1, 1)
+
+	if hover and ui.mousePressed(1) then
+		view.notificationView:show("Not implemented")
+	end
 end
 
 local next_fft_time = -math.huge

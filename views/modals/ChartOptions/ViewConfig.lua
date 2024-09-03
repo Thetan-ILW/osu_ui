@@ -16,7 +16,7 @@ local ViewConfig = IViewConfig + {}
 local gfx = love.graphics
 
 local manage_locations ---@type osu.ui.Button
-local chart_info ---@type osu.ui.Button
+local export_to_osu ---@type osu.ui.Button
 local filters ---@type osu.ui.Button
 local edit ---@type osu.ui.Button
 local file_manager ---@type osu.ui.Button
@@ -49,21 +49,27 @@ function ViewConfig:loadUI()
 
 	local b_font = font.buttons
 
+	local modal = self.thisModal
 	manage_locations = Button(assets, {
 		text = text.manageLocations,
 		scale = scale,
 		width = width,
 		color = green,
 		font = b_font,
-	})
+	}, function()
+		modal.notificationView:show("Not implemented")
+	end)
 
-	chart_info = Button(assets, {
-		text = text.chartInfo,
+	export_to_osu = Button(assets, {
+		text = text.exportToOsu,
 		scale = scale,
 		width = width,
 		color = purple,
 		font = b_font,
-	})
+	}, function()
+		self.game.selectController:exportToOsu()
+		modal.notificationView:show("Exported")
+	end)
 
 	filters = Button(assets, {
 		text = text.filters,
@@ -71,7 +77,9 @@ function ViewConfig:loadUI()
 		width = width,
 		color = green,
 		font = b_font,
-	})
+	}, function()
+		modal.notificationView:show("Not implemented")
+	end)
 
 	edit = Button(assets, {
 		text = text.edit,
@@ -79,7 +87,9 @@ function ViewConfig:loadUI()
 		width = width,
 		color = red,
 		font = b_font,
-	})
+	}, function()
+		self.thisModal.mainView:edit()
+	end)
 
 	file_manager = Button(assets, {
 		text = text.fileManager,
@@ -102,16 +112,12 @@ function ViewConfig:loadUI()
 	end)
 end
 
-local window_height = gfx.getHeight()
-
 function ViewConfig:resolutionUpdated()
-	window_height = gfx.getHeight()
 	self:loadUI()
 end
 
 function ViewConfig:draw(view)
 	Layout:draw()
-	ui.setTextScale(768 / window_height)
 	local w, h = Layout:move("base")
 
 	gfx.push()
@@ -143,8 +149,8 @@ function ViewConfig:draw(view)
 	gfx.translate(a - 50, 0)
 
 	gfx.translate(-50 + a, 0)
-	chart_info:update(true)
-	chart_info:draw()
+	export_to_osu:update(true)
+	export_to_osu:draw()
 
 	gfx.translate(-a + 50, 0)
 
@@ -167,8 +173,6 @@ function ViewConfig:draw(view)
 	cancel:update(true)
 	cancel:draw()
 	gfx.translate(-a + 50, 0)
-
-	ui.setTextScale(1)
 end
 
 return ViewConfig

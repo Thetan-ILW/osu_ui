@@ -122,7 +122,6 @@ end
 ---@param dt number
 function MainMenuView:update(dt)
 	ScreenView.update(self, dt)
-	ui.setTextScale(768 / window_height)
 
 	local chartview_id = self.selectModel.chartview.id
 

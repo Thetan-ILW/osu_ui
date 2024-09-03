@@ -9,6 +9,7 @@ local gfx_util = require("gfx_util")
 ---@field showTween table?
 ---@field hideTween table?
 ---@field mainView osu.ui.ScreenView
+---@field notificationView osu.ui.NotificationView
 ---@field assets osu.ui.OsuAssets
 local Modal = class()
 

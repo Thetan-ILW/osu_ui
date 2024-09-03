@@ -119,7 +119,7 @@ local group_options = {
 }
 local selected_group = group_options[1]
 
----@param view osu.SelectView
+---@param view osu.ui.SelectView
 function ViewConfig:createUI(view)
 	local assets = self.assets
 
@@ -143,14 +143,18 @@ function ViewConfig:createUI(view)
 		hoverImage = img.modeButtonOver,
 		ay = "bottom",
 		hoverArea = { w = 88, h = 90 },
-	}, function() end)
+	}, function()
+		view.notificationView:show("Not implemented")
+	end)
 
 	buttons.mods = ImageButton(assets, {
 		idleImage = img.modsButton,
 		hoverImage = img.modsButtonOver,
 		ay = "bottom",
 		hoverArea = { w = 74, h = 90 },
-	}, function() end)
+	}, function()
+		view.notificationView:show("Not implemented")
+	end)
 
 	buttons.random = ImageButton(assets, {
 		idleImage = img.randomButton,

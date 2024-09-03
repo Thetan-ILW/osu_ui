@@ -1,7 +1,10 @@
 local class = require("class")
+local ui = require("osu_ui.ui")
+
 local FadeTransition = require("ui.views.FadeTransition")
 local FrameTimeView = require("ui.views.FrameTimeView")
 local AsyncTasksView = require("ui.views.AsyncTasksView")
+local NotificationView = require("osu_ui.views.NotificationView")
 local OsuAssets = require("osu_ui.OsuAssets")
 
 ---@class osu.ui.GameView
@@ -23,15 +26,18 @@ function GameView:new(game, ui)
 	self.ui = ui
 	self.fadeTransition = FadeTransition()
 	self.frameTimeView = FrameTimeView()
+	self.notificationView = NotificationView()
 end
 
 function GameView:load()
 	self.frameTimeView.game = self.game
 	self.frameTimeView:load()
 
+	prev_window_res = love.graphics.getWidth() * love.graphics.getHeight()
 	self.assetModel = self.ui.assetModel
 	self.actionModel = self.ui.actionModel
-	prev_window_res = love.graphics.getWidth() * love.graphics.getHeight()
+	self:loadAssets()
+	self.notificationView:load(self.assets)
 	self:setView(self.ui.mainMenuView)
 end
 
@@ -71,6 +77,7 @@ function GameView:_setView(view)
 	self.view.actionModel = self.actionModel
 	self.view.assetModel = self.ui.assetModel
 	self.view.assets = self.assets
+	self.view.notificationView = self.notificationView
 	self.view:load()
 end
 
@@ -112,10 +119,12 @@ function GameView:update(dt)
 	end
 
 	local time = love.timer.getTime()
-	local resolution = love.graphics.getWidth() * love.graphics.getHeight()
+	local ww, wh = love.graphics.getDimensions()
+	local resolution = ww * wh
 
 	if time > last_height_check + 0.5 then
 		if prev_window_res ~= resolution then
+			self.assets.localization:updateScale()
 			self.view:resolutionUpdated()
 			prev_window_res = resolution
 		end
@@ -123,6 +132,7 @@ function GameView:update(dt)
 		last_height_check = time
 	end
 
+	ui.setTextScale(math.min(768 / wh, 1))
 	self.view:update(dt)
 end
 
@@ -133,6 +143,7 @@ function GameView:draw()
 
 	self.fadeTransition:drawBefore()
 	self.view:draw()
+	self.notificationView:draw()
 	self.fadeTransition:drawAfter()
 	self.frameTimeView:draw()
 

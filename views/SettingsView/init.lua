@@ -90,8 +90,6 @@ end
 
 ---@param tab string?
 function SettingsView:build(tab)
-	ui.setTextScale(768 / love.graphics.getHeight())
-
 	local prev_containers = self.containers or {}
 	self.topSpacing = Spacing(64)
 	self.headerSpacing = Spacing(100)

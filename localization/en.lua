@@ -183,7 +183,7 @@ l.textGroups = {
 	},
 	chartOptionsModal = {
 		manageLocations = "1. Manage locations",
-		chartInfo = "2. Chart info",
+		exportToOsu = "2. Export to .osu",
 		filters = "3. Filters",
 		edit = "4. Edit",
 		fileManager = "5. Open in file manager",
@@ -240,6 +240,7 @@ l.fontFiles = {
 l.fontGroups = {
 	misc = {
 		backButton = { "Aller", 20, "ZenMaruGothic-Regular" },
+		notification = { "Aller", 24, "ZenMaruGothic-Regular" },
 	},
 	mainMenu = {
 		username = { "Aller", 20, "ZenMaruGothic-Regular" },
