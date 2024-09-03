@@ -6,6 +6,7 @@ local OsuLayout = require("osu_ui.views.OsuLayout")
 local ViewConfig = require("osu_ui.views.SelectView.ViewConfig")
 local BackgroundView = require("sphere.views.BackgroundView")
 local UiLockView = require("osu_ui.views.UiLockView")
+local SettingsView = require("osu_ui.views.SettingsView")
 
 local ChartPreviewView = require("sphere.views.SelectView.ChartPreviewView")
 
@@ -36,6 +37,7 @@ function SelectView:load()
 	--self.viewConfig = self.assets.selectViewConfig()(self, self.assets)
 	--else
 	self.viewConfig = ViewConfig(self, self.assets)
+	self.settingsView = SettingsView(self.assets, self.game, self.ui)
 	--end
 
 	self.uiLockViewConfig = UiLockView(self.game, self.assets)
@@ -70,8 +72,17 @@ function SelectView:update(dt)
 		self.prevChartViewId = chartview_id
 	end
 
+	self.settingsView.modalActive = self.modal == nil
+
+	if self.changingScreen then
+		self.settingsView:processState("hide")
+	end
+
+	self.settingsView:update()
+
 	self.assets:updateVolume(self.game.configModel)
-	self.viewConfig:setFocus(self.modal == nil and not self.changingScreen)
+
+	self.viewConfig:setFocus((self.modal == nil) and not self.settingsView:isFocused() and not self.changingScreen)
 	self.game.selectController:update()
 	self.chartPreviewView:update(dt)
 end
@@ -110,6 +121,10 @@ function SelectView:result()
 	if self.game.selectModel:isPlayed() then
 		self:changeScreen("resultView")
 	end
+end
+
+function SelectView:toggleSettings()
+	self.settingsView:processState("toggle")
 end
 
 function SelectView:changeTimeRate(delta)
@@ -206,9 +221,15 @@ function SelectView:receive(event)
 
 		self.inputMap:call("select")
 	end
+
+	self.settingsView:receive(event)
 end
 
 function SelectView:quit()
+	if self.settingsView.state ~= "hidden" then
+		self.settingsView:processState("hide")
+		return
+	end
 	self:changeScreen("mainMenuView")
 end
 
@@ -245,6 +266,7 @@ function SelectView:draw()
 	end
 
 	self.viewConfig:draw(self)
+	self.settingsView:draw()
 
 	self:drawModal()
 	self:drawCursor()

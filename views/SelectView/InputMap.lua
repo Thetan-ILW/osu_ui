@@ -19,13 +19,15 @@ local function increaseVolume(sv, direction)
 	sv.assetModel:updateVolume()
 end
 
----@param sv osu.SelectView
+---@param sv osu.ui.SelectView
 function SelectInputMap:createBindings(sv)
 	self.selectModals = {
 		["showMods"] = function() end,
 		["showSkins"] = function() end,
 		["showInputs"] = function() end,
-		["showSettings"] = function() end,
+		["showSettings"] = function()
+			sv:toggleSettings()
+		end,
 	}
 
 	self.select = {

@@ -35,6 +35,9 @@ function MainMenuInputMap:createBindings(mv)
 		["decreaseVolume"] = function()
 			increaseVolume(mv, -1)
 		end,
+		["showSettings"] = function()
+			mv:toggleSettings()
+		end,
 	}
 end
 

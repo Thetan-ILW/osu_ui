@@ -137,6 +137,9 @@ function ScoreListView:mouseClick(w, h, i)
 end
 
 function ScoreListView:input(w, h)
+	if not self.focus then
+		return
+	end
 	local delta = ui.wheelOver(self, ui.isOver(w, h))
 	if delta then
 		self:scroll(-delta)
