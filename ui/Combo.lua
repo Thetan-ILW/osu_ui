@@ -154,7 +154,9 @@ function Combo:update(has_focus)
 		for i, _ in ipairs(self.items) do
 			self.hoverIndex = ui.isOver(w, h, x, (self.totalH - h) + h * i) and i or self.hoverIndex
 		end
+	end
 
+	if self.state == "open" then
 		if self.hoverIndex ~= 0 and ui.mousePressed(1) then
 			self.onChange(self.items[self.hoverIndex])
 			self.changeTime = love.timer.getTime()

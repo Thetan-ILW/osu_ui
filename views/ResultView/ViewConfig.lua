@@ -250,7 +250,8 @@ end
 function ViewConfig:loadScore(view)
 	isOnlineScore = view.game.configModel.configs.select.scoreSourceName == "online"
 
-	if isOnlineScore then
+	if isOnlineScore or view.noScore then
+		missValue.value = 9999999999
 		return
 	end
 

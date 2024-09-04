@@ -19,6 +19,7 @@ local Quaver = require("sphere.models.RhythmModel.ScoreEngine.QuaverScoring")
 ---@operator call: osu.ui.ResultView
 ---@field judgeName string
 ---@field judgements table
+---@field noScore boolean
 ---@field viewConfig osu.ui.ResultViewConfig
 local ResultView = ScreenView + {}
 
@@ -82,13 +83,21 @@ function ResultView:setJudge()
 	local score_system = self.game.rhythmModel.scoreEngine.scoreSystem
 	local judgements = score_system.judgements
 
+	if not judgements then
+		self.noScore = true
+		self.gameView.popupView:add("Can't load score! You probably have no replay on the disk.", "error")
+		return
+	end
+
 	local configs = self.game.configModel.configs
 	local osu = configs.osu_ui
 	local ss = osu.scoreSystem
 	local judge = osu.judgement
 	local judge_name = scoring[ss].metadata.name:format(judge)
+
 	self.judgement = judgements[judge_name]
 	self.judgements = judgements
+	self.noScore = false
 end
 
 function ResultView:unload()
