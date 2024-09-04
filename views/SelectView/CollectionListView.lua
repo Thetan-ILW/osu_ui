@@ -17,7 +17,7 @@ CollectionListView.inactiveTextColor = { 1, 1, 1, 1 }
 CollectionListView.animations = {}
 
 ---@param game sphere.GameController
----@param assets osu.OsuAssets
+---@param assets osu.ui.OsuAssets
 function CollectionListView:new(game, assets)
 	ListView:new(game)
 	self.game = game
@@ -41,7 +41,9 @@ function CollectionListView:new(game, assets)
 		self.inactiveTextColor = { tonumber(colors[1]) / 255, tonumber(colors[2]) / 255, tonumber(colors[3]) / 255, 1 }
 	end
 
+	self.hoverSound = assets.sounds.hoverMenu
 	self.scrollSound = assets.sounds.selectChart
+	self.hoverIndex = 0
 end
 
 function CollectionListView:reloadItems()
@@ -63,11 +65,7 @@ end
 ---@param count number
 function CollectionListView:scroll(count)
 	self.game.selectModel:scrollCollection(count)
-
-	if math.abs(count) ~= 1 then
-		return
-	end
-	self:playSound()
+	self:playSound(self.scrollSound)
 end
 
 function CollectionListView:mouseClick(w, h, i)
@@ -141,6 +139,10 @@ function CollectionListView:drawItem(i, w, h)
 	})
 
 	if ui.isOver(w, h, 0, 10) and self.focus then
+		if self.hoverIndex ~= i then
+			self.hoverIndex = i
+			self:playSound(self.hoverSound)
+		end
 		self.animations[i] = math_util.clamp((self.animations[i] or 0) + 0.03, 0, 0.55)
 	end
 

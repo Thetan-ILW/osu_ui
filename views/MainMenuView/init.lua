@@ -127,11 +127,15 @@ end
 function MainMenuView:update(dt)
 	ScreenView.update(self, dt)
 
-	local chartview_id = self.selectModel.chartview.id
+	local chartview = self.selectModel.chartview
 
-	if chartview_id ~= self.prevChartViewId then
-		self:notechartChanged()
-		self.prevChartViewId = chartview_id
+	if chartview then
+		local chartview_id = chartview.id
+
+		if chartview_id ~= self.prevChartViewId then
+			self:notechartChanged()
+			self.prevChartViewId = chartview_id
+		end
 	end
 
 	self.settingsView.modalActive = self.modal == nil

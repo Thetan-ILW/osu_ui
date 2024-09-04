@@ -728,9 +728,10 @@ function ViewConfig:search(view)
 
 	local vim_motions = action_model.isVimMode()
 
+	local config = view.game.configModel.configs.select
 	local changed = false
 	if (not vim_motions or insert_mode) and has_focus then
-		changed, search = ui.textInput(search)
+		changed, search = ui.textInput(config.filterString)
 	end
 
 	if search == "" then
@@ -795,6 +796,11 @@ local function checkFocus()
 	for _, combo in pairs(combos) do
 		combo_focused = combo_focused or combo:isFocused()
 	end
+end
+
+---@param name "charts" | "locations" | "directories" | "last_visited_locations"
+function ViewConfig:selectGroup(name)
+	selected_group = name
 end
 
 ---@param view osu.ui.SelectView

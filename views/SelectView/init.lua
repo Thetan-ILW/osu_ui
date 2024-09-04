@@ -63,11 +63,15 @@ function SelectView:update(dt)
 
 	ui_lock = self.game.cacheModel.isProcessing
 
-	local chartview_id = self.selectModel.chartview.id
+	local chartview = self.selectModel.chartview
 
-	if chartview_id ~= self.prevChartViewId then
-		self:notechartChanged()
-		self.prevChartViewId = chartview_id
+	if chartview then
+		local chartview_id = self.selectModel.chartview.id
+
+		if chartview_id ~= self.prevChartViewId then
+			self:notechartChanged()
+			self.prevChartViewId = chartview_id
+		end
 	end
 
 	self.settingsView.modalActive = self.modal == nil
@@ -174,10 +178,12 @@ function SelectView:changeGroup(name)
 	end
 
 	selected_group = name
+	self.viewConfig:selectGroup(name)
 end
 
 function SelectView:select()
 	if selected_group == "charts" then
+		print("da")
 		self:play()
 		return
 	end
