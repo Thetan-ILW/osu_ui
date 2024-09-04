@@ -2,6 +2,7 @@ local IViewConfig = require("osu_ui.views.IViewConfig")
 local Layout = require("osu_ui.views.OsuLayout")
 
 local ui = require("osu_ui.ui")
+local flux = require("flux")
 
 ---@type table<string, love.Font>
 local font
@@ -22,8 +23,6 @@ local edit ---@type osu.ui.Button
 local file_manager ---@type osu.ui.Button
 local cancel ---@type osu.ui.Button
 
-local open_time = 0
-
 ---@param game sphere.GameController
 ---@param this_modal osu.ui.ChartOptionsModal
 ---@param assets osu.ui.OsuAssets
@@ -31,7 +30,8 @@ function ViewConfig:new(game, this_modal, assets)
 	self.game = game
 	self.assets = assets
 	self.thisModal = this_modal
-	open_time = love.timer.getTime()
+	self.openAnimation = 0
+	self.openAnimationTween = flux.to(self, 2, { openAnimation = 1 }):ease("elasticout")
 end
 
 local scale = 0.9
@@ -141,7 +141,13 @@ function ViewConfig:draw(view)
 	local total_h = (h / 2) - ((bh / 2) * 6)
 	gfx.translate(w / 2 - bw / 2, 10 + total_h)
 
-	local a = ui.easeOutCubic(open_time, 1) * 50
+	local a = self.openAnimation
+
+	if a > 1 then
+		a = 1 - (a - 1)
+	end
+
+	a = a * 50
 
 	gfx.translate(50 - a, 0)
 	manage_locations:update(true)
@@ -151,7 +157,6 @@ function ViewConfig:draw(view)
 	gfx.translate(-50 + a, 0)
 	export_to_osu:update(true)
 	export_to_osu:draw()
-
 	gfx.translate(-a + 50, 0)
 
 	gfx.translate(50 - a, 0)

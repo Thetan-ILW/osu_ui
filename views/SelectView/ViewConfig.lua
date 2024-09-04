@@ -156,7 +156,7 @@ function ViewConfig:createUI(view)
 		ay = "bottom",
 		hoverArea = { w = 74, h = 90 },
 	}, function()
-		view.notificationView:show("Not implemented")
+		view:openModal("osu_ui.views.modals.Modifiers")
 	end)
 
 	buttons.random = ImageButton(assets, {

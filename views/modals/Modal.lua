@@ -5,6 +5,7 @@ local gfx_util = require("gfx_util")
 
 ---@class osu.ui.Modal
 ---@operator call: osu.ui.Modal
+---@field viewConfig osu.ui.IViewConfig
 ---@field name string
 ---@field showTween table?
 ---@field hideTween table?

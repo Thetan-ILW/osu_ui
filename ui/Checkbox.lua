@@ -16,7 +16,7 @@ local math_util = require("math_util")
 local Checkbox = UiElement + {}
 
 ---@param assets osu.ui.OsuAssets
----@param params { text: string, font: love.Font, pixelWidth: number, pixelHeight: number, defaultValue: boolean?, tip: string? }
+---@param params { text: string, font: love.Font, pixelWidth: number?, pixelHeight: number, defaultValue: boolean?, tip: string? }
 ---@param get_value function
 ---@param on_change function
 function Checkbox:new(assets, params, get_value, on_change)
@@ -34,6 +34,10 @@ function Checkbox:new(assets, params, get_value, on_change)
 	self.imgOff = assets.images.checkboxOff
 	local ih = self.imgOff:getHeight()
 	self.imageScale = self.totalH / ih
+
+	if not self.totalW then
+		self.totalW = self.imgOn:getHeight() * self.imageScale + self.label:getWidth()
+	end
 
 	self.changeTime = -math.huge
 	self.hoverState = HoverState("linear", 0)

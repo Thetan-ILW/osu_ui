@@ -6,6 +6,8 @@ local ViewConfig = require("osu_ui.views.modals.ChartOptions.ViewConfig")
 ---@operator call: osu.ui.ChartOptionsModal
 local ChartOptionsModal = Modal + {}
 
+ChartOptionsModal.name = "Chart options"
+
 ---@param game sphere.GameController
 function ChartOptionsModal:new(game, assets)
 	self.game = game

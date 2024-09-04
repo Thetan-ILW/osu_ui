@@ -111,6 +111,21 @@ function ListView:input(w, h)
 	end
 end
 
+local item_even = { 0, 0, 0, 0.1 }
+local item_odd = { 0.3, 0.3, 0.3, 0.3 }
+local item_hover = { 0.89, 0.47, 0.56, 0.5 }
+
+function ListView:drawItemBody(w, h, i, hover)
+	local item_color = (i % 2) == 1 and item_even or item_odd
+
+	if hover then
+		item_color = item_hover
+	end
+
+	love.graphics.setColor(item_color)
+	love.graphics.rectangle("fill", 0, 0, w, h)
+end
+
 function ListView:mouseClick(w, h, i) end
 
 function ListView:update(w, h)

@@ -23,6 +23,11 @@ function UiElement:getDimensions()
 end
 
 ---@return number
+function UiElement:getWidth()
+	return self.totalW
+end
+
+---@return number
 function UiElement:getHeight()
 	return self.totalH
 end
