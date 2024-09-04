@@ -85,6 +85,9 @@ return function(assets, view)
 	local config = view.game.configModel.configs
 	local settings = config.settings
 	local g = settings.gameplay
+	local gf = settings.graphics
+	local dim = gf.dim
+	local blur = gf.blur
 	---@type osu.OsuConfig
 	local osu = config.osu_ui
 	---@type sphere.SpeedModel
@@ -249,6 +252,30 @@ return function(assets, view)
 	end, function()
 		g.hp.shift = not g.hp.shift
 	end)
+
+	c:createGroup("visuals", text.visuals)
+	Elements.currentGroup = "visuals"
+
+	Elements.sliderPixelWidth = 265
+
+	local background = { min = 0, max = 1, increment = 0.01 }
+	slider(text.backgroundDim, 0.8, nil, function()
+		return dim.gameplay, background
+	end, function(v)
+		dim.gameplay = v
+	end, function(v)
+		return ("%i%%"):format(v * 100)
+	end)
+
+	slider(text.backgroundBlur, 0, nil, function()
+		return blur.gameplay, background
+	end, function(v)
+		blur.gameplay = v
+	end, function(v)
+		return ("%i%%"):format(v * 100)
+	end)
+
+	Elements.sliderPixelWidth = nil
 
 	c:createGroup("other", text.other)
 	Elements.currentGroup = "other"

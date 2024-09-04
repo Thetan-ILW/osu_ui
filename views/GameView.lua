@@ -5,6 +5,7 @@ local FadeTransition = require("ui.views.FadeTransition")
 local FrameTimeView = require("ui.views.FrameTimeView")
 local AsyncTasksView = require("ui.views.AsyncTasksView")
 local NotificationView = require("osu_ui.views.NotificationView")
+local PopupView = require("osu_ui.views.PopupView")
 local OsuAssets = require("osu_ui.OsuAssets")
 
 ---@class osu.ui.GameView
@@ -14,6 +15,7 @@ local OsuAssets = require("osu_ui.OsuAssets")
 ---@field actionModel osu.ui.ActionModel
 ---@field assetModel osu.ui.AssetModel
 ---@field assets osu.ui.OsuAssets
+---@field cursorVisible boolean
 local GameView = class()
 
 local last_height_check = -math.huge
@@ -27,6 +29,9 @@ function GameView:new(game, ui)
 	self.fadeTransition = FadeTransition()
 	self.frameTimeView = FrameTimeView()
 	self.notificationView = NotificationView()
+	self.popupView = PopupView()
+	self.screenshotSaveLocation = love.filesystem.getSource() .. "/userdata/screenshots"
+	self.cursorVisible = true
 end
 
 function GameView:load()
@@ -38,6 +43,7 @@ function GameView:load()
 	self.actionModel = self.ui.actionModel
 	self:loadAssets()
 	self.notificationView:load(self.assets)
+	self.popupView:load(self.assets)
 	self:setView(self.ui.mainMenuView)
 end
 
@@ -134,6 +140,33 @@ function GameView:update(dt)
 
 	ui.setTextScale(math.min(768 / wh, 1))
 	self.view:update(dt)
+
+	if ui.keyPressed("f12") then
+		self.popupView:add(("Saved screenshot to %s"):format(self.screenshotSaveLocation), "purple", function()
+			love.system.openURL(self.screenshotSaveLocation)
+		end)
+	end
+end
+
+function GameView:setCursorVisible(v)
+	self.cursorVisible = v
+end
+
+local gfx = love.graphics
+
+function GameView:drawCursor()
+	if not self.cursorVisible then
+		return
+	end
+
+	gfx.origin()
+	gfx.setColor(1, 1, 1)
+
+	local x, y = love.mouse.getPosition()
+
+	local cursor = self.assets.images.cursor
+	local iw, ih = cursor:getDimensions()
+	gfx.draw(cursor, x - iw / 2, y - ih / 2)
 end
 
 function GameView:draw()
@@ -143,7 +176,9 @@ function GameView:draw()
 
 	self.fadeTransition:drawBefore()
 	self.view:draw()
+	self.popupView:draw()
 	self.notificationView:draw()
+	self:drawCursor()
 	self.fadeTransition:drawAfter()
 	self.frameTimeView:draw()
 

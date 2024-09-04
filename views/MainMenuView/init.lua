@@ -217,22 +217,10 @@ end
 
 local gfx = love.graphics
 
-function MainMenuView:drawCursor()
-	gfx.origin()
-	gfx.setColor(1, 1, 1, self.afkPercent)
-
-	local x, y = love.mouse.getPosition()
-
-	local cursor = self.assets.images.cursor
-	local iw, ih = cursor:getDimensions()
-	gfx.draw(cursor, x - iw / 2, y - ih / 2)
-end
-
 function MainMenuView:draw()
 	self.viewConfig:draw(self)
 	self.settingsView:draw()
 	self:drawModal()
-	self:drawCursor()
 
 	if self.state == "outro" then
 		gfx.origin()

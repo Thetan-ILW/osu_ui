@@ -9,7 +9,7 @@ local NotificationView = class()
 
 ---@param assets osu.ui.OsuAssets
 function NotificationView:load(assets)
-	self.font = assets.localization.fontGroups.misc.notification
+	self.fonts = assets.localization.fontGroups.misc
 	self.animation = 0
 end
 
@@ -59,7 +59,7 @@ function NotificationView:draw()
 	gfx.rectangle("fill", 0, y, w, rh)
 
 	gfx.setColor(1, 1, 1, animation)
-	gfx.setFont(self.font)
+	gfx.setFont(self.fonts.notification)
 	ui.frame(self.text, 0, y, w, rh, "center", "center")
 	gfx.pop()
 end

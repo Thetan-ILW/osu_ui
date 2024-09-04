@@ -104,7 +104,9 @@ function GameplayView:update(dt)
 	local state = self.game.pauseModel.state
 	if state == "play" then
 		self.subscreen = ""
+		self.gameView:setCursorVisible(false)
 	elseif state == "pause" then
+		self.gameView:setCursorVisible(true)
 		if self.subscreen == "" then
 			self.pauseScreen:show()
 		end

@@ -235,17 +235,6 @@ end
 
 local gfx = love.graphics
 
-function SelectView:drawCursor()
-	gfx.origin()
-	gfx.setColor(1, 1, 1)
-
-	local x, y = love.mouse.getPosition()
-
-	local cursor = self.assets.images.cursor
-	local iw, ih = cursor:getDimensions()
-	gfx.draw(cursor, x - iw / 2, y - ih / 2)
-end
-
 function SelectView:resolutionUpdated()
 	self.viewConfig:resolutionUpdated(self)
 
@@ -269,7 +258,6 @@ function SelectView:draw()
 	self.settingsView:draw()
 
 	self:drawModal()
-	self:drawCursor()
 end
 
 return SelectView

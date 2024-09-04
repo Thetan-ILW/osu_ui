@@ -75,6 +75,10 @@ l.textGroups = {
 		pause = "Pause",
 		quit = "Quit",
 		autoShift = "Auto shift",
+		-- Visuals
+		visuals = "VISUALS",
+		backgroundDim = "Background dim:",
+		backgroundBlur = "Background blur:",
 		-- Other
 		ratingWindow = "Rating hit timing window:",
 		lastMeanValues = "Last mean values:",
@@ -241,6 +245,7 @@ l.fontGroups = {
 	misc = {
 		backButton = { "Aller", 20, "ZenMaruGothic-Regular" },
 		notification = { "Aller", 24, "ZenMaruGothic-Regular" },
+		popup = { "Aller", 14, "ZenMaruGothic-Regular" },
 	},
 	mainMenu = {
 		username = { "Aller", 20, "ZenMaruGothic-Regular" },
