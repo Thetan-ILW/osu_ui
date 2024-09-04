@@ -26,7 +26,7 @@ function SkinPreview:new(assets, pixel_width)
 	self.hoverState = HoverState("linear", 0)
 end
 
----@param image love.Image
+---@param image love.Image?
 function SkinPreview:setImage(image)
 	if not image then
 		if self.image ~= nil then

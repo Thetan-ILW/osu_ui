@@ -19,9 +19,9 @@ local skin = require("osu_ui.views.SettingsView.skin")
 local input = require("osu_ui.views.SettingsView.input")
 local maintenance = require("osu_ui.views.SettingsView.maintenance")
 
----@class osu.SettingsView
----@operator call: osu.SettingsView
----@field assets osu.OsuAssets
+---@class osu.ui.SettingsView
+---@operator call: osu.ui.SettingsView
+---@field assets osu.ui.OsuAssets
 ---@field game sphere.GameController
 ---@field state "hidden" | "fade_in" | "visible" | "fade_out"
 ---@field visibility number
@@ -54,11 +54,11 @@ local font
 
 ---@param assets osu.ui.OsuAssets
 ---@param game sphere.GameController
----@param ui osu.ui.UserInterface
-function SettingsView:new(assets, game, ui)
+---@param game_ui osu.ui.UserInterface
+function SettingsView:new(assets, game, game_ui)
 	self.assets = assets
 	self.game = game
-	self.ui = ui
+	self.ui = game_ui
 	self.viewConfig = ViewConfig(self, assets)
 	self.visibility = 0
 	self.state = "hidden"
@@ -70,14 +70,14 @@ function SettingsView:new(assets, game, ui)
 	self.hoverTime = 0
 	self.modalActive = true
 
-	local asset_model = ui.assetModel
+	local asset_model = game_ui.assetModel
 	self.osuSkins = asset_model:getOsuSkins()
 	self.skinPreview = SkinPreview(assets, consts.settingsWidth - consts.tabIndentIndent - consts.tabIndent)
 
 	local input_mode = tostring(game.selectController.state.inputMode)
 	local selected_note_skin = game.noteSkinModel:getNoteSkin(input_mode)
 
-	if selected_note_skin then -- TODO: Notification: failed to load skin
+	if selected_note_skin then
 		local skin_preview_img = asset_model:loadSkinPreview(selected_note_skin.directoryPath)
 		self.skinPreview:setImage(skin_preview_img)
 	end
@@ -120,7 +120,7 @@ function SettingsView:build(tab)
 		table.insert(self.containers, gameplay(assets, self))
 		table.insert(self.containers, audio(assets, self))
 		table.insert(self.containers, skin(assets, self, self.skinPreview))
-		table.insert(self.containers, input(assets, self))
+		table.insert(self.containers, input(assets, self, self.ui))
 		table.insert(self.containers, maintenance(assets, self))
 	else
 		if tab == "gameplay" then

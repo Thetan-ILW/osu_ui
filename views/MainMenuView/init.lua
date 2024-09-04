@@ -39,6 +39,7 @@ function MainMenuView:load()
 
 	if show_intro then
 		local snd = self.assets.sounds
+		self.gameView:setCursorVisible(false)
 		snd.welcome:play()
 		snd.welcomePiano:play()
 		show_intro = false
@@ -93,9 +94,11 @@ function MainMenuView:processState(event)
 				self.tween:stop()
 			end
 			self.tween = flux.to(self, 0.4, { afkPercent = 1 }):ease("quadout")
+			self.gameView:setCursorVisible(true)
 		end
 		if self.afkPercent == 0 then
 			self.state = "afk"
+			self.gameView:setCursorVisible(false)
 		end
 	elseif state == "fade_in" then
 		if self.afkPercent == 1 then
@@ -104,6 +107,7 @@ function MainMenuView:processState(event)
 	elseif state == "intro" then
 		if self.introPercent == 1 then
 			self.state = "normal"
+			self.gameView:setCursorVisible(true)
 		end
 
 		local animation = math.pow(self.introPercent, 16)

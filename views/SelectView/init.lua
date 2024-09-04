@@ -18,8 +18,6 @@ local InputMap = require("osu_ui.views.SelectView.InputMap")
 ---@field selectModel sphere.SelectModel
 local SelectView = ScreenView + {}
 
-local window_height = 768
-
 local ui_lock = false
 
 function SelectView:load()
@@ -44,8 +42,8 @@ function SelectView:load()
 
 	BackgroundView.game = self.game
 
-	window_height = love.graphics.getHeight()
 	love.mouse.setVisible(false)
+	self.gameView:setCursorVisible(true)
 
 	self:notechartChanged()
 end

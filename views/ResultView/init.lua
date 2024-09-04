@@ -1,7 +1,5 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 local thread = require("thread")
-local math_util = require("math_util")
-local ui = require("osu_ui.ui")
 
 local OsuLayout = require("osu_ui.views.OsuLayout")
 local ViewConfig = require("osu_ui.views.ResultView.ViewConfig")

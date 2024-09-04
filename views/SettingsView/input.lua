@@ -5,10 +5,11 @@ local function formatMs(v)
 	return ("%dms"):format(v)
 end
 
----@param assets osu.OsuAssets
----@param view osu.SettingsView
+---@param assets osu.ui.OsuAssets
+---@param view osu.ui.SettingsView
+---@param ui osu.ui.UserInterface
 ---@return osu.SettingsView.GroupContainer?
-return function(assets, view)
+return function(assets, view, ui)
 	local text, font = assets.localization:get("settings")
 	assert(text and font)
 
@@ -29,7 +30,9 @@ return function(assets, view)
 	c:createGroup("keyboard", text.keyboard)
 	Elements.currentGroup = "keyboard"
 
-	button(text.maniaLayout, function() end)
+	button(text.maniaLayout, function()
+		ui.gameView.notificationView:show("Not implemented. Go back to default UI and bind buttons there.")
+	end)
 
 	c:createGroup("offsetAdjustment", text.offsetAdjustment)
 	Elements.currentGroup = "offsetAdjustment"

@@ -21,6 +21,7 @@ local getModifierString = require("osu_ui.views.modifier_string")
 local ImageButton = require("osu_ui.ui.ImageButton")
 local Combo = require("osu_ui.ui.Combo")
 local BackButton = require("osu_ui.ui.BackButton")
+local HoverState = require("osu_ui.ui.HoverState")
 
 local NoteChartSetListView = require("osu_ui.views.SelectView.NoteChartSetListView")
 local CollectionListView = require("osu_ui.views.SelectView.CollectionListView")
@@ -100,6 +101,8 @@ end
 
 ---@type osu.ui.BackButton?
 local back_button
+---@type osu.ui.HoverState
+local osu_logo_button
 
 ---@type table<string, osu.ui.ImageButton>
 local buttons = {}
@@ -219,6 +222,8 @@ function ViewConfig:createUI(view)
 		chart_list_update_time = love.timer.getTime() + 0.4
 		view:changeGroup(v)
 	end, formatGroupSort)
+
+	osu_logo_button = HoverState("quadout", 0.4)
 end
 
 ---@param view osu.SelectView
@@ -528,8 +533,13 @@ function ViewConfig:bottom(view)
 	gfx.rectangle("line", 0, 0, 197, 10, 6, 6)
 
 	w, h = Layout:move("base")
+	local hover, animation = osu_logo_button:check(200, 90, w - 200, h - 90, has_focus)
 	iw, ih = img.osuLogo:getDimensions()
 	iw, ih = iw * 0.45, ih * 0.45
+
+	if hover and ui.mousePressed(1) then
+		view:play()
+	end
 
 	gfx.setColor(white)
 	gfx.translate(w - iw - (iw / 2 * (1 + beat * 1.2)) + 170, h - ih - (ih / 2 * (1 + beat * 1.2)) + 196)
