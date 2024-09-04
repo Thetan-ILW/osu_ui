@@ -8,14 +8,20 @@ local BackgroundView = require("sphere.views.BackgroundView")
 
 local InputMap = require("osu_ui.views.ResultView.InputMap")
 
+local Soundsphere = require("sphere.models.RhythmModel.ScoreEngine.SoundsphereScoring")
+local OsuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
+local OsuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScoring")
+local Etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
+local Lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
+local Quaver = require("sphere.models.RhythmModel.ScoreEngine.QuaverScoring")
+
 ---@class osu.ui.ResultView: osu.ui.ScreenView
 ---@operator call: osu.ui.ResultView
+---@field judgeName string
+---@field judgements table
+---@field viewConfig osu.ui.ResultViewConfig
 local ResultView = ScreenView + {}
 
-ResultView.currentJudgeName = ""
-ResultView.currentJudge = 0
-
-local window_height = 0
 local dim = 0
 local background_blur = 0
 
@@ -53,29 +59,37 @@ ResultView.load = thread.coro(function(self)
 	self.viewConfig = ViewConfig(self.game, self.assets, is_after_gameplay, self)
 	--end
 
-	local configs = self.game.configModel.configs
-	local select = configs.select
-	local osu = configs.osu_ui
-
-	self.judgements = self.game.rhythmModel.scoreEngine.scoreSystem.judgements
-	self.currentJudgeName = select.judgements
-	self.currentJudge = osu.judgement
-
-	if not self.judgements[self.currentJudgeName] then
-		local k, _ = next(self.judgements)
-		select.judgements = k
-		self.currentJudgeName = k
-	end
-
 	self.actionModel.enable()
+	self:setJudge()
 	self.viewConfig:loadScore(self)
 
 	canDraw = true
 	loading = false
 
-	window_height = love.graphics.getHeight()
 	love.mouse.setVisible(false)
 end)
+
+local scoring = {
+	["osu!legacy"] = OsuLegacy,
+	["osu!mania"] = OsuMania,
+	["Etterna"] = Etterna,
+	["Quaver"] = Quaver,
+	["Lunatic rave 2"] = Lr2,
+	["soundsphere"] = Soundsphere,
+}
+
+function ResultView:setJudge()
+	local score_system = self.game.rhythmModel.scoreEngine.scoreSystem
+	local judgements = score_system.judgements
+
+	local configs = self.game.configModel.configs
+	local osu = configs.osu_ui
+	local ss = osu.scoreSystem
+	local judge = osu.judgement
+	local judge_name = scoring[ss].metadata.name:format(judge)
+	self.judgement = judgements[judge_name]
+	self.judgements = judgements
+end
 
 function ResultView:unload()
 	self.viewConfig:unload()
@@ -97,7 +111,6 @@ function ResultView:update()
 end
 
 function ResultView:resolutionUpdated()
-	window_height = self.assets.localization:updateScale()
 	self.viewConfig:resolutionUpdated(self)
 end
 

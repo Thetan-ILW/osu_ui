@@ -28,7 +28,6 @@ local font
 local isOnlineScore = false
 
 local judge
-local judgeName
 local counterNames
 
 local marvelousValue
@@ -259,19 +258,19 @@ function ViewConfig:loadScore(view)
 	local configs = view.game.configModel.configs
 	local osu = configs.osu_ui
 
-	local scoreSystems = view.game.rhythmModel.scoreEngine.scoreSystem
-	judgeName = view.currentJudgeName
-	judge = scoreSystems.judgements[judgeName]
+	judge = view.judgement
 	counterNames = judge.orderedCounters
 
-	marvelousValue.value = judge.counters[counterNames[1]]
-	perfectValue.value = judge.counters[counterNames[2]]
-	missValue.value = judge.counters["miss"]
+	local counters = judge.counters
 
-	if judgeName ~= "soundsphere" then
-		greatValue.value = judge.counters[counterNames[3]]
-		goodValue.value = judge.counters[counterNames[4]]
-		badValue.value = judge.counters[counterNames[5]]
+	marvelousValue.value = counters[counterNames[1]]
+	perfectValue.value = counters[counterNames[2]]
+	missValue.value = counters["miss"]
+
+	if judge.scoreSystemName ~= "soundsphere" then
+		greatValue.value = counters[counterNames[3]]
+		goodValue.value = counters[counterNames[4]]
+		badValue.value = counters[counterNames[5]]
 	end
 
 	accuracyValue.value = judge.accuracy
