@@ -13,8 +13,6 @@ local table_util = require("table_util")
 local msd_util = require("osu_ui.msd_util")
 local Format = require("sphere.views.Format")
 
---local TextInput = require("thetan.irizz.imgui.TextInput")
-
 local getBeatValue = require("osu_ui.views.beat_value")
 local getModifierString = require("osu_ui.views.modifier_string")
 
@@ -35,7 +33,7 @@ local font
 ---@type table<string, love.Image>
 local img
 
----@type skibidi.ActionModel
+---@type osu.ui.ActionModel
 local action_model
 
 local gfx = love.graphics
@@ -226,8 +224,8 @@ function ViewConfig:createUI(view)
 	osu_logo_button = HoverState("quadout", 0.4)
 end
 
----@param view osu.SelectView
----@param _assets osu.OsuAssets
+---@param view osu.ui.SelectView
+---@param _assets osu.ui.OsuAssets
 function ViewConfig:new(view, assets)
 	local game = view.game
 	self.assets = assets
@@ -235,7 +233,7 @@ function ViewConfig:new(view, assets)
 	brighten_shader = assets.shaders.brighten
 	img = assets.images
 
-	action_model = game.actionModel
+	action_model = view.actionModel
 
 	text = assets.localization.textGroups.songSelect
 	font = assets.localization.fontGroups.songSelect
@@ -706,6 +704,8 @@ function ViewConfig:modeLogo()
 	gfx.draw(image)
 end
 
+local search = ""
+
 ---@param view osu.ui.SelectView
 function ViewConfig:search(view)
 	local insert_mode = action_model.isInsertMode()
@@ -728,25 +728,20 @@ function ViewConfig:search(view)
 
 	local vim_motions = action_model.isVimMode()
 
+	local changed = false
 	if (not vim_motions or insert_mode) and has_focus then
-		ui.focus("SearchField")
+		changed, search = ui.textInput(search)
 	end
 
-	local config = view.game.configModel.configs.select
-
-	gfx.push()
-	local changed, input = TextInput("SearchField", { config.filterString, "" }, nil, w, h) -- PLEASE, REWRITE THIS THING
-	gfx.pop()
-
-	if input == "" then
+	if search == "" then
 		ui.text(text.typeToSearch)
 	else
-		ui.text(input)
+		ui.text(search)
 	end
 
 	if action_model.isEnabled() then
 		if changed == "text" then
-			view:updateSearch(input)
+			view:updateSearch(search)
 		end
 
 		local delete_all = action_model.consumeAction("deleteLine")
@@ -831,7 +826,7 @@ function ViewConfig:draw(view)
 	self:chartInfo()
 
 	if selected_group == "charts" then
-		--self:search(view)
+		self:search(view)
 	end
 
 	self:topUI(view)

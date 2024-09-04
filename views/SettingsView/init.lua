@@ -19,6 +19,8 @@ local skin = require("osu_ui.views.SettingsView.skin")
 local input = require("osu_ui.views.SettingsView.input")
 local maintenance = require("osu_ui.views.SettingsView.maintenance")
 
+local Layout = require("osu_ui.views.OsuLayout")
+
 ---@class osu.ui.SettingsView
 ---@operator call: osu.ui.SettingsView
 ---@field assets osu.ui.OsuAssets
@@ -249,7 +251,8 @@ function SettingsView:update(dt)
 		additional_pos = additional_pos + c.height
 	end
 
-	if self.state == "hidden" then
+	Layout:move("base")
+	if self.state == "hidden" or not ui.isOver(438 + 64, 768) then
 		return
 	end
 
