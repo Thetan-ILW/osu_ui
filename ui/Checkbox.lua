@@ -36,7 +36,7 @@ function Checkbox:new(assets, params, get_value, on_change)
 	self.imageScale = self.totalH / ih
 
 	if not self.totalW then
-		self.totalW = self.imgOn:getHeight() * self.imageScale + self.label:getWidth()
+		self.totalW = self.imgOn:getWidth() * self.imageScale + self.label:getWidth()
 	end
 
 	self.changeTime = -math.huge
