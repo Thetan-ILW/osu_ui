@@ -16,13 +16,9 @@ local Layout = require("osu_ui.views.OsuLayout")
 ---@field hoverRectTween table?
 ---@field tabFocusAnimation number
 ---@field tabFocusTween table?
----@field tipAnimation number
----@field tipTween table?
----@field currentTip string?
 local ViewConfig = IViewConfig + {}
 
 local visibility = 0
-local tip_hover = false
 
 ---@type table<string, love.Image>
 local img
@@ -44,7 +40,6 @@ function ViewConfig:new(view, assets)
 	self.hoverRectTargetPosition = 0
 	self.hoverRectTargetSize = 0
 	self.tabFocusAnimation = 1
-	self.tipAnimation = 0
 end
 
 local tab_image_height = 64
@@ -94,41 +89,6 @@ function ViewConfig:tabs(view)
 			- (tab_image_height * tab_image_scale / 2)
 	)
 	gfx.rectangle("fill", 0, 0, 6, tab_image_height)
-end
-
-function ViewConfig:tip()
-	if self.tipAnimation == 0 then
-		return
-	end
-
-	local text = self.currentTip
-
-	if not text then
-		return
-	end
-
-	local sw, sh = Layout:move("base")
-	local mx, my = gfx.inverseTransformPoint(love.mouse.getPosition())
-
-	local f = font.tip
-	local w = f:getWidth(text) * ui.getTextScale() + 12
-	local h = f:getHeight() * ui.getTextScale() + 4
-
-	local x = math_util.clamp(mx - w / 2, 2, sw - 2)
-	local y = my + img.cursor:getHeight() / 2
-
-	local a = self.tipAnimation
-
-	gfx.setColor(0, 0, 0, a)
-	gfx.rectangle("fill", x, y, w, h, 4, 4)
-
-	gfx.setColor(1, 1, 1, 0.5 * a)
-	gfx.setLineWidth(1)
-	gfx.rectangle("line", x, y, w, h, 4, 4)
-
-	gfx.setColor(1, 1, 1, a)
-	gfx.setFont(f)
-	ui.frame(text, x, y, w, h, "center", "center")
 end
 
 ---@param view osu.SettingsView
@@ -184,13 +144,10 @@ function ViewConfig:panel(view)
 
 	---@type osu.ui.Combo[]
 	local open_combos = {}
-	---@type string?
-	local tip = nil
 
 	for _, c in ipairs(view.containers) do
 		if -view.scrollPosition + 768 > c.position and -view.scrollPosition < c.position + c.height then
 			c:draw(self.focus)
-			tip = tip or c.tip
 
 			if #c.openCombos ~= 0 then
 				for _, combo in ipairs(c.openCombos) do
@@ -229,30 +186,6 @@ function ViewConfig:panel(view)
 	gfx.draw(canvas)
 	gfx.setBlendMode("alpha")
 	gfx.setScissor()
-
-	if tip then
-		if not tip_hover then
-			if self.tipTween then
-				self.tipTween:stop()
-			end
-			self.tipTween = flux.to(self, 0.2, { tipAnimation = 1 }):ease("quadout")
-		end
-
-		self.currentTip = tip
-
-		tip_hover = true
-	else
-		if tip_hover then
-			if self.tipTween then
-				self.tipTween:stop()
-			end
-			self.tipTween = flux.to(self, 0.2, { tipAnimation = 0 }):ease("quadout")
-		end
-
-		tip_hover = false
-	end
-
-	self:tip()
 end
 
 ---@param view osu.SettingsView

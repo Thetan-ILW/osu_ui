@@ -41,6 +41,7 @@ function GameplayView:load()
 	self.pauseScreen = OsuPauseScreen(assets)
 
 	self.actionModel.disable()
+	self.cursor.alpha = 0
 end
 
 function GameplayView:unload()
@@ -48,6 +49,9 @@ function GameplayView:unload()
 	self.game.gameplayController:unload()
 	self.game.rhythmModel.observable:remove(self.sequenceView)
 	self.sequenceView:unload()
+	local volume = volumeConfig.master * volumeConfig.music
+	preview_model:setAudioPathPreview(preview_model.audio_path, audio_position, "absolute")
+	preview_model.audio:setVolume(0)
 end
 
 function GameplayView:retry()
@@ -104,9 +108,7 @@ function GameplayView:update(dt)
 	local state = self.game.pauseModel.state
 	if state == "play" then
 		self.subscreen = ""
-		self.gameView:setCursorVisible(false)
 	elseif state == "pause" then
-		self.gameView:setCursorVisible(true)
 		if self.subscreen == "" then
 			self.pauseScreen:show()
 		end

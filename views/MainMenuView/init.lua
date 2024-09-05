@@ -1,7 +1,6 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
 local flux = require("flux")
-local ui = require("osu_ui.ui")
 local ViewConfig = require("osu_ui.views.MainMenuView.ViewConfig")
 local InputMap = require("osu_ui.views.MainMenuView.InputMap")
 
@@ -16,7 +15,6 @@ local SettingsView = require("osu_ui.views.SettingsView")
 ---@field outroTween table?
 local MainMenuView = ScreenView + {}
 
-local window_height = 0
 local show_intro = true
 
 function MainMenuView:load()
@@ -28,7 +26,6 @@ function MainMenuView:load()
 
 	self.settingsView = SettingsView(self.assets, self.game, self.ui)
 
-	window_height = love.graphics.getHeight()
 	love.mouse.setVisible(false)
 
 	self.lastUserActionTime = love.timer.getTime()
@@ -39,7 +36,7 @@ function MainMenuView:load()
 
 	if show_intro then
 		local snd = self.assets.sounds
-		self.gameView:setCursorVisible(false)
+		self.cursor.alpha = 0
 		snd.welcome:play()
 		snd.welcomePiano:play()
 		show_intro = false
@@ -94,11 +91,9 @@ function MainMenuView:processState(event)
 				self.tween:stop()
 			end
 			self.tween = flux.to(self, 0.4, { afkPercent = 1 }):ease("quadout")
-			self.gameView:setCursorVisible(true)
 		end
 		if self.afkPercent == 0 then
 			self.state = "afk"
-			self.gameView:setCursorVisible(false)
 		end
 	elseif state == "fade_in" then
 		if self.afkPercent == 1 then
@@ -107,7 +102,6 @@ function MainMenuView:processState(event)
 	elseif state == "intro" then
 		if self.introPercent == 1 then
 			self.state = "normal"
-			self.gameView:setCursorVisible(true)
 		end
 
 		local animation = math.pow(self.introPercent, 16)
@@ -152,6 +146,7 @@ function MainMenuView:update(dt)
 
 	self.viewConfig.hasFocus = (self.modal == nil) and not self.settingsView:isFocused() and not self.changingScreen
 	self:processState()
+	self.cursor.alpha = self.afkPercent
 end
 
 function MainMenuView:edit()
@@ -191,8 +186,6 @@ function MainMenuView:sendQuitSignal()
 end
 
 function MainMenuView:resolutionUpdated()
-	window_height = self.assets.localization:updateScale()
-
 	self.viewConfig:resolutionUpdated()
 	self.settingsView:resolutionUpdated()
 

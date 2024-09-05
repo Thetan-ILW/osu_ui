@@ -21,6 +21,9 @@ ui.textInput = just.textinput
 ui.row = just.row
 ui.resetJust = just.reset
 
+---@type string?
+ui.tooltip = nil
+
 local text_transform = love.math.newTransform()
 local text_scale = 1
 

@@ -6,6 +6,8 @@ local FrameTimeView = require("ui.views.FrameTimeView")
 local AsyncTasksView = require("ui.views.AsyncTasksView")
 local NotificationView = require("osu_ui.views.NotificationView")
 local PopupView = require("osu_ui.views.PopupView")
+local TooltipView = require("osu_ui.views.TooltipView")
+local CursorView = require("osu_ui.views.CursorView")
 local OsuAssets = require("osu_ui.OsuAssets")
 
 ---@class osu.ui.GameView
@@ -15,7 +17,6 @@ local OsuAssets = require("osu_ui.OsuAssets")
 ---@field actionModel osu.ui.ActionModel
 ---@field assetModel osu.ui.AssetModel
 ---@field assets osu.ui.OsuAssets
----@field cursorVisible boolean
 local GameView = class()
 
 local last_height_check = -math.huge
@@ -23,15 +24,16 @@ local prev_window_res = 0
 
 ---@param game sphere.GameController
 ---@param ui osu.ui.UserInterface
-function GameView:new(game, ui)
+function GameView:new(game, game_ui)
 	self.game = game
-	self.ui = ui
+	self.ui = game_ui
 	self.fadeTransition = FadeTransition()
 	self.frameTimeView = FrameTimeView()
 	self.notificationView = NotificationView()
 	self.popupView = PopupView()
+	self.tooltipView = TooltipView()
+	self.cursor = CursorView()
 	self.screenshotSaveLocation = love.filesystem.getSource() .. "/userdata/screenshots"
-	self.cursorVisible = true
 end
 
 function GameView:load()
@@ -44,6 +46,8 @@ function GameView:load()
 	self:loadAssets()
 	self.notificationView:load(self.assets)
 	self.popupView:load(self.assets)
+	self.tooltipView:load(self.assets)
+	self.cursor:load(self.assets)
 	self:setView(self.ui.mainMenuView)
 end
 
@@ -84,6 +88,7 @@ function GameView:_setView(view)
 	self.view.assetModel = self.ui.assetModel
 	self.view.assets = self.assets
 	self.view.notificationView = self.notificationView
+	self.view.cursor = self.cursor
 	self.view:load()
 end
 
@@ -139,34 +144,15 @@ function GameView:update(dt)
 	end
 
 	ui.setTextScale(math.min(768 / wh, 1))
+	self.tooltipView:update()
 	self.view:update(dt)
+	self.cursor:update(dt)
 
 	if ui.keyPressed("f12") then
 		self.popupView:add(("Saved screenshot to %s"):format(self.screenshotSaveLocation), "purple", function()
 			love.system.openURL(self.screenshotSaveLocation)
 		end)
 	end
-end
-
-function GameView:setCursorVisible(v)
-	self.cursorVisible = v
-end
-
-local gfx = love.graphics
-
-function GameView:drawCursor()
-	if not self.cursorVisible then
-		return
-	end
-
-	gfx.origin()
-	gfx.setColor(1, 1, 1)
-
-	local x, y = love.mouse.getPosition()
-
-	local cursor = self.assets.images.cursor
-	local iw, ih = cursor:getDimensions()
-	gfx.draw(cursor, x - iw / 2, y - ih / 2)
 end
 
 function GameView:draw()
@@ -178,7 +164,8 @@ function GameView:draw()
 	self.view:draw()
 	self.popupView:draw()
 	self.notificationView:draw()
-	self:drawCursor()
+	self.cursor:draw()
+	self.tooltipView:draw()
 	self.fadeTransition:drawAfter()
 	self.frameTimeView:draw()
 

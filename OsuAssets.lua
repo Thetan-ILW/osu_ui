@@ -19,19 +19,6 @@ local utf8validate = require("utf8validate")
 ---@field hasBackButton boolean
 local OsuAssets = Assets + {}
 
-local default_skin_ini = {
-	Colours = {
-		SongSelectActiveText = "0,0,0",
-		SongSelectInactiveText = "255,255,255",
-	},
-	Fonts = {
-		ScorePrefix = "score",
-		ScoreOverlap = 0,
-		accuracyNameX = 0,
-		accuracyNameY = 0,
-	},
-}
-
 local characters = {
 	"0",
 	"1",
@@ -91,10 +78,11 @@ function OsuAssets:new(skin_path, localization_file)
 
 	if content then
 		content = utf8validate(content)
-		skin_ini = OsuNoteSkin:parseSkinIni(content)
 	else
-		skin_ini = default_skin_ini
+		content = love.filesystem.read(self.defaultsDirectory .. "skin.ini")
 	end
+
+	skin_ini = OsuNoteSkin:parseSkinIni(content)
 
 	self:loadLocalization(localization_file)
 
@@ -102,9 +90,11 @@ function OsuAssets:new(skin_path, localization_file)
 		songSelectActiveText = skin_ini.Colours.SongSelectActiveText,
 		songSelectInactiveText = skin_ini.Colours.SongSelectInactiveText,
 
-		scoreOverlap = skin_ini.Fonts.ScoreOverlap or 0,
-		accuracyNameX = skin_ini.Fonts.accuracyNameX or 0,
-		accuracyNameY = skin_ini.Fonts.accuracyNameY or 0,
+		cursorCenter = skin_ini.General.CursorCentre,
+		cursorExpand = skin_ini.General.CursorExpand,
+		cursorRotate = skin_ini.General.CursorRotate,
+
+		scoreOverlap = skin_ini.Fonts.ScoreOverlap,
 	}
 
 	self.images = {
@@ -152,6 +142,7 @@ function OsuAssets:new(skin_path, localization_file)
 		smallGradeX = self:loadImageOrDefault(skin_path, "ranking-X-small"),
 
 		cursor = self:loadImageOrDefault(skin_path, "cursor"),
+		cursorMiddle = self:loadImageOrDefault(skin_path, "cursormiddle"),
 		cursorTrail = self:loadImageOrDefault(skin_path, "cursortrail"),
 
 		uiLock = self:loadImageOrDefault(skin_path, "ui-lock"),

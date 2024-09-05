@@ -86,7 +86,10 @@ function ViewConfig:createUI()
 	---@type sphere.TimeRateModel
 	local time_rate_model = self.game.timeRateModel
 
-	local format = time_rate_model.format[rate_type]
+	local rate_format = {
+		linear = "%0.2fx",
+		exp = "%0.fQ",
+	}
 	local rate_params = {
 		linear = { min = 0.75, max = 1.75, increment = 0.05 },
 		exp = { min = -6, max = 10, increment = 1 },
@@ -104,7 +107,7 @@ function ViewConfig:createUI()
 		self.game.modifierSelectModel:change()
 		time_rate_model:set(v)
 	end, function(v)
-		return format:format(v)
+		return rate_format[rate_type]:format(v)
 	end)
 
 	const_checkbox = Checkbox(assets, {

@@ -251,6 +251,7 @@ l.fontGroups = {
 		backButton = { "Aller", 20, "ZenMaruGothic-Regular" },
 		notification = { "Aller", 24, "ZenMaruGothic-Regular" },
 		popup = { "Aller", 14, "ZenMaruGothic-Regular" },
+		tooltip = { "Aller", 14, "ZenMaruGothic-Regular" },
 	},
 	mainMenu = {
 		username = { "Aller", 20, "ZenMaruGothic-Regular" },
@@ -270,7 +271,6 @@ l.fontGroups = {
 		combos = { "Aller", 16, "ZenMaruGothic-Regular" },
 		sliders = { "Aller", 16, "ZenMaruGothic-Regular" },
 		labels = { "Aller", 16, "ZenMaruGothic-Regular" },
-		tip = { "Aller", 14, "ZenMaruGothic-Regular" },
 	},
 	songSelect = {
 		chartName = { "Aller", 25, "ZenMaruGothic-Regular" },

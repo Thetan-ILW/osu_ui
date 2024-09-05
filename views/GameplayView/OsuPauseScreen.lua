@@ -32,7 +32,6 @@ function PauseViewConfig:show()
 
 	self.tween = flux.to(self, 0.22, { alpha = 1 }):ease("quadout")
 	snd.loop:play()
-	print("show")
 end
 
 function PauseViewConfig:hide()
@@ -158,6 +157,8 @@ function PauseViewConfig:draw(view, game_canvas)
 	local a = self.alpha
 	love.graphics.setColor(a, a, a, a)
 	love.graphics.draw(layer)
+
+	view.cursor.alpha = a
 end
 
 return PauseViewConfig

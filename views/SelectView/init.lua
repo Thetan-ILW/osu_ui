@@ -43,7 +43,7 @@ function SelectView:load()
 	BackgroundView.game = self.game
 
 	love.mouse.setVisible(false)
-	self.gameView:setCursorVisible(true)
+	self.cursor.alpha = 1
 
 	self:notechartChanged()
 end
@@ -183,7 +183,6 @@ end
 
 function SelectView:select()
 	if selected_group == "charts" then
-		print("da")
 		self:play()
 		return
 	end

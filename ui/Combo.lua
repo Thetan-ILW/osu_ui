@@ -165,10 +165,8 @@ function Combo:update(has_focus)
 		end
 	end
 
-	self.activeTip = nil
-
 	if self.hover then
-		self.activeTip = self.tip
+		ui.tooltip = self.tip
 	end
 
 	if self.hover and ui.mousePressed(1) then

@@ -9,7 +9,7 @@ local Label = require("osu_ui.ui.Label")
 ---@operator call: osu.SettingsView.GroupContainer
 ---@field assets osu.OsuAssets
 ---@field icon love.Image
----@field groups table<string, {name: string, height: number, elements: osu.UiElement[]}>
+---@field groups table<string, {name: string, height: number, elements: osu.ui.UiElement[]}>
 ---@field groupOrder string[]
 ---@field elementsHeight number
 ---@field position number
@@ -19,7 +19,6 @@ local Label = require("osu_ui.ui.Label")
 ---@field tabLabel osu.ui.Label
 ---@field isEmpty boolean
 ---@field openCombos osu.ui.Combo[]
----@field tip string?
 local GroupContainer = class()
 
 ---@type table<string, love.Font>
@@ -101,7 +100,7 @@ function GroupContainer:updateHeight()
 	self.height = tab_label + group_labels + spacing + self.elementsHeight + consts.containerSpacing
 end
 
----@param element osu.UiElement
+---@param element osu.ui.UiElement
 function GroupContainer:add(group, element)
 	self.isEmpty = false
 	assert(self.groups[group], "Group does not exist.")
@@ -128,7 +127,6 @@ function GroupContainer:draw(has_focus)
 	local current_position = self.tabLabel:getHeight() + consts.tabLabelSpacing + consts.containerSpacing
 
 	self.openCombos = {}
-	self.tip = nil
 
 	local focus = has_focus
 
@@ -157,7 +155,6 @@ function GroupContainer:draw(has_focus)
 
 		for _, element in ipairs(group.elements) do
 			element:update(focus)
-			self.tip = self.tip or element.activeTip
 
 			if element.state and element.state ~= "hidden" then
 				gfx.push()

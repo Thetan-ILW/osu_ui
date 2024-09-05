@@ -68,6 +68,7 @@ ResultView.load = thread.coro(function(self)
 	loading = false
 
 	love.mouse.setVisible(false)
+	self.cursor.alpha = 1
 end)
 
 local scoring = {
