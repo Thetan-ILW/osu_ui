@@ -32,6 +32,8 @@ local font
 
 ---@type table<string, love.Image>
 local img
+---@type table<string, audio.Source>
+local snd
 
 ---@type osu.ui.ActionModel
 local action_model
@@ -221,7 +223,7 @@ function ViewConfig:createUI(view)
 		view:changeGroup(v)
 	end, formatGroupSort)
 
-	osu_logo_button = HoverState("quadout", 0.4)
+	osu_logo_button = HoverState("quadout", 0.15)
 end
 
 ---@param view osu.ui.SelectView
@@ -232,6 +234,7 @@ function ViewConfig:new(view, assets)
 	avatar = assets.images.avatar
 	brighten_shader = assets.shaders.brighten
 	img = assets.images
+	snd = assets.sounds
 
 	action_model = view.actionModel
 
@@ -531,17 +534,20 @@ function ViewConfig:bottom(view)
 	gfx.rectangle("line", 0, 0, 197, 10, 6, 6)
 
 	w, h = Layout:move("base")
-	local hover, animation = osu_logo_button:check(200, 90, w - 200, h - 90, has_focus)
+	local hover, animation, just_hovered = osu_logo_button:check(200, 90, w - 200, h - 90, has_focus)
 	iw, ih = img.osuLogo:getDimensions()
-	iw, ih = iw * 0.45, ih * 0.45
+
+	if just_hovered then
+		ui.playSound(snd.hoverOverRect)
+	end
 
 	if hover and ui.mousePressed(1) then
 		view:play()
 	end
 
 	gfx.setColor(white)
-	gfx.translate(w - iw - (iw / 2 * (1 + beat * 1.2)) + 170, h - ih - (ih / 2 * (1 + beat * 1.2)) + 196)
-	gfx.draw(img.osuLogo, 0, 0, 0, 0.45 * (1 + beat))
+	local logo_scale = 0.45 * (1 + beat) + (animation * 0.08)
+	gfx.draw(img.osuLogo, w - 70, h - 50, 0, logo_scale, logo_scale, iw / 2, ih / 2)
 
 	w, h = Layout:move("base")
 	gfx.translate(0, h)

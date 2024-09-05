@@ -32,11 +32,6 @@ function TooltipView:fadeIn()
 		self.tween:stop()
 	end
 	self.tween = flux.to(self, 0.2, { alpha = 1 }):ease("quadout")
-
-	local f = self.fonts.tooltip
-	local _, lines = f:getWrap(self.text, 1000)
-	self.height = f:getHeight() * #lines * ui.getTextScale() + 4
-	self.width = f:getWidth(self.text) * ui.getTextScale() + 12
 end
 
 ---@private
@@ -48,12 +43,23 @@ function TooltipView:fadeOut()
 	self.tween = flux.to(self, 0.2, { alpha = 0 }):ease("quadout")
 end
 
+---@private
+function TooltipView:setDimensions(text)
+	local f = self.fonts.tooltip
+	local _, lines = f:getWrap(text, 1000)
+	self.height = f:getHeight() * #lines * ui.getTextScale() + 4
+	self.width = f:getWidth(text) * ui.getTextScale() + 12
+end
+
 function TooltipView:update()
 	local tooltip = ui.tooltip
 
 	local state = self.state
 
 	if tooltip then
+		if self.text ~= tooltip then
+			self:setDimensions(tooltip)
+		end
 		self.text = tooltip
 	end
 

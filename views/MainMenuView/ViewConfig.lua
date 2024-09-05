@@ -571,7 +571,7 @@ function ViewConfig:spectrum()
 	end
 end
 
----@param view osu.MainMenuView
+---@param view osu.ui.MainMenuView
 function ViewConfig:osuLogo(view)
 	local w, h = Layout:move("base")
 
@@ -585,8 +585,8 @@ function ViewConfig:osuLogo(view)
 
 	local add_scale = beat + ((1 - ui.easeOutCubic(logo_click_time, 0.6)) * 0.035)
 
-	logo.x = w / 2 - iw / 2 + ax / 2 - (iw / 2 * (add_scale - outro_scale)) - sx
-	logo.y = h / 2 - ih / 2 + ay / 2 - (ih / 2 * (add_scale - outro_scale))
+	logo.x = w / 2 + ax / 2 - sx
+	logo.y = h / 2 + ay / 2
 
 	local dx = (w / 2 - sx) - mx
 	local dy = (h / 2) - my
@@ -610,7 +610,16 @@ function ViewConfig:osuLogo(view)
 	gfx.setColor(1, 1, 1)
 
 	gfx.translate(logo.x, logo.y)
-	gfx.draw(img.osuLogo, 0, 0, 0, 1 + add_scale - outro_scale, 1 + add_scale - outro_scale)
+	gfx.draw(
+		img.osuLogo,
+		0,
+		0,
+		view.outroPercent * 0.1,
+		1 + add_scale - outro_scale,
+		1 + add_scale - outro_scale,
+		iw / 2,
+		ih / 2
+	)
 
 	if ui.mousePressed(1) and logo.focused and self.hasFocus then
 		self:processLogoState(view, "logo_click")
