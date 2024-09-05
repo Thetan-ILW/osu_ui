@@ -546,7 +546,7 @@ function ViewConfig:bottom(view)
 	end
 
 	gfx.setColor(white)
-	local logo_scale = 0.45 * (1 + beat) + (animation * 0.08)
+	local logo_scale = 0.45 * (1 + beat * (1 - animation)) + (animation * 0.08)
 	gfx.draw(img.osuLogo, w - 70, h - 50, 0, logo_scale, logo_scale, iw / 2, ih / 2)
 
 	w, h = Layout:move("base")

@@ -8,7 +8,6 @@ local Layout = require("osu_ui.views.OsuLayout")
 ---@class osu.ui.TooltipView
 ---@operator call: osu.ui.TooltipView
 ---@field fonts table<string, love.Font>
----@field cursor love.Image
 ---@field text string
 ---@field width number
 ---@field height number
@@ -20,7 +19,6 @@ local TooltipView = class()
 ---@param assets osu.ui.OsuAssets
 function TooltipView:load(assets)
 	self.fonts = assets.localization.fontGroups.misc
-	self.cursor = assets.images.cursor
 	self.alpha = 0
 	self.state = "hidden"
 end
@@ -106,8 +104,8 @@ function TooltipView:draw()
 	local w = self.width
 	local h = self.height
 
-	local x = math_util.clamp(mx - w / 2, 2, sw - 2)
-	local y = math_util.clamp(my + self.cursor:getHeight() / 2, 0, sh - 2 - h)
+	local x = math_util.clamp(mx + 10, 2, sw - 2 - w)
+	local y = math_util.clamp(my + 10, 0, sh - 2 - h)
 
 	local a = self.alpha
 

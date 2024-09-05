@@ -214,6 +214,7 @@ function OsuAssets:new(skin_path, localization_file)
 		gradeB = self:loadImageOrDefault(skin_path, "ranking-B"),
 		gradeC = self:loadImageOrDefault(skin_path, "ranking-C"),
 		gradeD = self:loadImageOrDefault(skin_path, "ranking-D"),
+		backgroundOverlay = self:loadImageOrDefault(skin_path, "ranking-background-overlay"),
 
 		noLongNote = self:loadImageOrDefault(skin_path, "selection-mod-nolongnote"),
 		mirror = self:loadImageOrDefault(skin_path, "selection-mod-mirror"),

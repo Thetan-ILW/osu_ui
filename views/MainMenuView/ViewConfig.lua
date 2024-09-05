@@ -336,6 +336,10 @@ function ViewConfig:footer()
 	gfx.draw(image, w - iw, h - ih)
 	gfx.setColor(1, 1, 1)
 
+	if ui.isOver(iw, ih, w - iw, h - ih) then
+		ui.tooltip = "Thanks for playing soundsphere xd"
+	end
+
 	gfx.translate(0, 658)
 	self.gameTipLabel:draw()
 end

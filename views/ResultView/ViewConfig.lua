@@ -402,7 +402,7 @@ function ViewConfig:loadScore(view)
 		mods = "Mods:" .. mods
 	end
 
-	tooltip = ("Accuracy: %s | Score: %i\nMean: %i ms | Max error: %i ms\nSpam: %ix\n\nScroll speed: %s\n%s"):format(
+	tooltip = ("Accuracy: %s | Score: %i\nMean: %0.02f ms | Max error: %i ms\nSpam: %ix\n\nScroll speed: %s\n%s"):format(
 		ss_accuracy,
 		ss_score,
 		mean * 1000,
@@ -523,6 +523,8 @@ function ViewConfig:panel()
 	gfx.draw(img.accuracy)
 end
 
+local overlay_rotation = 0
+
 function ViewConfig:grade()
 	local image = img["grade" .. grade]
 
@@ -530,12 +532,16 @@ function ViewConfig:grade()
 		return
 	end
 
-	Layout:move("grade")
-	local iw, ih = image:getDimensions()
+	local overlay = img.backgroundOverlay
 
-	local x = iw / 2
-	local y = ih / 2
-	gfx.draw(image, -x, -y)
+	local w, h = Layout:move("base")
+	local iw, ih = image:getDimensions()
+	local ow, oh = overlay:getDimensions()
+
+	overlay_rotation = (overlay_rotation + love.timer.getDelta() * 0.5) % (math.pi * 2)
+
+	gfx.draw(overlay, w - 198, 320, overlay_rotation, 1, 1, ow / 2, oh / 2)
+	gfx.draw(image, w - 198, 320, 0, 1, 1, iw / 2, ih / 2)
 end
 
 local function rightSideButtons(view)
