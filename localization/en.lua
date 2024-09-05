@@ -200,7 +200,7 @@ l.textGroups = {
 	},
 	filtersModal = {
 		title = "Filters allow you to... idk... hide charts you do not want to play. (Change later)",
-		reset = "1. Reset all mods",
+		reset = "1. Reset all filters",
 		close = "2. Close",
 		["original input mode"] = "Mode",
 		["format (used parser)"] = "File",
@@ -210,6 +210,11 @@ l.textGroups = {
 		["not played"] = "No",
 		["has scratch"] = "Yes",
 		["has not scratch"] = "No",
+	},
+	skinSettingsModal = {
+		title = "Customize skin settings. What else do you expect?",
+		noSettings = "No settings!",
+		close = "1. Close",
 	},
 	result = {
 		chartBy = "Chart by %s",
@@ -330,8 +335,16 @@ l.fontGroups = {
 	},
 	filtersModal = {
 		title = { "Aller-Light", 33, "ZenMaruGothic-Regular" },
+
 		buttons = { "Aller", 42, "ZenMaruGothic-Regular" },
 		groupButtons = { "Aller", 25, "ZenMaruGothic-Regular" },
+	},
+	skinSettingsModal = {
+		title = { "Aller-Light", 33, "ZenMaruGothic-Regular" },
+		mode = { "Aller-Light", 41, "ZenMaruGothic-Regular" },
+		buttons = { "Aller", 42, "ZenMaruGothic-Regular" },
+		noSettings = { "Aller", 24, "ZenMaruGothic-Regular" },
+		noteSkinSettings = { "Aller", 24, "ZenMaruGothic-Regular" },
 	},
 	result = {
 		title = { "Aller-Light", 30, "ZenMaruGothic-Regular" },

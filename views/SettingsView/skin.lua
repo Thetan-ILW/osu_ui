@@ -82,7 +82,9 @@ return function(assets, view, skin_preview)
 	end)
 	Elements.buttonColor = prev_color
 
-	button(text.openSkinSettings, function() end)
+	button(text.openSkinSettings, function()
+		view.ui.gameView.view:openModal("osu_ui.views.modals.SkinSettings")
+	end)
 
 	button(text.openCurrentSkinFolder, function()
 		love.system.openURL(love.filesystem.getSource() .. "/userdata/skins/" .. osu.skin)
