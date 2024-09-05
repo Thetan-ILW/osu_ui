@@ -5,6 +5,8 @@ local msd_util = require("osu_ui.msd_util")
 
 local getPP = require("osu_ui.osu_pp")
 local getModifierString = require("osu_ui.views.modifier_string")
+local erfunc = require("libchart.erfunc")
+local Format = require("sphere.views.Format")
 
 local Layout = require("osu_ui.views.ResultView.Layout")
 local ImageValueView = require("osu_ui.views.ResultView.ImageValueView")
@@ -49,11 +51,7 @@ local difficultyFormatted = ""
 
 local grade = ""
 local hpGraph = false
-
-local meanFormatted = ""
-local maxErrorFormatted = ""
-local scrollSpeed = ""
-local modsFormatted = ""
+local tooltip = ""
 
 local ppFormatted = ""
 local username = ""
@@ -346,22 +344,12 @@ function ViewConfig:loadScore(view)
 	local normalscore = rhythmModel.scoreEngine.scoreSystem.normalscore
 	local mean = show and normalscore.normalscore.mean or scoreItem.mean
 
-	meanFormatted = ("%i ms"):format(mean * 1000)
-	maxErrorFormatted = ("%i ms"):format(scoreEngine.scoreSystem.misc.maxDeltaTime * 1000)
-
-	local const = show and playContext.const or scoreItem.const
-	scrollSpeed = "X"
-	if const then
-		scrollSpeed = "Const"
-	end
-
 	local selectModel = view.game.selectModel
 	local modifiers = view.game.playContext.modifiers
 	if not showLoadedScore(view) and selectModel.scoreItem then
 		modifiers = selectModel.scoreItem.modifiers
 	end
 
-	modsFormatted = getModifierString(modifiers)
 	username = view.game.configModel.configs.online.user.name or text.guest
 
 	modifierIconImages = {}
@@ -388,6 +376,41 @@ function ViewConfig:loadScore(view)
 	elseif timeRate == 0.75 then
 		table.insert(modifierIconImages, img.halfTime)
 	end
+
+	local ratingHitTimingWindow = view.game.configModel.configs.settings.gameplay.ratingHitTimingWindow
+	local ss_score = not show and scoreItem.score
+		or erfunc.erf(ratingHitTimingWindow / (normalscore.accuracyAdjusted * math.sqrt(2))) * 10000
+
+	if ss_score ~= ss_score then
+		ss_score = 0
+	end
+
+	local ss_accuracy_value = show and normalscore.accuracyAdjusted or scoreItem.accuracy
+	local ss_accuracy = Format.accuracy(ss_accuracy_value)
+
+	local const = show and playContext.const or scoreItem.const
+	local scroll = "X"
+	if const then
+		scroll = "Const"
+	end
+
+	local mods = getModifierString(modifiers)
+
+	if mods == "" then
+		mods = "No mods"
+	else
+		mods = "Mods:" .. mods
+	end
+
+	tooltip = ("Accuracy: %s | Score: %i\nMean: %i ms | Max error: %i ms\nSpam: %ix\n\nScroll speed: %s\n%s"):format(
+		ss_accuracy,
+		ss_score,
+		mean * 1000,
+		scoreEngine.scoreSystem.misc.maxDeltaTime * 1000,
+		scoreEngine.scoreSystem.base.earlyHitCount,
+		scroll,
+		mods
+	)
 end
 
 function ViewConfig:title(view)
@@ -525,22 +548,6 @@ local function rightSideButtons(view)
 	replay_button:draw()
 end
 
-local function graphInfo()
-	local mx, my = gfx.inverseTransformPoint(love.mouse.getPosition())
-	gfx.translate(mx, my)
-	gfx.setColor(0, 0, 0, 0.8)
-	gfx.rectangle("fill", 0, 0, 250, 120, 4, 4)
-
-	gfx.setColor({ 1, 1, 1, 1 })
-	gfx.setFont(font.graphInfo)
-
-	gfx.translate(5, 5)
-	ui.text(text.mean:format(meanFormatted))
-	ui.text(text.maxError:format(maxErrorFormatted))
-	ui.text(text.scrollSpeed:format(scrollSpeed))
-	ui.text(text.mods:format(modsFormatted))
-end
-
 ---@param view table
 local function hitGraph(view)
 	local w, h = Layout:move("hitGraph")
@@ -570,7 +577,7 @@ local function hitGraph(view)
 	end
 
 	if just.is_over(w, h) then
-		graphInfo()
+		ui.tooltip = tooltip
 	end
 end
 

@@ -10,6 +10,8 @@ local Layout = require("osu_ui.views.OsuLayout")
 ---@field fonts table<string, love.Font>
 ---@field cursor love.Image
 ---@field text string
+---@field width number
+---@field height number
 ---@field state "hidden" | "fade_in" | "visible" | "fade_out"
 ---@field tween table?
 ---@field alpha number
@@ -30,6 +32,11 @@ function TooltipView:fadeIn()
 		self.tween:stop()
 	end
 	self.tween = flux.to(self, 0.2, { alpha = 1 }):ease("quadout")
+
+	local f = self.fonts.tooltip
+	local _, lines = f:getWrap(self.text, 1000)
+	self.height = f:getHeight() * #lines * ui.getTextScale() + 4
+	self.width = f:getWidth(self.text) * ui.getTextScale() + 12
 end
 
 ---@private
@@ -90,11 +97,11 @@ function TooltipView:draw()
 	local mx, my = gfx.inverseTransformPoint(love.mouse.getPosition())
 
 	local f = self.fonts.tooltip
-	local w = f:getWidth(text) * ui.getTextScale() + 12
-	local h = f:getHeight() * ui.getTextScale() + 4
+	local w = self.width
+	local h = self.height
 
 	local x = math_util.clamp(mx - w / 2, 2, sw - 2)
-	local y = my + self.cursor:getHeight() / 2
+	local y = math_util.clamp(my + self.cursor:getHeight() / 2, 0, sh - 2 - h)
 
 	local a = self.alpha
 
@@ -107,7 +114,7 @@ function TooltipView:draw()
 
 	gfx.setColor(1, 1, 1, a)
 	gfx.setFont(f)
-	ui.frame(text, x, y, w, h, "center", "center")
+	ui.frame(text, x + 4, y, w, h, "left", "center")
 end
 
 return TooltipView

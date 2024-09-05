@@ -171,7 +171,11 @@ function GameplayView:fadeOutAudio(start_preview)
 		preview_model.previewVolumeAnimation = 0
 		preview_model:onLoad(function()
 			flux.to(preview_model, 0.3, { previewVolumeAnimation = 0.4 }):ease("cubicout"):onupdate(function()
-				preview_model.audio:setVolume(preview_model.previewVolumeAnimation * volume)
+				local audio = preview_model.audio
+
+				if audio then
+					audio:setVolume(preview_model.previewVolumeAnimation * volume)
+				end
 			end)
 		end)
 		preview_model:setAudioPathPreview(preview_model.audio_path, gameplay_position + 0.2, "absolute")
