@@ -9,6 +9,7 @@ local ChartOptionsModal = Modal + {}
 ChartOptionsModal.name = "Chart options"
 
 ---@param game sphere.GameController
+---@param assets osu.ui.OsuAssets
 function ChartOptionsModal:new(game, assets)
 	self.game = game
 	self.viewConfig = ViewConfig(game, self, assets)

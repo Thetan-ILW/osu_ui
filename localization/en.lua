@@ -198,6 +198,19 @@ l.textGroups = {
 		reset = "1. Reset all mods",
 		close = "2. Close",
 	},
+	filtersModal = {
+		title = "Filters allow you to... idk... hide charts you do not want to play. (Change later)",
+		reset = "1. Reset all mods",
+		close = "2. Close",
+		["original input mode"] = "Mode",
+		["format (used parser)"] = "File",
+		["scratch"] = "Scratch",
+		["(not) played"] = "Played",
+		["played"] = "Yes",
+		["not played"] = "No",
+		["has scratch"] = "Yes",
+		["has not scratch"] = "No",
+	},
 	result = {
 		chartBy = "Chart by %s",
 		chartFrom = "Chart from %s",
@@ -314,6 +327,11 @@ l.fontGroups = {
 		notSelected = { "Aller", 16, "ZenMaruGothic-Regular" },
 		sliders = { "Aller", 16, "ZenMaruGothic-Regular" },
 		checkboxes = { "Aller", 16, "ZenMaruGothic-Regular" },
+	},
+	filtersModal = {
+		title = { "Aller-Light", 33, "ZenMaruGothic-Regular" },
+		buttons = { "Aller", 42, "ZenMaruGothic-Regular" },
+		groupButtons = { "Aller", 25, "ZenMaruGothic-Regular" },
 	},
 	result = {
 		title = { "Aller-Light", 30, "ZenMaruGothic-Regular" },

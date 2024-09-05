@@ -25,6 +25,9 @@ function SelectInputMap:createBindings(sv)
 		["showMods"] = function() end,
 		["showSkins"] = function() end,
 		["showInputs"] = function() end,
+		["showFilters"] = function()
+			sv:openModal("osu_ui.views.modals.Filters")
+		end,
 		["showSettings"] = function()
 			sv:toggleSettings()
 		end,
@@ -68,7 +71,6 @@ function SelectInputMap:createBindings(sv)
 		["pauseMusic"] = function()
 			sv.game.previewModel:stop()
 		end,
-		["showFilters"] = function() end,
 		["quit"] = function()
 			sv:sendQuitSignal()
 		end,
