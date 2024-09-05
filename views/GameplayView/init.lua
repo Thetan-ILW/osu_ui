@@ -9,6 +9,7 @@ local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
 
 local just = require("just")
 local ui = require("osu_ui.ui")
+local flux = require("flux")
 
 ---@class osu.ui.GameplayView: osu.ui.ScreenView
 ---@operator call: osu.ui.GameplayView
@@ -147,23 +148,59 @@ function GameplayView:receive(event)
 	self.sequenceView:receive(event)
 end
 
+function GameplayView:fadeOutAudio(start_preview)
+	local container = self.game.rhythmModel.audioEngine.backgroundContainer
+	local gameplay_audio
+	for k in pairs(container.sources) do
+		gameplay_audio = k
+		break
+	end
+
+	if not gameplay_audio then
+		return
+	end
+
+	local volume_config = self.game.configModel.configs.settings.audio.volume
+	local volume = volume_config.master * volume_config.music
+	local gameplay_position = gameplay_audio:getPosition()
+
+	self.gameplayVolume = 1
+
+	local function startPreview()
+		local preview_model = self.game.previewModel
+		preview_model.previewVolumeAnimation = 0
+		preview_model:onLoad(function()
+			flux.to(preview_model, 0.3, { previewVolumeAnimation = 0.4 }):ease("cubicout"):onupdate(function()
+				preview_model.audio:setVolume(preview_model.previewVolumeAnimation * volume)
+			end)
+		end)
+		preview_model:setAudioPathPreview(preview_model.audio_path, gameplay_position + 0.2, "absolute")
+	end
+
+	flux.to(self, 0.2, { gameplayVolume = 0 })
+		:ease("quintout")
+		:onupdate(function()
+			if not gameplay_audio then
+				return
+			end
+			gameplay_audio:setVolume(volume * self.gameplayVolume)
+		end)
+		:oncomplete(function()
+			if start_preview then
+				startPreview()
+			end
+		end)
+end
+
 function GameplayView:quit()
 	if self.game.gameplayController:hasResult() then
-		local container = self.game.rhythmModel.audioEngine.backgroundContainer
-		local audio_position
-		for k in pairs(container.sources) do
-			audio_position = k:getPosition()
-			k:pause()
-			break
-		end
-
-		local preview_model = self.game.previewModel
-		preview_model:setAudioPathPreview(preview_model.audio_path, audio_position, "absolute")
-
+		self:fadeOutAudio(true)
 		self:changeScreen("resultView")
 	elseif self.game.multiplayerModel.room then
+		self:fadeOutAudio()
 		self:changeScreen("multiplayerView")
 	else
+		self:fadeOutAudio()
 		self:changeScreen("selectView")
 	end
 end
