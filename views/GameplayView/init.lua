@@ -49,9 +49,6 @@ function GameplayView:unload()
 	self.game.gameplayController:unload()
 	self.game.rhythmModel.observable:remove(self.sequenceView)
 	self.sequenceView:unload()
-	local volume = volumeConfig.master * volumeConfig.music
-	preview_model:setAudioPathPreview(preview_model.audio_path, audio_position, "absolute")
-	preview_model.audio:setVolume(0)
 end
 
 function GameplayView:retry()
@@ -152,6 +149,17 @@ end
 
 function GameplayView:quit()
 	if self.game.gameplayController:hasResult() then
+		local container = self.game.rhythmModel.audioEngine.backgroundContainer
+		local audio_position
+		for k in pairs(container.sources) do
+			audio_position = k:getPosition()
+			k:pause()
+			break
+		end
+
+		local preview_model = self.game.previewModel
+		preview_model:setAudioPathPreview(preview_model.audio_path, audio_position, "absolute")
+
 		self:changeScreen("resultView")
 	elseif self.game.multiplayerModel.room then
 		self:changeScreen("multiplayerView")
