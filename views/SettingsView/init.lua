@@ -237,6 +237,7 @@ end
 
 function SettingsView:update(dt)
 	self:processState()
+	self.modalActive = self.ui.gameView.view.modal ~= nil
 	self.viewConfig.modalActive = self.modalActive
 
 	local additional_pos = 0
@@ -252,7 +253,7 @@ function SettingsView:update(dt)
 	end
 
 	Layout:move("base")
-	if self.state == "hidden" or not ui.isOver(438 + 64, 768) then
+	if self.state == "hidden" or not ui.isOver(438 + 64, 768) or self.modalActive then
 		return
 	end
 

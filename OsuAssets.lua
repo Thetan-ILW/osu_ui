@@ -191,6 +191,7 @@ function OsuAssets:new(skin_path, localization_file)
 		maintenanceTab = self:loadImageOrDefault(skin_path, "menu-maintenance-tab"),
 
 		noSkinPreview = self:loadImageOrDefault(skin_path, "no-skin-preview"),
+		inputsArrow = self:loadImageOrDefault(skin_path, "inputs-arrow"),
 
 		-- RESULT
 

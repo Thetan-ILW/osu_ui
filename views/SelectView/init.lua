@@ -240,6 +240,7 @@ local gfx = love.graphics
 
 function SelectView:resolutionUpdated()
 	self.viewConfig:resolutionUpdated(self)
+	self.settingsView:resolutionUpdated()
 
 	if self.modal then
 		self.modal.viewConfig:resolutionUpdated()

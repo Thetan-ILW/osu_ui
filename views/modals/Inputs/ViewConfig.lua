@@ -1,6 +1,9 @@
 local IViewConfig = require("osu_ui.views.IViewConfig")
 
 local ui = require("osu_ui.ui")
+local just = require("just")
+local flux = require("flux")
+local math_util = require("math_util")
 local BackButton = require("osu_ui.ui.BackButton")
 local Combo = require("osu_ui.ui.Combo")
 
@@ -8,6 +11,10 @@ local Layout = require("osu_ui.views.OsuLayout")
 
 ---@class osu.ui.InputsModalViewConfig : osu.ui.IViewConfig
 ---@operator call: osu.ui.InputsModalViewConfig
+---@field arrowTween table?
+---@field targetArrowPosition number
+---@field arrowPosition number
+---@field heightTween table?
 local ViewConfig = IViewConfig + {}
 
 ---@type table<string, string>
@@ -15,6 +22,8 @@ local text
 ---@type table<string, love.Font>
 local font
 
+---@type love.Image
+local arrow_img
 ---@type osu.ui.Combo
 local modes_combo
 ---@type osu.ui.BackButton
@@ -33,6 +42,7 @@ function ViewConfig:new(game, assets, modal)
 	self.inputModel = self.game.inputModel
 	self:updateKeys()
 	self:createUI()
+	arrow_img = assets.images.inputsArrow
 end
 
 local modes = {
@@ -77,6 +87,22 @@ function ViewConfig:createUI()
 		self.modal:quit()
 	end)
 end
+
+local key_width = 50
+local key_height = 50
+local key_spacing = 4
+
+local colors = {
+	white = { 1, 1, 1 },
+	pink = { 0.99, 0.49, 1 },
+	yellow = { 1, 0.87, 0.24 },
+}
+
+local colors_tinted = {
+	white = { 0.65, 0.65, 0.65 },
+	pink = { 0.69, 0.34, 0.7 },
+	yellow = { 0.71, 0.62, 0.17 },
+}
 
 local key_colors = {
 	"white",
@@ -127,7 +153,15 @@ local predefined_colors = {
 
 function ViewConfig:updateKeys()
 	self.inputs = self.inputModel:getInputs(self.currentMode)
-	self.bindsCount = self.inputModel:getBindsCount(self.currentMode)
+	self.bindFocus = { row = 1, key = 1 }
+
+	self.arrowPosition = 1
+	if self.arrowTween then
+		self.arrowTween:stop()
+	end
+
+	local rows = math.min(self.inputModel:getBindsCount(self.currentMode) + 1, 6)
+	self.visualHeight = rows * key_height
 
 	self.colors = {}
 	self.names = {}
@@ -179,34 +213,25 @@ function ViewConfig:updateKeys()
 
 	if #self.colors ~= keys + scratches then
 		self.colors = {}
-		for i = 1, keys + scratches do
+		self.names = {}
+		for i = 1, keys do
 			table.insert(self.colors, key_colors[i % 2 + 1])
+			table.insert(self.names, ("%iK"):format(i))
+		end
+		for i = 1, scratches do
+			table.insert(self.colors, key_colors[3])
+			table.insert(self.names, ("%iS"):format(i))
 		end
 	end
 end
 
 local gfx = love.graphics
 
-local key_width = 50
-local key_height = 50
-local key_spacing = 4
-
-local colors = {
-	white = { 1, 1, 1 },
-	pink = { 0.99, 0.49, 1 },
-	yellow = { 1, 0.87, 0.24 },
-}
-
-local colors_tinted = {
-	white = { 1, 1, 1, 0.7 },
-	pink = { 0.99, 0.49, 1, 0.7 },
-	yellow = { 1, 0.87, 0.24, 0.7 },
-}
-
 function ViewConfig:keysBackground(rows)
 	for i, v in ipairs(self.colors) do
 		gfx.setColor(colors_tinted[v])
 		gfx.rectangle("fill", 0, -key_height * rows, key_width, key_height * (rows + 1), 4, 4)
+		gfx.rectangle("line", 0, -key_height * rows, key_width, key_height * (rows + 1), 4, 4)
 		gfx.setColor(colors[v])
 		gfx.rectangle("fill", 0, 0, key_width, key_height, 4, 4)
 		gfx.rectangle("line", 0, 0, key_width, key_height, 4, 4)
@@ -216,41 +241,99 @@ function ViewConfig:keysBackground(rows)
 	end
 end
 
-function ViewConfig:binds(rows, total_w)
-	local input_model = self.inputModel
+local function getKey()
+	local changed = false
+	local key, device, device_id
+	local k, dev, dev_id = just.next_input("pressed")
+	if just.keypressed("escape", true) then
+		return false
+	end
+	if k then
+		key, device, device_id = k, dev, dev_id
+		changed = true
+		just.reset()
+	end
 
+	return changed, key, device, device_id
+end
+
+---@param input_key string
+---@param input_index number
+---@param row number
+function ViewConfig:buttons(input_key, input_index, row)
+	local input_model = self.inputModel
+	local bind = input_model:getKey(self.currentMode, input_key, row)
+
+	if self.bindFocus.key == input_index and self.bindFocus.row == row then
+		local changed, key, device, device_id = getKey()
+
+		if changed then
+			input_model:setKey(self.currentMode, self.inputs[input_index], row, device, device_id, key)
+			self.bindFocus.key = input_index + 1
+
+			if self.arrowTween then
+				self.arrowTween:stop()
+			end
+
+			self.arrowTween = flux.to(self, 0.3, { arrowPosition = input_index + 1 }):ease("quadout")
+		end
+
+		gfx.setColor(1, 1, 1, 0.4)
+	elseif bind then
+		gfx.setColor(0, 0, 0, 0.3)
+	else
+		gfx.setColor(0, 0, 0, 0)
+	end
+
+	if ui.isOver(key_width, key_height) then
+		if ui.mousePressed(1) then
+			self.bindFocus.key = input_index
+			self.bindFocus.row = row
+
+			if self.arrowTween then
+				self.arrowTween:stop()
+			end
+
+			self.arrowTween = flux.to(self, 0.3, { arrowPosition = input_index }):ease("quadout")
+		end
+
+		if love.mouse.isDown(2) then
+			input_model:setKey(self.currentMode, self.inputs[input_index], row)
+		end
+
+		gfx.setColor(1, 1, 1, 0.3)
+	end
+
+	gfx.rectangle(
+		"fill",
+		key_width / 2 - (key_width * 0.9) / 2,
+		key_height / 2 - (key_height * 0.6) / 2,
+		key_width * 0.9,
+		key_height * 0.6,
+		4,
+		4
+	)
+
+	if bind then
+		gfx.setColor(1, 1, 1)
+		ui.frame(bind, 0, 0, key_width, key_height, "center", "center")
+	end
+
+	gfx.translate(key_width + key_spacing, 0)
+end
+
+function ViewConfig:binds(rows, total_w)
 	for row_i = 1, rows do
 		gfx.push()
 		gfx.translate(0, -row_i * key_height)
-		gfx.setColor(1, 1, 1)
-		gfx.line(-10, 0, total_w + 10, 0)
+
+		if row_i ~= rows then
+			gfx.setColor(1, 1, 1)
+			gfx.line(-10, 0, total_w + 10, 0)
+		end
+
 		for i, v in ipairs(self.inputs) do
-			local bind = input_model:getKey(self.currentMode, v, row_i)
-
-			if ui.isOver(key_width, key_height) then
-				gfx.setColor(1, 1, 1, 0.4)
-			elseif bind then
-				gfx.setColor(0.2, 0.2, 0.2, 0.6)
-			else
-				gfx.setColor(0, 0, 0, 0)
-			end
-
-			gfx.rectangle(
-				"fill",
-				key_width / 2 - (key_width * 0.9) / 2,
-				key_height / 2 - (key_height * 0.6) / 2,
-				key_width * 0.9,
-				key_height * 0.6,
-				4,
-				4
-			)
-
-			if bind then
-				gfx.setColor(1, 1, 1)
-				ui.frame(bind, 0, 0, key_width, key_height, "center", "center")
-			end
-
-			gfx.translate(key_width + key_spacing, 0)
+			self:buttons(v, i, row_i)
 		end
 		gfx.pop()
 	end
@@ -258,13 +341,23 @@ end
 
 function ViewConfig:keys(w, h)
 	local key_count = #self.colors
-	local rows = self.bindsCount + 1
+	local rows = math.min(self.inputModel:getBindsCount(self.currentMode) + 1, 6)
+
 	local total_w = key_width * key_count + (key_spacing * (key_count - 1))
 	gfx.setLineStyle("smooth")
 	gfx.setLineWidth(2)
 	gfx.setFont(font.binds)
 
-	gfx.translate(w / 2 - total_w / 2, 400)
+	local total_h = rows * key_height
+
+	if total_h ~= self.visualHeight then
+		if self.heightTween then
+			self.heightTween:stop()
+		end
+		self.heightTween = flux.to(self, 0.2, { visualHeight = total_h }):ease("quadout")
+	end
+
+	gfx.translate(w / 2 - total_w / 2, (h - key_height) / 2 + self.visualHeight / 2)
 
 	gfx.push()
 	self:keysBackground(rows)
@@ -273,6 +366,11 @@ function ViewConfig:keys(w, h)
 	gfx.push()
 	self:binds(rows, total_w)
 	gfx.pop()
+
+	local x = (self.arrowPosition - 1) * (key_width + key_spacing)
+	local a = math_util.clamp((total_w - x), 0, key_width) / key_width
+	gfx.setColor(1, 1, 1, a)
+	gfx.draw(arrow_img, x, key_height + 5)
 end
 
 function ViewConfig:resolutionUpdated()

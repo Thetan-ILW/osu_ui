@@ -47,7 +47,7 @@ local tab_image_spacing = 32
 local tab_image_scale = 0.5
 local tab_image_indent = 64 / 2 - (64 * tab_image_scale) / 2
 
----@param view osu.SettingsView
+---@param view osu.ui.SettingsView
 function ViewConfig:tabs(view)
 	local w, h = Layout:move("base")
 
@@ -63,7 +63,7 @@ function ViewConfig:tabs(view)
 	for i, c in ipairs(view.containers) do
 		gfx.setColor(0.6, 0.6, 0.6, visibility)
 
-		if ui.isOver(64, 64) then
+		if ui.isOver(64, 64) and not self.modalActive then
 			gfx.setColor(1, 1, 1, visibility)
 
 			if ui.mousePressed(1) then
@@ -97,7 +97,7 @@ function ViewConfig:panel(view)
 	local scale = gfx.getHeight() / 768
 
 	gfx.setColor(0, 0, 0, 0.7 * visibility)
-	self.focus = ui.isOver(64 + 438 * visibility, h) and self.modalActive
+	self.focus = ui.isOver(64 + 438 * visibility, h) and not self.modalActive
 
 	gfx.translate(64, 0)
 	gfx.rectangle("fill", 0, 0, 438 * visibility, h)
