@@ -13,6 +13,7 @@ local delay = require("delay")
 ---@field assetModel osu.ui.AssetModel
 ---@field assets osu.ui.OsuAssets
 ---@field notificationView osu.ui.NotificationView
+---@field popupView osu.ui.PopupView
 ---@field cursor osu.ui.CursorView
 ---@field changingScreen boolean?
 local ScreenView = class()

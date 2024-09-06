@@ -78,7 +78,7 @@ function ViewConfig:loadUI()
 		color = green,
 		font = b_font,
 	}, function()
-		modal.notificationView:show("Not implemented")
+		self.thisModal.mainView:switchModal("osu_ui.views.modals.Filters")
 	end)
 
 	edit = Button(assets, {

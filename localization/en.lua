@@ -216,6 +216,9 @@ l.textGroups = {
 		noSettings = "No settings!",
 		close = "1. Close",
 	},
+	inputsModal = {
+		title = "Press the key/button on your keyboard/joystick for the corresponding column. Hit ESC to go back.",
+	},
 	result = {
 		chartBy = "Chart by %s",
 		chartFrom = "Chart from %s",
@@ -335,7 +338,6 @@ l.fontGroups = {
 	},
 	filtersModal = {
 		title = { "Aller-Light", 33, "ZenMaruGothic-Regular" },
-
 		buttons = { "Aller", 42, "ZenMaruGothic-Regular" },
 		groupButtons = { "Aller", 25, "ZenMaruGothic-Regular" },
 	},
@@ -345,6 +347,11 @@ l.fontGroups = {
 		buttons = { "Aller", 42, "ZenMaruGothic-Regular" },
 		noSettings = { "Aller", 24, "ZenMaruGothic-Regular" },
 		noteSkinSettings = { "Aller", 24, "ZenMaruGothic-Regular" },
+	},
+	inputsModal = {
+		title = { "Aller-Light", 33, "ZenMaruGothic-Regular" },
+		combos = { "Aller", 16, "ZenMaruGothic-Regular" },
+		binds = { "Aller", 16, "ZenMaruGothic-Regular" },
 	},
 	result = {
 		title = { "Aller-Light", 30, "ZenMaruGothic-Regular" },

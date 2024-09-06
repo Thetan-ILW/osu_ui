@@ -31,7 +31,7 @@ return function(assets, view, ui)
 	Elements.currentGroup = "keyboard"
 
 	button(text.maniaLayout, function()
-		ui.gameView.notificationView:show("Not implemented. Go back to default UI and bind buttons there.")
+		ui.gameView.view:openModal("osu_ui.views.modals.Inputs")
 	end)
 
 	c:createGroup("offsetAdjustment", text.offsetAdjustment)

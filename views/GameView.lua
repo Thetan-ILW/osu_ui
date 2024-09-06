@@ -88,6 +88,7 @@ function GameView:_setView(view)
 	self.view.assetModel = self.ui.assetModel
 	self.view.assets = self.assets
 	self.view.notificationView = self.notificationView
+	self.view.popupView = self.popupView
 	self.view.cursor = self.cursor
 	self.view:load()
 end

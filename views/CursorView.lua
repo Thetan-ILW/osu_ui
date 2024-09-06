@@ -30,7 +30,7 @@ function CursorView:update(dt)
 
 	if skin_params.cursorExpand then
 		local add = love.mouse.isDown(1) and dt or -dt
-		cursor_scale = math.min(cursor_scale + add * 3, 1.2)
+		cursor_scale = math.min(cursor_scale + add * 3, 1.25)
 		cursor_scale = math.max(cursor_scale, 1)
 	end
 end

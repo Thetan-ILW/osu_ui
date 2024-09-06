@@ -192,7 +192,6 @@ end
 function ViewConfig:back(view)
 	local btn = view.backButton
 	local w, h = Layout:move("base")
-	local ih = btn:getHeight()
 	gfx.translate(0, h - 58)
 	btn.alpha = visibility
 	btn:update(self.focus)
