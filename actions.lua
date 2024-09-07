@@ -43,6 +43,22 @@ local modKeysList = {
 	ralt = true,
 }
 
+local last_pressed_key_ignore = {
+	lctrl = true,
+	rctrl = true,
+	lshift = true,
+	rshift = true,
+	lgui = true,
+	lalt = true,
+	ralt = true,
+	["return"] = true,
+	escape = true,
+	down = true,
+	left = true,
+	right = true,
+	up = true,
+}
+
 local modFormat = {
 	lctrl = "ctrl",
 	rctrl = "ctrl",
@@ -67,10 +83,15 @@ function actions.updateActions(osu_config)
 	if osu_config.vimMotions then
 		inputMode = "vim"
 		currentConfig = osu_config.vimKeybinds
+		print("vim")
 	else
 		inputMode = "keyboard"
 		currentConfig = osu_config.keybinds
+		print("keyboard")
 	end
+
+	singleKeyActions = {}
+	comboActions = {}
 
 	for actionName, action in pairs(currentConfig) do
 		if type(action) == "string" then
@@ -285,6 +306,14 @@ function actions.keyPressed(event)
 	local key = event[2]
 	local repeatt = event[3]
 
+	if
+		not last_pressed_key_ignore[key]
+		and not actions.isModKeyDown()
+		and (actions.isInsertMode() or not actions.isVimMode())
+	then
+		last_pressed_key = key
+	end
+
 	if not repeatt then
 		if tonumber(key) and not actions.isInsertMode() then
 			count = count .. key
@@ -306,7 +335,6 @@ function actions.keyPressed(event)
 	end
 
 	if actions.isInsertMode() and key ~= "escape" then
-		last_pressed_key = key
 		return
 	end
 

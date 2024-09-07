@@ -3,6 +3,8 @@ local Elements = require("osu_ui.views.SettingsView.Elements")
 local Label = require("osu_ui.ui.Label")
 local consts = require("osu_ui.views.SettingsView.Consts")
 
+local actions = require("osu_ui.actions")
+
 ---@param assets osu.OsuAssets
 ---@param view osu.SettingsView
 ---@return osu.SettingsView.GroupContainer?
@@ -102,7 +104,7 @@ return function(assets, view)
 		return osu.vimMotions
 	end, function()
 		osu.vimMotions = not osu.vimMotions
-		view.ui.actionModel:updateActions()
+		actions.updateActions(osu)
 	end)
 
 	checkbox(text.previewIcon, false, nil, function()

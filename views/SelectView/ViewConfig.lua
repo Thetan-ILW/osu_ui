@@ -474,7 +474,7 @@ function ViewConfig:topUI(view)
 
 	if ui.isOver(23, 23) and ui.mousePressed(1) then
 		love.system.openURL("https://soundsphere.xyz/notecharts")
-		view.gameView.showMessage("Opening the link. Check your browser.", nil, { show_time = 3 })
+		view.notificationView:show("Opening the link. Check your browser.")
 	end
 
 	w, h = Layout:move("base")
