@@ -1,7 +1,5 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
-local ui = require("osu_ui.ui")
-
 local OsuLayout = require("osu_ui.views.OsuLayout")
 local ViewConfig = require("osu_ui.views.SelectView.ViewConfig")
 local BackgroundView = require("sphere.views.BackgroundView")
@@ -31,12 +29,8 @@ function SelectView:load()
 	self.inputMap = InputMap(self, self.actionModel)
 	self.actionModel.enable()
 
-	--if self.assets.selectViewConfig then
-	--self.viewConfig = self.assets.selectViewConfig()(self, self.assets)
-	--else
 	self.viewConfig = ViewConfig(self, self.assets)
 	self.settingsView = SettingsView(self.assets, self.game, self.ui)
-	--end
 
 	self.uiLockViewConfig = UiLockView(self.game, self.assets)
 

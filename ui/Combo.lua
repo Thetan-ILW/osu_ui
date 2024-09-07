@@ -156,7 +156,7 @@ function Combo:update(has_focus)
 		end
 	end
 
-	if self.state == "open" then
+	if self.state == "open" or self.state == "fade_in" then
 		if self.hoverIndex ~= 0 and ui.mousePressed(1) then
 			self.onChange(self.items[self.hoverIndex])
 			self.changeTime = love.timer.getTime()

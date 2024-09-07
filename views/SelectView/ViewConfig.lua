@@ -69,6 +69,7 @@ local current_time = 0
 local update_time = 0
 local chart_list_update_time = 0
 local has_scores = false
+local online_scores = false
 local beat = 0
 
 local pp = 0
@@ -110,10 +111,9 @@ local buttons = {}
 local combos = {}
 
 local ranking_options = {
-	"Local Ranking",
-	"Online Ranking",
+	["local"] = "Local Ranking",
+	online = "Online Ranking",
 }
-local ranking = ranking_options[1]
 
 local group_options = {
 	"charts",
@@ -177,6 +177,9 @@ function ViewConfig:createUI(view)
 		view:openModal("osu_ui.views.modals.ChartOptions")
 	end)
 
+	local sources = view.game.selectModel.scoreLibrary.scoreSources
+	local select = view.game.configModel.configs.select
+
 	combos.scoreSource = Combo(assets, {
 		font = font.dropdown,
 		pixelWidth = 328,
@@ -184,9 +187,17 @@ function ViewConfig:createUI(view)
 		borderColor = { 0.08, 0.51, 0.7, 1 },
 		hoverColor = { 0.08, 0.51, 0.7, 1 },
 	}, function()
-		return ranking, ranking_options
+		return select.scoreSourceName, sources
 	end, function(v)
-		ranking = v
+		select.scoreSourceName = v
+		view.game.selectModel:pullScore()
+		online_scores = v == "online"
+
+		if not online_scores then
+			self.scoreListView:reloadItems()
+		end
+	end, function(v)
+		return ranking_options[v]
 	end)
 
 	local sort_model = view.game.selectModel.sortModel
@@ -252,6 +263,9 @@ function ViewConfig:new(view, assets)
 	chart_list_update_time = love.timer.getTime() + 0.4
 	update_time = current_time
 	self.scoreListView.scoreUpdateTime = love.timer.getTime()
+
+	local select = view.game.configModel.configs.select
+	online_scores = select.scoreSourceName == "online"
 
 	local w, h = Layout:move("base")
 	top_panel_quad = gfx.newQuad(0, 0, w, img.panelTop:getHeight(), img.panelTop)
@@ -639,9 +653,14 @@ function ViewConfig:scores(view)
 	gfx.setCanvas({ canvas, stencil = true })
 	gfx.clear()
 
-	local w, h = Layout:move("base")
+	Layout:move("base")
 
 	gfx.setBlendMode("alpha", "alphamultiply")
+
+	if online_scores then
+		list:reloadItems()
+		has_scores = true
+	end
 
 	if not has_scores then
 		gfx.translate(20, 298)

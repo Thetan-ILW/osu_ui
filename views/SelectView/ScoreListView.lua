@@ -40,6 +40,10 @@ local modOrder = {
 }
 
 function ScoreListView:getModifiers(modifiers)
+	if type(modifiers) == "string" then
+		return ""
+	end
+
 	if #modifiers == 0 then
 		return ""
 	end
@@ -233,7 +237,7 @@ function ScoreListView:drawItem(i, w, h)
 
 	gfx.setFont(self.font.rightSide)
 
-	if item.rate ~= 1 then
+	if item.rate ~= 1 and item.rate ~= 0 then
 		ui.frameWithShadow(("%s [%0.02fx]"):format(mods, item.rate), -4, 0, w, 50, "right", "top")
 	else
 		ui.frameWithShadow(("%s"):format(mods), -4, 0, w, 50, "right", "top")
