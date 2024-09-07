@@ -473,7 +473,7 @@ function ViewConfig:topUI(view)
 	gfx.draw(img.forum)
 
 	if ui.isOver(23, 23) and ui.mousePressed(1) then
-		love.system.openURL("https://soundsphere.xyz/notecharts")
+		view.game.selectController:openWebNotechart()
 		view.notificationView:show("Opening the link. Check your browser.")
 	end
 
