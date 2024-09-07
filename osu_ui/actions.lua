@@ -83,11 +83,9 @@ function actions.updateActions(osu_config)
 	if osu_config.vimMotions then
 		inputMode = "vim"
 		currentConfig = osu_config.vimKeybinds
-		print("vim")
 	else
 		inputMode = "keyboard"
 		currentConfig = osu_config.keybinds
-		print("keyboard")
 	end
 
 	singleKeyActions = {}

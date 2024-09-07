@@ -14,10 +14,9 @@ local EditorView = require("ui.views.EditorView")
 ---@operator call: osu.ui.UserInterface
 local UserInterface = class()
 
----@param persistence sphere.Persistence
 ---@param game sphere.GameController
-function UserInterface:new(persistence, game)
-	self.assetModel = AssetModel(persistence.configModel)
+function UserInterface:new(game)
+	self.assetModel = AssetModel(game.persistence.configModel)
 
 	self.gameView = GameView(game, self)
 	self.mainMenuView = MainMenuView(game)
@@ -25,12 +24,9 @@ function UserInterface:new(persistence, game)
 	self.resultView = ResultView(game)
 	self.gameplayView = GameplayView(game)
 	self.editorView = EditorView(game)
-
-	self.persistence = persistence
 end
 
 function UserInterface:load()
-	actions.updateActions(self.persistence.configModel.configs.osu_ui)
 	self.gameView:load()
 end
 

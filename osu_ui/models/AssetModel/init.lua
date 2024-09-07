@@ -4,15 +4,14 @@ local class = require("class")
 ---@operator call: osu.ui.AssetModel
 ---@field configModel sphere.ConfigModel
 ---@field fields table<string, osu.ui.Assets>
----@field localizations table<string,{name: string, filepath: string}[]>
+---@field localizations table<string,{name: string, filepath: string}>
 local AssetModel = class()
 
 function AssetModel:new(config_model)
 	self.configModel = config_model
 
 	self.fields = {}
-	self.localizations = {}
-	self:loadLocalizationLists()
+	self:loadLocalizationList()
 end
 
 ---@param name string
@@ -27,40 +26,33 @@ function AssetModel:get(name)
 	return self.fields[name]
 end
 
-local localization_directories = {
-	osu = "osu_ui/localization/",
-}
+local localizations_dir = "theme_mount/osu_ui/osu_ui/localization/"
 
-function AssetModel:loadLocalizationLists()
-	for theme, dir in pairs(localization_directories) do
-		---@type {name: string, filepath: string}[]
-		local list = love.filesystem.load(dir .. "list.lua")()
-		assert(list, theme .. " localization list not found.")
+function AssetModel:loadLocalizationList()
+	---@type {name: string, filepath: string}[]
+	local list = love.filesystem.load(localizations_dir .. "list.lua")()
 
-		for _, v in ipairs(list) do
-			v.filepath = dir .. v.filepath
-		end
-
-		self.localizations[theme] = list
+	for _, v in ipairs(list) do
+		v.filepath = localizations_dir .. v.filepath
 	end
+
+	self.localization = list
 end
 
----@param theme string
-function AssetModel:getLocalizationNames(theme)
-	return self.localizations[theme]
+function AssetModel:getLocalizationNames()
+	return self.localization
 end
 
----@param theme string
 ---@param name string
 ---@return string
-function AssetModel:getLocalizationFileName(theme, name)
-	for _, v in ipairs(self.localizations[theme]) do
+function AssetModel:getLocalizationFileName(name)
+	for _, v in ipairs(self.localization) do
 		if v.name == name then
 			return v.filepath
 		end
 	end
 
-	return self.localizations[theme][1].filepath
+	return self.localizations[1].filepath
 end
 
 ---@return string[]

@@ -53,7 +53,7 @@ function Localization:loadFont(name, size)
 	local filename = self.currentFile.fontFiles[name]
 	assert(filename, "Font path is not specified for " .. name)
 
-	local font = love.graphics.newFont(filename, size * self.fontScale)
+	local font = love.graphics.newFont("theme_mount/osu_ui/" .. filename, size * self.fontScale)
 
 	self.fontInstances[name] = self.fontInstances[name] or {}
 	self.fontInstances[name][size_str] = font

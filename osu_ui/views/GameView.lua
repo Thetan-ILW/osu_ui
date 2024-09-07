@@ -1,5 +1,6 @@
 local class = require("class")
 local ui = require("osu_ui.ui")
+local actions = require("osu_ui.actions")
 
 local FadeTransition = require("ui.views.FadeTransition")
 local FrameTimeView = require("ui.views.FrameTimeView")
@@ -36,6 +37,7 @@ function GameView:new(game, game_ui)
 end
 
 function GameView:load()
+	actions.updateActions(self.game.persistence.configModel.configs.osu_ui)
 	self.frameTimeView.game = self.game
 	self.frameTimeView:load()
 
@@ -63,7 +65,7 @@ function GameView:loadAssets()
 	local assets = asset_model:get("osu")
 
 	if not assets or (assets and assets.skinPath ~= skin_path) then
-		local default_localization = asset_model:getLocalizationFileName("osu", "English")
+		local default_localization = asset_model:getLocalizationFileName("English")
 		assets = OsuAssets(skin_path, default_localization)
 		asset_model:store("osu", assets)
 	end

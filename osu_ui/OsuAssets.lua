@@ -68,7 +68,7 @@ end
 ---@param skin_path string
 ---@param localization_file string
 function OsuAssets:new(skin_path, localization_file)
-	self.defaultsDirectory = "osu_ui/assets/"
+	self.defaultsDirectory = "theme_mount/osu_ui/osu_ui/assets/"
 	self.skinPath = skin_path
 
 	local content = love.filesystem.read(skin_path .. "skin.ini") or love.filesystem.read(skin_path .. "Skin.ini")
