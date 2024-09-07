@@ -4,8 +4,11 @@ local audio = require("audio")
 local source = require("audio.Source")
 local gfx_util = require("gfx_util")
 
+local path_util = require("path_util")
+
 ---@class osu.ui.Assets
 ---@operator call: osu.ui.Assets
+---@field assetModel osu.ui.AssetModel
 ---@field defaultsDirectory string
 ---@field images table<string, love.Image>
 ---@field sounds table<string, audio.Source?>
@@ -21,6 +24,10 @@ local source_directory = love.filesystem.getSource()
 
 local audio_extensions = { ".wav", ".ogg", ".mp3" }
 local image_extensions = { ".png", ".jpg", ".jpeg", ".bmp", ".tga" }
+
+function Assets:setDefaultsDirectory(path)
+	self.defaultsDirectory = path_util.join(self.assetModel.mountPath, path)
+end
 
 ---@param path string
 ---@return string?
@@ -159,7 +166,7 @@ function Assets.emptyAudio()
 end
 
 function Assets:loadDefaultImage(name)
-	local image = Assets.loadImage(self.defaultsDirectory .. name)
+	local image = Assets.loadImage(path_util.join(self.defaultsDirectory, name))
 
 	if image then
 		return image
@@ -192,7 +199,7 @@ function Assets:loadAudioOrDefault(directory, name)
 		return sound
 	end
 
-	sound = Assets.loadAudio(self.defaultsDirectory .. name, true)
+	sound = Assets.loadAudio(path_util.join(self.defaultsDirectory, name), true)
 
 	if sound then
 		return sound

@@ -66,7 +66,7 @@ function GameView:loadAssets()
 
 	if not assets or (assets and assets.skinPath ~= skin_path) then
 		local default_localization = asset_model:getLocalizationFileName("English")
-		assets = OsuAssets(skin_path, default_localization)
+		assets = OsuAssets(asset_model, skin_path, default_localization)
 		asset_model:store("osu", assets)
 	end
 

@@ -1,14 +1,19 @@
 local class = require("class")
+local path_util = require("path_util")
 
 ---@class osu.ui.AssetModel
 ---@operator call: osu.ui.AssetModel
 ---@field configModel sphere.ConfigModel
+---@field mountPath string
 ---@field fields table<string, osu.ui.Assets>
 ---@field localizations table<string,{name: string, filepath: string}>
+---@field private localizationDir string
 local AssetModel = class()
 
-function AssetModel:new(config_model)
+function AssetModel:new(config_model, mount_path)
 	self.configModel = config_model
+	self.mountPath = mount_path
+	self.localizationsDir = path_util.join(mount_path, "osu_ui/localization")
 
 	self.fields = {}
 	self:loadLocalizationList()
@@ -26,14 +31,12 @@ function AssetModel:get(name)
 	return self.fields[name]
 end
 
-local localizations_dir = "theme_mount/osu_ui/osu_ui/localization/"
-
 function AssetModel:loadLocalizationList()
 	---@type {name: string, filepath: string}[]
-	local list = love.filesystem.load(localizations_dir .. "list.lua")()
+	local list = love.filesystem.load(path_util.join(self.localizationsDir, "list.lua"))()
 
 	for _, v in ipairs(list) do
-		v.filepath = localizations_dir .. v.filepath
+		v.filepath = path_util.join(self.localizationsDir, v.filepath)
 	end
 
 	self.localization = list
@@ -67,8 +70,8 @@ function AssetModel:getOsuSkins()
 
 	for _, name in ipairs(skins) do
 		---@type string
-		local path = "userdata/skins/" .. name
-		if love.filesystem.getInfo(path .. "/skin.ini") then
+		local path = path_util.join("userdata/skins", name, "skin.ini")
+		if love.filesystem.getInfo(path) then
 			table.insert(osu_skin_names, name)
 		end
 	end

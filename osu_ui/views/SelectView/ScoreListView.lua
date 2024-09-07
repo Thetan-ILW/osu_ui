@@ -186,6 +186,8 @@ function ScoreListView:drawItem(i, w, h)
 		avatar = nil
 	end
 
+	username = ("#%i %s"):format(i, username)
+
 	local a = self.animations[i] or 0
 
 	if ui.isOver(w, h) and self.focus then

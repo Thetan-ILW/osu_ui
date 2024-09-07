@@ -41,7 +41,7 @@ function GameplayView:load()
 	sequence_view:load()
 
 	local root = note_skin.path:match("(.+/)") or ""
-	local assets = OsuPauseAssets(root)
+	local assets = OsuPauseAssets(self.ui.assetModel, root)
 	self.pauseScreen = OsuPauseScreen(assets)
 
 	self.cursor.alpha = 0

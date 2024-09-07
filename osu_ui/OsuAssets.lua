@@ -1,10 +1,12 @@
 local Assets = require("osu_ui.models.AssetModel.Assets")
 local Localization = require("osu_ui.models.AssetModel.Localization")
 
+local path_util = require("path_util")
+
 local OsuNoteSkin = require("sphere.models.NoteSkinModel.OsuNoteSkin")
 local utf8validate = require("utf8validate")
 
----@class (exact) osu.ui.OsuAssets : osu.ui.Assets
+---@class osu.ui.OsuAssets : osu.ui.Assets
 ---@operator call: osu.ui.OsuAssets
 ---@field defaultsDirectory string
 ---@field skinPath string
@@ -67,9 +69,10 @@ end
 
 ---@param skin_path string
 ---@param localization_file string
-function OsuAssets:new(skin_path, localization_file)
-	self.defaultsDirectory = "theme_mount/osu_ui/osu_ui/assets/"
+function OsuAssets:new(asset_model, skin_path, localization_file)
+	self.assetModel = asset_model
 	self.skinPath = skin_path
+	self:setDefaultsDirectory("osu_ui/assets")
 
 	local content = love.filesystem.read(skin_path .. "skin.ini") or love.filesystem.read(skin_path .. "Skin.ini")
 
@@ -79,7 +82,7 @@ function OsuAssets:new(skin_path, localization_file)
 	if content then
 		content = utf8validate(content)
 	else
-		content = love.filesystem.read(self.defaultsDirectory .. "skin.ini")
+		content = love.filesystem.read(path_util.join(self.defaultsDirectory, "skin.ini"))
 	end
 
 	skin_ini = OsuNoteSkin:parseSkinIni(content)

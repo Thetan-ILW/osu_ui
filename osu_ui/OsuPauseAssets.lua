@@ -7,9 +7,11 @@ local Assets = require("osu_ui.models.AssetModel.Assets")
 ---@field sounds table<string, audio.Source?>
 local OsuPauseAssets = Assets + {}
 
+---@param asset_model osu.ui.AssetModel
 ---@param path string
-function OsuPauseAssets:new(path)
-	self.defaultsDirectory = "osu_ui/assets/"
+function OsuPauseAssets:new(asset_model, path)
+	self.assetModel = asset_model
+	self:setDefaultsDirectory("osu_ui/assets")
 
 	self.images = {
 		overlay = self:loadImageOrDefault(path, "pause-overlay"),

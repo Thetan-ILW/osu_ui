@@ -15,8 +15,9 @@ local EditorView = require("ui.views.EditorView")
 local UserInterface = class()
 
 ---@param game sphere.GameController
-function UserInterface:new(game)
-	self.assetModel = AssetModel(game.persistence.configModel)
+---@param mount_path string
+function UserInterface:new(game, mount_path)
+	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
 
 	self.gameView = GameView(game, self)
 	self.mainMenuView = MainMenuView(game)
