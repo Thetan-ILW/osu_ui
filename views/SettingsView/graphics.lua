@@ -18,7 +18,6 @@ return function(assets, view)
 	local settings = configs.settings
 	local g = settings.graphics
 	local gp = settings.gameplay
-	local ss = settings.select
 	local m = settings.miscellaneous
 	local flags = g.mode.flags
 	local osu = configs.osu_ui
@@ -129,12 +128,6 @@ return function(assets, view)
 		return gp.bga.image
 	end, function()
 		gp.bga.image = not gp.bga.image
-	end)
-
-	checkbox(text.chartPreview, false, nil, function()
-		return ss.chart_preview
-	end, function()
-		ss.chart_preview = not ss.chart_preview
 	end)
 
 	c:removeEmptyGroups()

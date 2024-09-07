@@ -13,6 +13,10 @@ return function(assets, view)
 	local configs = view.game.configModel.configs
 	local settings = configs.settings
 	local m = settings.miscellaneous
+	local ss = settings.select
+	local gf = settings.graphics
+	local dim = gf.dim
+	local blur = gf.blur
 	local osu = configs.osu_ui
 
 	local c = GroupContainer(text.general, assets, font, assets.images.generalTab)
@@ -21,6 +25,7 @@ return function(assets, view)
 	Elements.currentContainer = c
 	local checkbox = Elements.checkbox
 	local combo = Elements.combo
+	local slider = Elements.slider
 
 	c:createGroup("language", text.language)
 	Elements.currentGroup = "language"
@@ -71,6 +76,77 @@ return function(assets, view)
 	Elements.button(text.openSoundsphereFolder, function()
 		love.system.openURL(love.filesystem.getSource())
 	end)
+
+	c:createGroup("songSelect", text.songSelect)
+	Elements.currentGroup = "songSelect"
+
+	Elements.sliderPixelWidth = 265
+
+	local background_params = { min = 0, max = 1, increment = 0.01 }
+	slider(text.backgroundDim, 0.2, nil, function()
+		return dim.select, background_params
+	end, function(v)
+		dim.select = v
+	end, function(v)
+		return ("%i%%"):format(v * 100)
+	end)
+
+	local blur_params = { min = 0, max = 20, increment = 1 }
+	slider(text.backgroundBlur, 0, nil, function()
+		return blur.select, blur_params
+	end, function(v)
+		blur.select = v
+	end)
+
+	checkbox(text.vimMotions, false, nil, function()
+		return osu.vimMotions
+	end, function()
+		osu.vimMotions = not osu.vimMotions
+		view.ui.actionModel:updateActions()
+	end)
+
+	checkbox(text.previewIcon, false, nil, function()
+		return osu.songSelect.previewIcon
+	end, function()
+		osu.songSelect.previewIcon = not osu.songSelect.previewIcon
+	end)
+
+	checkbox(text.chartPreview, false, nil, function()
+		return ss.chart_preview
+	end, function()
+		ss.chart_preview = not ss.chart_preview
+	end)
+
+	c:createGroup("result", text.resultScreen)
+	Elements.currentGroup = "result"
+
+	slider(text.backgroundDim, 0.2, nil, function()
+		return dim.result, background_params
+	end, function(v)
+		dim.result = v
+	end, function(v)
+		return ("%i%%"):format(v * 100)
+	end)
+
+	slider(text.backgroundBlur, 0, nil, function()
+		return blur.result, blur_params
+	end, function(v)
+		blur.result = v
+	end)
+
+	checkbox(text.showHitGraph, false, nil, function()
+		return osu.result.hitGraph
+	end, function()
+		osu.result.hitGraph = not osu.result.hitGraph
+	end)
+
+	checkbox(text.showPP, false, nil, function()
+		return osu.result.pp
+	end, function()
+		osu.result.pp = not osu.result.pp
+	end)
+
+	Elements.sliderPixelWidth = nil
 
 	c:removeEmptyGroups()
 

@@ -2,6 +2,7 @@ local ScreenView = require("osu_ui.views.ScreenView")
 
 local OsuLayout = require("osu_ui.views.OsuLayout")
 local ViewConfig = require("osu_ui.views.SelectView.ViewConfig")
+local GaussianBlurView = require("sphere.views.GaussianBlurView")
 local BackgroundView = require("sphere.views.BackgroundView")
 local UiLockView = require("osu_ui.views.UiLockView")
 local SettingsView = require("osu_ui.views.SettingsView")
@@ -14,9 +15,12 @@ local InputMap = require("osu_ui.views.SelectView.InputMap")
 ---@operator call: osu.ui.SelectView
 ---@field prevChartViewId number
 ---@field selectModel sphere.SelectModel
+---@field configs sphere.Configs
 local SelectView = ScreenView + {}
 
 local ui_lock = false
+local dim = 0
+local blur = 0
 
 function SelectView:load()
 	self.game.selectController:load(self)
@@ -25,6 +29,7 @@ function SelectView:load()
 	self.chartPreviewView:load()
 
 	self.selectModel = self.game.selectModel
+	self.configs = self.game.configModel.configs
 
 	self.inputMap = InputMap(self, self.actionModel)
 	self.actionModel.enable()
@@ -75,6 +80,10 @@ function SelectView:update(dt)
 	end
 
 	self.settingsView:update()
+
+	local graphics = self.configs.settings.graphics
+	dim = graphics.dim.select
+	blur = graphics.blur.select
 
 	self.assets:updateVolume(self.game.configModel)
 
@@ -245,7 +254,9 @@ function SelectView:draw()
 	OsuLayout:draw()
 	local w, h = OsuLayout:move("base")
 
-	BackgroundView:draw(w, h, 0.13, 0.01)
+	GaussianBlurView:draw(blur)
+	BackgroundView:draw(w, h, dim, 0.01)
+	GaussianBlurView:draw(blur)
 
 	if ui_lock then
 		self.uiLockViewConfig:draw()

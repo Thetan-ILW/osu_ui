@@ -50,8 +50,9 @@ local creator = ""
 local difficultyFormatted = ""
 
 local grade = ""
-local hpGraph = false
 local tooltip = ""
+local show_hit_graph = false
+local show_pp = false
 
 local ppFormatted = ""
 local username = ""
@@ -198,6 +199,11 @@ function ViewConfig:new(game, assets, after_gameplay, view)
 		assets.sounds.applause:play()
 	end
 
+	local configs = view.game.configModel.configs
+	local osu = configs.osu_ui
+	show_pp = osu.result.pp
+	show_hit_graph = osu.result.hitGraph
+
 	self:createUI(view)
 end
 
@@ -231,8 +237,6 @@ end
 function ViewConfig:unload()
 	self.assets.sounds.applause:stop()
 end
-
-function ViewConfig.panels() end
 
 ---@param view table
 ---@return boolean
@@ -563,12 +567,7 @@ local function hitGraph(view)
 
 	gfx.draw(img.graph)
 
-	if hpGraph then
-		h = h * 0.86
-		gfx.translate(2, 6)
-		HitGraph.hpGraph.game = view.game
-		HitGraph.hpGraph:draw(w, h)
-	else
+	if show_hit_graph then
 		h = h * 0.9
 		gfx.translate(0, 5)
 		HitGraph.hitGraph.game = view.game
@@ -580,6 +579,11 @@ local function hitGraph(view)
 
 		gfx.setColor(0, 0, 0, 0)
 		gfx.rectangle("fill", -2, h / 2, w + 2, 4)
+	else
+		h = h * 0.86
+		gfx.translate(2, 6)
+		HitGraph.hpGraph.game = view.game
+		HitGraph.hpGraph:draw(w, h)
 	end
 
 	if just.is_over(w, h) then
@@ -643,10 +647,7 @@ function ViewConfig:draw(view)
 
 	hitGraph(view)
 
-	local configs = view.game.configModel.configs
-	local osu = configs.osu_ui
-
-	if not osu.showPP then
+	if not show_pp then
 		return
 	end
 

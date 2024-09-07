@@ -54,11 +54,7 @@ ResultView.load = thread.coro(function(self)
 		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
 	end
 
-	--if self.assets.resultViewConfig then
-	--	self.viewConfig = self.assert.resultViewConfig(self.game, self.assets, is_after_gameplay, self)
-	--else
 	self.viewConfig = ViewConfig(self.game, self.assets, is_after_gameplay, self)
-	--end
 
 	self.actionModel.enable()
 	self:setJudge()

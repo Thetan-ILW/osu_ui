@@ -20,6 +20,13 @@ l.textGroups = {
 		upToDate = "Your soundsphere is up-to-date!",
 		notUpToDate = "Cannot tell if the game is up to date.",
 		openSoundsphereFolder = "Open soundsphere folder",
+		--- Song select
+		songSelect = "SONG SELECT",
+		vimMotions = "Vim motions (ONLY FOR EXPERTS)",
+		previewIcon = "Preview icon (Only shifts text)",
+		chartPreview = "Chart preview",
+		backgroundDim = "Background dim:",
+		backgroundBlur = "Background blur:",
 		-------------- Graphics
 		graphics = "GRAPHICS",
 		-- Renderer
@@ -45,7 +52,6 @@ l.textGroups = {
 		details = "DETAIL SETTINGS",
 		backgroundVideos = "Background videos",
 		backgroundImages = "Background images",
-		chartPreview = "Chart preview",
 		-------------- Gameplay
 		gameplay = "GAMEPLAY",
 		-- Scroll speed
@@ -77,8 +83,6 @@ l.textGroups = {
 		autoShift = "Auto shift",
 		-- Visuals
 		visuals = "VISUALS",
-		backgroundDim = "Background dim:",
-		backgroundBlur = "Background blur:",
 		-- Other
 		ratingWindow = "Rating hit timing window:",
 		lastMeanValues = "Last mean values:",
@@ -89,6 +93,7 @@ l.textGroups = {
 		master = "Master:",
 		music = "Music:",
 		effect = "Effect:",
+		ui = "UI:",
 		rateChangesPitch = "Rate changes pitch",
 		rateChangesPitchTip = "Changing the speed of the music will also change the pitch of the music.",
 		autoKeySound = "Auto key sound",

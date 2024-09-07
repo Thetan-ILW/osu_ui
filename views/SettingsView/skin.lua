@@ -99,20 +99,6 @@ return function(assets, view, skin_preview)
 		return ("%ims"):format(v)
 	end)
 
-	c:createGroup("result", text.resultScreen)
-	Elements.currentGroup = "result"
-	checkbox(text.showHitGraph, false, nil, function()
-		return osu.result.hitGraph
-	end, function()
-		osu.result.hitGraph = not osu.result.hitGraph
-	end)
-
-	checkbox(text.showPP, false, nil, function()
-		return osu.result.pp
-	end, function()
-		osu.result.pp = not osu.result.pp
-	end)
-
 	c:createGroup("camera", text.camera)
 	Elements.currentGroup = "camera"
 

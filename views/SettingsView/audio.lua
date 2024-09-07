@@ -17,10 +17,12 @@ return function(assets, view)
 	local text, font = assets.localization:get("settings")
 	assert(text and font)
 
-	local settings = view.game.configModel.configs.settings
+	local configs = view.game.configModel.configs
+	local settings = configs.settings
 	local a = settings.audio
 	local g = settings.gameplay
 	local m = settings.miscellaneous
+	local osu = configs.osu_ui
 	local vol = a.volume
 	---@type table<string, number>
 	local of = g.offset_format
@@ -61,13 +63,18 @@ return function(assets, view)
 		return vol.music, linear_volume
 	end, function(v)
 		vol.music = v
-		assets:updateVolume(view.game.configModel)
 	end, volume_format)
 
 	slider(text.effect, 1, nil, function()
 		return vol.effects, linear_volume
 	end, function(v)
 		vol.effects = v
+	end, volume_format)
+
+	slider(text.ui, 0.4, nil, function()
+		return osu.uiVolume, linear_volume
+	end, function(v)
+		osu.uiVolume = v
 		assets:updateVolume(view.game.configModel)
 	end, volume_format)
 

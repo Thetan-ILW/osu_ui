@@ -223,14 +223,6 @@ return function(assets, view)
 	c:createGroup("health", text.health)
 	Elements.currentGroup = "health"
 
-	--[[
-	imgui.separator()
-	gyatt.text(text.other)
-	just.next(0, textSeparation)
-	g.ratingHitTimingWindow = intButtonsMs("ratingHitTimingWindow", g.ratingHitTimingWindow, text.ratingHitWindow)
-	g.lastMeanValues = imgui.intButtons("lastMeanValues", g.lastMeanValues, 1, text.lastMeanValues)
-	--]]
-
 	local action_on_fail_list = { "none", "pause", "quit" }
 	combo(text.actionOnFail, "none", nil, function()
 		return g.actionOnFail, action_on_fail_list
@@ -258,17 +250,19 @@ return function(assets, view)
 
 	Elements.sliderPixelWidth = 265
 
-	local background = { min = 0, max = 1, increment = 0.01 }
+	local background_params = { min = 0, max = 1, increment = 0.01 }
 	slider(text.backgroundDim, 0.8, nil, function()
-		return dim.gameplay, background
+		return dim.gameplay, background_params
 	end, function(v)
 		dim.gameplay = v
 	end, function(v)
 		return ("%i%%"):format(v * 100)
 	end)
 
+	local blur_params = { min = 0, max = 20, increment = 1 }
+
 	slider(text.backgroundBlur, 0, nil, function()
-		return blur.gameplay, background
+		return blur.gameplay, blur_params
 	end, function(v)
 		blur.gameplay = v
 	end, function(v)
