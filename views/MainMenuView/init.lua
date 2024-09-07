@@ -1,6 +1,7 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
 local flux = require("flux")
+local actions = require("osu_ui.actions")
 local ViewConfig = require("osu_ui.views.MainMenuView.ViewConfig")
 local InputMap = require("osu_ui.views.MainMenuView.InputMap")
 
@@ -20,8 +21,7 @@ local show_intro = true
 function MainMenuView:load()
 	self.game.selectController:load(self)
 	self.viewConfig = ViewConfig(self.game, self.assets)
-	self.inputMap = InputMap(self, self.actionModel)
-	self.actionModel.enable()
+	self.inputMap = InputMap(self)
 	self.selectModel = self.game.selectModel
 
 	self.settingsView = SettingsView(self.assets, self.game, self.ui)
@@ -45,6 +45,7 @@ function MainMenuView:load()
 	self.introTween = flux.to(self, 2, { introPercent = 1 }):ease("linear")
 
 	self.prevChartViewId = -1
+	actions.enable()
 end
 
 function MainMenuView:beginUnload()

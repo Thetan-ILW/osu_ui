@@ -1,6 +1,7 @@
 local Modal = require("osu_ui.views.modals.Modal")
 local ViewConfig = require("osu_ui.views.modals.Inputs.ViewConfig")
 
+local actions = require("osu_ui.actions")
 local just = require("just")
 
 ---@class osu.ui.InputsModal : osu.ui.Modal
@@ -9,12 +10,27 @@ local InputsModal = Modal + {}
 
 InputsModal.name = "Inputs"
 
+function InputsModal:onShow()
+	actions.disable()
+	just.reset()
+end
+
+function InputsModal:onQuit()
+	actions.enable()
+end
+
 function InputsModal:new(game, assets)
 	self.game = game
 	self.mode = tostring(self.game.selectController.state.inputMode)
 	self.inputModel = game.inputModel
 	self.viewConfig = ViewConfig(game, assets, self)
 	self:updateKeys()
+end
+
+function InputsModal:update()
+	if love.keyboard.isDown("escape") then
+		self:quit()
+	end
 end
 
 InputsModal.modes = {
@@ -33,8 +49,6 @@ InputsModal.modes = {
 	"12key2scratch",
 	"14key",
 	"14key2scratch",
-	"16key",
-	"16key2scratch",
 }
 
 local key_colors = {

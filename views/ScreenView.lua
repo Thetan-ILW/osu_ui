@@ -9,7 +9,6 @@ local delay = require("delay")
 ---@field gameView osu.ui.GameView
 ---@field prevView osu.ui.ScreenView
 ---@field modal osu.ui.Modal?
----@field actionModel osu.ui.ActionModel
 ---@field assetModel osu.ui.AssetModel
 ---@field assets osu.ui.OsuAssets
 ---@field notificationView osu.ui.NotificationView
@@ -82,8 +81,12 @@ function ScreenView:receive(event) end
 
 ---@param dt number
 function ScreenView:update(dt)
-	if self.modal and self.modal.alpha < 0 then
-		self.modal = nil
+	if self.modal then
+		self.modal:update(dt)
+
+		if self.modal.alpha < 0 then
+			self.modal = nil
+		end
 	end
 end
 

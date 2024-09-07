@@ -14,7 +14,6 @@ local OsuAssets = require("osu_ui.OsuAssets")
 ---@operator call: osu.ui.GameView
 ---@field view osu.ui.ScreenView?
 ---@field ui osu.ui.UserInterface
----@field actionModel osu.ui.ActionModel
 ---@field assetModel osu.ui.AssetModel
 ---@field assets osu.ui.OsuAssets
 local GameView = class()
@@ -42,7 +41,6 @@ function GameView:load()
 
 	prev_window_res = love.graphics.getWidth() * love.graphics.getHeight()
 	self.assetModel = self.ui.assetModel
-	self.actionModel = self.ui.actionModel
 	self:loadAssets()
 	self.notificationView:load(self.assets)
 	self.popupView:load(self.assets)
@@ -84,7 +82,6 @@ function GameView:_setView(view)
 	view.prevView = self.view
 	self:loadAssets()
 	self.view = view
-	self.view.actionModel = self.actionModel
 	self.view.assetModel = self.ui.assetModel
 	self.view.assets = self.assets
 	self.view.notificationView = self.notificationView
@@ -183,20 +180,6 @@ function GameView:receive(event)
 	self.frameTimeView:receive(event)
 	if not self.view then
 		return
-	end
-
-	if event.name == "inputchanged" then
-		self.actionModel.inputChanged(event)
-	end
-
-	if event.name == "keypressed" then
-		if not event[3] then -- do not repeat
-			self.actionModel.keyPressed(event)
-		end
-	end
-
-	if event.name == "focus" then
-		self.actionModel.resetInputs()
 	end
 
 	self.view:receive(event)

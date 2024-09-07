@@ -42,7 +42,7 @@ function PopupView:add(text, color, on_click)
 		fadeOutAnimation = 0,
 		x = 0,
 		y = 0,
-		h = h + 8,
+		h = h + 4,
 		remove = false,
 	}
 

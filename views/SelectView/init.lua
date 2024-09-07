@@ -1,5 +1,7 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
+local actions = require("osu_ui.actions")
+
 local OsuLayout = require("osu_ui.views.OsuLayout")
 local ViewConfig = require("osu_ui.views.SelectView.ViewConfig")
 local GaussianBlurView = require("sphere.views.GaussianBlurView")
@@ -31,8 +33,7 @@ function SelectView:load()
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs
 
-	self.inputMap = InputMap(self, self.actionModel)
-	self.actionModel.enable()
+	self.inputMap = InputMap(self)
 
 	self.viewConfig = ViewConfig(self, self.assets)
 	self.settingsView = SettingsView(self.assets, self.game, self.ui)
@@ -45,6 +46,7 @@ function SelectView:load()
 	self.cursor.alpha = 1
 
 	self:notechartChanged()
+	actions.enable()
 end
 
 function SelectView:beginUnload()

@@ -1,4 +1,5 @@
 local InputMap = require("osu_ui.InputMap")
+local actions = require("osu_ui.actions")
 
 local math_util = require("math_util")
 
@@ -22,9 +23,15 @@ end
 ---@param sv osu.ui.SelectView
 function SelectInputMap:createBindings(sv)
 	self.selectModals = {
-		["showMods"] = function() end,
-		["showSkins"] = function() end,
-		["showInputs"] = function() end,
+		["showMods"] = function()
+			sv:openModal("osu_ui.views.modals.Modifiers")
+		end,
+		["showSkins"] = function()
+			sv:openModal("osu_ui.views.modals.SkinSettings")
+		end,
+		["showInputs"] = function()
+			sv:openModal("osu_ui.views.modals.Inputs")
+		end,
 		["showFilters"] = function()
 			sv:openModal("osu_ui.views.modals.Filters")
 		end,
@@ -85,6 +92,14 @@ function SelectInputMap:createBindings(sv)
 		end,
 		["decreaseVolume"] = function()
 			increaseVolume(sv, -1)
+		end,
+		["insertMode"] = function()
+			actions.setVimMode("Insert")
+		end,
+		["normalMode"] = function()
+			actions.setVimMode("Normal")
+			local selectModel = sv.selectModel
+			selectModel:debouncePullNoteChartSet()
 		end,
 	}
 end

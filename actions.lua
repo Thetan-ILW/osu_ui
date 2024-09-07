@@ -1,8 +1,4 @@
-local class = require("class")
-
----@class osu.ui.ActionModel
----@operator call: osu.ui.ActionModel
-local ActionModel = class()
+local actions = {}
 
 ---@enum VimMode
 local vimModes = {
@@ -52,11 +48,6 @@ local modFormat = {
 	ralt = "alt",
 }
 
-function ActionModel:new(configModel)
-	self.configModel = configModel
-	love.keyboard.setKeyRepeat(true)
-end
-
 local function getComboString(t)
 	for i, v in ipairs(t) do
 		local formatted = modFormat[v] or v
@@ -67,16 +58,14 @@ local function getComboString(t)
 	return table.concat(t, "+")
 end
 
-function ActionModel:updateActions()
-	local configs = self.configModel.configs
-	local osu = configs.osu_ui
-
-	if osu.vimMotions then
+---@param osu_config  osu.ui.OsuConfig
+function actions.updateActions(osu_config)
+	if osu_config.vimMotions then
 		inputMode = "vim"
-		currentConfig = osu.vimKeybinds
+		currentConfig = osu_config.vimKeybinds
 	else
 		inputMode = "keyboard"
-		currentConfig = osu.keybinds
+		currentConfig = osu_config.keybinds
 	end
 
 	for actionName, action in pairs(currentConfig) do
@@ -104,29 +93,25 @@ function ActionModel:updateActions()
 	currentVimNode = operationsTree
 end
 
-function ActionModel:load()
-	self:updateActions()
-end
-
 ---@return string?
-function ActionModel.getAction()
+function actions.getAction()
 	return currentAction
 end
 
-function ActionModel.getCount()
+function actions.getCount()
 	return tonumber(count) or 1
 end
 
-function ActionModel.resetAction()
+function actions.resetAction()
 	count = ""
 	currentAction = nil
 end
 
 ---@param action string
 ---@return boolean
-function ActionModel.consumeAction(action)
+function actions.consumeAction(action)
 	if currentAction == action then
-		ActionModel.resetAction()
+		actions.resetAction()
 		return true
 	end
 
@@ -134,7 +119,7 @@ function ActionModel.consumeAction(action)
 end
 
 ---@return boolean
-function ActionModel.isModKeyDown()
+function actions.isModKeyDown()
 	local isDown = false
 
 	for _, down in pairs(modKeysDown) do
@@ -145,26 +130,26 @@ function ActionModel.isModKeyDown()
 end
 
 ---@return boolean
-function ActionModel.isVimMode()
+function actions.isVimMode()
 	return "vim" == inputMode
 end
 
 ---@return VimMode
-function ActionModel.getVimMode()
+function actions.getVimMode()
 	return vimMode
 end
 
 ---@param mode VimMode
-function ActionModel.setVimMode(mode)
+function actions.setVimMode(mode)
 	vimMode = mode
 end
 
 ---@return boolean
-function ActionModel.isInsertMode()
+function actions.isInsertMode()
 	return vimMode == vimModes.insert
 end
 
-function ActionModel.resetInputs()
+function actions.resetInputs()
 	modKeysDown = {}
 	keysDown = {}
 	keyPressTimestamps = {}
@@ -210,7 +195,7 @@ end
 
 ---@param event table
 -- Accepts keyboard events and finds which actions is down
-function ActionModel.inputChanged(event)
+function actions.inputChanged(event)
 	if disabled then
 		return
 	end
@@ -224,7 +209,7 @@ function ActionModel.inputChanged(event)
 		keysDown[key] = state or nil
 	end
 
-	if ActionModel.isModKeyDown() then
+	if actions.isModKeyDown() then
 		currentDownAction = getDownModAction()
 		return
 	end
@@ -288,14 +273,14 @@ local function getComboAction()
 	return comboActions[getComboString(keys)]
 end
 
-function ActionModel.keyPressed(event)
+function actions.keyPressed(event)
 	if disabled then
 		return
 	end
 
 	local key = event[2]
 
-	if tonumber(key) and not ActionModel.isInsertMode() then
+	if tonumber(key) and not actions.isInsertMode() then
 		count = count .. key
 	end
 
@@ -303,7 +288,7 @@ function ActionModel.keyPressed(event)
 		keyPressTimestamps[key] = event.time
 	end
 
-	if ActionModel.isModKeyDown() then
+	if actions.isModKeyDown() then
 		currentAction = getComboAction()
 		return
 	end
@@ -313,7 +298,7 @@ function ActionModel.keyPressed(event)
 		return
 	end
 
-	if ActionModel.isInsertMode() and key ~= "escape" then
+	if actions.isInsertMode() and key ~= "escape" then
 		return
 	end
 
@@ -329,23 +314,23 @@ end
 
 ---@param name string
 ---@return boolean
-function ActionModel.isActionDown(name)
+function actions.isActionDown(name)
 	return currentDownAction == name
 end
 
-function ActionModel.enable()
+function actions.enable()
 	disabled = false
 	love.keyboard.setKeyRepeat(true)
 end
 
-function ActionModel.disable()
+function actions.disable()
 	disabled = true
 	love.keyboard.setKeyRepeat(false)
-	ActionModel.resetInputs()
+	actions.resetInputs()
 end
 
-function ActionModel.isEnabled()
+function actions.isEnabled()
 	return not disabled
 end
 
-return ActionModel
+return actions

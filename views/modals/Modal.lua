@@ -42,18 +42,21 @@ function Modal:hide()
 end
 
 function Modal:quit()
+	if self.shouldClose then
+		return
+	end
+
 	self.shouldClose = true
 	self:onQuit()
 end
 
-function Modal:update() end
+---@param dt number
+function Modal:update(dt) end
 
 function Modal:draw(view)
 	if view.game.cacheModel.isProcessing then
 		return
 	end
-
-	self:update()
 
 	if self.shouldClose and self.alpha > 0.1 then
 		self:hide()

@@ -3,6 +3,7 @@ local flux = require("flux")
 local class = require("class")
 
 local ui = require("osu_ui.ui")
+local actions = require("osu_ui.actions")
 
 ---@class osu.ui.ListView
 ---@operator call: osu.ui.ListView
@@ -90,9 +91,9 @@ function ListView:input(w, h)
 		return
 	end
 
-	local ap = self.actionModel.consumeAction
-	local ad = self.actionModel.isActionDown
-	local gc = self.actionModel.getCount
+	local ap = actions.consumeAction
+	local ad = actions.isActionDown
+	local gc = actions.getCount
 
 	if ad("up") then
 		self:autoScroll(-1 * gc(), ap("up"))

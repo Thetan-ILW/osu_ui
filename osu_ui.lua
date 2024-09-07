@@ -1,4 +1,4 @@
----@class osu.OsuConfig
+---@class osu.ui.OsuConfig
 local t = {
 	skin = "Default",
 	language = "English",

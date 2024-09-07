@@ -38,6 +38,9 @@ function MainMenuInputMap:createBindings(mv)
 		["showSettings"] = function()
 			mv:toggleSettings()
 		end,
+		["play"] = function()
+			mv.viewConfig:processLogoState(mv, "logo_click")
+		end,
 	}
 end
 

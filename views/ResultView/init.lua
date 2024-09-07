@@ -7,6 +7,7 @@ local GaussianBlurView = require("sphere.views.GaussianBlurView")
 local BackgroundView = require("sphere.views.BackgroundView")
 
 local InputMap = require("osu_ui.views.ResultView.InputMap")
+local actions = require("osu_ui.actions")
 
 local Soundsphere = require("sphere.models.RhythmModel.ScoreEngine.SoundsphereScoring")
 local OsuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
@@ -37,7 +38,7 @@ ResultView.load = thread.coro(function(self)
 
 	self.game.resultController:load()
 
-	self.inputMap = InputMap(self, self.actionModel)
+	self.inputMap = InputMap(self)
 
 	local is_after_gameplay = self.prevView == self.ui.gameplayView
 
@@ -56,7 +57,6 @@ ResultView.load = thread.coro(function(self)
 
 	self.viewConfig = ViewConfig(self.game, self.assets, is_after_gameplay, self)
 
-	self.actionModel.enable()
 	self:setJudge()
 	self.viewConfig:loadScore(self)
 
@@ -65,6 +65,7 @@ ResultView.load = thread.coro(function(self)
 
 	love.mouse.setVisible(false)
 	self.cursor.alpha = 1
+	actions.enable()
 end)
 
 local scoring = {

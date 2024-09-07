@@ -338,8 +338,6 @@ function ViewConfig:loadScore(view)
 	HitGraph.counterNames = counterNames
 	HitGraph.scoreSystemName = scoreSystemName
 
-	hpGraph = osu.hpGraph
-
 	local show = showLoadedScore(view)
 
 	local scoreItem = view.game.selectModel.scoreItem

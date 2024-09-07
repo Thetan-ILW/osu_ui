@@ -7,6 +7,7 @@ local Layout = require("osu_ui.views.OsuLayout")
 local ViewConfig = IViewConfig + {}
 
 local ui = require("osu_ui.ui")
+local actions = require("osu_ui.actions")
 local time_util = require("time_util")
 local math_util = require("math_util")
 local table_util = require("table_util")
@@ -34,9 +35,6 @@ local font
 local img
 ---@type table<string, audio.Source>
 local snd
-
----@type osu.ui.ActionModel
-local action_model
 
 local gfx = love.graphics
 
@@ -71,6 +69,8 @@ local chart_list_update_time = 0
 local has_scores = false
 local online_scores = false
 local beat = 0
+
+local search = ""
 
 local pp = 0
 local accuracy = 0
@@ -247,8 +247,6 @@ function ViewConfig:new(view, assets)
 	img = assets.images
 	snd = assets.sounds
 
-	action_model = view.actionModel
-
 	text = assets.localization.textGroups.songSelect
 	font = assets.localization.fontGroups.songSelect
 
@@ -266,6 +264,7 @@ function ViewConfig:new(view, assets)
 
 	local select = view.game.configModel.configs.select
 	online_scores = select.scoreSourceName == "online"
+	search = select.filterString
 
 	local w, h = Layout:move("base")
 	top_panel_quad = gfx.newQuad(0, 0, w, img.panelTop:getHeight(), img.panelTop)
@@ -729,11 +728,9 @@ function ViewConfig:modeLogo()
 	gfx.draw(image)
 end
 
-local search = ""
-
 ---@param view osu.ui.SelectView
 function ViewConfig:search(view)
-	local insert_mode = action_model.isInsertMode()
+	local insert_mode = actions.isInsertMode()
 	local width = 364
 	local w, h = Layout:move("base")
 	gfx.translate(w - width, 82)
@@ -751,7 +748,7 @@ function ViewConfig:search(view)
 	gfx.setColor(white)
 	ui.sameline()
 
-	local vim_motions = action_model.isVimMode()
+	local vim_motions = actions.isVimMode()
 
 	local config = view.game.configModel.configs.select
 	local changed = false
@@ -765,15 +762,16 @@ function ViewConfig:search(view)
 		ui.text(search)
 	end
 
-	if action_model.isEnabled() then
+	if actions.isEnabled() then
 		if changed == "text" then
 			view:updateSearch(search)
 		end
 
-		local delete_all = action_model.consumeAction("deleteLine")
+		local delete_all = actions.consumeAction("deleteLine")
 
 		if delete_all then
 			view:updateSearch("")
+			search = ""
 		end
 	end
 end

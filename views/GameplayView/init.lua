@@ -9,6 +9,7 @@ local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
 
 local just = require("just")
 local ui = require("osu_ui.ui")
+local actions = require("osu_ui.actions")
 local flux = require("flux")
 
 ---@class osu.ui.GameplayView: osu.ui.ScreenView
@@ -22,6 +23,8 @@ function GameplayView:new(game)
 end
 
 function GameplayView:load()
+	actions.disable()
+
 	self.game.rhythmModel.observable:add(self.sequenceView)
 	self.game.gameplayController:load()
 
@@ -41,7 +44,6 @@ function GameplayView:load()
 	local assets = OsuPauseAssets(root)
 	self.pauseScreen = OsuPauseScreen(assets)
 
-	self.actionModel.disable()
 	self.cursor.alpha = 0
 end
 
