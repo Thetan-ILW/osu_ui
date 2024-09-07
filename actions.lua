@@ -1,3 +1,5 @@
+local utf8 = require("utf8")
+
 local actions = {}
 
 ---@enum VimMode
@@ -18,6 +20,8 @@ local currentAction = nil
 local currentDownAction = nil
 local count = ""
 local currentVimNode = {}
+---@type string?
+local last_pressed_key = nil
 
 local comboActions = {} -- [keyCombo] = action_name
 local operationsTree = {} -- [key] = [key, action_name] Tree of keys
@@ -279,37 +283,43 @@ function actions.keyPressed(event)
 	end
 
 	local key = event[2]
+	local repeatt = event[3]
 
-	if tonumber(key) and not actions.isInsertMode() then
-		count = count .. key
-	end
+	if not repeatt then
+		if tonumber(key) and not actions.isInsertMode() then
+			count = count .. key
+		end
 
-	if not modKeysList[key] then
-		keyPressTimestamps[key] = event.time
-	end
+		if not modKeysList[key] then
+			keyPressTimestamps[key] = event.time
+		end
 
-	if actions.isModKeyDown() then
-		currentAction = getComboAction()
-		return
-	end
+		if actions.isModKeyDown() then
+			currentAction = getComboAction()
+			return
+		end
 
-	if inputMode == "keyboard" then
-		currentAction = singleKeyActions[key]
-		return
+		if inputMode == "keyboard" then
+			currentAction = singleKeyActions[key]
+			return
+		end
 	end
 
 	if actions.isInsertMode() and key ~= "escape" then
+		last_pressed_key = key
 		return
 	end
 
-	local action = nextInTree(key)
+	if not repeatt then
+		local action = nextInTree(key)
 
-	if action then
-		currentAction = action
-		return
+		if action then
+			currentAction = action
+			return
+		end
+
+		currentAction = singleKeyActions[key]
 	end
-
-	currentAction = singleKeyActions[key]
 end
 
 ---@param name string
@@ -331,6 +341,48 @@ end
 
 function actions.isEnabled()
 	return not disabled
+end
+
+---@param text string
+---@param index number
+---@return string
+---@return string
+local function text_split(text, index)
+	local _index = utf8.offset(text, index) or 1
+	return text:sub(1, _index - 1), text:sub(_index)
+end
+
+---@param text string
+---@param index number
+---@return string
+local function text_remove(text, index)
+	local _
+	local left, right = text_split(text, index)
+
+	left, _ = text_split(left, utf8.len(left))
+	index = math.max(1, index - 1)
+
+	return left .. right
+end
+
+---@param text string
+---@return boolean
+---@return string
+function actions.textInput(text)
+	if last_pressed_key == nil then
+		return false, text
+	end
+
+	if last_pressed_key == "backspace" then
+		text = text_remove(text, utf8.len(text) + 1)
+		last_pressed_key = nil
+		return true, text
+	end
+
+	text = text .. last_pressed_key
+	last_pressed_key = nil
+
+	return true, text
 end
 
 return actions

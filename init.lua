@@ -54,9 +54,7 @@ function UserInterface:receive(event)
 	end
 
 	if event.name == "keypressed" then
-		if not event[3] then -- do not repeat
-			actions.keyPressed(event)
-		end
+		actions.keyPressed(event)
 	end
 
 	if event.name == "focus" then

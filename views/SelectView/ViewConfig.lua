@@ -753,7 +753,7 @@ function ViewConfig:search(view)
 	local config = view.game.configModel.configs.select
 	local changed = false
 	if (not vim_motions or insert_mode) and has_focus then
-		changed, search = ui.textInput(config.filterString)
+		changed, search = actions.textInput(config.filterString)
 	end
 
 	if search == "" then
@@ -763,7 +763,7 @@ function ViewConfig:search(view)
 	end
 
 	if actions.isEnabled() then
-		if changed == "text" then
+		if changed then
 			view:updateSearch(search)
 		end
 
