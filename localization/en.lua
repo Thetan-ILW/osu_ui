@@ -343,6 +343,7 @@ l.fontGroups = {
 	},
 	filtersModal = {
 		title = { "Aller-Light", 33, "ZenMaruGothic-Regular" },
+		checkboxes = { "Aller", 16, "ZenMaruGothic-Regular" },
 		buttons = { "Aller", 42, "ZenMaruGothic-Regular" },
 		groupButtons = { "Aller", 25, "ZenMaruGothic-Regular" },
 	},

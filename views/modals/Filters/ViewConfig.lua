@@ -3,6 +3,7 @@ local IViewConfig = require("osu_ui.views.IViewConfig")
 local ui = require("osu_ui.ui")
 local flux = require("flux")
 local Button = require("osu_ui.ui.Button")
+local Checkbox = require("osu_ui.ui.Checkbox")
 
 local Layout = require("osu_ui.views.OsuLayout")
 
@@ -19,6 +20,8 @@ local font
 local reset_button
 ---@type osu.ui.Button
 local close_button
+---@type osu.ui.Checkbox
+local modded_checkbox
 
 ---@param game sphere.GameController
 ---@param modal osu.ui.FiltersModal
@@ -48,6 +51,10 @@ function ViewConfig:createUI()
 	local assets = self.assets
 	local modal = self.modal
 
+	local configs = self.game.configModel.configs
+	local settings = configs.settings
+	local ss = settings.select
+
 	reset_button = Button(assets, {
 		text = text.reset,
 		scale = scale,
@@ -73,6 +80,18 @@ function ViewConfig:createUI()
 	}, function()
 		modal:quit()
 	end)
+
+	modded_checkbox = Checkbox(assets, {
+		text = "Show modded charts",
+		font = font.checkboxes,
+		pixelHeight = 37,
+		tip = "This will show charts that you have played with modifiers as separate charts.",
+	}, function()
+		return ss.chartdiffs_list
+	end, function()
+		ss.chartdiffs_list = not ss.chartdiffs_list
+		self.game.selectModel:noDebouncePullNoteChartSet()
+	end)
 end
 
 local gfx = love.graphics
@@ -83,6 +102,10 @@ local simple_mode = {
 	["scratch"] = true,
 	["(not) played"] = true,
 }
+
+local icon_width = 64
+local icon_height = 58
+local icon_spacing = 28
 
 function ViewConfig:groups()
 	local filter_model = self.filterModel
@@ -106,40 +129,30 @@ function ViewConfig:groups()
 
 			if is_active then
 				gfx.setColor(0.99, 0.49, 1, 0.5)
-				gfx.rectangle("fill", 0, 0, 64, 64, 5, 5)
+				gfx.rectangle("fill", 0, 0, icon_width, icon_height, 5, 5)
 				gfx.setColor(0.99, 0.49, 1)
-				gfx.rectangle("line", 0, 0, 64, 64, 5, 5)
+				gfx.rectangle("line", 0, 0, icon_width, icon_height, 5, 5)
 			else
 				gfx.setColor(0.3, 0.3, 0.3, 0.5)
-				gfx.rectangle("fill", 0, 0, 64, 64, 5, 5)
+				gfx.rectangle("fill", 0, 0, icon_width, icon_height, 5, 5)
 				gfx.setColor(1, 1, 1)
-				gfx.rectangle("line", 0, 0, 64, 64, 5, 5)
+				gfx.rectangle("line", 0, 0, icon_width, icon_height, 5, 5)
 			end
 
 			gfx.setColor(1, 1, 1)
-			ui.frame(text[filter.name] or filter.name:upper(), 0, 0, 64, 64, "center", "center")
+			ui.frame(text[filter.name] or filter.name:upper(), 0, 0, icon_width, icon_height, "center", "center")
 
-			if ui.isOver(64, 64) and ui.mousePressed(1) then
+			if ui.isOver(icon_width, icon_height) and ui.mousePressed(1) then
 				filter_model:setFilter(group.name, filter.name, not is_active)
 				filter_model:apply()
 				self.game.selectModel:noDebouncePullNoteChartSet()
 			end
 
-			gfx.translate(106, 0)
+			gfx.translate(icon_width + icon_spacing, 0)
 		end
 		gfx.pop()
 
-		--[[
-		for _, filter in ipairs(group) do
-			if new_is_active ~= is_active then
-				filter_model:setFilter(group.name, filter.name, new_is_active)
-				filter_model:apply()
-				self.game.selectModel:noDebouncePullNoteChartSet()
-			end
-		end
-		]]
-
-		gfx.translate(0, 96)
+		gfx.translate(0, icon_height + icon_spacing)
 		::continue::
 	end
 end
@@ -162,6 +175,12 @@ function ViewConfig:draw()
 	local path = tree.items[tree.selected].name
 
 	ui.frame(("%i charts in %s"):format(#count, path), 0, 90, w, h, "center", "top")
+
+	gfx.push()
+	gfx.translate(329, 500)
+	modded_checkbox:update(true)
+	modded_checkbox:draw()
+	gfx.pop()
 
 	local bw, bh = reset_button:getDimensions()
 	gfx.translate(w / 2 - bw / 2, 540)
