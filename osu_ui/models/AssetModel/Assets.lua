@@ -10,6 +10,8 @@ local path_util = require("path_util")
 ---@operator call: osu.ui.Assets
 ---@field assetModel osu.ui.AssetModel
 ---@field defaultsDirectory string
+---@field fileList {[string]: string}
+---@field defaultsFileList {[string]: string}
 ---@field images table<string, love.Image>
 ---@field sounds table<string, audio.Source?>
 ---@field shaders table<string, love.Shader>
@@ -29,53 +31,65 @@ function Assets:setDefaultsDirectory(path)
 	self.defaultsDirectory = path_util.join(self.assetModel.mountPath, path)
 end
 
----@param path string
----@return string?
-function Assets.findImage(path)
-	for _, format in ipairs(image_extensions) do
-		local normal = path .. format
-		local double = path .. "@2x" .. format
+function Assets:setFileList(path)
+	self.fileList = {}
+	local files = love.filesystem.getDirectoryItems(path)
 
-		if love.filesystem.getInfo(double) then
-			return double
-		end
-
-		if love.filesystem.getInfo(normal) then
-			return normal
-		end
-
-		if love.filesystem.getInfo(double:lower()) then
-			return double:lower()
-		end
-
-		if love.filesystem.getInfo(normal:lower()) then
-			return normal:lower()
-		end
+	for _, file in ipairs(files) do
+		self.fileList[file:lower()] = file
 	end
-end
 
----@param path string
----@return string?
-function Assets.findAudio(path)
-	if not path then
+	if not self.defaultsDirectory then
 		return
 	end
 
-	for _, format in ipairs(audio_extensions) do
-		local audio_path = path .. format
+	self.defaultsFileList = {}
+	files = love.filesystem.getDirectoryItems(self.defaultsDirectory)
 
-		if love.filesystem.getInfo(audio_path) then
-			return audio_path
+	for _, file in ipairs(files) do
+		self.defaultsFileList[file:lower()] = file
+	end
+end
+
+---@param name string
+---@param file_list {[string]: string}
+---@return string?
+function Assets.findImage(name, file_list)
+	for _, format in ipairs(image_extensions) do
+		local double = file_list[(name .. "@2x" .. format):lower()]
+		if double then
+			return double
+		end
+
+		local normal = file_list[(name .. format):lower()]
+		if normal then
+			return normal
 		end
 	end
 end
 
----@param path string
----@return love.Image?
-function Assets.loadImage(path)
-	path = Assets.findImage(path)
+---@param name string
+---@param file_list {[string]: string}
+---@return string?
+function Assets.findAudio(name, file_list)
+	for _, format in ipairs(audio_extensions) do
+		local audio_file = file_list[name .. format]
 
-	if path then
+		if audio_file then
+			return audio_file
+		end
+	end
+end
+
+---@param directory string
+---@param file_name string
+---@param file_list {[string]: string}
+---@return love.Image?
+function Assets.loadImage(directory, file_name, file_list)
+	local found = Assets.findImage(file_name, file_list)
+
+	if found then
+		local path = path_util.join(directory, found)
 		local success, result = pcall(love.graphics.newImage, path)
 
 		if success then
@@ -93,22 +107,22 @@ local function getSoundData(sound_path)
 	return audio.SoundData(file_data:getFFIPointer(), file_data:getSize())
 end
 
----@param path string
+---@param directory
+---@param file_name string
+---@param file_list {[string]: string}
 ---@param use_sound_data boolean?
 ---@return audio.Source?
 --- Note: use_sound_data for loading audio from mounted directories (moddedgame/charts)
-function Assets.loadAudio(path, use_sound_data)
-	path = Assets.findAudio(path)
+function Assets.loadAudio(directory, file_name, file_list, use_sound_data)
+	local found = Assets.findAudio(file_name, file_list)
 
-	if path then
-		local info = love.filesystem.getInfo(path)
-
-		if info.size and info.size < 45 then -- Empty audio, would crash the game
-			return
-		end
+	if not found then
+		return
 	end
 
-	if path and use_sound_data then
+	local path = path_util.join(directory, found)
+
+	if use_sound_data then
 		local success, result = pcall(audio.newSource, getSoundData(path))
 
 		if success then
@@ -118,23 +132,27 @@ function Assets.loadAudio(path, use_sound_data)
 		table.insert(Assets.errors, ("Failed to load sound using SoundData %s | %s"):format(path, result))
 	end
 
-	if path then
-		---@type string
-		path = source_directory .. "/" .. path
-		local success, result = pcall(audio.newFileSource, path)
+	local info = love.filesystem.getInfo(path)
 
-		if success then
-			local valid, error = pcall(result.stop, result)
+	if info.size and info.size < 45 then -- Empty audio, would crash the game
+		return
+	end
 
-			if valid then
-				return result
-			end
+	---@type string
+	path = source_directory .. "/" .. path
+	local success, result = pcall(audio.newFileSource, path)
 
-			table.insert(Assets.errors, ("Corrupted sound %s | %s"):format(path, error))
+	if success then
+		local valid, error = pcall(result.stop, result)
+
+		if valid then
+			return result
 		end
 
-		table.insert(Assets.errors, ("Failed to load sound %s | Error: %s"):format(path, table.concat(result)))
+		table.insert(Assets.errors, ("Corrupted sound %s | %s"):format(path, error))
 	end
+
+	table.insert(Assets.errors, ("Failed to load sound %s | Error: %s"):format(path, table.concat(result)))
 end
 
 ---@type love.Image?
@@ -165,8 +183,9 @@ function Assets.emptyAudio()
 	return empty_audio
 end
 
+---@param name string
 function Assets:loadDefaultImage(name)
-	local image = Assets.loadImage(path_util.join(self.defaultsDirectory, name))
+	local image = Assets.loadImage(self.defaultsDirectory, name, self.defaultsFileList)
 
 	if image then
 		return image
@@ -180,7 +199,7 @@ end
 ---@param name string
 ---@return love.Image
 function Assets:loadImageOrDefault(directory, name)
-	local image = Assets.loadImage(directory .. name)
+	local image = Assets.loadImage(directory, name, self.fileList)
 
 	if image then
 		return image
@@ -193,13 +212,13 @@ end
 ---@param name string
 ---@return audio.Source
 function Assets:loadAudioOrDefault(directory, name)
-	local sound = Assets.loadAudio(directory .. name)
+	local sound = Assets.loadAudio(directory, name, self.fileList)
 
 	if sound then
 		return sound
 	end
 
-	sound = Assets.loadAudio(path_util.join(self.defaultsDirectory, name), true)
+	sound = Assets.loadAudio(self.defaultsDirectory, name, self.defaultsFileList, true)
 
 	if sound then
 		return sound

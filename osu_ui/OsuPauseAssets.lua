@@ -12,6 +12,7 @@ local OsuPauseAssets = Assets + {}
 function OsuPauseAssets:new(asset_model, path)
 	self.assetModel = asset_model
 	self:setDefaultsDirectory("osu_ui/assets")
+	self:setFileList(path)
 
 	self.images = {
 		overlay = self:loadImageOrDefault(path, "pause-overlay"),

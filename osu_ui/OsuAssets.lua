@@ -52,19 +52,37 @@ function OsuAssets:getImageFont(skin_path, group)
 	local font = {}
 
 	for _, v in ipairs(characters) do
-		local file = Assets.findImage(("%s%s-%s"):format(skin_path, group, v))
+		local file_name = Assets.findImage(("%s-%s"):format(group, v), self.fileList)
 
-		if not file then
-			file = ("%s%s-%s@2x.png"):format(self.defaultsDirectory, group, v)
+		if not file_name then
+			file_name = ("%s-%s@2x.png"):format(group, v)
 		end
 
-		if file then
+		if file_name then
 			local key = char_alias[v] and char_alias[v] or v
-			font[key] = file
+			font[key] = file_name
 		end
 	end
 
 	return font
+end
+
+---@return love.Image
+function OsuAssets:loadAvatar()
+	local userdata = love.filesystem.getDirectoryItems("userdata")
+	local file_list = {}
+
+	for _, v in ipairs(userdata) do
+		file_list[v:lower()] = v
+	end
+
+	local avatar = self.findImage("avatar", file_list)
+
+	if avatar then
+		return love.graphics.newImage(path_util.join("userdata", avatar))
+	end
+
+	return self.emptyImage()
 end
 
 ---@param skin_path string
@@ -73,14 +91,16 @@ function OsuAssets:new(asset_model, skin_path, localization_file)
 	self.assetModel = asset_model
 	self.skinPath = skin_path
 	self:setDefaultsDirectory("osu_ui/assets")
+	self:setFileList(skin_path)
 
-	local content = love.filesystem.read(skin_path .. "skin.ini") or love.filesystem.read(skin_path .. "Skin.ini")
+	local content = love.filesystem.read(path_util.join(skin_path, self.fileList["skin.ini"]))
 
 	---@type table
 	local skin_ini
 
 	if content then
 		content = utf8validate(content)
+		print("foind!!")
 	else
 		content = love.filesystem.read(path_util.join(self.defaultsDirectory, "skin.ini"))
 	end
@@ -101,7 +121,7 @@ function OsuAssets:new(asset_model, skin_path, localization_file)
 	}
 
 	self.images = {
-		avatar = self.loadImage("userdata/avatar") or self.emptyImage(),
+		avatar = self:loadAvatar(),
 		panelTop = self:loadImageOrDefault(skin_path, "songselect-top"),
 
 		menuBackArrow = self:loadImageOrDefault("skin_path", "menu-back-arrow"),
@@ -235,7 +255,7 @@ function OsuAssets:new(asset_model, skin_path, localization_file)
 		automap10 = self:loadImageOrDefault(skin_path, "selection-mod-key10"),
 	}
 
-	local menu_back = self.loadImage(skin_path .. "menu-back")
+	local menu_back = self.loadImage(skin_path, "menu-back", self.fileList)
 	self.images.menuBack = menu_back or self.emptyImage()
 
 	self.hasBackButton = true
