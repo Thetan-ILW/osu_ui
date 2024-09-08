@@ -9,7 +9,10 @@ local path_util = require("path_util")
 ---@class osu.ui.Assets
 ---@operator call: osu.ui.Assets
 ---@field assetModel osu.ui.AssetModel
+---@field directory string
 ---@field defaultsDirectory string
+---@field fileList {[string]: string}
+---@field defaultsFileList {[string]: string}
 ---@field images table<string, love.Image>
 ---@field sounds table<string, audio.Source?>
 ---@field shaders table<string, love.Shader>
@@ -25,57 +28,99 @@ local source_directory = love.filesystem.getSource()
 local audio_extensions = { ".wav", ".ogg", ".mp3" }
 local image_extensions = { ".png", ".jpg", ".jpeg", ".bmp", ".tga" }
 
-function Assets:setDefaultsDirectory(path)
-	self.defaultsDirectory = path_util.join(self.assetModel.mountPath, path)
-end
+local max_depth = 5
 
----@param path string
----@return string?
-function Assets.findImage(path)
-	for _, format in ipairs(image_extensions) do
-		local normal = path .. format
-		local double = path .. "@2x" .. format
+---@param list {[string]: string}
+---@param root string
+---@param path string?
+---@param depth number?
+function Assets.populateFileList(list, root, path, depth)
+	path = path or ""
+	depth = depth or 1
 
-		if love.filesystem.getInfo(double) then
-			return double
-		end
-
-		if love.filesystem.getInfo(normal) then
-			return normal
-		end
-
-		if love.filesystem.getInfo(double:lower()) then
-			return double:lower()
-		end
-
-		if love.filesystem.getInfo(normal:lower()) then
-			return normal:lower()
-		end
-	end
-end
-
----@param path string
----@return string?
-function Assets.findAudio(path)
-	if not path then
+	if depth > max_depth then
 		return
 	end
 
-	for _, format in ipairs(audio_extensions) do
-		local audio_path = path .. format
+	local files = love.filesystem.getDirectoryItems(path_util.join(root, path))
 
-		if love.filesystem.getInfo(audio_path) then
-			return audio_path
+	for _, file in ipairs(files) do
+		local local_path = file
+
+		if path ~= "" then
+			local_path = path_util.join(path, file)
+		end
+
+		local full_path = path_util.join(root, local_path)
+		local info = love.filesystem.getInfo(full_path)
+
+		if info.type == "directory" then
+			Assets.populateFileList(list, root, local_path, depth + 1)
+		elseif info.type == "file" then
+			list[local_path:lower()] = local_path
 		end
 	end
 end
 
----@param path string
+function Assets:setPaths(directory, defaults_directory)
+	self.directory = directory
+
+	if defaults_directory then
+		self.defaultsDirectory = path_util.join(self.assetModel.mountPath, defaults_directory)
+	end
+end
+
+function Assets:setFileList()
+	self.fileList = {}
+	self.populateFileList(self.fileList, self.directory)
+
+	if not self.defaultsDirectory then
+		return
+	end
+
+	self.defaultsFileList = {}
+	self.populateFileList(self.defaultsFileList, self.defaultsDirectory)
+end
+
+---@param name string
+---@param file_list {[string]: string}
+---@return string?
+function Assets.findImage(name, file_list)
+	for _, format in ipairs(image_extensions) do
+		local double = file_list[(name .. "@2x" .. format):lower()]
+		if double then
+			return double
+		end
+
+		local normal = file_list[(name .. format):lower()]
+		if normal then
+			return normal
+		end
+	end
+end
+
+---@param name string
+---@param file_list {[string]: string}
+---@return string?
+function Assets.findAudio(name, file_list)
+	for _, format in ipairs(audio_extensions) do
+		local audio_file = file_list[name .. format]
+
+		if audio_file then
+			return audio_file
+		end
+	end
+end
+
+---@param root string
+---@param file_name string
+---@param file_list {[string]: string}
 ---@return love.Image?
-function Assets.loadImage(path)
-	path = Assets.findImage(path)
+function Assets.loadImage(root, file_name, file_list)
+	local path = Assets.findImage(file_name, file_list)
 
 	if path then
+		path = path_util.join(root, path)
 		local success, result = pcall(love.graphics.newImage, path)
 
 		if success then
@@ -93,22 +138,22 @@ local function getSoundData(sound_path)
 	return audio.SoundData(file_data:getFFIPointer(), file_data:getSize())
 end
 
----@param path string
+---@param root string
+---@param file_name string
+---@param file_list {[string]: string}
 ---@param use_sound_data boolean?
 ---@return audio.Source?
 --- Note: use_sound_data for loading audio from mounted directories (moddedgame/charts)
-function Assets.loadAudio(path, use_sound_data)
-	path = Assets.findAudio(path)
+function Assets.loadAudio(root, file_name, file_list, use_sound_data)
+	local path = Assets.findAudio(file_name, file_list)
 
-	if path then
-		local info = love.filesystem.getInfo(path)
-
-		if info.size and info.size < 45 then -- Empty audio, would crash the game
-			return
-		end
+	if not path then
+		return
 	end
 
-	if path and use_sound_data then
+	path = path_util.join(root, path)
+
+	if use_sound_data then
 		local success, result = pcall(audio.newSource, getSoundData(path))
 
 		if success then
@@ -118,23 +163,27 @@ function Assets.loadAudio(path, use_sound_data)
 		table.insert(Assets.errors, ("Failed to load sound using SoundData %s | %s"):format(path, result))
 	end
 
-	if path then
-		---@type string
-		path = source_directory .. "/" .. path
-		local success, result = pcall(audio.newFileSource, path)
+	local info = love.filesystem.getInfo(path)
 
-		if success then
-			local valid, error = pcall(result.stop, result)
+	if info.size and info.size < 45 then -- Empty audio, would crash the game
+		return
+	end
 
-			if valid then
-				return result
-			end
+	---@type string
+	path = source_directory .. "/" .. path
+	local success, result = pcall(audio.newFileSource, path)
 
-			table.insert(Assets.errors, ("Corrupted sound %s | %s"):format(path, error))
+	if success then
+		local valid, error = pcall(result.stop, result)
+
+		if valid then
+			return result
 		end
 
-		table.insert(Assets.errors, ("Failed to load sound %s | Error: %s"):format(path, table.concat(result)))
+		table.insert(Assets.errors, ("Corrupted sound %s | %s"):format(path, error))
 	end
+
+	table.insert(Assets.errors, ("Failed to load sound %s | Error: %s"):format(path, table.concat(result)))
 end
 
 ---@type love.Image?
@@ -165,8 +214,9 @@ function Assets.emptyAudio()
 	return empty_audio
 end
 
+---@param name string
 function Assets:loadDefaultImage(name)
-	local image = Assets.loadImage(path_util.join(self.defaultsDirectory, name))
+	local image = Assets.loadImage(self.defaultsDirectory, name, self.defaultsFileList)
 
 	if image then
 		return image
@@ -176,11 +226,10 @@ function Assets:loadDefaultImage(name)
 	return self.emptyImage()
 end
 
----@param directory string
 ---@param name string
 ---@return love.Image
-function Assets:loadImageOrDefault(directory, name)
-	local image = Assets.loadImage(directory .. name)
+function Assets:loadImageOrDefault(name)
+	local image = Assets.loadImage(self.directory, name, self.fileList)
 
 	if image then
 		return image
@@ -189,17 +238,16 @@ function Assets:loadImageOrDefault(directory, name)
 	return Assets.loadDefaultImage(self, name)
 end
 
----@param directory string
 ---@param name string
 ---@return audio.Source
-function Assets:loadAudioOrDefault(directory, name)
-	local sound = Assets.loadAudio(directory .. name)
+function Assets:loadAudioOrDefault(name)
+	local sound = Assets.loadAudio(self.directory, name, self.fileList)
 
 	if sound then
 		return sound
 	end
 
-	sound = Assets.loadAudio(path_util.join(self.defaultsDirectory, name), true)
+	sound = Assets.loadAudio(self.defaultsDirectory, name, self.defaultsFileList, true)
 
 	if sound then
 		return sound
@@ -207,6 +255,22 @@ function Assets:loadAudioOrDefault(directory, name)
 
 	table.insert(self.errors, ("Audio not found %s"):format(name))
 	return self.emptyAudio()
+end
+
+---@param src {[string]: string}
+---@param destination {[string]: love.Image}
+function Assets:populateImages(src, destination)
+	for k, file_name in pairs(src) do
+		destination[k] = self:loadImageOrDefault(file_name)
+	end
+end
+
+---@param src {[string]: string}
+---@param destination {[string]: audio.Source}
+function Assets:populateSounds(src, destination)
+	for k, file_name in pairs(src) do
+		destination[k] = self:loadAudioOrDefault(file_name)
+	end
 end
 
 ---@param config_model sphere.ConfigModel
