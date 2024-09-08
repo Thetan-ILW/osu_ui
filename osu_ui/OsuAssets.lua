@@ -9,7 +9,6 @@ local utf8validate = require("utf8validate")
 ---@class osu.ui.OsuAssets : osu.ui.Assets
 ---@operator call: osu.ui.OsuAssets
 ---@field defaultsDirectory string
----@field skinPath string
 ---@field images table<string, love.Image>
 ---@field imageFonts table<string, table<string, string>>
 ---@field sounds table<string, audio.Source>
@@ -44,24 +43,24 @@ local char_alias = {
 	percent = "%",
 }
 
----@param skin_path string
----@param group string
+---@param prefix string
+---@param path string
 ---@return table<string, string>
-function OsuAssets:getImageFont(skin_path, group)
+function OsuAssets:getImageFont(prefix, path)
 	---@type table<string, string>
 	local font = {}
 
 	for _, v in ipairs(characters) do
-		local file_name = Assets.findImage(("%s-%s"):format(group, v), self.fileList)
+		local file_name = Assets.findImage(("%s-%s"):format(path, v), self.fileList)
+		local directory = self.directory
 
 		if not file_name then
-			file_name = ("%s-%s@2x.png"):format(group, v)
+			file_name = ("%s-%s@2x.png"):format(prefix, v)
+			directory = self.defaultsDirectory
 		end
 
-		if file_name then
-			local key = char_alias[v] and char_alias[v] or v
-			font[key] = file_name
-		end
+		local key = char_alias[v] and char_alias[v] or v
+		font[key] = path_util.join(directory, file_name)
 	end
 
 	return font
@@ -69,12 +68,8 @@ end
 
 ---@return love.Image
 function OsuAssets:loadAvatar()
-	local userdata = love.filesystem.getDirectoryItems("userdata")
 	local file_list = {}
-
-	for _, v in ipairs(userdata) do
-		file_list[v:lower()] = v
-	end
+	self.populateFileList(file_list, "userdata")
 
 	local avatar = self.findImage("avatar", file_list)
 
@@ -89,10 +84,9 @@ end
 ---@param localization_file string
 function OsuAssets:new(asset_model, skin_path, localization_file)
 	self.assetModel = asset_model
-	self.skinPath = skin_path
-	self:setDefaultsDirectory("osu_ui/assets")
-	self:setFileList(skin_path)
+	self:setFileList(skin_path, "osu_ui/assets")
 
+	-- TODO: Move to Assets.findFile
 	local content = love.filesystem.read(path_util.join(skin_path, self.fileList["skin.ini"]))
 
 	---@type table
@@ -100,7 +94,6 @@ function OsuAssets:new(asset_model, skin_path, localization_file)
 
 	if content then
 		content = utf8validate(content)
-		print("foind!!")
 	else
 		content = love.filesystem.read(path_util.join(self.defaultsDirectory, "skin.ini"))
 	end
@@ -122,137 +115,137 @@ function OsuAssets:new(asset_model, skin_path, localization_file)
 
 	self.images = {
 		avatar = self:loadAvatar(),
-		panelTop = self:loadImageOrDefault(skin_path, "songselect-top"),
+		panelTop = self:loadImageOrDefault("songselect-top"),
 
-		menuBackArrow = self:loadImageOrDefault("skin_path", "menu-back-arrow"),
+		menuBackArrow = self:loadImageOrDefault("menu-back-arrow"),
 
-		panelBottom = self:loadImageOrDefault(skin_path, "songselect-bottom"),
-		rankedIcon = self:loadImageOrDefault(skin_path, "selection-ranked"),
-		danIcon = self:loadImageOrDefault(skin_path, "selection-dan"),
-		dropdownArrow = self:loadImageOrDefault(skin_path, "dropdown-arrow"),
+		panelBottom = self:loadImageOrDefault("songselect-bottom"),
+		rankedIcon = self:loadImageOrDefault("selection-ranked"),
+		danIcon = self:loadImageOrDefault("selection-dan"),
+		dropdownArrow = self:loadImageOrDefault("dropdown-arrow"),
 
 		menuBackDefault = self:loadDefaultImage("menu-back"),
-		modeButton = self:loadImageOrDefault(skin_path, "selection-mode"),
-		modsButton = self:loadImageOrDefault(skin_path, "selection-mods"),
-		randomButton = self:loadImageOrDefault(skin_path, "selection-random"),
-		optionsButton = self:loadImageOrDefault(skin_path, "selection-options"),
+		modeButton = self:loadImageOrDefault("selection-mode"),
+		modsButton = self:loadImageOrDefault("selection-mods"),
+		randomButton = self:loadImageOrDefault("selection-random"),
+		optionsButton = self:loadImageOrDefault("selection-options"),
 
-		modeButtonOver = self:loadImageOrDefault(skin_path, "selection-mode-over"),
-		modsButtonOver = self:loadImageOrDefault(skin_path, "selection-mods-over"),
-		randomButtonOver = self:loadImageOrDefault(skin_path, "selection-random-over"),
-		optionsButtonOver = self:loadImageOrDefault(skin_path, "selection-options-over"),
+		modeButtonOver = self:loadImageOrDefault("selection-mode-over"),
+		modsButtonOver = self:loadImageOrDefault("selection-mods-over"),
+		randomButtonOver = self:loadImageOrDefault("selection-random-over"),
+		optionsButtonOver = self:loadImageOrDefault("selection-options-over"),
 
-		osuLogo = self:loadImageOrDefault(skin_path, "menu-osu"),
-		tab = self:loadImageOrDefault(skin_path, "selection-tab"),
-		forum = self:loadImageOrDefault(skin_path, "rank-forum"),
-		noScores = self:loadImageOrDefault(skin_path, "selection-norecords"),
+		osuLogo = self:loadImageOrDefault("menu-osu"),
+		tab = self:loadImageOrDefault("selection-tab"),
+		forum = self:loadImageOrDefault("rank-forum"),
+		noScores = self:loadImageOrDefault("selection-norecords"),
 
-		listButtonBackground = self:loadImageOrDefault(skin_path, "menu-button-background"),
-		star = self:loadImageOrDefault(skin_path, "star"),
-		maniaSmallIcon = self:loadImageOrDefault(skin_path, "mode-mania-small"),
-		maniaSmallIconForCharts = self:loadImageOrDefault(skin_path, "mode-mania-small-for-charts"),
-		maniaIcon = self:loadImageOrDefault(skin_path, "mode-mania"),
+		listButtonBackground = self:loadImageOrDefault("menu-button-background"),
+		star = self:loadImageOrDefault("star"),
+		maniaSmallIcon = self:loadImageOrDefault("mode-mania-small"),
+		maniaSmallIconForCharts = self:loadImageOrDefault("mode-mania-small-for-charts"),
+		maniaIcon = self:loadImageOrDefault("mode-mania"),
 
-		buttonLeft = self:loadImageOrDefault(skin_path, "button-left"),
-		buttonMiddle = self:loadImageOrDefault(skin_path, "button-middle"),
-		buttonRight = self:loadImageOrDefault(skin_path, "button-right"),
+		buttonLeft = self:loadImageOrDefault("button-left"),
+		buttonMiddle = self:loadImageOrDefault("button-middle"),
+		buttonRight = self:loadImageOrDefault("button-right"),
 
-		smallGradeD = self:loadImageOrDefault(skin_path, "ranking-D-small"),
-		smallGradeC = self:loadImageOrDefault(skin_path, "ranking-C-small"),
-		smallGradeB = self:loadImageOrDefault(skin_path, "ranking-B-small"),
-		smallGradeA = self:loadImageOrDefault(skin_path, "ranking-A-small"),
-		smallGradeS = self:loadImageOrDefault(skin_path, "ranking-S-small"),
-		smallGradeX = self:loadImageOrDefault(skin_path, "ranking-X-small"),
+		smallGradeD = self:loadImageOrDefault("ranking-D-small"),
+		smallGradeC = self:loadImageOrDefault("ranking-C-small"),
+		smallGradeB = self:loadImageOrDefault("ranking-B-small"),
+		smallGradeA = self:loadImageOrDefault("ranking-A-small"),
+		smallGradeS = self:loadImageOrDefault("ranking-S-small"),
+		smallGradeX = self:loadImageOrDefault("ranking-X-small"),
 
-		cursor = self:loadImageOrDefault(skin_path, "cursor"),
-		cursorMiddle = self:loadImageOrDefault(skin_path, "cursormiddle"),
-		cursorTrail = self:loadImageOrDefault(skin_path, "cursortrail"),
+		cursor = self:loadImageOrDefault("cursor"),
+		cursorMiddle = self:loadImageOrDefault("cursormiddle"),
+		cursorTrail = self:loadImageOrDefault("cursortrail"),
 
-		uiLock = self:loadImageOrDefault(skin_path, "ui-lock"),
+		uiLock = self:loadImageOrDefault("ui-lock"),
 
 		-- MAIN MENU
 
-		welcomeText = self:loadImageOrDefault(skin_path, "welcome_text"),
-		background = self:loadImageOrDefault(skin_path, "menu-background"),
-		copyright = self:loadImageOrDefault(skin_path, "menu-copyright"),
-		nowPlaying = self:loadImageOrDefault(skin_path, "menu-np"),
-		musicPause = self:loadImageOrDefault(skin_path, "menu-pause-music"),
-		musicToStart = self:loadImageOrDefault(skin_path, "menu-to-music-start"),
-		musicPlay = self:loadImageOrDefault(skin_path, "menu-play-music"),
-		musicBackwards = self:loadImageOrDefault(skin_path, "menu-music-backwards"),
-		musicForwards = self:loadImageOrDefault(skin_path, "menu-music-forwards"),
-		musicInfo = self:loadImageOrDefault(skin_path, "menu-music-info"),
-		musicList = self:loadImageOrDefault(skin_path, "menu-music-list"),
-		directButton = self:loadImageOrDefault(skin_path, "menu-osudirect"),
-		directButtonOver = self:loadImageOrDefault(skin_path, "menu-osudirect-over"),
-		menuPlayButton = self:loadImageOrDefault(skin_path, "menu-button-play"),
-		menuPlayButtonHover = self:loadImageOrDefault(skin_path, "menu-button-play-over"),
-		menuEditButton = self:loadImageOrDefault(skin_path, "menu-button-edit"),
-		menuEditButtonHover = self:loadImageOrDefault(skin_path, "menu-button-edit-over"),
-		menuOptionsButton = self:loadImageOrDefault(skin_path, "menu-button-options"),
-		menuOptionsButtonHover = self:loadImageOrDefault(skin_path, "menu-button-options-over"),
-		menuExitButton = self:loadImageOrDefault(skin_path, "menu-button-exit"),
-		menuExitButtonHover = self:loadImageOrDefault(skin_path, "menu-button-exit-over"),
-		menuSoloButton = self:loadImageOrDefault(skin_path, "menu-button-freeplay"),
-		menuSoloButtonHover = self:loadImageOrDefault(skin_path, "menu-button-freeplay-over"),
-		menuMultiButton = self:loadImageOrDefault(skin_path, "menu-button-multiplayer"),
-		menuMultiButtonHover = self:loadImageOrDefault(skin_path, "menu-button-multiplayer-over"),
-		menuBackButton = self:loadImageOrDefault(skin_path, "menu-button-back"),
-		menuBackButtonHover = self:loadImageOrDefault(skin_path, "menu-button-back-over"),
-		supporter = self:loadImageOrDefault(skin_path, "menu-subscriber"),
+		welcomeText = self:loadImageOrDefault("welcome_text"),
+		background = self:loadImageOrDefault("menu-background"),
+		copyright = self:loadImageOrDefault("menu-copyright"),
+		nowPlaying = self:loadImageOrDefault("menu-np"),
+		musicPause = self:loadImageOrDefault("menu-pause-music"),
+		musicToStart = self:loadImageOrDefault("menu-to-music-start"),
+		musicPlay = self:loadImageOrDefault("menu-play-music"),
+		musicBackwards = self:loadImageOrDefault("menu-music-backwards"),
+		musicForwards = self:loadImageOrDefault("menu-music-forwards"),
+		musicInfo = self:loadImageOrDefault("menu-music-info"),
+		musicList = self:loadImageOrDefault("menu-music-list"),
+		directButton = self:loadImageOrDefault("menu-osudirect"),
+		directButtonOver = self:loadImageOrDefault("menu-osudirect-over"),
+		menuPlayButton = self:loadImageOrDefault("menu-button-play"),
+		menuPlayButtonHover = self:loadImageOrDefault("menu-button-play-over"),
+		menuEditButton = self:loadImageOrDefault("menu-button-edit"),
+		menuEditButtonHover = self:loadImageOrDefault("menu-button-edit-over"),
+		menuOptionsButton = self:loadImageOrDefault("menu-button-options"),
+		menuOptionsButtonHover = self:loadImageOrDefault("menu-button-options-over"),
+		menuExitButton = self:loadImageOrDefault("menu-button-exit"),
+		menuExitButtonHover = self:loadImageOrDefault("menu-button-exit-over"),
+		menuSoloButton = self:loadImageOrDefault("menu-button-freeplay"),
+		menuSoloButtonHover = self:loadImageOrDefault("menu-button-freeplay-over"),
+		menuMultiButton = self:loadImageOrDefault("menu-button-multiplayer"),
+		menuMultiButtonHover = self:loadImageOrDefault("menu-button-multiplayer-over"),
+		menuBackButton = self:loadImageOrDefault("menu-button-back"),
+		menuBackButtonHover = self:loadImageOrDefault("menu-button-back-over"),
+		supporter = self:loadImageOrDefault("menu-subscriber"),
 
-		checkboxOff = self:loadImageOrDefault(skin_path, "menu-checkbox-off"),
-		checkboxOn = self:loadImageOrDefault(skin_path, "menu-checkbox-on"),
-		optionChanged = self:loadImageOrDefault(skin_path, "menu-option-changed"),
+		checkboxOff = self:loadImageOrDefault("menu-checkbox-off"),
+		checkboxOn = self:loadImageOrDefault("menu-checkbox-on"),
+		optionChanged = self:loadImageOrDefault("menu-option-changed"),
 
-		generalTab = self:loadImageOrDefault(skin_path, "menu-general-tab"),
-		graphicsTab = self:loadImageOrDefault(skin_path, "menu-graphics-tab"),
-		gameplayTab = self:loadImageOrDefault(skin_path, "menu-gameplay-tab"),
-		audioTab = self:loadImageOrDefault(skin_path, "menu-audio-tab"),
-		skinTab = self:loadImageOrDefault(skin_path, "menu-skin-tab"),
-		inputTab = self:loadImageOrDefault(skin_path, "menu-input-tab"),
-		maintenanceTab = self:loadImageOrDefault(skin_path, "menu-maintenance-tab"),
+		generalTab = self:loadImageOrDefault("menu-general-tab"),
+		graphicsTab = self:loadImageOrDefault("menu-graphics-tab"),
+		gameplayTab = self:loadImageOrDefault("menu-gameplay-tab"),
+		audioTab = self:loadImageOrDefault("menu-audio-tab"),
+		skinTab = self:loadImageOrDefault("menu-skin-tab"),
+		inputTab = self:loadImageOrDefault("menu-input-tab"),
+		maintenanceTab = self:loadImageOrDefault("menu-maintenance-tab"),
 
-		noSkinPreview = self:loadImageOrDefault(skin_path, "no-skin-preview"),
-		inputsArrow = self:loadImageOrDefault(skin_path, "inputs-arrow"),
+		noSkinPreview = self:loadImageOrDefault("no-skin-preview"),
+		inputsArrow = self:loadImageOrDefault("inputs-arrow"),
 
 		-- RESULT
 
-		title = self:loadImageOrDefault(skin_path, "ranking-title"),
-		panel = self:loadImageOrDefault(skin_path, "ranking-panel"),
-		graph = self:loadImageOrDefault(skin_path, "ranking-graph"),
-		maxCombo = self:loadImageOrDefault(skin_path, "ranking-maxcombo"),
-		accuracy = self:loadImageOrDefault(skin_path, "ranking-accuracy"),
-		replay = self:loadImageOrDefault(skin_path, "pause-replay"),
+		title = self:loadImageOrDefault("ranking-title"),
+		panel = self:loadImageOrDefault("ranking-panel"),
+		graph = self:loadImageOrDefault("ranking-graph"),
+		maxCombo = self:loadImageOrDefault("ranking-maxcombo"),
+		accuracy = self:loadImageOrDefault("ranking-accuracy"),
+		replay = self:loadImageOrDefault("pause-replay"),
 
-		judgeMarvelous = self:loadImageOrDefault(skin_path, "mania-hit300g"),
-		judgePerfect = self:loadImageOrDefault(skin_path, "mania-hit300"),
-		judgeGreat = self:loadImageOrDefault(skin_path, "mania-hit200"),
-		judgeGood = self:loadImageOrDefault(skin_path, "mania-hit100"),
-		judgeBad = self:loadImageOrDefault(skin_path, "mania-hit50"),
-		judgeMiss = self:loadImageOrDefault(skin_path, "mania-hit0"),
+		judgeMarvelous = self:loadImageOrDefault("mania-hit300g"),
+		judgePerfect = self:loadImageOrDefault("mania-hit300"),
+		judgeGreat = self:loadImageOrDefault("mania-hit200"),
+		judgeGood = self:loadImageOrDefault("mania-hit100"),
+		judgeBad = self:loadImageOrDefault("mania-hit50"),
+		judgeMiss = self:loadImageOrDefault("mania-hit0"),
 
-		gradeSS = self:loadImageOrDefault(skin_path, "ranking-X"),
-		gradeS = self:loadImageOrDefault(skin_path, "ranking-S"),
-		gradeA = self:loadImageOrDefault(skin_path, "ranking-A"),
-		gradeB = self:loadImageOrDefault(skin_path, "ranking-B"),
-		gradeC = self:loadImageOrDefault(skin_path, "ranking-C"),
-		gradeD = self:loadImageOrDefault(skin_path, "ranking-D"),
-		backgroundOverlay = self:loadImageOrDefault(skin_path, "ranking-background-overlay"),
+		gradeSS = self:loadImageOrDefault("ranking-X"),
+		gradeS = self:loadImageOrDefault("ranking-S"),
+		gradeA = self:loadImageOrDefault("ranking-A"),
+		gradeB = self:loadImageOrDefault("ranking-B"),
+		gradeC = self:loadImageOrDefault("ranking-C"),
+		gradeD = self:loadImageOrDefault("ranking-D"),
+		backgroundOverlay = self:loadImageOrDefault("ranking-background-overlay"),
 
-		noLongNote = self:loadImageOrDefault(skin_path, "selection-mod-nolongnote"),
-		mirror = self:loadImageOrDefault(skin_path, "selection-mod-mirror"),
-		random = self:loadImageOrDefault(skin_path, "selection-mod-random"),
-		doubleTime = self:loadImageOrDefault(skin_path, "selection-mod-doubletime"),
-		halfTime = self:loadImageOrDefault(skin_path, "selection-mod-halftime"),
-		autoPlay = self:loadImageOrDefault(skin_path, "selection-mod-autoplay"),
-		automap4 = self:loadImageOrDefault(skin_path, "selection-mod-key4"),
-		automap5 = self:loadImageOrDefault(skin_path, "selection-mod-key5"),
-		automap6 = self:loadImageOrDefault(skin_path, "selection-mod-key6"),
-		automap7 = self:loadImageOrDefault(skin_path, "selection-mod-key7"),
-		automap8 = self:loadImageOrDefault(skin_path, "selection-mod-key8"),
-		automap9 = self:loadImageOrDefault(skin_path, "selection-mod-key9"),
-		automap10 = self:loadImageOrDefault(skin_path, "selection-mod-key10"),
+		noLongNote = self:loadImageOrDefault("selection-mod-nolongnote"),
+		mirror = self:loadImageOrDefault("selection-mod-mirror"),
+		random = self:loadImageOrDefault("selection-mod-random"),
+		doubleTime = self:loadImageOrDefault("selection-mod-doubletime"),
+		halfTime = self:loadImageOrDefault("selection-mod-halftime"),
+		autoPlay = self:loadImageOrDefault("selection-mod-autoplay"),
+		automap4 = self:loadImageOrDefault("selection-mod-key4"),
+		automap5 = self:loadImageOrDefault("selection-mod-key5"),
+		automap6 = self:loadImageOrDefault("selection-mod-key6"),
+		automap7 = self:loadImageOrDefault("selection-mod-key7"),
+		automap8 = self:loadImageOrDefault("selection-mod-key8"),
+		automap9 = self:loadImageOrDefault("selection-mod-key9"),
+		automap10 = self:loadImageOrDefault("selection-mod-key10"),
 	}
 
 	local menu_back = self.loadImage(skin_path, "menu-back", self.fileList)
@@ -265,39 +258,40 @@ function OsuAssets:new(asset_model, skin_path, localization_file)
 	end
 
 	local score_font_path = skin_ini.Fonts.ScorePrefix or "score"
+	score_font_path = score_font_path:gsub("\\", "/")
 
 	self.imageFonts = {
-		scoreFont = self:getImageFont(skin_path, score_font_path),
+		scoreFont = self:getImageFont("score", score_font_path),
 	}
 
 	self.sounds = {
-		welcome = self:loadAudioOrDefault(skin_path, "welcome"),
-		welcomePiano = self:loadAudioOrDefault(skin_path, "welcome_piano"),
-		goodbye = self:loadAudioOrDefault(skin_path, "seeya"),
-		selectChart = self:loadAudioOrDefault(skin_path, "select-difficulty"),
-		selectGroup = self:loadAudioOrDefault(skin_path, "select-expand"),
-		hoverOverRect = self:loadAudioOrDefault(skin_path, "click-short"),
-		hoverMenu = self:loadAudioOrDefault(skin_path, "menuclick"),
-		clickShortConfirm = self:loadAudioOrDefault(skin_path, "click-short-confirm"),
+		welcome = self:loadAudioOrDefault("welcome"),
+		welcomePiano = self:loadAudioOrDefault("welcome_piano"),
+		goodbye = self:loadAudioOrDefault("seeya"),
+		selectChart = self:loadAudioOrDefault("select-difficulty"),
+		selectGroup = self:loadAudioOrDefault("select-expand"),
+		hoverOverRect = self:loadAudioOrDefault("click-short"),
+		hoverMenu = self:loadAudioOrDefault("menuclick"),
+		clickShortConfirm = self:loadAudioOrDefault("click-short-confirm"),
 
-		applause = self:loadAudioOrDefault(skin_path, "applause"),
-		menuBack = self:loadAudioOrDefault(skin_path, "menuback"),
-		menuHit = self:loadAudioOrDefault(skin_path, "menuhit"),
-		menuPlayClick = self:loadAudioOrDefault(skin_path, "menu-play-click"),
-		menuEditClick = self:loadAudioOrDefault(skin_path, "menu-edit-click"),
-		menuFreeplayClick = self:loadAudioOrDefault(skin_path, "menu-freeplay-click"),
-		menuMultiplayerClick = self:loadAudioOrDefault(skin_path, "menu-multiplayer-click"),
+		applause = self:loadAudioOrDefault("applause"),
+		menuBack = self:loadAudioOrDefault("menuback"),
+		menuHit = self:loadAudioOrDefault("menuhit"),
+		menuPlayClick = self:loadAudioOrDefault("menu-play-click"),
+		menuEditClick = self:loadAudioOrDefault("menu-edit-click"),
+		menuFreeplayClick = self:loadAudioOrDefault("menu-freeplay-click"),
+		menuMultiplayerClick = self:loadAudioOrDefault("menu-multiplayer-click"),
 
-		checkOn = self:loadAudioOrDefault(skin_path, "check-on"),
-		checkOff = self:loadAudioOrDefault(skin_path, "check-off"),
-		sliderBar = self:loadAudioOrDefault(skin_path, "sliderbar"),
-		selectExpand = self:loadAudioOrDefault(skin_path, "select-expand"),
+		checkOn = self:loadAudioOrDefault("check-on"),
+		checkOff = self:loadAudioOrDefault("check-off"),
+		sliderBar = self:loadAudioOrDefault("sliderbar"),
+		selectExpand = self:loadAudioOrDefault("select-expand"),
 	}
 
 	self.images.panelTop:setWrap("clamp")
 
-	self.selectViewConfig = love.filesystem.load(skin_path .. "SelectViewConfig.lua")
-	self.resultViewConfig = love.filesystem.load(skin_path .. "ResultViewConfig.lua")
+	--self.selectViewConfig = love.filesystem.load(skin_path .. "SelectViewConfig.lua")
+	--self.resultViewConfig = love.filesystem.load(skin_path .. "ResultViewConfig.lua")
 
 	self.shaders = {
 		brighten = love.graphics.newShader([[

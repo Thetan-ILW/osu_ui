@@ -9,6 +9,7 @@ local path_util = require("path_util")
 ---@class osu.ui.Assets
 ---@operator call: osu.ui.Assets
 ---@field assetModel osu.ui.AssetModel
+---@field directory string
 ---@field defaultsDirectory string
 ---@field fileList {[string]: string}
 ---@field defaultsFileList {[string]: string}
@@ -27,28 +28,54 @@ local source_directory = love.filesystem.getSource()
 local audio_extensions = { ".wav", ".ogg", ".mp3" }
 local image_extensions = { ".png", ".jpg", ".jpeg", ".bmp", ".tga" }
 
-function Assets:setDefaultsDirectory(path)
-	self.defaultsDirectory = path_util.join(self.assetModel.mountPath, path)
-end
+local max_depth = 5
 
-function Assets:setFileList(path)
-	self.fileList = {}
-	local files = love.filesystem.getDirectoryItems(path)
+---@param list {[string]: string}
+---@param root string
+---@param path string?
+---@param depth number?
+function Assets.populateFileList(list, root, path, depth)
+	path = path or ""
+	depth = depth or 1
 
-	for _, file in ipairs(files) do
-		self.fileList[file:lower()] = file
-	end
-
-	if not self.defaultsDirectory then
+	if depth > max_depth then
 		return
 	end
 
-	self.defaultsFileList = {}
-	files = love.filesystem.getDirectoryItems(self.defaultsDirectory)
+	local files = love.filesystem.getDirectoryItems(path_util.join(root, path))
 
 	for _, file in ipairs(files) do
-		self.defaultsFileList[file:lower()] = file
+		local local_path = file
+
+		if path ~= "" then
+			local_path = path_util.join(path, file)
+		end
+
+		local full_path = path_util.join(root, local_path)
+		local info = love.filesystem.getInfo(full_path)
+
+		if info.type == "directory" then
+			Assets.populateFileList(list, root, local_path, depth + 1)
+		elseif info.type == "file" then
+			list[local_path:lower()] = local_path
+		end
 	end
+end
+
+---@param path string
+---@param defaults_path string
+function Assets:setFileList(path, defaults_path)
+	self.directory = path
+	self.fileList = {}
+	self.populateFileList(self.fileList, path)
+
+	if not defaults_path then
+		return
+	end
+
+	self.defaultsDirectory = path_util.join(self.assetModel.mountPath, defaults_path)
+	self.defaultsFileList = {}
+	self.populateFileList(self.defaultsFileList, self.defaultsDirectory)
 end
 
 ---@param name string
@@ -81,15 +108,15 @@ function Assets.findAudio(name, file_list)
 	end
 end
 
----@param directory string
+---@param root string
 ---@param file_name string
 ---@param file_list {[string]: string}
 ---@return love.Image?
-function Assets.loadImage(directory, file_name, file_list)
-	local found = Assets.findImage(file_name, file_list)
+function Assets.loadImage(root, file_name, file_list)
+	local path = Assets.findImage(file_name, file_list)
 
-	if found then
-		local path = path_util.join(directory, found)
+	if path then
+		path = path_util.join(root, path)
 		local success, result = pcall(love.graphics.newImage, path)
 
 		if success then
@@ -107,20 +134,20 @@ local function getSoundData(sound_path)
 	return audio.SoundData(file_data:getFFIPointer(), file_data:getSize())
 end
 
----@param directory
+---@param root string
 ---@param file_name string
 ---@param file_list {[string]: string}
 ---@param use_sound_data boolean?
 ---@return audio.Source?
 --- Note: use_sound_data for loading audio from mounted directories (moddedgame/charts)
-function Assets.loadAudio(directory, file_name, file_list, use_sound_data)
-	local found = Assets.findAudio(file_name, file_list)
+function Assets.loadAudio(root, file_name, file_list, use_sound_data)
+	local path = Assets.findAudio(file_name, file_list)
 
-	if not found then
+	if not path then
 		return
 	end
 
-	local path = path_util.join(directory, found)
+	path = path_util.join(root, path)
 
 	if use_sound_data then
 		local success, result = pcall(audio.newSource, getSoundData(path))
@@ -195,11 +222,10 @@ function Assets:loadDefaultImage(name)
 	return self.emptyImage()
 end
 
----@param directory string
 ---@param name string
 ---@return love.Image
-function Assets:loadImageOrDefault(directory, name)
-	local image = Assets.loadImage(directory, name, self.fileList)
+function Assets:loadImageOrDefault(name)
+	local image = Assets.loadImage(self.directory, name, self.fileList)
 
 	if image then
 		return image
@@ -208,11 +234,10 @@ function Assets:loadImageOrDefault(directory, name)
 	return Assets.loadDefaultImage(self, name)
 end
 
----@param directory string
 ---@param name string
 ---@return audio.Source
-function Assets:loadAudioOrDefault(directory, name)
-	local sound = Assets.loadAudio(directory, name, self.fileList)
+function Assets:loadAudioOrDefault(name)
+	local sound = Assets.loadAudio(self.directory, name, self.fileList)
 
 	if sound then
 		return sound

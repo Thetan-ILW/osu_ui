@@ -60,11 +60,11 @@ function GameView:loadAssets()
 	local language = osu.language
 
 	---@type string
-	local skin_path = ("userdata/skins/%s/"):format(osu.skin)
+	local skin_path = ("userdata/skins/%s"):format(osu.skin)
 
 	local assets = asset_model:get("osu")
 
-	if not assets or (assets and assets.skinPath ~= skin_path) then
+	if not assets or (assets and assets.directory ~= skin_path) then
 		local default_localization = asset_model:getLocalizationFileName("English")
 		assets = OsuAssets(asset_model, skin_path, default_localization)
 		asset_model:store("osu", assets)
