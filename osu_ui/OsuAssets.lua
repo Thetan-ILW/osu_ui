@@ -8,7 +8,7 @@ local utf8validate = require("utf8validate")
 
 ---@class osu.ui.OsuAssets : osu.ui.Assets
 ---@operator call: osu.ui.OsuAssets
----@field defaultsDirectory string
+---@field loadedViews {[string]: boolean}
 ---@field images table<string, love.Image>
 ---@field imageFonts table<string, table<string, string>>
 ---@field sounds table<string, audio.Source>
@@ -41,6 +41,162 @@ local char_alias = {
 	comma = ",",
 	dot = ".",
 	percent = "%",
+}
+
+local images = {
+	global = {
+		osuLogo = "menu-osu",
+		cursor = "cursor",
+		cursorMiddle = "cursormiddle",
+		cursorTrail = "cursortrail",
+		uiLock = "ui-lock",
+		buttonLeft = "button-left",
+		buttonMiddle = "button-middle",
+		buttonRight = "button-right",
+		dropdownArrow = "dropdown-arrow",
+		menuBackArrow = "menu-back-arrow",
+	},
+	mainMenuView = {
+		welcomeText = "welcome_text",
+		background = "menu-background",
+		copyright = "menu-copyright",
+		nowPlaying = "menu-np",
+		musicPause = "menu-pause-music",
+		musicToStart = "menu-to-music-start",
+		musicPlay = "menu-play-music",
+		musicBackwards = "menu-music-backwards",
+		musicForwards = "menu-music-forwards",
+		musicInfo = "menu-music-info",
+		musicList = "menu-music-list",
+		directButton = "menu-osudirect",
+		directButtonOver = "menu-osudirect-over",
+		menuPlayButton = "menu-button-play",
+		menuPlayButtonHover = "menu-button-play-over",
+		menuEditButton = "menu-button-edit",
+		menuEditButtonHover = "menu-button-edit-over",
+		menuOptionsButton = "menu-button-options",
+		menuOptionsButtonHover = "menu-button-options-over",
+		menuExitButton = "menu-button-exit",
+		menuExitButtonHover = "menu-button-exit-over",
+		menuSoloButton = "menu-button-freeplay",
+		menuSoloButtonHover = "menu-button-freeplay-over",
+		menuMultiButton = "menu-button-multiplayer",
+		menuMultiButtonHover = "menu-button-multiplayer-over",
+		menuBackButton = "menu-button-back",
+		menuBackButtonHover = "menu-button-back-over",
+		supporter = "menu-subscriber",
+
+		checkboxOff = "menu-checkbox-off",
+		checkboxOn = "menu-checkbox-on",
+		optionChanged = "menu-option-changed",
+
+		generalTab = "menu-general-tab",
+		graphicsTab = "menu-graphics-tab",
+		gameplayTab = "menu-gameplay-tab",
+		audioTab = "menu-audio-tab",
+		skinTab = "menu-skin-tab",
+		inputTab = "menu-input-tab",
+		maintenanceTab = "menu-maintenance-tab",
+
+		noSkinPreview = "no-skin-preview",
+		inputsArrow = "inputs-arrow",
+	},
+	selectView = {
+		panelTop = "songselect-top",
+
+		panelBottom = "songselect-bottom",
+		rankedIcon = "selection-ranked",
+		danIcon = "selection-dan",
+
+		menuBackDefault = "menu-back",
+		modeButton = "selection-mode",
+		modsButton = "selection-mods",
+		randomButton = "selection-random",
+		optionsButton = "selection-options",
+
+		modeButtonOver = "selection-mode-over",
+		modsButtonOver = "selection-mods-over",
+		randomButtonOver = "selection-random-over",
+		optionsButtonOver = "selection-options-over",
+
+		tab = "selection-tab",
+		forum = "rank-forum",
+		noScores = "selection-norecords",
+
+		listButtonBackground = "menu-button-background",
+		star = "star",
+		maniaSmallIcon = "mode-mania-small",
+		maniaSmallIconForCharts = "mode-mania-small-for-charts",
+		maniaIcon = "mode-mania",
+
+		smallGradeD = "ranking-D-small",
+		smallGradeC = "ranking-C-small",
+		smallGradeB = "ranking-B-small",
+		smallGradeA = "ranking-A-small",
+		smallGradeS = "ranking-S-small",
+		smallGradeX = "ranking-X-small",
+	},
+	resultView = {
+		title = "ranking-title",
+		panel = "ranking-panel",
+		graph = "ranking-graph",
+		maxCombo = "ranking-maxcombo",
+		accuracy = "ranking-accuracy",
+		replay = "pause-replay",
+
+		judgeMarvelous = "mania-hit300g",
+		judgePerfect = "mania-hit300",
+		judgeGreat = "mania-hit200",
+		judgeGood = "mania-hit100",
+		judgeBad = "mania-hit50",
+		judgeMiss = "mania-hit0",
+
+		gradeSS = "ranking-X",
+		gradeS = "ranking-S",
+		gradeA = "ranking-A",
+		gradeB = "ranking-B",
+		gradeC = "ranking-C",
+		gradeD = "ranking-D",
+		backgroundOverlay = "ranking-background-overlay",
+
+		noLongNote = "selection-mod-nolongnote",
+		mirror = "selection-mod-mirror",
+		random = "selection-mod-random",
+		doubleTime = "selection-mod-doubletime",
+		halfTime = "selection-mod-halftime",
+		autoPlay = "selection-mod-autoplay",
+		automap4 = "selection-mod-key4",
+		automap5 = "selection-mod-key5",
+		automap6 = "selection-mod-key6",
+		automap7 = "selection-mod-key7",
+		automap8 = "selection-mod-key8",
+		automap9 = "selection-mod-key9",
+		automap10 = "selection-mod-key10",
+	},
+}
+
+local sounds = {
+	welcome = "welcome",
+	welcomePiano = "welcome_piano",
+	goodbye = "seeya",
+	selectChart = "select-difficulty",
+	selectGroup = "select-expand",
+	hoverOverRect = "click-short",
+	hoverMenu = "menuclick",
+	clickShortConfirm = "click-short-confirm",
+
+	applause = "applause",
+	menuBack = "menuback",
+	menuHit = "menuhit",
+	menuPlayClick = "menu-play-click",
+	menuEditClick = "menu-edit-click",
+	menuFreeplayClick = "menu-freeplay-click",
+	menuMultiplayerClick = "menu-multiplayer-click",
+
+	checkOn = "check-on",
+	checkOff = "check-off",
+	sliderBar = "sliderbar",
+	selectExpand = "select-expand",
 }
 
 ---@param prefix string
@@ -80,14 +236,18 @@ function OsuAssets:loadAvatar()
 	return self.emptyImage()
 end
 
+---@param asset_model osu.ui.AssetModel
 ---@param skin_path string
----@param localization_file string
-function OsuAssets:new(asset_model, skin_path, localization_file)
+function OsuAssets:new(asset_model, skin_path)
 	self.assetModel = asset_model
-	self:setFileList(skin_path, "osu_ui/assets")
+	self:setPaths(skin_path, "osu_ui/assets")
+end
 
-	-- TODO: Move to Assets.findFile
-	local content = love.filesystem.read(path_util.join(skin_path, self.fileList["skin.ini"]))
+---@param default_localization string
+function OsuAssets:load(default_localization)
+	self:setFileList()
+
+	local content = love.filesystem.read(path_util.join(self.directory, self.fileList["skin.ini"]))
 
 	---@type table
 	local skin_ini
@@ -100,7 +260,7 @@ function OsuAssets:new(asset_model, skin_path, localization_file)
 
 	skin_ini = OsuNoteSkin:parseSkinIni(content)
 
-	self:loadLocalization(localization_file)
+	self:loadLocalization(default_localization)
 
 	self.params = {
 		songSelectActiveText = skin_ini.Colours.SongSelectActiveText,
@@ -110,145 +270,60 @@ function OsuAssets:new(asset_model, skin_path, localization_file)
 		cursorExpand = skin_ini.General.CursorExpand,
 		cursorRotate = skin_ini.General.CursorRotate,
 
+		scoreFontPrefix = skin_ini.Fonts.ScorePrefix,
 		scoreOverlap = skin_ini.Fonts.ScoreOverlap,
 	}
 
-	self.images = {
-		avatar = self:loadAvatar(),
-		panelTop = self:loadImageOrDefault("songselect-top"),
+	self.images = {}
+	self.sounds = {}
+	self.imageFonts = {}
+	self.loadedViews = {}
 
-		menuBackArrow = self:loadImageOrDefault("menu-back-arrow"),
+	self:populateImages(images.global, self.images)
+	self:populateSounds(sounds, self.sounds)
 
-		panelBottom = self:loadImageOrDefault("songselect-bottom"),
-		rankedIcon = self:loadImageOrDefault("selection-ranked"),
-		danIcon = self:loadImageOrDefault("selection-dan"),
-		dropdownArrow = self:loadImageOrDefault("dropdown-arrow"),
+	self.images.avatar = self:loadAvatar()
 
-		menuBackDefault = self:loadDefaultImage("menu-back"),
-		modeButton = self:loadImageOrDefault("selection-mode"),
-		modsButton = self:loadImageOrDefault("selection-mods"),
-		randomButton = self:loadImageOrDefault("selection-random"),
-		optionsButton = self:loadImageOrDefault("selection-options"),
-
-		modeButtonOver = self:loadImageOrDefault("selection-mode-over"),
-		modsButtonOver = self:loadImageOrDefault("selection-mods-over"),
-		randomButtonOver = self:loadImageOrDefault("selection-random-over"),
-		optionsButtonOver = self:loadImageOrDefault("selection-options-over"),
-
-		osuLogo = self:loadImageOrDefault("menu-osu"),
-		tab = self:loadImageOrDefault("selection-tab"),
-		forum = self:loadImageOrDefault("rank-forum"),
-		noScores = self:loadImageOrDefault("selection-norecords"),
-
-		listButtonBackground = self:loadImageOrDefault("menu-button-background"),
-		star = self:loadImageOrDefault("star"),
-		maniaSmallIcon = self:loadImageOrDefault("mode-mania-small"),
-		maniaSmallIconForCharts = self:loadImageOrDefault("mode-mania-small-for-charts"),
-		maniaIcon = self:loadImageOrDefault("mode-mania"),
-
-		buttonLeft = self:loadImageOrDefault("button-left"),
-		buttonMiddle = self:loadImageOrDefault("button-middle"),
-		buttonRight = self:loadImageOrDefault("button-right"),
-
-		smallGradeD = self:loadImageOrDefault("ranking-D-small"),
-		smallGradeC = self:loadImageOrDefault("ranking-C-small"),
-		smallGradeB = self:loadImageOrDefault("ranking-B-small"),
-		smallGradeA = self:loadImageOrDefault("ranking-A-small"),
-		smallGradeS = self:loadImageOrDefault("ranking-S-small"),
-		smallGradeX = self:loadImageOrDefault("ranking-X-small"),
-
-		cursor = self:loadImageOrDefault("cursor"),
-		cursorMiddle = self:loadImageOrDefault("cursormiddle"),
-		cursorTrail = self:loadImageOrDefault("cursortrail"),
-
-		uiLock = self:loadImageOrDefault("ui-lock"),
-
-		-- MAIN MENU
-
-		welcomeText = self:loadImageOrDefault("welcome_text"),
-		background = self:loadImageOrDefault("menu-background"),
-		copyright = self:loadImageOrDefault("menu-copyright"),
-		nowPlaying = self:loadImageOrDefault("menu-np"),
-		musicPause = self:loadImageOrDefault("menu-pause-music"),
-		musicToStart = self:loadImageOrDefault("menu-to-music-start"),
-		musicPlay = self:loadImageOrDefault("menu-play-music"),
-		musicBackwards = self:loadImageOrDefault("menu-music-backwards"),
-		musicForwards = self:loadImageOrDefault("menu-music-forwards"),
-		musicInfo = self:loadImageOrDefault("menu-music-info"),
-		musicList = self:loadImageOrDefault("menu-music-list"),
-		directButton = self:loadImageOrDefault("menu-osudirect"),
-		directButtonOver = self:loadImageOrDefault("menu-osudirect-over"),
-		menuPlayButton = self:loadImageOrDefault("menu-button-play"),
-		menuPlayButtonHover = self:loadImageOrDefault("menu-button-play-over"),
-		menuEditButton = self:loadImageOrDefault("menu-button-edit"),
-		menuEditButtonHover = self:loadImageOrDefault("menu-button-edit-over"),
-		menuOptionsButton = self:loadImageOrDefault("menu-button-options"),
-		menuOptionsButtonHover = self:loadImageOrDefault("menu-button-options-over"),
-		menuExitButton = self:loadImageOrDefault("menu-button-exit"),
-		menuExitButtonHover = self:loadImageOrDefault("menu-button-exit-over"),
-		menuSoloButton = self:loadImageOrDefault("menu-button-freeplay"),
-		menuSoloButtonHover = self:loadImageOrDefault("menu-button-freeplay-over"),
-		menuMultiButton = self:loadImageOrDefault("menu-button-multiplayer"),
-		menuMultiButtonHover = self:loadImageOrDefault("menu-button-multiplayer-over"),
-		menuBackButton = self:loadImageOrDefault("menu-button-back"),
-		menuBackButtonHover = self:loadImageOrDefault("menu-button-back-over"),
-		supporter = self:loadImageOrDefault("menu-subscriber"),
-
-		checkboxOff = self:loadImageOrDefault("menu-checkbox-off"),
-		checkboxOn = self:loadImageOrDefault("menu-checkbox-on"),
-		optionChanged = self:loadImageOrDefault("menu-option-changed"),
-
-		generalTab = self:loadImageOrDefault("menu-general-tab"),
-		graphicsTab = self:loadImageOrDefault("menu-graphics-tab"),
-		gameplayTab = self:loadImageOrDefault("menu-gameplay-tab"),
-		audioTab = self:loadImageOrDefault("menu-audio-tab"),
-		skinTab = self:loadImageOrDefault("menu-skin-tab"),
-		inputTab = self:loadImageOrDefault("menu-input-tab"),
-		maintenanceTab = self:loadImageOrDefault("menu-maintenance-tab"),
-
-		noSkinPreview = self:loadImageOrDefault("no-skin-preview"),
-		inputsArrow = self:loadImageOrDefault("inputs-arrow"),
-
-		-- RESULT
-
-		title = self:loadImageOrDefault("ranking-title"),
-		panel = self:loadImageOrDefault("ranking-panel"),
-		graph = self:loadImageOrDefault("ranking-graph"),
-		maxCombo = self:loadImageOrDefault("ranking-maxcombo"),
-		accuracy = self:loadImageOrDefault("ranking-accuracy"),
-		replay = self:loadImageOrDefault("pause-replay"),
-
-		judgeMarvelous = self:loadImageOrDefault("mania-hit300g"),
-		judgePerfect = self:loadImageOrDefault("mania-hit300"),
-		judgeGreat = self:loadImageOrDefault("mania-hit200"),
-		judgeGood = self:loadImageOrDefault("mania-hit100"),
-		judgeBad = self:loadImageOrDefault("mania-hit50"),
-		judgeMiss = self:loadImageOrDefault("mania-hit0"),
-
-		gradeSS = self:loadImageOrDefault("ranking-X"),
-		gradeS = self:loadImageOrDefault("ranking-S"),
-		gradeA = self:loadImageOrDefault("ranking-A"),
-		gradeB = self:loadImageOrDefault("ranking-B"),
-		gradeC = self:loadImageOrDefault("ranking-C"),
-		gradeD = self:loadImageOrDefault("ranking-D"),
-		backgroundOverlay = self:loadImageOrDefault("ranking-background-overlay"),
-
-		noLongNote = self:loadImageOrDefault("selection-mod-nolongnote"),
-		mirror = self:loadImageOrDefault("selection-mod-mirror"),
-		random = self:loadImageOrDefault("selection-mod-random"),
-		doubleTime = self:loadImageOrDefault("selection-mod-doubletime"),
-		halfTime = self:loadImageOrDefault("selection-mod-halftime"),
-		autoPlay = self:loadImageOrDefault("selection-mod-autoplay"),
-		automap4 = self:loadImageOrDefault("selection-mod-key4"),
-		automap5 = self:loadImageOrDefault("selection-mod-key5"),
-		automap6 = self:loadImageOrDefault("selection-mod-key6"),
-		automap7 = self:loadImageOrDefault("selection-mod-key7"),
-		automap8 = self:loadImageOrDefault("selection-mod-key8"),
-		automap9 = self:loadImageOrDefault("selection-mod-key9"),
-		automap10 = self:loadImageOrDefault("selection-mod-key10"),
+	self.shaders = {
+		brighten = love.graphics.newShader([[
+		extern Image tex;
+		extern float amount;
+		vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
+		{
+		    vec4 texturecolor = Texel(tex, texture_coords);
+		    return vec4(texturecolor.rgb + amount, texturecolor.a) * color;
+		}
+	]]),
 	}
+end
 
-	local menu_back = self.loadImage(skin_path, "menu-back", self.fileList)
+---@param view_name string?
+function OsuAssets:loadViewAssets(view_name)
+	if not view_name then
+		return
+	end
+
+	if self.loadedViews[view_name] then
+		return
+	end
+
+	self:populateImages(images[view_name], self.images)
+
+	local f = self[view_name]
+	if f then
+		f(self)
+		self.loadedViews[view_name] = true
+	end
+end
+
+---@private
+function OsuAssets:mainMenuView() end
+
+---@private
+function OsuAssets:selectView()
+	self.images.panelTop:setWrap("clamp")
+
+	local menu_back = self.loadImage(self.directory, "menu-back", self.fileList)
 	self.images.menuBack = menu_back or self.emptyImage()
 
 	self.hasBackButton = true
@@ -256,58 +331,15 @@ function OsuAssets:new(asset_model, skin_path, localization_file)
 	if not menu_back then
 		self.hasBackButton = false
 	end
+end
 
-	local score_font_path = skin_ini.Fonts.ScorePrefix or "score"
+---@private
+function OsuAssets:resultView()
+	local score_font_path = self.params.scoreFontPrefix or "score"
+	---@cast score_font_path string
 	score_font_path = score_font_path:gsub("\\", "/")
 
-	self.imageFonts = {
-		scoreFont = self:getImageFont("score", score_font_path),
-	}
-
-	self.sounds = {
-		welcome = self:loadAudioOrDefault("welcome"),
-		welcomePiano = self:loadAudioOrDefault("welcome_piano"),
-		goodbye = self:loadAudioOrDefault("seeya"),
-		selectChart = self:loadAudioOrDefault("select-difficulty"),
-		selectGroup = self:loadAudioOrDefault("select-expand"),
-		hoverOverRect = self:loadAudioOrDefault("click-short"),
-		hoverMenu = self:loadAudioOrDefault("menuclick"),
-		clickShortConfirm = self:loadAudioOrDefault("click-short-confirm"),
-
-		applause = self:loadAudioOrDefault("applause"),
-		menuBack = self:loadAudioOrDefault("menuback"),
-		menuHit = self:loadAudioOrDefault("menuhit"),
-		menuPlayClick = self:loadAudioOrDefault("menu-play-click"),
-		menuEditClick = self:loadAudioOrDefault("menu-edit-click"),
-		menuFreeplayClick = self:loadAudioOrDefault("menu-freeplay-click"),
-		menuMultiplayerClick = self:loadAudioOrDefault("menu-multiplayer-click"),
-
-		checkOn = self:loadAudioOrDefault("check-on"),
-		checkOff = self:loadAudioOrDefault("check-off"),
-		sliderBar = self:loadAudioOrDefault("sliderbar"),
-		selectExpand = self:loadAudioOrDefault("select-expand"),
-	}
-
-	self.images.panelTop:setWrap("clamp")
-
-	--self.selectViewConfig = love.filesystem.load(skin_path .. "SelectViewConfig.lua")
-	--self.resultViewConfig = love.filesystem.load(skin_path .. "ResultViewConfig.lua")
-
-	self.shaders = {
-		brighten = love.graphics.newShader([[
-extern Image tex;
-extern float amount;
-vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
-{
-    vec4 texturecolor = Texel(tex, texture_coords);
-    return vec4(texturecolor.rgb + amount, texturecolor.a) * color;
-}
-]]),
-	}
-
-	for _, v in ipairs(self.errors) do
-		print(v)
-	end
+	self.imageFonts.scoreFont = self:getImageFont("score", score_font_path)
 end
 
 ---@param filepath string

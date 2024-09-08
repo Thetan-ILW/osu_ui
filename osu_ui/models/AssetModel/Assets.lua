@@ -62,18 +62,22 @@ function Assets.populateFileList(list, root, path, depth)
 	end
 end
 
----@param path string
----@param defaults_path string
-function Assets:setFileList(path, defaults_path)
-	self.directory = path
-	self.fileList = {}
-	self.populateFileList(self.fileList, path)
+function Assets:setPaths(directory, defaults_directory)
+	self.directory = directory
 
-	if not defaults_path then
+	if defaults_directory then
+		self.defaultsDirectory = path_util.join(self.assetModel.mountPath, defaults_directory)
+	end
+end
+
+function Assets:setFileList()
+	self.fileList = {}
+	self.populateFileList(self.fileList, self.directory)
+
+	if not self.defaultsDirectory then
 		return
 	end
 
-	self.defaultsDirectory = path_util.join(self.assetModel.mountPath, defaults_path)
 	self.defaultsFileList = {}
 	self.populateFileList(self.defaultsFileList, self.defaultsDirectory)
 end
@@ -251,6 +255,22 @@ function Assets:loadAudioOrDefault(name)
 
 	table.insert(self.errors, ("Audio not found %s"):format(name))
 	return self.emptyAudio()
+end
+
+---@param src {[string]: string}
+---@param destination {[string]: love.Image}
+function Assets:populateImages(src, destination)
+	for k, file_name in pairs(src) do
+		destination[k] = self:loadImageOrDefault(file_name)
+	end
+end
+
+---@param src {[string]: string}
+---@param destination {[string]: audio.Source}
+function Assets:populateSounds(src, destination)
+	for k, file_name in pairs(src) do
+		destination[k] = self:loadAudioOrDefault(file_name)
+	end
 end
 
 ---@param config_model sphere.ConfigModel

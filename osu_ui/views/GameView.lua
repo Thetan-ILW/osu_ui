@@ -51,7 +51,7 @@ function GameView:load()
 	self:setView(self.ui.mainMenuView)
 end
 
-function GameView:loadAssets()
+function GameView:loadAssets(view_name)
 	local asset_model = self.assetModel
 	local configs = self.game.configModel.configs
 	local osu = configs.osu_ui
@@ -66,11 +66,13 @@ function GameView:loadAssets()
 
 	if not assets or (assets and assets.directory ~= skin_path) then
 		local default_localization = asset_model:getLocalizationFileName("English")
-		assets = OsuAssets(asset_model, skin_path, default_localization)
+		assets = OsuAssets(asset_model, skin_path)
+		assets:load(default_localization)
 		asset_model:store("osu", assets)
 	end
 
 	---@cast assets osu.ui.OsuAssets
+	assets:loadViewAssets(view_name)
 	assets:updateVolume(self.game.configModel)
 	self.assets = assets
 end
@@ -82,7 +84,14 @@ function GameView:_setView(view)
 	end
 
 	view.prevView = self.view
-	self:loadAssets()
+
+	local view_names = {
+		[self.ui.mainMenuView] = "mainMenuView",
+		[self.ui.selectView] = "selectView",
+		[self.ui.resultView] = "resultView",
+	}
+
+	self:loadAssets(view_names[view])
 	self.view = view
 	self.view.assetModel = self.ui.assetModel
 	self.view.assets = self.assets
