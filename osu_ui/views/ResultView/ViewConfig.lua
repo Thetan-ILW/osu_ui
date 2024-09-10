@@ -213,7 +213,7 @@ function ViewConfig:createUI(view)
 	if assets.hasBackButton then
 		back_image_button = ImageButton(assets, {
 			idleImage = img.menuBack,
-			ay = "bottom",
+			oy = 1,
 			hoverArea = { w = 200, h = 90 },
 			clickSound = assets.sounds.menuBack,
 		}, function()
@@ -227,7 +227,8 @@ function ViewConfig:createUI(view)
 
 	replay_button = ImageButton(assets, {
 		idleImage = img.replay,
-		hoverArea = { w = 380, h = 91, x = 15, y = 15 },
+		ox = 1,
+		hoverArea = { w = 411, h = 122 },
 		clickSound = assets.sounds.menuHit,
 	}, function()
 		view:play("replay")
@@ -550,7 +551,7 @@ local function rightSideButtons(view)
 	local w, h = Layout:move("base", "watch")
 
 	local iw, ih = replay_button:getDimensions()
-	gfx.translate(w - iw, 0)
+	gfx.translate(w, 0)
 
 	replay_button:update(true)
 	replay_button:draw()

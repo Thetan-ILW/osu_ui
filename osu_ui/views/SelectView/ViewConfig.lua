@@ -126,10 +126,20 @@ local selected_group = group_options[1]
 function ViewConfig:createUI(view)
 	local assets = self.assets
 
-	if assets.hasBackButton then
+	if assets.backButtonType == "image" then
 		buttons.back = ImageButton(assets, {
 			idleImage = img.menuBack,
-			ay = "bottom",
+			oy = 1,
+			hoverArea = { w = 200, h = 90 },
+			clickSound = assets.sounds.menuBack,
+		}, function()
+			view:changeScreen("mainMenuView")
+		end)
+	elseif assets.backButtonType == "animation" then
+		buttons.back = ImageButton(assets, {
+			animationImage = assets.animations.menuBack,
+			framerate = assets.params.animationFramerate,
+			oy = 1,
 			hoverArea = { w = 200, h = 90 },
 			clickSound = assets.sounds.menuBack,
 		}, function()
@@ -144,7 +154,7 @@ function ViewConfig:createUI(view)
 	buttons.mode = ImageButton(assets, {
 		idleImage = img.modeButton,
 		hoverImage = img.modeButtonOver,
-		ay = "bottom",
+		oy = 1,
 		hoverArea = { w = 88, h = 90 },
 	}, function()
 		view.notificationView:show("Not implemented")
@@ -153,7 +163,7 @@ function ViewConfig:createUI(view)
 	buttons.mods = ImageButton(assets, {
 		idleImage = img.modsButton,
 		hoverImage = img.modsButtonOver,
-		ay = "bottom",
+		oy = 1,
 		hoverArea = { w = 74, h = 90 },
 	}, function()
 		view:openModal("osu_ui.views.modals.Modifiers")
@@ -162,7 +172,7 @@ function ViewConfig:createUI(view)
 	buttons.random = ImageButton(assets, {
 		idleImage = img.randomButton,
 		hoverImage = img.randomButtonOver,
-		ay = "bottom",
+		oy = 1,
 		hoverArea = { w = 74, h = 90 },
 	}, function()
 		view.selectModel:scrollRandom()
@@ -171,7 +181,7 @@ function ViewConfig:createUI(view)
 	buttons.chartOptions = ImageButton(assets, {
 		idleImage = img.optionsButton,
 		hoverImage = img.optionsButtonOver,
-		ay = "bottom",
+		oy = 1,
 		hoverArea = { w = 74, h = 90 },
 	}, function()
 		view:openModal("osu_ui.views.modals.ChartOptions")
@@ -565,7 +575,7 @@ function ViewConfig:bottom(view)
 	w, h = Layout:move("base")
 	gfx.translate(0, h)
 
-	if self.assets.hasBackButton then
+	if self.assets.backButtonType ~= "none" then
 		drawBottomButton("back")
 	else
 		gfx.translate(0, -58)

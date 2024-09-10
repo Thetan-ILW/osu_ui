@@ -11,13 +11,14 @@ local utf8validate = require("utf8validate")
 ---@field loadedViews {[string]: boolean}
 ---@field images table<string, love.Image>
 ---@field imageFonts table<string, table<string, string>>
+---@field animations {[string]: love.Image[]}
 ---@field sounds table<string, audio.Source>
 ---@field shaders table<string, love.Shader>
 ---@field params table<string, number|string|boolean>
 ---@field localization osu.ui.Localization
 ---@field selectViewConfig function?
 ---@field resultViewConfig function?
----@field hasBackButton boolean
+---@field backButtonType "none" | "image" | "animation"
 local OsuAssets = Assets + {}
 
 local characters = {
@@ -236,6 +237,35 @@ function OsuAssets:loadAvatar()
 	return self.emptyImage()
 end
 
+function OsuAssets:loadMenuBack()
+	self.animations.menuBack = {}
+
+	local animtation_pattern = "menu-back-%i"
+	local frame = self.loadImage(self.directory, animtation_pattern:format(0), self.fileList)
+
+	local i = 1
+	while frame do
+		table.insert(self.animations.menuBack, frame)
+		frame = self.loadImage(self.directory, animtation_pattern:format(i), self.fileList)
+		i = i + 1
+	end
+
+	if #self.animations.menuBack ~= 0 then
+		self.backButtonType = "animation"
+		return
+	end
+
+	local menu_back = self.loadImage(self.directory, "menu-back", self.fileList)
+
+	if not menu_back then
+		self.backButtonType = "none"
+		return
+	end
+
+	self.images.menuBack = menu_back or self.emptyImage()
+	self.backButtonType = "image"
+end
+
 ---@param asset_model osu.ui.AssetModel
 ---@param skin_path string
 function OsuAssets:new(asset_model, skin_path)
@@ -269,6 +299,7 @@ function OsuAssets:load(default_localization)
 		cursorCenter = skin_ini.General.CursorCentre,
 		cursorExpand = skin_ini.General.CursorExpand,
 		cursorRotate = skin_ini.General.CursorRotate,
+		animationFramerate = skin_ini.General.AnimationFramerate,
 
 		scoreFontPrefix = skin_ini.Fonts.ScorePrefix,
 		scoreOverlap = skin_ini.Fonts.ScoreOverlap,
@@ -277,6 +308,7 @@ function OsuAssets:load(default_localization)
 	self.images = {}
 	self.sounds = {}
 	self.imageFonts = {}
+	self.animations = {}
 	self.loadedViews = {}
 
 	self:populateImages(images.global, self.images)
@@ -308,29 +340,18 @@ function OsuAssets:loadViewAssets(view_name)
 	end
 
 	self:populateImages(images[view_name], self.images)
+	self.loadedViews[view_name] = true
 
 	local f = self[view_name]
 	if f then
 		f(self)
-		self.loadedViews[view_name] = true
 	end
 end
 
 ---@private
-function OsuAssets:mainMenuView() end
-
----@private
 function OsuAssets:selectView()
 	self.images.panelTop:setWrap("clamp")
-
-	local menu_back = self.loadImage(self.directory, "menu-back", self.fileList)
-	self.images.menuBack = menu_back or self.emptyImage()
-
-	self.hasBackButton = true
-
-	if not menu_back then
-		self.hasBackButton = false
-	end
+	self:loadMenuBack()
 end
 
 ---@private
