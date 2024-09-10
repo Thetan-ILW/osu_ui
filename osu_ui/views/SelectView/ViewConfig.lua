@@ -70,6 +70,11 @@ local has_scores = false
 local online_scores = false
 local beat = 0
 
+---@type "circles" | "taiko" | "fruits" | "mania"
+local selected_mode = "mania"
+---@type {[string]: love.Image}
+local small_icons
+
 local search = ""
 
 local pp = 0
@@ -157,7 +162,17 @@ function ViewConfig:createUI(view)
 		oy = 1,
 		hoverArea = { w = 88, h = 90 },
 	}, function()
-		view.notificationView:show("Not implemented")
+		local s = selected_mode
+		if s == "mania" then
+			s = "circles"
+		elseif s == "circles" then
+			s = "taiko"
+		elseif s == "taiko" then
+			s = "fruits"
+		else
+			s = "mania"
+		end
+		selected_mode = s
 	end)
 
 	buttons.mods = ImageButton(assets, {
@@ -245,6 +260,12 @@ function ViewConfig:createUI(view)
 	end, formatGroupSort)
 
 	osu_logo_button = HoverState("quadout", 0.15)
+	small_icons = {
+		circles = img.osuSmallIcon,
+		taiko = img.taikoSmallIcon,
+		fruits = img.fruitsSmallIcon,
+		mania = img.maniaSmallIcon,
+	}
 end
 
 ---@param view osu.ui.SelectView
@@ -392,11 +413,11 @@ function ViewConfig:chartInfo()
 	end
 
 	gfx.setFont(font.chartName)
-	gfx.translate(39, -5)
+	gfx.translate(38, -5)
 	ui.text(chart_name, w, "left")
 
 	gfx.setFont(font.chartedBy)
-	gfx.translate(0, -5)
+	gfx.translate(2, -5)
 	ui.text(charter_row, w, "left")
 
 	w, h = Layout:move("base")
@@ -409,10 +430,12 @@ function ViewConfig:chartInfo()
 
 	a = animate(update_time, 0.4)
 	gfx.setColor({ 1, 1, 1, a })
+	gfx.translate(0, 1)
 	gfx.setFont(font.infoCenter)
 	ui.text(text.chartInfoSecondRow:format(note_count_str, ln_count_str, ""))
 
 	a = animate(update_time, 0.5)
+	gfx.translate(0, -2)
 	gfx.setColor({ 1, 1, 1, a })
 	gfx.setFont(font.infoBottom)
 	ui.text(text.chartInfoThirdRow:format(columns_str, "8", "8", difficulty_str))
@@ -587,13 +610,12 @@ function ViewConfig:bottom(view)
 	gfx.translate(224, 0)
 	drawBottomButton("mode")
 
-	iw, ih = img.maniaSmallIcon:getDimensions()
-	gfx.translate(-iw / 2 + 45, -ih / 2 - 55)
+	local small_icon = small_icons[selected_mode]
+	iw, ih = small_icon:getDimensions()
 	gfx.setColor(white)
 	gfx.setBlendMode("add")
-	gfx.draw(img.maniaSmallIcon)
+	gfx.draw(small_icon, 46, -56, 0, 1, 1, iw / 2, ih / 2)
 	gfx.setBlendMode("alpha")
-	gfx.translate(iw / 2 - 45, ih / 2 + 55)
 
 	gfx.translate(92, 0)
 	drawBottomButton("mods")
@@ -738,25 +760,34 @@ function ViewConfig:modeLogo()
 	gfx.draw(image)
 end
 
----@param view osu.ui.SelectView
-function ViewConfig:search(view)
+local search_width = 364
+
+function ViewConfig:searchBackground()
 	local insert_mode = actions.isInsertMode()
-	local width = 364
 	local w, h = Layout:move("base")
-	gfx.translate(w - width, 82)
+	gfx.translate(w - search_width, 82)
 	gfx.setColor({ 0, 0, 0, 0.2 })
-	gfx.rectangle("fill", 0, 0, width, 35)
+	gfx.rectangle("fill", 0, 0, search_width, 35)
 
 	gfx.translate(15, 5)
 	gfx.setColor({ 0.68, 1, 0.18, 1 })
 	gfx.setFont(font.search)
 
 	local label = insert_mode and text.searchInsert or text.search
-	ui.text(label, font.search:getWidth(label) * ui.getTextScale())
-	gfx.translate(5, 0)
+	ui.text(label)
+end
 
+---@param view osu.ui.SelectView
+function ViewConfig:search(view)
+	local insert_mode = actions.isInsertMode()
+	local w, h = Layout:move("base")
+	gfx.translate(w - search_width, 82)
+
+	local label = insert_mode and text.searchInsert or text.search
+	gfx.translate(20 + font.search:getWidth(label) * ui.getTextScale(), 5)
+
+	gfx.setFont(font.search)
 	gfx.setColor(white)
-	ui.sameline()
 
 	local vim_motions = actions.isVimMode()
 
@@ -860,6 +891,7 @@ function ViewConfig:draw(view)
 	end
 
 	self:scores(view)
+	self:searchBackground()
 	self:top()
 	self:bottom(view)
 	self:chartInfo()

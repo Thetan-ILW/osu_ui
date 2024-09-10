@@ -126,6 +126,9 @@ local images = {
 
 		listButtonBackground = "menu-button-background",
 		star = "star",
+		osuSmallIcon = "mode-osu-small",
+		taikoSmallIcon = "mode-taiko-small",
+		fruitsSmallIcon = "mode-fruits-small",
 		maniaSmallIcon = "mode-mania-small",
 		maniaSmallIconForCharts = "mode-mania-small-for-charts",
 		maniaIcon = "mode-mania",

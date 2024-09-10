@@ -405,6 +405,10 @@ function actions.textInput(text)
 		return true, text
 	end
 
+	if last_pressed_key == "space" then
+		last_pressed_key = " "
+	end
+
 	text = text .. last_pressed_key
 	last_pressed_key = nil
 
