@@ -22,6 +22,7 @@ l.textGroups = {
 		openSoundsphereFolder = "Open soundsphere folder",
 		--- Song select
 		songSelect = "SONG SELECT",
+		difficultyCalculator = "Difficulty calculator:",
 		vimMotions = "Vim motions (ONLY FOR EXPERTS)",
 		previewIcon = "Preview icon (Only shifts text)",
 		chartPreview = "Chart preview",

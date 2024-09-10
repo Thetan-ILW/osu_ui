@@ -4,6 +4,19 @@ local Label = require("osu_ui.ui.Label")
 local consts = require("osu_ui.views.SettingsView.Consts")
 
 local actions = require("osu_ui.actions")
+local diff_columns = {
+	"enps_diff",
+	"osu_diff",
+	"msd_diff",
+	"user_diff",
+}
+
+local diff_columns_names = {
+	enps_diff = "ENPS",
+	osu_diff = "OSU",
+	msd_diff = "MSD",
+	user_diff = "USER",
+}
 
 ---@param assets osu.OsuAssets
 ---@param view osu.SettingsView
@@ -81,6 +94,14 @@ return function(assets, view)
 
 	c:createGroup("songSelect", text.songSelect)
 	Elements.currentGroup = "songSelect"
+
+	combo(text.difficultyCalculator, "osu_diff", nil, function()
+		return ss.diff_column, diff_columns
+	end, function(v)
+		ss.diff_column = v
+	end, function(v)
+		return diff_columns_names[v]
+	end)
 
 	Elements.sliderPixelWidth = 265
 
