@@ -2,6 +2,7 @@ local IViewConfig = require("osu_ui.views.IViewConfig")
 local ui = require("osu_ui.ui")
 local just = require("just")
 local msd_util = require("osu_ui.msd_util")
+local flux = require("flux")
 
 local getPP = require("osu_ui.osu_pp")
 local getModifierString = require("osu_ui.views.modifier_string")
@@ -266,21 +267,26 @@ function ViewConfig:loadScore(view)
 	counterNames = judge.orderedCounters
 
 	local counters = judge.counters
+	local score = judge.score or view.judgements["osu!legacy OD9"].score or 0
 
-	marvelousValue.value = counters[counterNames[1]]
-	perfectValue.value = counters[counterNames[2]]
-	missValue.value = counters["miss"]
+	self.scoreReveal = 0
+	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout"):onupdate(function()
+		local v = self.scoreReveal
 
-	if judge.scoreSystemName ~= "soundsphere" then
-		greatValue.value = counters[counterNames[3]]
-		goodValue.value = counters[counterNames[4]]
-		badValue.value = counters[counterNames[5]]
-	end
+		scoreValue.value = score * v
+
+		marvelousValue.value = counters[counterNames[1]] * v
+		perfectValue.value = counters[counterNames[2]] * v
+		missValue.value = counters["miss"] * v
+
+		if judge.scoreSystemName ~= "soundsphere" then
+			greatValue.value = counters[counterNames[3]] * v
+			goodValue.value = counters[counterNames[4]] * v
+			badValue.value = counters[counterNames[5]] * v
+		end
+	end)
 
 	accuracyValue.value = judge.accuracy
-
-	local score = judge.score or view.judgements["osu!legacy OD9"].score or 0
-	scoreValue.value = score
 
 	local base = view.game.rhythmModel.scoreEngine.scoreSystem["base"]
 
@@ -506,9 +512,10 @@ local acc_y = row4 + 38
 function ViewConfig:panel()
 	local w, h = Layout:move("base")
 
-	gfx.setColor({ 1, 1, 1, 1 })
+	gfx.setColor(1, 1, 1)
 	gfx.draw(img.panel, 0, 102, 0)
 
+	gfx.setColor(1, 1, 1, self.scoreReveal * 0.5 + 0.5)
 	valueView(scoreValue, score_x, score_y)
 
 	judgeCentered(img.judgeMarvelous, img_x2, row1)
@@ -549,8 +556,9 @@ function ViewConfig:grade()
 
 	overlay_rotation = (overlay_rotation + love.timer.getDelta() * 0.5) % (math.pi * 2)
 
+	local additional_s = (1 - self.scoreReveal) * 0.2
 	gfx.draw(overlay, w - 200, 320, overlay_rotation, 1, 1, ow / 2, oh / 2)
-	gfx.draw(image, w - 192, 320, 0, 1, 1, iw / 2, ih / 2)
+	gfx.draw(image, w - 192, 320, 0, 1 + additional_s, 1 + additional_s, iw / 2, ih / 2)
 end
 
 local function rightSideButtons(view)
@@ -641,8 +649,8 @@ function ViewConfig:draw(view)
 
 	self:panel()
 	self:title(view)
-	self:grade()
 	rightSideButtons(view)
+	self:grade()
 	backButton(view)
 	mods()
 

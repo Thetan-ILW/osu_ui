@@ -44,8 +44,6 @@ function ImageValueView:draw()
 	local images = self.images
 	local overlap = self.overlap or 0
 
-	love.graphics.setColor(1, 1, 1, 1)
-
 	local format = self.format
 	local value = self.value or inside(self, self.key)
 	if value then
