@@ -10,6 +10,7 @@ local PopupView = require("osu_ui.views.PopupView")
 local TooltipView = require("osu_ui.views.TooltipView")
 local CursorView = require("osu_ui.views.CursorView")
 local OsuAssets = require("osu_ui.OsuAssets")
+local OsuLayout = require("osu_ui.views.OsuLayout")
 
 ---@class osu.ui.GameView
 ---@operator call: osu.ui.GameView
@@ -163,6 +164,8 @@ function GameView:update(dt)
 			love.system.openURL(self.screenshotSaveLocation)
 		end)
 	end
+
+	OsuLayout:draw()
 end
 
 function GameView:draw()

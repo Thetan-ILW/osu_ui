@@ -200,7 +200,6 @@ end
 
 ---@param view osu.SettingsView
 function ViewConfig:draw(view)
-	Layout:draw()
 	visibility = view.visibility
 
 	local last_tab_focus = tab_focus

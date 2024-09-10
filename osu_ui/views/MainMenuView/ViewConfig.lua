@@ -729,8 +729,6 @@ end
 
 ---@param view osu.MainMenuView
 function ViewConfig:draw(view)
-	Layout:draw()
-
 	updateFft(view)
 
 	if view.state == "intro" then

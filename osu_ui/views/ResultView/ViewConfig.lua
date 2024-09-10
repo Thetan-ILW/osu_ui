@@ -8,7 +8,7 @@ local getModifierString = require("osu_ui.views.modifier_string")
 local erfunc = require("libchart.erfunc")
 local Format = require("sphere.views.Format")
 
-local Layout = require("osu_ui.views.ResultView.Layout")
+local Layout = require("osu_ui.views.OsuLayout")
 local ImageValueView = require("osu_ui.views.ResultView.ImageValueView")
 local Scoring = require("osu_ui.views.ResultView.Scoring")
 local HitGraph = require("osu_ui.views.ResultView.HitGraph")
@@ -179,7 +179,7 @@ function ViewConfig:new(game, assets, after_gameplay, view)
 		align = "center",
 		format = "%07d",
 		multiplier = 1,
-		scale = 1.2,
+		scale = 1.3,
 		overlap = overlap,
 		files = score_font,
 	})
@@ -417,18 +417,15 @@ function ViewConfig:loadScore(view)
 end
 
 function ViewConfig:title(view)
-	local w, h = Layout:move("title")
+	local w, h = Layout:move("base")
 
-	gfx.setColor({ 0, 0, 0, 0.65 })
-	gfx.rectangle("fill", 0, 0, w, h)
+	gfx.setColor({ 0, 0, 0, 0.8 })
+	gfx.rectangle("fill", 0, 0, w, 96)
 
 	gfx.setColor({ 1, 1, 1, 1 })
 
-	w, h = Layout:move("titleImage")
 	local iw, ih = img.title:getDimensions()
-	gfx.draw(img.title, w - iw, 0)
-
-	w, h = Layout:move("title")
+	gfx.draw(img.title, w - 32, 0, 0, 1, 1, iw, 0)
 
 	local chartview = view.game.selectModel.chartview
 
@@ -458,72 +455,81 @@ function ViewConfig:title(view)
 
 	gfx.setColor(1, 1, 1, 1)
 	gfx.setFont(font.title)
-	ui.frame(title, 9, 0, math.huge, h, "left", "top")
+	ui.frame(title, 5, 0, math.huge, h, "left", "top")
 
 	gfx.setFont(font.creator)
-	ui.frame(second_row, 9, 37, math.huge, h, "left", "top")
+	ui.frame(second_row, 5, 33, math.huge, h, "left", "top")
 
 	gfx.setFont(font.playInfo)
-	ui.frame(playInfo, 9, 59, math.huge, h, "left", "top")
+	ui.frame(playInfo, 5, 54, math.huge, h, "left", "top")
 end
 
-local function centerFrame(value, box)
-	if value then
-		local w, h = Layout:move(box)
-		gfx.translate(w / 2, h / 2)
-		value:draw()
-		gfx.translate(-w / 2, -h / 2)
-	end
+local function judgeCentered(image, x, y)
+	local w, h = image:getDimensions()
+	gfx.draw(image, x, y, 0, 0.5, 0.5, w / 2, h / 2)
 end
 
-local function frame(value, box, box2)
-	if value then
-		local w, h = Layout:move(box, box2)
-		gfx.translate(0, h / 2)
-		value:draw()
-		gfx.translate(0, -h / 2)
-	end
+local function judgeValue(value_view, x, y)
+	gfx.push()
+	gfx.translate(x, y)
+	value_view:draw()
+	gfx.pop()
 end
 
-local function judgeFrame(image, box, box2)
-	if image then
-		local s = 0.51
-		local w, h = Layout:move(box, box2)
-		local iw, ih = image:getDimensions()
-		gfx.draw(image, (w / 2) - ((iw * s) / 2), (h / 2) - ((ih * s) / 2) + 2, 0, s, s)
-	end
+local function valueView(value_view, x, y)
+	gfx.push()
+	gfx.translate(x, y)
+	value_view:draw()
+	gfx.pop()
 end
+
+local ppy = 1.6
+
+local score_x = 220 * ppy
+local score_y = 94 * ppy
+
+local img_x1 = 40 * ppy
+local img_x2 = 240 * ppy
+local text_x1 = 80 * ppy
+local text_x2 = 280 * ppy
+
+local row1 = 160 * ppy
+local row2 = 220 * ppy
+local row3 = 280 * ppy
+local row4 = 320 * ppy
+
+local combo_x = text_x1 - 65 * ppy
+local combo_y = row4 + 38
+local acc_x = text_x2 - 86 * ppy
+local acc_y = row4 + 38
 
 function ViewConfig:panel()
-	local w, h = Layout:move("panel")
+	local w, h = Layout:move("base")
 
 	gfx.setColor({ 1, 1, 1, 1 })
+	gfx.draw(img.panel, 0, 102, 0)
 
-	gfx.draw(img.panel, 0, 0, 0)
+	valueView(scoreValue, score_x, score_y)
 
-	centerFrame(scoreValue, "score")
+	judgeCentered(img.judgeMarvelous, img_x2, row1)
+	judgeCentered(img.judgePerfect, img_x1, row1)
+	judgeCentered(img.judgeGreat, img_x1, row2)
+	judgeCentered(img.judgeGood, img_x2, row2)
+	judgeCentered(img.judgeBad, img_x1, row3)
+	judgeCentered(img.judgeMiss, img_x2, row3)
 
-	frame(perfectValue, "column2", "row1")
-	frame(marvelousValue, "column4", "row1")
-	frame(greatValue, "column2", "row2")
-	frame(goodValue, "column4", "row2")
-	frame(badValue, "column2", "row3")
-	frame(missValue, "column4", "row3")
+	judgeValue(marvelousValue, text_x2, row1)
+	judgeValue(perfectValue, text_x1, row1)
+	judgeValue(greatValue, text_x1, row2)
+	judgeValue(goodValue, text_x2, row2)
+	judgeValue(badValue, text_x1, row3)
+	judgeValue(missValue, text_x2, row3)
 
-	judgeFrame(img.judgeMarvelous, "column3", "row1")
-	judgeFrame(img.judgePerfect, "column1", "row1")
-	judgeFrame(img.judgeGreat, "column1", "row2")
-	judgeFrame(img.judgeGood, "column3", "row2")
-	judgeFrame(img.judgeBad, "column1", "row3")
-	judgeFrame(img.judgeMiss, "column3", "row3")
+	gfx.draw(img.maxCombo, 8, 480)
+	gfx.draw(img.accuracy, 291, 480)
 
-	frame(comboValue, "combo")
-	frame(accuracyValue, "accuracy")
-
-	Layout:move("comboText")
-	gfx.draw(img.maxCombo)
-	Layout:move("accuracyText")
-	gfx.draw(img.accuracy)
+	valueView(comboValue, combo_x, combo_y)
+	valueView(accuracyValue, acc_x, acc_y)
 end
 
 local overlay_rotation = 0
@@ -543,15 +549,15 @@ function ViewConfig:grade()
 
 	overlay_rotation = (overlay_rotation + love.timer.getDelta() * 0.5) % (math.pi * 2)
 
-	gfx.draw(overlay, w - 198, 320, overlay_rotation, 1, 1, ow / 2, oh / 2)
-	gfx.draw(image, w - 198, 320, 0, 1, 1, iw / 2, ih / 2)
+	gfx.draw(overlay, w - 200, 320, overlay_rotation, 1, 1, ow / 2, oh / 2)
+	gfx.draw(image, w - 192, 320, 0, 1, 1, iw / 2, ih / 2)
 end
 
 local function rightSideButtons(view)
-	local w, h = Layout:move("base", "watch")
+	local w, h = Layout:move("base")
 
 	local iw, ih = replay_button:getDimensions()
-	gfx.translate(w, 0)
+	gfx.translate(w, 515)
 
 	replay_button:update(true)
 	replay_button:draw()
@@ -559,9 +565,10 @@ end
 
 ---@param view table
 local function hitGraph(view)
-	local w, h = Layout:move("hitGraph")
+	Layout:move("base")
+	local w, h = 301, 160
 
-	gfx.translate(0, 4)
+	gfx.translate(256, 608)
 	gfx.setColor({ 1, 1, 1, 1 })
 
 	gfx.draw(img.graph)
@@ -575,9 +582,6 @@ local function hitGraph(view)
 		HitGraph.earlyHitGraph:draw(w, h - 3)
 		HitGraph.missGraph.game = view.game
 		HitGraph.missGraph:draw(w, h - 3)
-
-		gfx.setColor(0, 0, 0, 0)
-		gfx.rectangle("fill", -2, h / 2, w + 2, 4)
 	else
 		h = h * 0.86
 		gfx.translate(2, 6)
@@ -606,7 +610,7 @@ local function backButton(view)
 end
 
 local function mods()
-	local w, _ = Layout:move("mods")
+	local w, h = Layout:move("base")
 
 	if #modifierIconImages == 0 then
 		return
@@ -614,12 +618,12 @@ local function mods()
 
 	local iw, ih = modifierIconImages[1]:getDimensions()
 
-	gfx.translate(w - iw, -ih / 2)
+	gfx.translate(w - 64, 416)
 	gfx.setColor({ 1, 1, 1, 1 })
 
 	for _, image in ipairs(modifierIconImages) do
-		iw, _ = image:getDimensions()
-		gfx.draw(image)
+		iw, ih = image:getDimensions()
+		gfx.draw(image, 0, 0, 0, 1, 1, iw / 2, ih / 2)
 		gfx.translate(-iw / 2, 0)
 	end
 end
@@ -634,8 +638,6 @@ function ViewConfig:draw(view)
 	if isOnlineScore then
 		return
 	end
-
-	Layout:draw()
 
 	self:panel()
 	self:title(view)

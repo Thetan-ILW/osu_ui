@@ -869,8 +869,6 @@ end
 
 ---@param view osu.ui.SelectView
 function ViewConfig:draw(view)
-	Layout:draw()
-
 	checkFocus()
 	updateBeat(view)
 
