@@ -73,6 +73,7 @@ function GameView:loadAssets(view_name)
 
 	---@cast assets osu.ui.OsuAssets
 	assets:loadViewAssets(view_name)
+	assets:loadLocalization(asset_model:getLocalizationFileName(language))
 	assets:updateVolume(self.game.configModel)
 	self.assets = assets
 end

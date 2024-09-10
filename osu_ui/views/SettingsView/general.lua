@@ -51,6 +51,9 @@ return function(assets, view)
 	combo(text.selectLanguage, "English", nil, function()
 		return osu.language, localization_list
 	end, function(v)
+		if v ~= osu.language then
+			view.ui.gameView:reloadView()
+		end
 		osu.language = v.name
 	end, function(v)
 		return v.name
