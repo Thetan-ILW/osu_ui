@@ -1,5 +1,6 @@
 local class = require("class")
 local table_util = require("table_util")
+local path_util = require("path_util")
 
 ---@class osu.ui.Localization
 ---@operator call: osu.ui.Localization
@@ -12,8 +13,11 @@ local table_util = require("table_util")
 ---@field fontInstances table<string, table<string, love.Font>>
 local Localization = class()
 
+---@param asset_model osu.ui.AssetModel
 ---@param filepath string
-function Localization:new(filepath, native_view_height)
+---@param native_view_height number
+function Localization:new(asset_model, filepath, native_view_height)
+	self.assetModel = asset_model
 	self.nativeViewHeight = native_view_height
 	self.fontScale = 1
 	self.fontGroups = {}
@@ -53,7 +57,7 @@ function Localization:loadFont(name, size)
 	local filename = self.currentFile.fontFiles[name]
 	assert(filename, "Font path is not specified for " .. name)
 
-	local font = love.graphics.newFont("theme_mount/osu_ui/" .. filename, size * self.fontScale)
+	local font = love.graphics.newFont(path_util.join(self.assetModel.mountPath, filename), size * self.fontScale)
 
 	self.fontInstances[name] = self.fontInstances[name] or {}
 	self.fontInstances[name][size_str] = font

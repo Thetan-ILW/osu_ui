@@ -345,7 +345,7 @@ end
 ---@param filepath string
 function OsuAssets:loadLocalization(filepath)
 	if not self.localization then
-		self.localization = Localization(filepath, 768)
+		self.localization = Localization(self.assetModel, filepath, 768)
 		return
 	end
 
