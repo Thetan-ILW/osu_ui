@@ -56,6 +56,21 @@ local images = {
 		buttonRight = "button-right",
 		dropdownArrow = "dropdown-arrow",
 		menuBackArrow = "menu-back-arrow",
+
+		checkboxOff = "menu-checkbox-off",
+		checkboxOn = "menu-checkbox-on",
+		optionChanged = "menu-option-changed",
+
+		generalTab = "menu-general-tab",
+		graphicsTab = "menu-graphics-tab",
+		gameplayTab = "menu-gameplay-tab",
+		audioTab = "menu-audio-tab",
+		skinTab = "menu-skin-tab",
+		inputTab = "menu-input-tab",
+		maintenanceTab = "menu-maintenance-tab",
+
+		noSkinPreview = "no-skin-preview",
+		inputsArrow = "inputs-arrow",
 	},
 	mainMenuView = {
 		welcomeText = "welcome_text",
@@ -86,21 +101,6 @@ local images = {
 		menuBackButton = "menu-button-back",
 		menuBackButtonHover = "menu-button-back-over",
 		supporter = "menu-subscriber",
-
-		checkboxOff = "menu-checkbox-off",
-		checkboxOn = "menu-checkbox-on",
-		optionChanged = "menu-option-changed",
-
-		generalTab = "menu-general-tab",
-		graphicsTab = "menu-graphics-tab",
-		gameplayTab = "menu-gameplay-tab",
-		audioTab = "menu-audio-tab",
-		skinTab = "menu-skin-tab",
-		inputTab = "menu-input-tab",
-		maintenanceTab = "menu-maintenance-tab",
-
-		noSkinPreview = "no-skin-preview",
-		inputsArrow = "inputs-arrow",
 	},
 	selectView = {
 		panelTop = "songselect-top",

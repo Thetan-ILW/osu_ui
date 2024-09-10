@@ -59,7 +59,7 @@ return function(assets, view)
 		return v.name
 	end)
 
-	checkbox(text.originalMetadata, false, nil, function()
+	checkbox(text.originalMetadata, false, "Does nothing.", function()
 		return osu.originalMetadata
 	end, function()
 		osu.originalMetadata = not osu.originalMetadata
