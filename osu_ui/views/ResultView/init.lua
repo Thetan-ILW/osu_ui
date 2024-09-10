@@ -146,6 +146,10 @@ function ResultView:receive(event)
 	if event.name == "keypressed" then
 		self.inputMap:call("view")
 	end
+
+	if event.name == "mousepressed" then
+		self.viewConfig:stopAnimations()
+	end
 end
 
 function ResultView:submitScore()

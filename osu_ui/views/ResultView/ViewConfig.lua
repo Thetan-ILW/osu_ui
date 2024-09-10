@@ -33,6 +33,10 @@ local isOnlineScore = false
 local judge
 local counterNames
 
+local counters
+local score_num
+local combo_num
+
 local marvelousValue
 local perfectValue
 local greatValue
@@ -69,6 +73,8 @@ local back_image_button
 local back_button
 ---@type osu.ui.ImageButton
 local replay_button
+
+local scroll = 0
 
 ---@param game sphere.GameController
 ---@param assets osu.ui.OsuAssets
@@ -251,6 +257,31 @@ local function showLoadedScore(view)
 	return scoreItem.id == scoreEntry.id
 end
 
+function ViewConfig:scoreRevealAnimation()
+	local v = self.scoreReveal
+
+	scoreValue.value = score_num * v
+
+	marvelousValue.value = math.ceil(counters[counterNames[1]] * v)
+	perfectValue.value = math.ceil(counters[counterNames[2]] * v)
+	missValue.value = math.ceil(counters["miss"] * v)
+
+	if judge.scoreSystemName ~= "soundsphere" then
+		greatValue.value = math.ceil(counters[counterNames[3]] * v)
+		goodValue.value = math.ceil(counters[counterNames[4]] * v)
+		badValue.value = math.ceil(counters[counterNames[5]] * v)
+	end
+
+	comboValue.value = math.ceil(combo_num * v)
+	accuracyValue.value = judge.accuracy * v
+end
+
+function ViewConfig:stopAnimations()
+	self.scoreRevealTween:stop()
+	self.scoreReveal = 1
+	self:scoreRevealAnimation()
+end
+
 function ViewConfig:loadScore(view)
 	isOnlineScore = view.game.configModel.configs.select.scoreSourceName == "online"
 
@@ -260,37 +291,19 @@ function ViewConfig:loadScore(view)
 	end
 
 	local chartview = view.game.selectModel.chartview
-	local configs = view.game.configModel.configs
-	local osu = configs.osu_ui
 
 	judge = view.judgement
 	counterNames = judge.orderedCounters
 
-	local counters = judge.counters
-	local score = judge.score or view.judgements["osu!legacy OD9"].score or 0
+	counters = judge.counters
+	local base = view.game.rhythmModel.scoreEngine.scoreSystem["base"]
+	combo_num = base.maxCombo
+	score_num = judge.score or view.judgements["osu!legacy OD9"].score or 0
 
 	self.scoreReveal = 0
 	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout"):onupdate(function()
-		local v = self.scoreReveal
-
-		scoreValue.value = score * v
-
-		marvelousValue.value = counters[counterNames[1]] * v
-		perfectValue.value = counters[counterNames[2]] * v
-		missValue.value = counters["miss"] * v
-
-		if judge.scoreSystemName ~= "soundsphere" then
-			greatValue.value = counters[counterNames[3]] * v
-			goodValue.value = counters[counterNames[4]] * v
-			badValue.value = counters[counterNames[5]] * v
-		end
+		self:scoreRevealAnimation()
 	end)
-
-	accuracyValue.value = judge.accuracy
-
-	local base = view.game.rhythmModel.scoreEngine.scoreSystem["base"]
-
-	comboValue.value = base.maxCombo
 
 	timeRate = view.game.playContext.rate
 
@@ -329,7 +342,7 @@ function ViewConfig:loadScore(view)
 		od = 9
 	end
 
-	ppFormatted = ("%i PP"):format(getPP(judge.notes, chartview.osu_diff * timeRate, od, score))
+	ppFormatted = ("%i PP"):format(getPP(judge.notes, chartview.osu_diff * timeRate, od, score_num))
 
 	local playContext = view.game.playContext
 	local timings = playContext.timings
@@ -647,25 +660,27 @@ function ViewConfig:draw(view)
 		return
 	end
 
+	gfx.translate(0, scroll)
+	gfx.push()
 	self:panel()
-	self:title(view)
 	rightSideButtons(view)
 	self:grade()
 	backButton(view)
 	mods()
 
 	hitGraph(view)
+	gfx.pop()
 
-	if not show_pp then
-		return
+	self:title(view)
+
+	if show_pp then
+		local w, h = gfx.getDimensions()
+		gfx.origin()
+
+		gfx.setColor({ 1, 1, 1, 1 })
+		gfx.setFont(font.pp)
+		ui.frame(ppFormatted, -10, 0, w, h, "right", "bottom")
 	end
-
-	local w, h = gfx.getDimensions()
-	gfx.origin()
-
-	gfx.setColor({ 1, 1, 1, 1 })
-	gfx.setFont(font.pp)
-	ui.frame(ppFormatted, -10, 0, w, h, "right", "bottom")
 end
 
 return ViewConfig

@@ -37,6 +37,8 @@ local modOrder = {
 	{ id = 18, label = "BS" },
 	{ id = 17, label = "RND" },
 	{ id = 16, label = "MR" },
+	{ id = 11, label = "AM%i", format = true },
+	{ id = 11, label = "ALT" },
 }
 
 function ScoreListView:getModifiers(modifiers)
