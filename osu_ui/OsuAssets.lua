@@ -14,7 +14,7 @@ local utf8validate = require("utf8validate")
 ---@field animations {[string]: love.Image[]}
 ---@field sounds table<string, audio.Source>
 ---@field shaders table<string, love.Shader>
----@field params table<string, number|string|boolean>
+---@field params table<string, number|string|boolean|number[]>
 ---@field localization osu.ui.Localization
 ---@field selectViewConfig function?
 ---@field resultViewConfig function?
@@ -269,6 +269,14 @@ function OsuAssets:loadMenuBack()
 	self.backButtonType = "image"
 end
 
+local function strToColor(str)
+	if not str then
+		return { 1, 1, 1 }
+	end
+	local colors = string.split(str, ",")
+	return { tonumber(colors[1]) / 255, tonumber(colors[2]) / 255, tonumber(colors[3]) / 255 }
+end
+
 ---@param asset_model osu.ui.AssetModel
 ---@param skin_path string
 function OsuAssets:new(asset_model, skin_path)
@@ -296,8 +304,8 @@ function OsuAssets:load(default_localization)
 	self:loadLocalization(default_localization)
 
 	self.params = {
-		songSelectActiveText = skin_ini.Colours.SongSelectActiveText,
-		songSelectInactiveText = skin_ini.Colours.SongSelectInactiveText,
+		songSelectActiveText = strToColor(skin_ini.Colours.SongSelectActiveText),
+		songSelectInactiveText = strToColor(skin_ini.Colours.SongSelectInactiveText),
 
 		cursorCenter = skin_ini.General.CursorCentre,
 		cursorExpand = skin_ini.General.CursorExpand,

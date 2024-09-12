@@ -22,7 +22,6 @@ local Combo = require("osu_ui.ui.Combo")
 local BackButton = require("osu_ui.ui.BackButton")
 local HoverState = require("osu_ui.ui.HoverState")
 
-local NoteChartSetListView = require("osu_ui.views.SelectView.NoteChartSetListView")
 local CollectionListView = require("osu_ui.views.SelectView.CollectionListView")
 local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
 
@@ -283,7 +282,6 @@ function ViewConfig:new(view, assets)
 
 	setFormat()
 
-	self.noteChartSetListView = NoteChartSetListView(game, assets)
 	self.collectionListView = CollectionListView(game, assets)
 	self.scoreListView = ScoreListView(game, assets)
 
@@ -356,7 +354,6 @@ function ViewConfig:updateInfo(view)
 	local gameplay = view.game.configModel.configs.settings.gameplay
 	scroll_speed_str = ("%g (fixed)"):format(speed_model.format[gameplay.speedType]:format(speed_model:get()))
 
-	self.noteChartSetListView:reloadItems()
 	self.collectionListView:reloadItems()
 	self.scoreListView:reloadItems()
 
@@ -627,23 +624,10 @@ function ViewConfig:bottom(view)
 	drawBottomButton("chartOptions")
 end
 
-function ViewConfig:chartSetList()
+function ViewConfig:chartSetList(view)
 	local w, h = Layout:move("base")
-	local list = self.noteChartSetListView
-
-	local no_focus = false or combo_focused
-
-	list.focus = not no_focus and has_focus
-
-	local a = ui.easeOutCubic(chart_list_update_time, 0.7)
-
-	gfx.translate(w - (610 * a), 82)
-	list:updateAnimations()
-	list:draw(610, 595, true)
-
-	w, h = Layout:move("base")
-	gfx.translate(w - 610, 82)
-	ui.scrollBar(list, 610, 595)
+	local list = view.chartSetListView
+	list:draw(w, h)
 end
 
 ---@param view osu.ui.SelectView
@@ -883,7 +867,7 @@ function ViewConfig:draw(view)
 	self:modeLogo()
 
 	if selected_group == "charts" then
-		self:chartSetList()
+		self:chartSetList(view)
 	else
 		self:collectionList(view)
 	end

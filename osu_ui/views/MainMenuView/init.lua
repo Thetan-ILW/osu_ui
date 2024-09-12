@@ -19,7 +19,6 @@ local MainMenuView = ScreenView + {}
 local show_intro = true
 
 function MainMenuView:load()
-	self.game.selectController:load(self)
 	self.viewConfig = ViewConfig(self.game, self.assets)
 	self.inputMap = InputMap(self)
 	self.selectModel = self.game.selectModel

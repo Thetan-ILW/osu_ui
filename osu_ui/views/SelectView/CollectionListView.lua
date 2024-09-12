@@ -25,21 +25,8 @@ function CollectionListView:new(game, assets)
 	self.assets = assets
 	self.font = assets.localization.fontGroups.chartSetList
 
-	local active_str = self.assets.params.songSelectActiveText
-	local inactive_str = self.assets.params.songSelectInactiveText
-
-	---@cast active_str string
-	---@cast inactive_str string
-
-	if active_str then
-		local colors = string.split(active_str, ",")
-		self.activeTextColor = { tonumber(colors[1]) / 255, tonumber(colors[2]) / 255, tonumber(colors[3]) / 255, 1 }
-	end
-
-	if inactive_str then
-		local colors = string.split(inactive_str, ",")
-		self.inactiveTextColor = { tonumber(colors[1]) / 255, tonumber(colors[2]) / 255, tonumber(colors[3]) / 255, 1 }
-	end
+	self.activeTextColor = self.assets.params.songSelectActiveText
+	self.inactiveTextColor = self.assets.params.songSelectInactiveText
 
 	self.hoverSound = assets.sounds.hoverMenu
 	self.scrollSound = assets.sounds.selectChart

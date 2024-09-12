@@ -10,6 +10,7 @@ local UiLockView = require("osu_ui.views.UiLockView")
 local SettingsView = require("osu_ui.views.SettingsView")
 
 local ChartPreviewView = require("sphere.views.SelectView.ChartPreviewView")
+local ChartSetListView = require("osu_ui.views.SelectView.ChartSetListView")
 
 local InputMap = require("osu_ui.views.SelectView.InputMap")
 
@@ -26,7 +27,6 @@ local blur = 0
 
 function SelectView:load()
 	self.game.selectController:load(self)
-
 	self.chartPreviewView = ChartPreviewView(self.game, self.ui)
 	self.chartPreviewView:load()
 
@@ -35,6 +35,7 @@ function SelectView:load()
 
 	self.inputMap = InputMap(self)
 
+	self.chartSetListView = ChartSetListView(self.game, self.assets)
 	self.viewConfig = ViewConfig(self, self.assets)
 	self.settingsView = SettingsView(self.assets, self.game, self.ui)
 
@@ -89,6 +90,7 @@ function SelectView:update(dt)
 
 	self.assets:updateVolume(self.game.configModel)
 
+	self.chartSetListView:update(dt)
 	self.viewConfig:setFocus((self.modal == nil) and not self.settingsView:isFocused() and not self.changingScreen)
 	self.game.selectController:update()
 	self.chartPreviewView:update(dt)
@@ -228,6 +230,8 @@ function SelectView:receive(event)
 		end
 
 		self.inputMap:call("select")
+	elseif event.name == "wheelmoved" then
+		self.chartSetListView:mouseScroll(-event[2])
 	end
 
 	self.settingsView:receive(event)
