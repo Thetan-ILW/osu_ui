@@ -1,14 +1,18 @@
 local class = require("class")
 local flux = require("flux")
 local math_util = require("math_util")
+local actions = require("osu_ui.actions")
 
 ---@class osu.ui.WindowListView
 ---@operator call: osu.ui.WindowListView
 local WindowListView = class()
 
+function WindowListView:getStateNumber() end
 function WindowListView:getSelectedItemIndex() end
 function WindowListView:getItems() end
 
+---@param window_index number
+---@param visual_index number
 function WindowListView:updateSet(window_index, visual_index) end
 
 ---@param f fun(ChartSetListView, table, number, number, ...)
@@ -26,7 +30,7 @@ end
 function WindowListView:reloadItems()
 	self.items = self:getItems()
 	self.itemCount = #self.items
-	self.stateCounter = self.game.selectModel.noteChartSetStateCounter
+	self.stateCounter = self:getStateNumber()
 
 	self.window = {}
 	self.windowSize = math.min(16, self.itemCount) -- lists with less than 16 items exist
@@ -42,6 +46,9 @@ function WindowListView:reloadItems()
 	self.scroll = selected_index - math.floor(self.windowSize / 2)
 	self.smoothScroll = self.scroll
 	self.previousScroll = self.scroll
+
+	self.minScroll = -self.windowSize / 2 + 1
+	self.maxScroll = self.itemCount - self.windowSize / 2
 
 	-- scroll can be negative and greater than item count
 	-- and we need make sure it's not greater than (self.itemCount - self.windowSize + 1) cuz otherwise self.last would be not where we want
@@ -65,15 +72,15 @@ function WindowListView:reloadItems()
 end
 
 function WindowListView:loadNewSets()
-	if self.smoothScroll < 1 then
+	if self.smoothScroll < self.minScroll then
 		return
 	end
 
-	if self.smoothScroll > self.itemCount - self.windowSize + 1 then
+	if self.smoothScroll > self.maxScroll then
 		return
 	end
 
-	local scroll_floored = math.floor(self.smoothScroll)
+	local scroll_floored = math.floor(math_util.clamp(self.smoothScroll, 1, self.itemCount - self.windowSize + 1))
 
 	self.first = 1 + ((scroll_floored - 1) % self.windowSize)
 	self.last = 1 + ((scroll_floored - 1 - 1) % self.windowSize)
@@ -84,14 +91,14 @@ function WindowListView:loadNewSets()
 	local new_sets_count = math.min(math.abs(delta), self.windowSize)
 
 	if delta >= 1 then
-		self.previousScroll = self.smoothScroll
+		self.previousScroll = scroll_floored
 		for i = 1, new_sets_count do
 			-- first - i
 			local window_i = 1 + (self.first - 1 - i) % self.windowSize
 			self:updateSet(window_i, scroll_floored - i + self.windowSize)
 		end
 	elseif delta <= -1 then
-		self.previousScroll = self.smoothScroll
+		self.previousScroll = scroll_floored
 		for i = 1, new_sets_count do
 			-- last + i
 			local window_i = 1 + (self.last - 1 + i) % self.windowSize
@@ -101,17 +108,61 @@ function WindowListView:loadNewSets()
 end
 
 function WindowListView:animateScroll()
-	if self.scroll < -self.windowSize / 2 then
-		self.scroll = -self.windowSize / 2
+	if self.scroll < self.minScroll then
+		self.scroll = self.minScroll
+	end
+
+	if self.scroll > self.maxScroll then
+		self.scroll = self.maxScroll
 	end
 
 	if self.scrollTween then
 		self.scrollTween:stop()
 	end
 
-	self.scrollTween = flux.to(self, 0.2, { smoothScroll = self.scroll }):ease("quadout"):onupdate(function()
-		self:loadNewSets()
-	end)
+	self.scrollTween = flux.to(self, 0.2, { smoothScroll = self.scroll }):ease("quadout")
+end
+
+function WindowListView:autoScroll(delta, just_pressed)
+	local time = love.timer.getTime()
+
+	if time < self.nextAutoScrollTime then
+		return
+	end
+
+	self:keyScroll(delta)
+
+	local max_interval = 0.05
+	local press_interval = max_interval + 0.07
+
+	local interval = just_pressed and press_interval or max_interval
+
+	self.nextAutoScrollTime = time + interval
+end
+
+function WindowListView:keyScroll(delta)
+	self.scroll = math_util.clamp(self.scroll + delta, self.minScroll, self.maxScroll)
+	self:animateScroll()
+end
+
+function WindowListView:processActions()
+	local ca = actions.consumeAction
+	local ad = actions.isActionDown
+	local gc = actions.getCount
+
+	if ad("up") then
+		self:autoScroll(-1 * gc(), ca("up"))
+	elseif ad("down") then
+		self:autoScroll(1 * gc(), ca("down"))
+	elseif ad("up10") then
+		self:autoScroll(-10 * gc(), ca("up10"))
+	elseif ad("down10") then
+		self:autoScroll(10 * gc(), ca("down10"))
+	elseif ca("toStart") then
+		self:keyScroll(-math.huge)
+	elseif ca("toEnd") then
+		self:keyScroll(math.huge)
+	end
 end
 
 ---@param dt number

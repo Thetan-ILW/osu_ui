@@ -21,6 +21,8 @@ function ChartSetListView:new(game, assets)
 	self.maniaIcon = img.maniaSmallIconForCharts
 	self.starImage = img.star
 	self:reloadItems()
+
+	self.nextAutoScrollTime = 0
 end
 
 function ChartSetListView:getSelectedItemIndex()
@@ -29,6 +31,10 @@ end
 
 function ChartSetListView:getItems()
 	return self.game.selectModel.noteChartSetLibrary.items
+end
+
+function ChartSetListView:getStateNumber()
+	return self.game.selectModel.noteChartSetStateCounter
 end
 
 function ChartSetListView:reloadItems()
@@ -132,14 +138,22 @@ function ChartSetListView:mousePress(visual_index)
 	self:animateScroll()
 end
 
+function ChartSetListView:keyScroll(delta)
+	WindowListView.keyScroll(self, delta)
+	self.game.selectModel:scrollNoteChartSet(delta)
+end
+
 function ChartSetListView:update(dt)
-	if self.stateCounter ~= self.game.selectModel.noteChartSetStateCounter then
+	if self.stateCounter ~= self:getStateNumber() then
 		self:reloadItems()
 	end
 
 	if self.windowSize == 0 then
 		return
 	end
+
+	self:processActions()
+	self:loadNewSets()
 
 	self.selectedVisualItemIndex = self:getSelectedItemIndex()
 	self:iterOverWindow(self.applyEffects, dt)
