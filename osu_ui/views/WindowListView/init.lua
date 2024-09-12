@@ -10,6 +10,7 @@ local WindowListView = class()
 function WindowListView:getStateNumber() end
 function WindowListView:getSelectedItemIndex() end
 function WindowListView:getItems() end
+function WindowListView:selectItem(delta) end
 
 ---@param window_index number
 ---@param visual_index number
@@ -123,6 +124,12 @@ function WindowListView:animateScroll()
 	self.scrollTween = flux.to(self, 0.2, { smoothScroll = self.scroll }):ease("quadout")
 end
 
+function WindowListView:followSelection()
+	local target = self:getSelectedItemIndex() - math.floor(self.windowSize / 2)
+	self.scroll = math_util.clamp(target, self.minScroll, self.maxScroll)
+	self.scrollTween = flux.to(self, 0.2, { smoothScroll = target }):ease("quadout")
+end
+
 function WindowListView:autoScroll(delta, just_pressed)
 	local time = love.timer.getTime()
 
@@ -141,8 +148,8 @@ function WindowListView:autoScroll(delta, just_pressed)
 end
 
 function WindowListView:keyScroll(delta)
-	self.scroll = math_util.clamp(self.scroll + delta, self.minScroll, self.maxScroll)
-	self:animateScroll()
+	self:selectItem(delta)
+	self:followSelection()
 end
 
 function WindowListView:processActions()
@@ -166,7 +173,21 @@ function WindowListView:processActions()
 end
 
 ---@param dt number
-function WindowListView:update(dt) end
+function WindowListView:update(dt)
+	if self.stateCounter ~= self:getStateNumber() then
+		self:reloadItems()
+	end
+
+	if self.windowSize == 0 then
+		return
+	end
+
+	self:processActions()
+	self:loadNewSets()
+
+	self.selectedVisualItemIndex = self:getSelectedItemIndex()
+end
+
 ---@param w number
 ---@param h number
 function WindowListView:draw(w, h) end

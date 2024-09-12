@@ -37,6 +37,10 @@ function ChartSetListView:getStateNumber()
 	return self.game.selectModel.noteChartSetStateCounter
 end
 
+function ChartSetListView:selectItem(delta)
+	self.game.selectModel:scrollNoteChartSet(delta)
+end
+
 function ChartSetListView:reloadItems()
 	WindowListView.reloadItems(self)
 	self:iterOverWindow(self.applyEffects, 9999)
@@ -138,24 +142,8 @@ function ChartSetListView:mousePress(visual_index)
 	self:animateScroll()
 end
 
-function ChartSetListView:keyScroll(delta)
-	WindowListView.keyScroll(self, delta)
-	self.game.selectModel:scrollNoteChartSet(delta)
-end
-
 function ChartSetListView:update(dt)
-	if self.stateCounter ~= self:getStateNumber() then
-		self:reloadItems()
-	end
-
-	if self.windowSize == 0 then
-		return
-	end
-
-	self:processActions()
-	self:loadNewSets()
-
-	self.selectedVisualItemIndex = self:getSelectedItemIndex()
+	WindowListView.update(self, dt)
 	self:iterOverWindow(self.applyEffects, dt)
 
 	if self.mouseOverIndex ~= -1 then
