@@ -3,6 +3,15 @@ local flux = require("flux")
 local math_util = require("math_util")
 local actions = require("osu_ui.actions")
 
+--[[
+	This list stores items in a 'window'. It has limited size and allows items to have state for animations.
+	State updates every frame. Loading items can also be used to format strings and store it in a set.
+	Set is a table in the window table. When you scroll items, it checks if the next item is visible and 'loads' it.
+	This class has [first] and [last] fields, used to iterate the window table. They move with the scroll.
+
+	The window thing can be done much easier, by moving all items in a window table when you scroll, but this method looks cooler
+]]
+
 ---@class osu.ui.WindowListView
 ---@operator call: osu.ui.WindowListView
 local WindowListView = class()
@@ -10,11 +19,13 @@ local WindowListView = class()
 function WindowListView:getStateNumber() end
 function WindowListView:getSelectedItemIndex() end
 function WindowListView:getItems() end
-function WindowListView:selectItem(delta) end
+function WindowListView:getSetItemsCount() end
+function WindowListView:selectItem(visual_index) end
 
 ---@param window_index number
 ---@param visual_index number
 function WindowListView:updateSet(window_index, visual_index) end
+function WindowListView:updateSetItems() end
 
 ---@param f fun(ChartSetListView, table, number, number, ...)
 function WindowListView:iterOverWindow(f, ...)
@@ -73,15 +84,27 @@ function WindowListView:reloadItems()
 end
 
 function WindowListView:loadNewSets()
-	if self.smoothScroll < self.minScroll then
+	-- Sets can have their own items and we must count that to avoid visual bugs
+	local set_items_count = self:getSetItemsCount() - 1
+	local smooth_scroll = self.smoothScroll
+
+	if smooth_scroll < self.minScroll then
 		return
 	end
 
-	if self.smoothScroll > self.maxScroll then
+	if smooth_scroll > self.selectedVisualItemIndex then
+		smooth_scroll = math.min(smooth_scroll, smooth_scroll - set_items_count)
+	end
+
+	if smooth_scroll > self.maxScroll + set_items_count then
 		return
 	end
 
-	local scroll_floored = math.floor(math_util.clamp(self.smoothScroll, 1, self.itemCount - self.windowSize + 1))
+	-- ^^^ allow negative scroll and greater than self.itemCount. Otherwise last and first item might not be loaded
+	-- And scrolling to the start and end of the list would break the window
+
+	-- vvv but clamp it so we don't access nil elements
+	local scroll_floored = math.floor(math_util.clamp(smooth_scroll, 1, self.itemCount - self.windowSize + 1))
 
 	self.first = 1 + ((scroll_floored - 1) % self.windowSize)
 	self.last = 1 + ((scroll_floored - 1 - 1) % self.windowSize)
@@ -109,13 +132,8 @@ function WindowListView:loadNewSets()
 end
 
 function WindowListView:animateScroll()
-	if self.scroll < self.minScroll then
-		self.scroll = self.minScroll
-	end
-
-	if self.scroll > self.maxScroll then
-		self.scroll = self.maxScroll
-	end
+	local set_items_count = self:getSetItemsCount() - 1
+	self.scroll = math_util.clamp(self.scroll, self.minScroll, self.maxScroll + set_items_count)
 
 	if self.scrollTween then
 		self.scrollTween:stop()
@@ -124,8 +142,8 @@ function WindowListView:animateScroll()
 	self.scrollTween = flux.to(self, 0.2, { smoothScroll = self.scroll }):ease("quadout")
 end
 
-function WindowListView:followSelection()
-	local target = self:getSelectedItemIndex() - math.floor(self.windowSize / 2)
+function WindowListView:followSelection(index)
+	local target = (index or self:getSelectedItemIndex()) - math.floor(self.windowSize / 2)
 	self.scroll = math_util.clamp(target, self.minScroll, self.maxScroll)
 	self.scrollTween = flux.to(self, 0.2, { smoothScroll = target }):ease("quadout")
 end
@@ -148,7 +166,7 @@ function WindowListView:autoScroll(delta, just_pressed)
 end
 
 function WindowListView:keyScroll(delta)
-	self:selectItem(delta)
+	self:selectItem(self.selectedVisualItemIndex + delta)
 	self:followSelection()
 end
 
@@ -182,10 +200,15 @@ function WindowListView:update(dt)
 		return
 	end
 
+	local prev_selected_index = self.selectedVisualItemIndex
+	self.selectedVisualItemIndex = self:getSelectedItemIndex()
+
 	self:processActions()
 	self:loadNewSets()
 
-	self.selectedVisualItemIndex = self:getSelectedItemIndex()
+	if prev_selected_index ~= self.selectedVisualItemIndex then
+		self:updateSetItems()
+	end
 end
 
 ---@param w number
