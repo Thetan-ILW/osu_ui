@@ -10,7 +10,8 @@ local UiLockView = require("osu_ui.views.UiLockView")
 local SettingsView = require("osu_ui.views.SettingsView")
 
 local ChartPreviewView = require("sphere.views.SelectView.ChartPreviewView")
-local ChartSetListView = require("osu_ui.views.SelectView.ChartSetListView")
+local ChartSetListView = require("osu_ui.views.SelectView.Lists.ChartSetListView")
+local ChartListView = require("osu_ui.views.SelectView.Lists.ChartListView")
 
 local InputMap = require("osu_ui.views.SelectView.InputMap")
 

@@ -2,6 +2,7 @@ local class = require("class")
 local flux = require("flux")
 local math_util = require("math_util")
 local actions = require("osu_ui.actions")
+local ui = require("osu_ui.ui")
 
 --[[
 	This list stores items in a 'window'. It has limited size and allows items to have state for animations.
@@ -20,19 +21,22 @@ local actions = require("osu_ui.actions")
 ---@class osu.ui.WindowListView
 ---@operator call: osu.ui.WindowListView
 ---@field window osu.ui.WindowListItem
+---@field mouseAllowedArea { w: number, h: number, x: number, y: number }
 local WindowListView = class()
 
 function WindowListView:getStateNumber() end
 function WindowListView:getSelectedItemIndex() end
+function WindowListView:getChildSelectedItemIndex() end
 function WindowListView:getItems() end
-function WindowListView:getSetItemsCount() end
+function WindowListView:getChildItemsCount() end
 function WindowListView:selectItem(visual_index) end
+function WindowListView:selectChildItem(index) end
 
 ---@param window_index number
 ---@param visual_index number
 --- Replaces item at the [window index] with the new item using visual index
 function WindowListView:replaceItem(window_index, visual_index) end
-function WindowListView:updateSetItems() end
+function WindowListView:loadChildItems() end
 
 ---@param f fun(ChartSetListView, table, ...)
 function WindowListView:iterOverWindow(f, ...)
@@ -60,6 +64,7 @@ function WindowListView:reloadItems()
 
 	local selected_index = self:getSelectedItemIndex()
 	self.selectedVisualItemIndex = selected_index
+	self.previousSelectedVisualIndex = 0
 
 	-- Visual index as float
 	self.scroll = selected_index - math.floor(self.windowSize / 2)
@@ -99,7 +104,7 @@ function WindowListView:loadNewSets()
 	end
 
 	-- Items can have their own items and we must count that to avoid visual bugs
-	local set_items_count = self:getSetItemsCount() - 1
+	local set_items_count = self:getChildItemsCount() - 1
 
 	if smooth_scroll > self.selectedVisualItemIndex then
 		smooth_scroll = math.max(self.selectedVisualItemIndex, smooth_scroll - set_items_count)
@@ -141,7 +146,7 @@ function WindowListView:loadNewSets()
 end
 
 function WindowListView:animateScroll()
-	local set_items_count = self:getSetItemsCount() - 1
+	local set_items_count = self:getChildItemsCount() - 1
 	self.scroll = math_util.clamp(self.scroll, self.minScroll, self.maxScroll + set_items_count)
 
 	if self.scrollTween then
@@ -157,14 +162,17 @@ function WindowListView:followSelection(index)
 	self.scrollTween = flux.to(self, 0.2, { smoothScroll = target }):ease("quadout")
 end
 
-function WindowListView:autoScroll(delta, just_pressed)
+---@param delta number
+---@param just_pressed boolean
+---@param target "self" | "child"
+function WindowListView:autoScroll(delta, just_pressed, target)
 	local time = love.timer.getTime()
 
 	if time < self.nextAutoScrollTime then
 		return
 	end
 
-	self:keyScroll(delta)
+	self:keyScroll(delta, target)
 
 	local max_interval = 0.05
 	local press_interval = max_interval + 0.07
@@ -174,9 +182,18 @@ function WindowListView:autoScroll(delta, just_pressed)
 	self.nextAutoScrollTime = time + interval
 end
 
-function WindowListView:keyScroll(delta)
-	self:selectItem(self.selectedVisualItemIndex + delta)
-	self:followSelection()
+---@param delta number
+---@param target "self" | "child"
+function WindowListView:keyScroll(delta, target)
+	if target == "self" then
+		self.previousSelectedVisualIndex = self.selectedVisualItemIndex
+		self:selectItem(self.selectedVisualItemIndex + delta)
+		self:loadChildItems()
+		self:followSelection()
+	else
+		self:selectChildItem(self:getChildSelectedItemIndex() + delta)
+		self:followSelection(self.selectedVisualItemIndex + self:getChildSelectedItemIndex() - 1)
+	end
 end
 
 function WindowListView:processActions()
@@ -185,18 +202,24 @@ function WindowListView:processActions()
 	local gc = actions.getCount
 
 	if ad("up") then
-		self:autoScroll(-1 * gc(), ca("up"))
+		self:autoScroll(-1 * gc(), ca("up"), "self")
 	elseif ad("down") then
-		self:autoScroll(1 * gc(), ca("down"))
+		self:autoScroll(1 * gc(), ca("down"), "self")
 	elseif ad("up10") then
-		self:autoScroll(-10 * gc(), ca("up10"))
+		self:autoScroll(-10 * gc(), ca("up10"), "self")
 	elseif ad("down10") then
-		self:autoScroll(10 * gc(), ca("down10"))
+		self:autoScroll(10 * gc(), ca("down10"), "self")
 	elseif ca("toStart") then
-		self:keyScroll(-math.huge)
+		self:keyScroll(-math.huge, "self")
 	elseif ca("toEnd") then
-		self:keyScroll(math.huge)
+		self:keyScroll(math.huge, "self")
 	end
+end
+
+function WindowListView:mouseClick(set)
+	self:selectItem(set.visualIndex)
+	self.scroll = set.visualIndex - self.windowSize / 2
+	self:animateScroll()
 end
 
 function WindowListView:mouseScroll(y)
@@ -205,6 +228,23 @@ function WindowListView:mouseScroll(y)
 	end
 	self.scroll = self.scroll + y
 	self:animateScroll()
+end
+
+function WindowListView:checkForMouseActions(item, x, y, panel_w, panel_h)
+	local area = self.mouseAllowedArea
+	local has_focus = ui.isOver(area.w, area.h, area.x, area.y)
+
+	if not has_focus then
+		return
+	end
+
+	item.mouseOver = ui.isOver(panel_w, panel_h, x, y)
+	if item.mouseOver then
+		if ui.mousePressed(1) then
+			self:mouseClick(item)
+		end
+		self.mouseOverIndex = item.visualIndex
+	end
 end
 
 ---@param dt number
@@ -224,7 +264,7 @@ function WindowListView:update(dt)
 	self:loadNewSets()
 
 	if prev_selected_index ~= self.selectedVisualItemIndex then
-		self:updateSetItems()
+		self:loadChildItems()
 	end
 end
 

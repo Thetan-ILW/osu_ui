@@ -1,11 +1,11 @@
-local WindowListView = require("osu_ui.views.WindowListView")
+local WindowListView = require("osu_ui.views.SelectView.Lists.WindowListView")
 local ui = require("osu_ui.ui")
 local actions = require("osu_ui.actions")
 
-local ItemList = require("osu_ui.views.SelectView.ItemList")
+local ItemList = require("osu_ui.views.SelectView.Lists.ItemList")
 
----@class osu.ui.ChartListView : osu.ui.WindowListView
----@operator call: osu.ui.ChartListView
+---@class osu.ui.ChartSetListView : osu.ui.WindowListView
+---@operator call: osu.ui.ChartSetListView
 ---@field window osu.ui.ChartWindowListItem
 local ChartSetListView = WindowListView + {}
 
@@ -17,7 +17,13 @@ function ChartSetListView:new(game, assets)
 
 	self.unwrapStartTime = 0
 	self.nextAutoScrollTime = 0
-	self.previousSelectedVisualIndex = 0
+
+	self.mouseAllowedArea = {
+		w = 636,
+		h = 598,
+		x = 733,
+		y = 82,
+	}
 
 	self.font = self.assets.localization.fontGroups.chartSetList
 
@@ -26,7 +32,7 @@ function ChartSetListView:new(game, assets)
 	self.maniaIcon = img.maniaSmallIconForCharts
 	self.starImage = img.star
 	self:reloadItems()
-	self:updateSetItems()
+	self:loadChildItems()
 
 	self.unwrapStartTime = 0
 
@@ -39,6 +45,10 @@ function ChartSetListView:getSelectedItemIndex()
 	return self.game.selectModel.chartview_set_index
 end
 
+function ChartSetListView:getChildSelectedItemIndex()
+	return self.game.selectModel.chartview_index
+end
+
 function ChartSetListView:getItems()
 	return self.game.selectModel.noteChartSetLibrary.items
 end
@@ -48,12 +58,15 @@ function ChartSetListView:getStateNumber()
 end
 
 function ChartSetListView:selectItem(visual_index)
-	self.previousSelectedVisualIndex = self.selectedVisualItemIndex
 	self.game.selectModel:scrollNoteChartSet(nil, visual_index)
 	self.game.selectModel:scrollNoteChart(nil, 1)
 end
 
-function ChartSetListView:getSetItemsCount()
+function ChartSetListView:selectChildItem(index)
+	self.game.selectModel:scrollNoteChart(nil, index)
+end
+
+function ChartSetListView:getChildItemsCount()
 	return self.selectedSetItemsCount or 1
 end
 
@@ -68,10 +81,9 @@ function ChartSetListView:replaceItem(window_index, visual_index)
 	local set = self.window[window_index]
 	ItemList.resetChartWindow(set, item)
 	set.visualIndex = visual_index
-	set.setId = item.id
 end
 
-function ChartSetListView:updateSetItems()
+function ChartSetListView:loadChildItems()
 	local items = self.game.selectModel.noteChartLibrary.items
 	self.selectedSetItemsCount = #items
 
@@ -113,23 +125,21 @@ function ChartSetListView:processActions()
 	local gc = actions.getCount
 
 	if ad("up") then
-		self:autoScroll(-1 * gc(), ca("up"))
+		self:autoScroll(-1 * gc(), ca("up"), "self")
 	elseif ad("down") then
-		self:autoScroll(1 * gc(), ca("down"))
-	elseif ca("left") then
-		self.game.selectModel:scrollNoteChart(-1)
-		self:followSelection(self.selectedVisualItemIndex + self.game.selectModel.chartview_index - 1)
-	elseif ca("right") then
-		self.game.selectModel:scrollNoteChart(1)
-		self:followSelection(self.selectedVisualItemIndex + self.game.selectModel.chartview_index - 1)
+		self:autoScroll(1 * gc(), ca("down"), "self")
+	elseif ad("left") then
+		self:autoScroll(-1 * gc(), ca("left"), "child")
+	elseif ad("right") then
+		self:autoScroll(1 * gc(), ca("right"), "child")
 	elseif ad("up10") then
-		self:autoScroll(-10 * gc(), ca("up10"))
+		self:autoScroll(-10 * gc(), ca("up10"), "self")
 	elseif ad("down10") then
-		self:autoScroll(10 * gc(), ca("down10"))
+		self:autoScroll(10 * gc(), ca("down10"), "self")
 	elseif ca("toStart") then
-		self:keyScroll(-math.huge)
+		self:keyScroll(-math.huge, "self")
 	elseif ca("toEnd") then
-		self:keyScroll(math.huge)
+		self:keyScroll(math.huge, "self")
 	end
 end
 
@@ -145,11 +155,12 @@ function ChartSetListView:update(dt)
 end
 
 function ChartSetListView:mouseClick(set)
-	local prev_selected_items_count = self:getSetItemsCount()
+	local prev_selected_items_count = self:getChildItemsCount()
 
 	if set.isChart then
 		self.game.selectModel:scrollNoteChart(0, set.chartIndex)
 	else
+		self.previousSelectedVisualIndex = self.selectedVisualItemIndex
 		self:selectItem(set.visualIndex)
 
 		local visual_index = self:getSelectedItemIndex()
@@ -165,15 +176,15 @@ end
 
 local gfx = love.graphics
 
-function ChartSetListView:drawPanels(set, w, h)
-	if not set.isChart and set.visualIndex == self.selectedVisualItemIndex then
-		for _, item in ipairs(self.setItems) do
-			self:drawPanels(item, w, h)
+function ChartSetListView:drawPanels(item, w, h)
+	if not item.isChart and item.visualIndex == self.selectedVisualItemIndex then
+		for _, v in ipairs(self.setItems) do
+			self:drawPanels(v, w, h)
 		end
 		return
 	end
 
-	local x, y = w - set.x - 540, set.y
+	local x, y = w - item.x - 540, item.y
 
 	local panel_w = ItemList.panelW
 	local panel_h = ItemList.panelH
@@ -186,24 +197,18 @@ function ChartSetListView:drawPanels(set, w, h)
 	local inactive_chart = ItemList.InactiveChart
 	local active_panel = ItemList.activePanel
 
+	self:checkForMouseActions(item, x, y, panel_w, panel_h)
+
 	gfx.push()
 	gfx.translate(x, y)
 
-	set.mouseOver = ui.isOver(panel_w, panel_h)
-	if set.mouseOver then
-		if ui.mousePressed(1) then
-			self:mouseClick(set)
-		end
-		self.mouseOverIndex = set.visualIndex
-	end
-
 	local main_color = inactive_panel
 
-	local ct = set.isChart and 1 - math.pow(1 - math.min(1, set.colorT), 3) or set.selectedT
+	local ct = item.isChart and 1 - math.pow(1 - math.min(1, item.colorT), 3) or item.selectedT
 
-	if set.isChart then
+	if item.isChart then
 		local unwrap = 1
-		if set.chartIndex ~= 1 then
+		if item.chartIndex ~= 1 then
 			unwrap = math.min(1, love.timer.getTime() - self.unwrapStartTime)
 			unwrap = 1 - math.pow(1 - math.min(1, unwrap), 4)
 		end
@@ -231,42 +236,7 @@ function ChartSetListView:drawPanels(set, w, h)
 		inactive_text[3] * (1 - ct) + active_text[3] * ct,
 	}
 
-	gfx.setColor(color_mix)
-	gfx.draw(self.panelImage, 0, 52, 0, 1, 1, 0, self.panelImage:getHeight() / 2)
-
-	gfx.setColor(color_text_mix)
-	gfx.translate(20, 12)
-	gfx.draw(self.maniaIcon)
-
-	gfx.translate(40, -4)
-	gfx.setFont(self.font.title)
-	ui.text(set.title)
-
-	gfx.setFont(self.font.secondRow)
-	gfx.translate(0, -2)
-	ui.text(set.secondRow)
-	gfx.translate(0, -2)
-	gfx.setFont(self.font.thirdRow)
-	ui.text(set.thirdRow)
-	gfx.pop()
-
-	gfx.push()
-	local iw, ih = self.starImage:getDimensions()
-
-	gfx.translate(60 + x, y + panel_h + 6)
-	gfx.scale(0.6)
-
-	for si = 1, 10, 1 do
-		if si >= (set.stars or 0) then
-			gfx.setColor(1, 1, 1, 0.3)
-		end
-
-		gfx.draw(self.starImage, 0, 0, 0, 1, 1, 0, ih)
-		gfx.translate(iw, 0)
-		gfx.setColor(color_text_mix)
-	end
-
-	gfx.pop()
+	ItemList.drawChartPanel(self, item, x, y, color_mix, color_text_mix)
 end
 
 function ChartSetListView:draw(w, h)

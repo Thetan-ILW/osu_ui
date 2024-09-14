@@ -1,6 +1,8 @@
 local math_util = require("math_util")
+local ui = require("osu_ui.ui")
 local Format = require("sphere.views.Format")
 
+--- Module to share the same visuals across various lists
 local ItemList = {}
 
 ItemList.panelW = 500
@@ -60,7 +62,7 @@ function ItemList.applySetEffects(list, item, dt)
 	local panel_h = ItemList.panelH
 
 	local selected_visual_index = list.selectedVisualItemIndex
-	local set_items_count = list:getSetItemsCount() - 1
+	local set_items_count = list:getChildItemsCount() - 1
 
 	local smooth_scroll = list.smoothScroll
 	local window_size = list.windowSize
@@ -172,6 +174,47 @@ end
 function ItemList.getUnwrap(start_time)
 	local unwrap = math.min(1, love.timer.getTime() - start_time)
 	return 1 - math.pow(1 - math.min(1, unwrap), 4)
+end
+
+local gfx = love.graphics
+
+function ItemList.drawChartPanel(list, set, x, y, panel_color, text_color)
+	gfx.setColor(panel_color)
+	gfx.draw(list.panelImage, 0, 52, 0, 1, 1, 0, list.panelImage:getHeight() / 2)
+
+	gfx.setColor(text_color)
+	gfx.translate(20, 12)
+	gfx.draw(list.maniaIcon)
+
+	gfx.translate(40, -4)
+	gfx.setFont(list.font.title)
+	ui.text(set.title)
+
+	gfx.setFont(list.font.secondRow)
+	gfx.translate(0, -2)
+	ui.text(set.secondRow)
+	gfx.translate(0, -2)
+	gfx.setFont(list.font.thirdRow)
+	ui.text(set.thirdRow)
+	gfx.pop()
+
+	gfx.push()
+	local iw, ih = list.starImage:getDimensions()
+
+	gfx.translate(60 + x, y + ItemList.panelH + 6)
+	gfx.scale(0.6)
+
+	for si = 1, 10, 1 do
+		if si >= (set.stars or 0) then
+			gfx.setColor(1, 1, 1, 0.3)
+		end
+
+		gfx.draw(list.starImage, 0, 0, 0, 1, 1, 0, ih)
+		gfx.translate(iw, 0)
+		gfx.setColor(text_color)
+	end
+
+	gfx.pop()
 end
 
 return ItemList
