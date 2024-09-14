@@ -5,15 +5,21 @@ local actions = require("osu_ui.actions")
 
 --[[
 	This list stores items in a 'window'. It has limited size and allows items to have state for animations.
-	State updates every frame. Loading items can also be used to format strings and store it in a set.
-	Set is a table in the window table. When you scroll items, it checks if the next item is visible and 'loads' it.
+	State updates every frame. Loading items can also be used to format strings and store it in an item.
+	Item is a table in the window table. When you scroll items, it checks if the next item is visible and replaces old item with the new.
 	This class has [first] and [last] fields, used to iterate the window table. They move with the scroll.
 
 	The window thing can be done much easier, by moving all items in a window table when you scroll, but this method looks cooler
 ]]
 
+---@class osu.ui.WindowListItem
+---@field x number
+---@field y number
+---@field visualIndex number
+---
 ---@class osu.ui.WindowListView
 ---@operator call: osu.ui.WindowListView
+---@field window osu.ui.WindowListItem
 local WindowListView = class()
 
 function WindowListView:getStateNumber() end
@@ -24,10 +30,11 @@ function WindowListView:selectItem(visual_index) end
 
 ---@param window_index number
 ---@param visual_index number
-function WindowListView:updateSet(window_index, visual_index) end
+--- Replaces item at the [window index] with the new item using visual index
+function WindowListView:replaceItem(window_index, visual_index) end
 function WindowListView:updateSetItems() end
 
----@param f fun(ChartSetListView, table, number, number, ...)
+---@param f fun(ChartSetListView, table, ...)
 function WindowListView:iterOverWindow(f, ...)
 	local window = self.window
 	local first = self.first
@@ -35,7 +42,7 @@ function WindowListView:iterOverWindow(f, ...)
 
 	for i = 0, size - 1 do
 		local index = 1 + (first + i - 1) % size
-		f(self, window[index], i, index, ...) -- WindowListView, set, on_screen_index, window index
+		f(self, window[index], ...) -- WindowListView, item, ...
 	end
 end
 
@@ -78,22 +85,24 @@ function WindowListView:reloadItems()
 	local start_index =
 		math.min(math.max(1, selected_index - math.floor(self.windowSize / 2)), self.itemCount - self.windowSize + 1)
 
-	self:iterOverWindow(function(s, set, on_screen_index, window_index)
-		self:updateSet(window_index, start_index + on_screen_index)
-	end)
+	for i = 0, self.windowSize - 1 do
+		local index = 1 + (self.first + i - 1) % self.windowSize
+		self:replaceItem(index, i + start_index)
+	end
 end
 
 function WindowListView:loadNewSets()
-	-- Sets can have their own items and we must count that to avoid visual bugs
-	local set_items_count = self:getSetItemsCount() - 1
 	local smooth_scroll = self.smoothScroll
 
 	if smooth_scroll < self.minScroll then
 		return
 	end
 
+	-- Items can have their own items and we must count that to avoid visual bugs
+	local set_items_count = self:getSetItemsCount() - 1
+
 	if smooth_scroll > self.selectedVisualItemIndex then
-		smooth_scroll = math.min(smooth_scroll, smooth_scroll - set_items_count)
+		smooth_scroll = math.max(self.selectedVisualItemIndex, smooth_scroll - set_items_count)
 	end
 
 	if smooth_scroll > self.maxScroll + set_items_count then
@@ -109,8 +118,8 @@ function WindowListView:loadNewSets()
 	self.first = 1 + ((scroll_floored - 1) % self.windowSize)
 	self.last = 1 + ((scroll_floored - 1 - 1) % self.windowSize)
 
-	-- Visible sets on the screen. Anything greater than that is not visible on the screen.
-	-- If the scroll is millions sets per second, we would only see {self.windowSize} sets on the screen each frame
+	-- Visible items on the screen. Anything greater than that is not visible on the screen.
+	-- If the scroll is millions items per second, we would only see {self.windowSize} sets on the screen each frame
 	local delta = scroll_floored - math.floor(self.previousScroll)
 	local new_sets_count = math.min(math.abs(delta), self.windowSize)
 
@@ -119,14 +128,14 @@ function WindowListView:loadNewSets()
 		for i = 1, new_sets_count do
 			-- first - i
 			local window_i = 1 + (self.first - 1 - i) % self.windowSize
-			self:updateSet(window_i, scroll_floored - i + self.windowSize)
+			self:replaceItem(window_i, scroll_floored - i + self.windowSize)
 		end
 	elseif delta <= -1 then
 		self.previousScroll = scroll_floored
 		for i = 1, new_sets_count do
 			-- last + i
 			local window_i = 1 + (self.last - 1 + i) % self.windowSize
-			self:updateSet(window_i, scroll_floored - 1 + i)
+			self:replaceItem(window_i, scroll_floored - 1 + i)
 		end
 	end
 end
@@ -188,6 +197,14 @@ function WindowListView:processActions()
 	elseif ca("toEnd") then
 		self:keyScroll(math.huge)
 	end
+end
+
+function WindowListView:mouseScroll(y)
+	if self.windowSize == 0 then
+		return
+	end
+	self.scroll = self.scroll + y
+	self:animateScroll()
 end
 
 ---@param dt number
