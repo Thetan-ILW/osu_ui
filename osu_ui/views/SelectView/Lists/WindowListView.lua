@@ -189,8 +189,14 @@ end
 ---@param target "self" | "child"
 function WindowListView:keyScroll(delta, target)
 	if target == "self" then
+		local prev_child_item_count = self:getChildSelectedItemIndex()
+
 		self.previousSelectedVisualIndex = self.selectedVisualItemIndex
 		self:selectItem(self.selectedVisualItemIndex + delta)
+
+		self.smoothScroll = self.smoothScroll - (prev_child_item_count - 1)
+		self.scroll = self:getSelectedItemIndex() - self.windowSize / 2
+
 		self:loadChildItems()
 		self:followSelection()
 	else
