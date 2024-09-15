@@ -1,6 +1,8 @@
 local WindowListView = require("osu_ui.views.SelectView.Lists.WindowListView")
 local actions = require("osu_ui.actions")
 
+local ui = require("osu_ui.ui")
+
 local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 
 ---@class osu.ui.ChartSetListView : osu.ui.WindowListView
@@ -15,13 +17,14 @@ function ChartSetListView:new(game, assets)
 	self.assets = assets
 	self.itemClass = ChartListItem
 
+	self.creationTime = love.timer.getTime()
 	self.unwrapStartTime = 0
 	self.nextAutoScrollTime = 0
 
 	self.mouseAllowedArea = {
-		w = 636,
+		w = 908,
 		h = 598,
-		x = 733,
+		x = 460,
 		y = 82,
 	}
 
@@ -32,12 +35,6 @@ function ChartSetListView:new(game, assets)
 	self.maniaIcon = img.maniaSmallIconForCharts
 	self.starImage = img.star
 	self:reloadItems()
-
-	self.unwrapStartTime = 0
-
-	for i, chart in ipairs(self.setItems) do
-		chart:applyChartEffects(self, 9999)
-	end
 end
 
 function ChartSetListView:getSelectedItemIndex()
@@ -52,10 +49,6 @@ function ChartSetListView:getItems()
 	return self.game.selectModel.noteChartSetLibrary.items
 end
 
-function ChartSetListView:getStateNumber()
-	return self.game.selectModel.noteChartSetStateCounter
-end
-
 function ChartSetListView:selectItem(visual_index)
 	self.game.selectModel:scrollNoteChartSet(nil, visual_index)
 	self.game.selectModel:scrollNoteChart(nil, 1)
@@ -67,15 +60,6 @@ end
 
 function ChartSetListView:getChildItemsCount()
 	return self.selectedSetItemsCount or 1
-end
-
-function ChartSetListView:reloadItems()
-	WindowListView.reloadItems(self)
-	self:iterOverWindow(ChartListItem.applySetEffects, 9999)
-
-	for _, chart in ipairs(self.setItems) do
-		chart:applyChartEffects(self, 9999)
-	end
 end
 
 function ChartSetListView:replaceItem(window_index, visual_index)
@@ -181,7 +165,8 @@ local gfx = love.graphics
 ---@param w number
 ---@param h number
 function ChartSetListView:drawPanels(item, w, h)
-	local x, y = w - item.x - 540, item.y
+	local slide_in = ui.easeOutCubic(self.creationTime, 0.7)
+	local x, y = w - item.x - (540 * slide_in), item.y
 
 	if y > 768 then
 		return

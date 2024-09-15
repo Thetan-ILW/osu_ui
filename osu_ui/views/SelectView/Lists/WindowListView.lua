@@ -3,6 +3,7 @@ local flux = require("flux")
 local math_util = require("math_util")
 local actions = require("osu_ui.actions")
 local ui = require("osu_ui.ui")
+local Layout = require("osu_ui.views.OsuLayout")
 
 local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
 
@@ -20,9 +21,9 @@ local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
 ---@field window osu.ui.WindowListItem[]
 ---@field itemClass osu.ui.WindowListItem?
 ---@field mouseAllowedArea { w: number, h: number, x: number, y: number }
+---@field focus boolean
 local WindowListView = class()
 
-function WindowListView:getStateNumber() end
 function WindowListView:getSelectedItemIndex() end
 function WindowListView:getChildSelectedItemIndex() end
 function WindowListView:getItems() end
@@ -51,7 +52,6 @@ end
 function WindowListView:reloadItems()
 	self.items = self:getItems()
 	self.itemCount = #self.items
-	self.stateCounter = self:getStateNumber()
 
 	self.windowSize = math.min(16, self.itemCount) -- lists with less than 16 items exist
 
@@ -229,15 +229,22 @@ function WindowListView:mouseScroll(y)
 	if self.windowSize == 0 then
 		return
 	end
-	self.scroll = self.scroll + y
-	self:animateScroll()
+
+	local area = self.mouseAllowedArea
+	Layout:move("base")
+	local has_focus = ui.isOver(area.w, area.h, area.x, area.y)
+
+	if has_focus then
+		self.scroll = self.scroll + y
+		self:animateScroll()
+	end
 end
 
 function WindowListView:checkForMouseActions(item, x, y, panel_w, panel_h)
 	local area = self.mouseAllowedArea
-	local has_focus = ui.isOver(area.w, area.h, area.x, area.y)
+	local in_area = ui.isOver(area.w, area.h, area.x, area.y)
 
-	if not has_focus then
+	if not in_area or not self.focus then
 		return
 	end
 
@@ -252,10 +259,6 @@ end
 
 ---@param dt number
 function WindowListView:update(dt)
-	if self.stateCounter ~= self:getStateNumber() then
-		self:reloadItems()
-	end
-
 	if self.windowSize == 0 then
 		return
 	end

@@ -626,7 +626,11 @@ end
 
 function ViewConfig:chartSetList(view)
 	local w, h = Layout:move("base")
-	local list = view.chartSetListView
+	local list = view.lists
+
+	local no_focus = false or combo_focused
+
+	list.focus = not no_focus and has_focus
 	list:draw(w, h)
 end
 

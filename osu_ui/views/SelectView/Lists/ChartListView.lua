@@ -1,5 +1,7 @@
 local WindowListView = require("osu_ui.views.SelectView.Lists.WindowListView")
 
+local ui = require("osu_ui.ui")
+
 local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 
 ---@class osu.ui.ChartListView : osu.ui.WindowListView
@@ -14,13 +16,14 @@ function ChartListView:new(game, assets)
 	self.assets = assets
 	self.itemClass = ChartListItem
 
+	self.creationTime = love.timer.getTime()
 	self.unwrapStartTime = -math.huge
 	self.nextAutoScrollTime = 0
 
 	self.mouseAllowedArea = {
-		w = 636,
+		w = 908,
 		h = 598,
-		x = 733,
+		x = 460,
 		y = 82,
 	}
 
@@ -41,10 +44,6 @@ function ChartListView:getItems()
 	return self.game.selectModel.noteChartSetLibrary.items
 end
 
-function ChartListView:getStateNumber()
-	return self.game.selectModel.noteChartSetStateCounter
-end
-
 function ChartListView:getChildSelectedItemIndex()
 	return 1
 end
@@ -55,11 +54,6 @@ end
 
 function ChartListView:selectItem(visual_index)
 	self.game.selectModel:scrollNoteChartSet(nil, visual_index)
-end
-
-function ChartListView:reloadItems()
-	WindowListView.reloadItems(self)
-	self:iterOverWindow(ChartListItem.applySetEffects, 9999)
 end
 
 function ChartListView:replaceItem(window_index, visual_index)
@@ -78,7 +72,8 @@ end
 local gfx = love.graphics
 
 function ChartListView:drawPanels(item, w, h)
-	local x, y = w - item.x - 540, item.y
+	local slide_in = ui.easeOutCubic(self.creationTime, 0.7)
+	local x, y = w - item.x - (540 * slide_in), item.y
 
 	local panel_w = ChartListItem.panelW
 	local panel_h = ChartListItem.panelH
@@ -87,34 +82,12 @@ function ChartListView:drawPanels(item, w, h)
 		return
 	end
 
-	local inactive_panel = ChartListItem.inactivePanel
-	local active_panel = ChartListItem.activePanel
-
 	self:checkForMouseActions(item, x, y, panel_w, panel_h)
 
 	gfx.push()
 	gfx.translate(x, y)
-
-	local main_color = inactive_panel
-
-	local ct = item.selectedT
-
-	local color_mix = {
-		main_color[1] * (1 - ct) + active_panel[1] * ct,
-		main_color[2] * (1 - ct) + active_panel[2] * ct,
-		main_color[3] * (1 - ct) + active_panel[3] * ct,
-		main_color[4],
-	}
-
-	local inactive_text = self.assets.params.songSelectInactiveText
-	local active_text = self.assets.params.songSelectActiveText
-	local color_text_mix = {
-		inactive_text[1] * (1 - ct) + active_text[1] * ct,
-		inactive_text[2] * (1 - ct) + active_text[2] * ct,
-		inactive_text[3] * (1 - ct) + active_text[3] * ct,
-	}
-
-	item:drawChartPanel(self, x, y, color_mix, color_text_mix)
+	item:draw(self)
+	gfx.pop()
 end
 
 function ChartListView:draw(w, h)
