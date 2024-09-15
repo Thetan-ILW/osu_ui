@@ -4,6 +4,8 @@ local math_util = require("math_util")
 local actions = require("osu_ui.actions")
 local ui = require("osu_ui.ui")
 
+local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
+
 --[[
 	This list stores items in a 'window'. It has limited size and allows items to have state for animations.
 	State updates every frame. Loading items can also be used to format strings and store it in an item.
@@ -13,14 +15,10 @@ local ui = require("osu_ui.ui")
 	The window thing can be done much easier, by moving all items in a window table when you scroll, but this method looks cooler
 ]]
 
----@class osu.ui.WindowListItem
----@field x number
----@field y number
----@field visualIndex number
----
 ---@class osu.ui.WindowListView
 ---@operator call: osu.ui.WindowListView
----@field window osu.ui.WindowListItem
+---@field window osu.ui.WindowListItem[]
+---@field itemClass osu.ui.WindowListItem?
 ---@field mouseAllowedArea { w: number, h: number, x: number, y: number }
 local WindowListView = class()
 
@@ -46,7 +44,7 @@ function WindowListView:iterOverWindow(f, ...)
 
 	for i = 0, size - 1 do
 		local index = 1 + (first + i - 1) % size
-		f(self, window[index], ...) -- WindowListView, item, ...
+		f(window[index], self, ...) -- WindowItem, List, ...
 	end
 end
 
@@ -55,7 +53,6 @@ function WindowListView:reloadItems()
 	self.itemCount = #self.items
 	self.stateCounter = self:getStateNumber()
 
-	self.window = {}
 	self.windowSize = math.min(16, self.itemCount) -- lists with less than 16 items exist
 
 	if self.windowSize == 0 then
@@ -83,8 +80,12 @@ function WindowListView:reloadItems()
 
 	self.mouseOverIndex = -1
 
+	self.window = {}
+
+	local item_class = self.itemClass or ListItem
+
 	for _ = 1, self.windowSize do
-		table.insert(self.window, {})
+		table.insert(self.window, item_class())
 	end
 
 	local start_index =
@@ -94,6 +95,8 @@ function WindowListView:reloadItems()
 		local index = 1 + (self.first + i - 1) % self.windowSize
 		self:replaceItem(index, i + start_index)
 	end
+
+	self:loadChildItems()
 end
 
 function WindowListView:loadNewSets()

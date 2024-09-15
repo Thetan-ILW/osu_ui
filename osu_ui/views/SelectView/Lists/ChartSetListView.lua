@@ -1,12 +1,11 @@
 local WindowListView = require("osu_ui.views.SelectView.Lists.WindowListView")
-local ui = require("osu_ui.ui")
 local actions = require("osu_ui.actions")
 
-local ItemList = require("osu_ui.views.SelectView.Lists.ItemList")
+local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 
 ---@class osu.ui.ChartSetListView : osu.ui.WindowListView
 ---@operator call: osu.ui.ChartSetListView
----@field window osu.ui.ChartWindowListItem
+---@field window osu.ui.WindowListChartItem[]
 local ChartSetListView = WindowListView + {}
 
 ---@param game sphere.GameController
@@ -14,6 +13,7 @@ local ChartSetListView = WindowListView + {}
 function ChartSetListView:new(game, assets)
 	self.game = game
 	self.assets = assets
+	self.itemClass = ChartListItem
 
 	self.unwrapStartTime = 0
 	self.nextAutoScrollTime = 0
@@ -32,12 +32,11 @@ function ChartSetListView:new(game, assets)
 	self.maniaIcon = img.maniaSmallIconForCharts
 	self.starImage = img.star
 	self:reloadItems()
-	self:loadChildItems()
 
 	self.unwrapStartTime = 0
 
-	for i, set in ipairs(self.setItems) do
-		ItemList.applyChartEffects(self, set, 9999)
+	for i, chart in ipairs(self.setItems) do
+		chart:applyChartEffects(self, 9999)
 	end
 end
 
@@ -72,15 +71,18 @@ end
 
 function ChartSetListView:reloadItems()
 	WindowListView.reloadItems(self)
-	self:iterOverWindow(ItemList.applySetEffects, 9999)
+	self:iterOverWindow(ChartListItem.applySetEffects, 9999)
+
+	for _, chart in ipairs(self.setItems) do
+		chart:applyChartEffects(self, 9999)
+	end
 end
 
 function ChartSetListView:replaceItem(window_index, visual_index)
-	local item = self.items[visual_index]
-
-	local set = self.window[window_index]
-	ItemList.resetChartWindow(set, item)
-	set.visualIndex = visual_index
+	local chart_set = self.items[visual_index]
+	local item = self.window[window_index]
+	item:replaceWith(chart_set)
+	item.visualIndex = visual_index
 end
 
 function ChartSetListView:loadChildItems()
@@ -91,29 +93,28 @@ function ChartSetListView:loadChildItems()
 
 	local selected_visual_item_index = self:getSelectedItemIndex()
 
-	local parent_set
+	local parent_window_item
 
-	for _, set in ipairs(self.window) do
-		if set.visualIndex == selected_visual_item_index then
-			parent_set = set
+	for _, item in ipairs(self.window) do
+		if item.visualIndex == selected_visual_item_index then
+			parent_window_item = item
 		end
 	end
 
 	for i, chart in ipairs(items) do
-		local set = {}
-		ItemList.resetChartWindow(set, chart)
-		set.visualIndex = selected_visual_item_index + i - 1
-		set.isChart = true
-		set.chartIndex = i
+		local chart_item = ChartListItem(chart)
+		chart_item.visualIndex = selected_visual_item_index + i - 1
+		chart_item.isChart = true
+		chart_item.chartIndex = i
 
-		-- Parent set might be out of screen
-		if parent_set then
-			set.slideX = parent_set.slideX
-			set.selectedT = parent_set.selectedT
-			set.hoverT = parent_set.hoverT
+		-- Parent might be out of screen
+		if parent_window_item then
+			chart_item.slideX = parent_window_item.slideX
+			chart_item.selectedT = parent_window_item.selectedT
+			chart_item.hoverT = parent_window_item.hoverT
 		end
 
-		table.insert(self.setItems, set)
+		table.insert(self.setItems, chart_item)
 	end
 
 	self.unwrapStartTime = love.timer.getTime()
@@ -145,10 +146,10 @@ end
 
 function ChartSetListView:update(dt)
 	WindowListView.update(self, dt)
-	self:iterOverWindow(ItemList.applySetEffects, dt)
+	self:iterOverWindow(ChartListItem.applySetEffects, dt)
 
-	for i, item in ipairs(self.setItems) do
-		ItemList.applyChartEffects(self, item, dt)
+	for i, chart in ipairs(self.setItems) do
+		chart:applyChartEffects(self, dt)
 	end
 
 	self.mouseOverIndex = -1
@@ -176,7 +177,19 @@ end
 
 local gfx = love.graphics
 
+---@param item osu.ui.WindowListChartItem
+---@param w number
+---@param h number
 function ChartSetListView:drawPanels(item, w, h)
+	local x, y = w - item.x - 540, item.y
+
+	if y > 768 then
+		return
+	end
+
+	local panel_h = ChartListItem.panelH
+	local panel_w = ChartListItem.panelW
+
 	if not item.isChart and item.visualIndex == self.selectedVisualItemIndex then
 		for _, v in ipairs(self.setItems) do
 			self:drawPanels(v, w, h)
@@ -184,59 +197,16 @@ function ChartSetListView:drawPanels(item, w, h)
 		return
 	end
 
-	local x, y = w - item.x - 540, item.y
-
-	local panel_w = ItemList.panelW
-	local panel_h = ItemList.panelH
-
-	if y < -panel_h or y > 768 then
+	if y < -panel_h then
 		return
 	end
-
-	local inactive_panel = ItemList.inactivePanel
-	local inactive_chart = ItemList.InactiveChart
-	local active_panel = ItemList.activePanel
 
 	self:checkForMouseActions(item, x, y, panel_w, panel_h)
 
 	gfx.push()
 	gfx.translate(x, y)
-
-	local main_color = inactive_panel
-
-	local ct = item.isChart and 1 - math.pow(1 - math.min(1, item.colorT), 3) or item.selectedT
-
-	if item.isChart then
-		local unwrap = 1
-		if item.chartIndex ~= 1 then
-			unwrap = math.min(1, love.timer.getTime() - self.unwrapStartTime)
-			unwrap = 1 - math.pow(1 - math.min(1, unwrap), 4)
-		end
-
-		main_color = {
-			inactive_chart[1] * (1 - ct) + main_color[1] * ct,
-			inactive_chart[2] * (1 - ct) + main_color[2] * ct,
-			inactive_chart[3] * (1 - ct) + main_color[3] * ct,
-			unwrap,
-		}
-	end
-
-	local color_mix = {
-		main_color[1] * (1 - ct) + active_panel[1] * ct,
-		main_color[2] * (1 - ct) + active_panel[2] * ct,
-		main_color[3] * (1 - ct) + active_panel[3] * ct,
-		main_color[4],
-	}
-
-	local inactive_text = self.assets.params.songSelectInactiveText
-	local active_text = self.assets.params.songSelectActiveText
-	local color_text_mix = {
-		inactive_text[1] * (1 - ct) + active_text[1] * ct,
-		inactive_text[2] * (1 - ct) + active_text[2] * ct,
-		inactive_text[3] * (1 - ct) + active_text[3] * ct,
-	}
-
-	ItemList.drawChartPanel(self, item, x, y, color_mix, color_text_mix)
+	item:draw(self)
+	gfx.pop()
 end
 
 function ChartSetListView:draw(w, h)
@@ -244,7 +214,9 @@ function ChartSetListView:draw(w, h)
 		return
 	end
 
-	self:iterOverWindow(self.drawPanels, w, h)
+	for _, item in ipairs(self.window) do
+		self:drawPanels(item, w, h)
+	end
 end
 
 return ChartSetListView

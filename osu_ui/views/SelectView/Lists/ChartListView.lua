@@ -1,11 +1,10 @@
 local WindowListView = require("osu_ui.views.SelectView.Lists.WindowListView")
-local ui = require("osu_ui.ui")
 
-local ItemList = require("osu_ui.views.SelectView.Lists.ItemList")
+local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 
 ---@class osu.ui.ChartListView : osu.ui.WindowListView
 ---@operator call: osu.ui.ChartListView
----@field window osu.ui.ChartWindowListItem
+---@field window osu.ui.WindowListChartItem[]
 local ChartListView = WindowListView + {}
 
 ---@param game sphere.GameController
@@ -13,6 +12,7 @@ local ChartListView = WindowListView + {}
 function ChartListView:new(game, assets)
 	self.game = game
 	self.assets = assets
+	self.itemClass = ChartListItem
 
 	self.unwrapStartTime = -math.huge
 	self.nextAutoScrollTime = 0
@@ -48,6 +48,7 @@ end
 function ChartListView:getChildSelectedItemIndex()
 	return 1
 end
+
 function ChartListView:getChildItemsCount()
 	return 1
 end
@@ -58,20 +59,19 @@ end
 
 function ChartListView:reloadItems()
 	WindowListView.reloadItems(self)
-	self:iterOverWindow(ItemList.applySetEffects, 9999)
+	self:iterOverWindow(ChartListItem.applySetEffects, 9999)
 end
 
 function ChartListView:replaceItem(window_index, visual_index)
-	local item = self.items[visual_index]
-
-	local set = self.window[window_index]
-	ItemList.resetChartWindow(set, item)
-	set.visualIndex = visual_index
+	local chart_set = self.items[visual_index]
+	local item = self.window[window_index]
+	item:replaceWith(chart_set)
+	item.visualIndex = visual_index
 end
 
 function ChartListView:update(dt)
 	WindowListView.update(self, dt)
-	self:iterOverWindow(ItemList.applySetEffects, dt)
+	self:iterOverWindow(ChartListItem.applySetEffects, dt)
 	self.mouseOverIndex = -1
 end
 
@@ -80,15 +80,15 @@ local gfx = love.graphics
 function ChartListView:drawPanels(item, w, h)
 	local x, y = w - item.x - 540, item.y
 
-	local panel_w = ItemList.panelW
-	local panel_h = ItemList.panelH
+	local panel_w = ChartListItem.panelW
+	local panel_h = ChartListItem.panelH
 
 	if y < -panel_h or y > 768 then
 		return
 	end
 
-	local inactive_panel = ItemList.inactivePanel
-	local active_panel = ItemList.activePanel
+	local inactive_panel = ChartListItem.inactivePanel
+	local active_panel = ChartListItem.activePanel
 
 	self:checkForMouseActions(item, x, y, panel_w, panel_h)
 
@@ -114,7 +114,7 @@ function ChartListView:drawPanels(item, w, h)
 		inactive_text[3] * (1 - ct) + active_text[3] * ct,
 	}
 
-	ItemList.drawChartPanel(self, item, x, y, color_mix, color_text_mix)
+	item:drawChartPanel(self, x, y, color_mix, color_text_mix)
 end
 
 function ChartListView:draw(w, h)
@@ -122,7 +122,9 @@ function ChartListView:draw(w, h)
 		return
 	end
 
-	self:iterOverWindow(self.drawPanels, w, h)
+	for i, item in ipairs(self.window) do
+		self:drawPanels(item, w, h)
+	end
 end
 
 return ChartListView
