@@ -5,11 +5,20 @@ local ChartListView = require("osu_ui.views.SelectView.Lists.ChartListView")
 
 local Lists = class()
 
+---@param view osu.ui.SelectView
 function Lists:new(view)
 	self.view = view
 	self.game = view.game
 	self.assets = view.assets
 	self.focus = true
+
+	local settings = self.game.configModel.configs.settings
+	local s = settings.select
+
+	if not s.collapse then
+		view.popupView:add("Grouping charts is enabled.", "purple")
+		s.collapse = true
+	end
 
 	self.selectModel = self.game.selectModel
 	self.stateCounter = 1
