@@ -129,6 +129,10 @@ function ChartSetListView:processActions()
 end
 
 function ChartSetListView:update(dt)
+	if self.windowSize == 0 then
+		return
+	end
+
 	WindowListView.update(self, dt)
 	self:iterOverWindow(ChartListItem.applySetEffects, dt)
 

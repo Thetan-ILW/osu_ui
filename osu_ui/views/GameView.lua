@@ -48,7 +48,6 @@ function GameView:load()
 	self.notificationView:load(self.assets)
 	self.popupView:load(self.assets)
 	self.tooltipView:load(self.assets)
-	self.cursor:load(self.assets)
 	self:setView(self.ui.mainMenuView)
 end
 
@@ -77,6 +76,8 @@ function GameView:loadAssets(view_name)
 	assets:loadLocalization(asset_model:getLocalizationFileName(language))
 	assets:updateVolume(self.game.configModel)
 	self.assets = assets
+
+	self.cursor:load(assets)
 end
 
 ---@param view osu.ui.ScreenView

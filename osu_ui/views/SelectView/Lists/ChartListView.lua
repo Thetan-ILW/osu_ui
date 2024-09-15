@@ -64,6 +64,10 @@ function ChartListView:replaceItem(window_index, visual_index)
 end
 
 function ChartListView:update(dt)
+	if self.windowSize == 0 then
+		return
+	end
+
 	WindowListView.update(self, dt)
 	self:iterOverWindow(ChartListItem.applySetEffects, dt)
 	self.mouseOverIndex = -1

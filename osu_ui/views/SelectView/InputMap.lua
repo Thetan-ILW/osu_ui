@@ -98,8 +98,6 @@ function SelectInputMap:createBindings(sv)
 		end,
 		["normalMode"] = function()
 			actions.setVimMode("Normal")
-			local selectModel = sv.selectModel
-			selectModel:debouncePullNoteChartSet()
 		end,
 	}
 end

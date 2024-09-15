@@ -5,30 +5,25 @@ local class = require("class")
 ---@field alpha number
 local CursorView = class()
 
----@type table<string,love.Image>
-local img
----@type table<string, number | string | boolean>
-local skin_params
-
 function CursorView:new()
 	self.alpha = 1
 end
 
 ---@param assets osu.ui.OsuAssets
 function CursorView:load(assets)
-	img = assets.images
-	skin_params = assets.params
+	self.assets = assets
+	self.params = assets.params
 end
 
 local cursor_scale = 1
 local cursor_rotation = 0
 
 function CursorView:update(dt)
-	if skin_params.cursorRotate then
+	if self.params.cursorRotate then
 		cursor_rotation = (cursor_rotation + 1.5 * dt) % (math.pi * 2)
 	end
 
-	if skin_params.cursorExpand then
+	if self.params.cursorExpand then
 		local add = love.mouse.isDown(1) and dt or -dt
 		cursor_scale = math.min(cursor_scale + add * 3, 1.25)
 		cursor_scale = math.max(cursor_scale, 1)
@@ -47,6 +42,7 @@ function CursorView:draw()
 
 	local x, y = love.mouse.getPosition()
 
+	local img = self.assets.images
 	local cursor = img.cursor
 	local middle = img.cursorMiddle
 	local cw, ch = cursor:getDimensions()
@@ -57,7 +53,7 @@ function CursorView:draw()
 
 	local cx, cy = 0, 0
 
-	if skin_params.cursorCenter == 0 then
+	if self.params.cursorCenter == 0 then
 		cx, cy = cxo, cyo
 		mxo, myo = 0, 0
 	end

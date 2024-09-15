@@ -259,10 +259,6 @@ end
 
 ---@param dt number
 function WindowListView:update(dt)
-	if self.windowSize == 0 then
-		return
-	end
-
 	local prev_selected_index = self.selectedVisualItemIndex
 	self.selectedVisualItemIndex = self:getSelectedItemIndex()
 
