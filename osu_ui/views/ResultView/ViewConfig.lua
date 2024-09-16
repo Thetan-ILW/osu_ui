@@ -266,14 +266,22 @@ function ViewConfig:scoreRevealAnimation()
 	perfectValue.value = math.ceil(counters[counterNames[2]] * v)
 	missValue.value = math.ceil(counters["miss"] * v)
 
-	if judge.scoreSystemName ~= "soundsphere" then
+	local counters_count = #counterNames
+
+	if counters_count >= 4 then
 		greatValue.value = math.ceil(counters[counterNames[3]] * v)
 		goodValue.value = math.ceil(counters[counterNames[4]] * v)
+	end
+
+	if counters_count >= 5 then
 		badValue.value = math.ceil(counters[counterNames[5]] * v)
 	end
 
 	comboValue.value = math.ceil(combo_num * v)
-	accuracyValue.value = judge.accuracy * v
+
+	if judge.accuracy then
+		accuracyValue.value = judge.accuracy * v
+	end
 end
 
 function ViewConfig:stopAnimations()

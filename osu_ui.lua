@@ -84,10 +84,10 @@ local t = {
 		submitScore = "s",
 
 		-- Movement
-		up = "k",
-		down = "j",
-		left = "h",
-		right = "l",
+		up = "h",
+		down = "l",
+		left = "k",
+		right = "j",
 		up10 = { mod = { "ctrl", "u" } },
 		down10 = { mod = { "ctrl", "d" } },
 		toStart = { op = { "g", "g" } },

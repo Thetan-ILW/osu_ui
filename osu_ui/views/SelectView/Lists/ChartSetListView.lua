@@ -136,14 +136,14 @@ function ChartSetListView:processActions()
 	local ad = actions.isActionDown
 	local gc = actions.getCount
 
-	if ad("up") then
-		self:autoScroll(-1 * gc(), ca("up"), "self")
-	elseif ad("down") then
-		self:autoScroll(1 * gc(), ca("down"), "self")
-	elseif ad("left") then
-		self:autoScroll(-1 * gc(), ca("left"), "child")
+	if ad("left") then
+		self:autoScroll(-1 * gc(), ca("left"), "self")
 	elseif ad("right") then
-		self:autoScroll(1 * gc(), ca("right"), "child")
+		self:autoScroll(1 * gc(), ca("right"), "self")
+	elseif ad("up") then
+		self:autoScroll(-1 * gc(), ca("up"), "child")
+	elseif ad("down") then
+		self:autoScroll(1 * gc(), ca("down"), "child")
 	elseif ad("up10") then
 		self:autoScroll(-10 * gc(), ca("up10"), "self")
 	elseif ad("down10") then
