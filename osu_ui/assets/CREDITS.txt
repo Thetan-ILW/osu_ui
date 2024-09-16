@@ -1,29 +1,6 @@
----- menu-graphics-tab ----
-Edits were made
-Link: https://www.svgrepo.com/svg/533132/monitor-alt-1
-License: https://www.svgrepo.com/page/licensing/#CC%20Attribution
-
----- menu-audio-tab ----
-Edits were made
-Link: https://www.svgrepo.com/svg/500145/audio-none
-License: https://www.svgrepo.com/page/licensing/#GPL
-
----- menu-maintenance-tab ----
-Link: https://www.svgrepo.com/svg/479423/wrench-2
-License: https://www.svgrepo.com/page/licensing/#PD
-
----- menu-back-arrow ----
-Edits were made
-Link: https://www.svgrepo.com/svg/495000/arrow-circle-left
-License: https://www.svgrepo.com/page/licensing/#MIT
-
----- menu-general-tab ----
-Link: https://www.svgrepo.com/svg/470384/gear
-License: https://www.svgrepo.com/page/licensing/#MIT
-
----- menu-input-tab ----
-Link: https://www.svgrepo.com/svg/352066/gamepad
-License: https://www.svgrepo.com/page/licensing/#CC%20Attribution
+---- menu-{X]-tab.png ----
+Link: https://fontawesome.com/v4/icons/
+License: https://openfontlicense.org/
 
 ---- welcome_piano.mp3 ----
 Edits were made

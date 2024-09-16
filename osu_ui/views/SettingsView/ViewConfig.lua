@@ -20,11 +20,6 @@ local ViewConfig = IViewConfig + {}
 
 local visibility = 0
 
----@type table<string, love.Image>
-local img
----@type table<string, love.Font>
-local font
-
 local tab_focus = 0
 
 local gfx = love.graphics
@@ -32,8 +27,6 @@ local gfx = love.graphics
 ---@param view osu.SettingsView
 ---@param assets osu.OsuAssets
 function ViewConfig:new(view, assets)
-	img = assets.images
-	font = assets.localization.fontGroups.settings
 	self.focus = false
 	self.modalActive = false
 	self.hoverRectPosition = 0
@@ -43,9 +36,6 @@ function ViewConfig:new(view, assets)
 end
 
 local tab_image_height = 64
-local tab_image_spacing = 32
-local tab_image_scale = 0.5
-local tab_image_indent = 64 / 2 - (64 * tab_image_scale) / 2
 
 ---@param view osu.ui.SettingsView
 function ViewConfig:tabs(view)
@@ -56,9 +46,9 @@ function ViewConfig:tabs(view)
 
 	local tab_count = #view.containers
 
-	local total_h = tab_count * (tab_image_height * tab_image_scale) + (tab_count - 1) * tab_image_spacing
+	local total_h = tab_count * tab_image_height + (tab_count - 1)
 
-	gfx.translate(tab_image_indent, h / 2 - total_h / 2)
+	gfx.translate(0, h / 2 - total_h / 2)
 
 	for i, c in ipairs(view.containers) do
 		gfx.setColor(0.6, 0.6, 0.6, visibility)
@@ -71,23 +61,16 @@ function ViewConfig:tabs(view)
 			end
 		end
 
-		gfx.draw(c.icon, 0, 0, 0, tab_image_scale, tab_image_scale)
+		gfx.draw(c.icon, 32, 32, 0, 1, 1, 13, 13)
 
-		gfx.translate(0, (tab_image_height * tab_image_scale) + tab_image_spacing)
+		gfx.translate(0, tab_image_height)
 	end
 
 	w, h = Layout:move("base")
 
 	gfx.setColor(0.92, 0.46, 0.55, visibility)
 	local i = self.tabFocusAnimation - 1
-	gfx.translate(
-		59,
-		h / 2
-			- total_h / 2
-			+ (tab_image_height * tab_image_scale) * i
-			+ (tab_image_spacing * i)
-			- (tab_image_height * tab_image_scale / 2)
-	)
+	gfx.translate(59, h / 2 - total_h / 2 + tab_image_height * i)
 	gfx.rectangle("fill", 0, 0, 6, tab_image_height)
 end
 

@@ -16,7 +16,7 @@ local SettingsView = require("osu_ui.views.SettingsView")
 ---@field outroTween table?
 local MainMenuView = ScreenView + {}
 
-local show_intro = true
+local show_intro = false
 
 function MainMenuView:load()
 	self.viewConfig = ViewConfig(self.game, self.assets)
