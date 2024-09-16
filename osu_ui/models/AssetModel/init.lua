@@ -63,6 +63,15 @@ function AssetModel:getOsuSkins()
 	---@type string[]
 	local skins = love.filesystem.getDirectoryItems("userdata/skins/")
 
+	local ignore_dir_info = love.filesystem.getInfo("userdata/skins/ignore")
+
+	if ignore_dir_info and ignore_dir_info.type == "directory" then
+		local ignore_skins = love.filesystem.getDirectoryItems("userdata/skins/ignore")
+		for i, name in ipairs(ignore_skins) do
+			table.insert(skins, path_util.join("ignore", name))
+		end
+	end
+
 	---@type string[]
 	local osu_skin_names = {}
 
