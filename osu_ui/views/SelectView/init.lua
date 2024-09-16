@@ -159,42 +159,13 @@ function SelectView:changeTimeRate(delta)
 	end
 end
 
-local selected_group = "charts"
-local previous_collections_group = "locations"
-
----@param name "charts" | "locations" | "directories" | "last_visited_locations"
-function SelectView:changeGroup(name)
-	if name == "charts" then
-		self.game.selectModel:noDebouncePullNoteChartSet()
-	elseif name == "locations" then
-		if previous_collections_group ~= "locations" then
-			self.game.selectModel.collectionLibrary:load(true)
-		end
-
-		self.viewConfig.collectionListView:reloadItems()
-		previous_collections_group = name
-	elseif name == "directories" then
-		if previous_collections_group ~= "directories" then
-			self.game.selectModel.collectionLibrary:load(false)
-		end
-
-		self.viewConfig.collectionListView:reloadItems()
-		previous_collections_group = name
-	elseif name == "last_visited_locations" then
-		name = previous_collections_group
-	end
-
-	selected_group = name
-	self.viewConfig:selectGroup(name)
-end
-
 function SelectView:select()
-	if selected_group == "charts" then
+	if self.lists.showing == "charts" then
 		self:play()
 		return
 	end
 
-	self:changeGroup("charts")
+	self.lists:show("charts")
 end
 
 function SelectView:updateSearch(text)

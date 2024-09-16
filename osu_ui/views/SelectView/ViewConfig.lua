@@ -119,13 +119,6 @@ local ranking_options = {
 	online = "Online Ranking",
 }
 
-local group_options = {
-	"charts",
-	"locations",
-	"directories",
-}
-local selected_group = group_options[1]
-
 ---@param view osu.ui.SelectView
 function ViewConfig:createUI(view)
 	local assets = self.assets
@@ -251,11 +244,10 @@ function ViewConfig:createUI(view)
 		borderColor = { 0.57, 0.76, 0.9, 1 },
 		hoverColor = { 0.57, 0.76, 0.9, 1 },
 	}, function()
-		return selected_group, group_options
+		return view.lists.showing, view.lists.groups
 	end, function(v)
-		selected_group = v
-		chart_list_update_time = love.timer.getTime() + 0.4
-		view:changeGroup(v)
+		self.selectedGroup = v
+		view.lists:show(v)
 	end, formatGroupSort)
 
 	osu_logo_button = HoverState("quadout", 0.15)
@@ -287,7 +279,6 @@ function ViewConfig:new(view, assets)
 
 	Layout:draw()
 
-	chart_list_update_time = love.timer.getTime() + 0.4
 	update_time = current_time
 	self.scoreListView.scoreUpdateTime = love.timer.getTime()
 
@@ -624,39 +615,13 @@ function ViewConfig:bottom(view)
 	drawBottomButton("chartOptions")
 end
 
-function ViewConfig:chartSetList(view)
+function ViewConfig:list(view)
 	local w, h = Layout:move("base")
-	local list = view.lists
 
 	local no_focus = false or combo_focused
 
-	list.focus = not no_focus and has_focus
-	list:draw(w, h)
-end
-
----@param view osu.ui.SelectView
-function ViewConfig:collectionList(view)
-	local w, h = Layout:move("base")
-	local list = self.collectionListView
-
-	local no_focus = false or combo_focused
-
-	list.focus = not no_focus and has_focus
-
-	local a = ui.easeOutCubic(chart_list_update_time, 0.7)
-
-	gfx.translate(w - (610 * a), 82)
-	list:updateAnimations()
-	list:draw(610, 595, true)
-
-	w, h = Layout:move("base")
-	gfx.translate(w - 610, 82)
-	ui.scrollBar(list, 610, 595)
-
-	if list.selected then
-		view:changeGroup("charts")
-		list.selected = false
-	end
+	view.lists.focus = not no_focus and has_focus
+	view.lists:draw(w, h)
 end
 
 ---@param view osu.ui.SelectView
@@ -850,11 +815,6 @@ local function checkFocus()
 	end
 end
 
----@param name "charts" | "locations" | "directories" | "last_visited_locations"
-function ViewConfig:selectGroup(name)
-	selected_group = name
-end
-
 ---@param view osu.ui.SelectView
 function ViewConfig:draw(view)
 	checkFocus()
@@ -870,19 +830,19 @@ function ViewConfig:draw(view)
 	self:chartPreview(view)
 	self:modeLogo()
 
-	if selected_group == "charts" then
-		self:chartSetList(view)
-	else
-		self:collectionList(view)
-	end
+	self:list(view)
 
 	self:scores(view)
-	self:searchBackground()
+
+	if view.lists.showing == "charts" then
+		self:searchBackground()
+	end
+
 	self:top()
 	self:bottom(view)
 	self:chartInfo()
 
-	if selected_group == "charts" then
+	if view.lists.showing == "charts" then
 		self:search(view)
 	end
 

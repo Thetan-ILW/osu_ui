@@ -2,8 +2,18 @@ local class = require("class")
 
 local ChartSetListView = require("osu_ui.views.SelectView.Lists.ChartSetListView")
 local ChartListView = require("osu_ui.views.SelectView.Lists.ChartListView")
+local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
 
+---@class osu.ui.SelectViewLists
+---@operator call: osu.ui.SelectViewLists
+---@field showing "charts" | "locations" | "directories"
 local Lists = class()
+
+Lists.groups = {
+	"charts",
+	"locations",
+	"directories",
+}
 
 ---@param view osu.ui.SelectView
 function Lists:new(view)
@@ -21,8 +31,33 @@ function Lists:new(view)
 	end
 
 	self.selectModel = self.game.selectModel
-	self.stateCounter = 1
+	self.chartsStateCounter = 1
+	self.showing = self.groups[1]
+	self.pullNoteChart = false
+
 	view.game.selectController:load()
+end
+
+---@param mode "charts" | "locations" | "directories"
+function Lists:show(mode)
+	self.showing = mode
+
+	if mode == "charts" then
+		self:showCharts()
+		return
+	end
+
+	self:showCollections()
+end
+
+function Lists:showCollections()
+	local game = self.view.game
+	local assets = self.assets
+
+	self.game.selectModel.collectionLibrary:load(self.showing == "locations")
+	self.list = CollectionsListView(game, assets)
+
+	self.pullNoteChart = true
 end
 
 local sets = {
@@ -32,7 +67,14 @@ local sets = {
 	["set modtime"] = true,
 }
 
-function Lists:createList()
+function Lists:showCharts()
+	if self.pullNoteChart then
+		self.list = nil
+		self.game.selectModel:noDebouncePullNoteChartSet()
+		self.pullNoteChart = false
+		return
+	end
+
 	local game = self.view.game
 	local assets = self.assets
 
@@ -47,10 +89,12 @@ function Lists:createList()
 end
 
 function Lists:update(dt)
-	local state = self.selectModel.noteChartSetStateCounter
-	if state ~= self.stateCounter then
-		self:createList()
-		self.stateCounter = state
+	if self.showing == "charts" then
+		local state = self.selectModel.noteChartSetStateCounter
+		if state ~= self.chartsStateCounter then
+			self.chartsStateCounter = self.selectModel.noteChartSetStateCounter
+			self:showCharts()
+		end
 	end
 
 	if self.list then

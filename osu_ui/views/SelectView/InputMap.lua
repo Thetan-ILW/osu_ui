@@ -66,12 +66,6 @@ function SelectInputMap:createBindings(sv)
 		["exportToOsu"] = function()
 			sv.game.selectController:exportToOsu()
 		end,
-		["moveScreenLeft"] = function()
-			sv:changeGroup("charts")
-		end,
-		["moveScreenRight"] = function()
-			sv:changeGroup("last_visited_locations")
-		end,
 	}
 
 	self.view = {
