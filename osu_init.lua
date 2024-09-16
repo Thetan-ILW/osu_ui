@@ -44,18 +44,30 @@ function UserInterface:draw()
 	self.gameView:draw()
 end
 
+local events = {
+	inputchanged = function(event)
+		actions.inputChanged(event)
+	end,
+	textinput = function(event)
+		actions.textInputEvent(event[1])
+	end,
+	keypressed = function(event)
+		actions.keyPressed(event)
+		if event[2] == "backspace" then
+			actions.textInputEvent("backspace")
+		end
+	end,
+	focus = function()
+		actions.resetInputs()
+	end,
+}
+
 ---@param event table
 function UserInterface:receive(event)
-	if event.name == "inputchanged" then
-		actions.inputChanged(event)
-	end
+	local f = events[event.name]
 
-	if event.name == "keypressed" then
-		actions.keyPressed(event)
-	end
-
-	if event.name == "focus" then
-		actions.resetInputs()
+	if f then
+		f(event)
 	end
 
 	self.gameView:receive(event)

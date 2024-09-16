@@ -1,5 +1,6 @@
 local class = require("class")
 local ui = require("osu_ui.ui")
+local actions = require("osu_ui.actions")
 local flux = require("flux")
 local math_util = require("math_util")
 
@@ -135,7 +136,7 @@ function SettingsView:build(tab)
 
 	if #self.containers == 0 then
 		self.containers = prev_containers
-		self.searchText = self.searchText:sub(1, -2)
+		self.searchText = actions.textRemoveLast(self.searchText)
 	end
 
 	local search = self.searchText == "" and "Type to search!" or self.searchText
@@ -257,14 +258,16 @@ function SettingsView:update(dt)
 		return
 	end
 
-	local changed = false
-	local prev = self.searchText
-	changed, self.searchText = ui.textInput(self.searchText)
+	if actions.isInsertMode() or not actions.isVimMode() then
+		local changed = false
+		local prev = self.searchText
+		changed, self.searchText = actions.textInput(self.searchText)
 
-	if changed and prev ~= self.searchText then
-		self.scrollPosition = 0
-		self.scrollTargetPosition = 0
-		self:build()
+		if changed and prev ~= self.searchText then
+			self.scrollPosition = 0
+			self.scrollTargetPosition = 0
+			self:build()
+		end
 	end
 end
 

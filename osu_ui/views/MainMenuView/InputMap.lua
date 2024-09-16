@@ -1,6 +1,7 @@
 local InputMap = require("osu_ui.InputMap")
 
 local math_util = require("math_util")
+local actions = require("osu_ui.actions")
 
 ---@class osu.ui.MainMenuInputMap : osu.ui.InputMap
 ---@operator call: osu.ui.MainMenuInputMap
@@ -40,6 +41,12 @@ function MainMenuInputMap:createBindings(mv)
 		end,
 		["play"] = function()
 			mv.viewConfig:processLogoState(mv, "logo_click")
+		end,
+		["insertMode"] = function()
+			actions.setVimMode("Insert")
+		end,
+		["normalMode"] = function()
+			actions.setVimMode("Normal")
 		end,
 	}
 end

@@ -21,7 +21,7 @@ local currentDownAction = nil
 local count = ""
 local currentVimNode = {}
 ---@type string?
-local last_pressed_key = nil
+local text_input_event = nil
 
 local comboActions = {} -- [keyCombo] = action_name
 local operationsTree = {} -- [key] = [key, action_name] Tree of keys
@@ -41,22 +41,6 @@ local modKeysList = {
 	lgui = true,
 	lalt = true,
 	ralt = true,
-}
-
-local last_pressed_key_ignore = {
-	lctrl = true,
-	rctrl = true,
-	lshift = true,
-	rshift = true,
-	lgui = true,
-	lalt = true,
-	ralt = true,
-	["return"] = true,
-	escape = true,
-	down = true,
-	left = true,
-	right = true,
-	up = true,
 }
 
 local modFormat = {
@@ -164,6 +148,9 @@ end
 
 ---@param mode VimMode
 function actions.setVimMode(mode)
+	if mode == vimModes.insert then
+		text_input_event = "ignore"
+	end
 	vimMode = mode
 end
 
@@ -304,14 +291,6 @@ function actions.keyPressed(event)
 	local key = event[2]
 	local repeatt = event[3]
 
-	if
-		not last_pressed_key_ignore[key]
-		and not actions.isModKeyDown()
-		and (actions.isInsertMode() or not actions.isVimMode())
-	then
-		last_pressed_key = key
-	end
-
 	if not repeatt then
 		if tonumber(key) and not actions.isInsertMode() then
 			count = count .. key
@@ -348,6 +327,14 @@ function actions.keyPressed(event)
 	end
 end
 
+function actions.textInputEvent(char)
+	if text_input_event == "ignore" then
+		text_input_event = nil
+		return
+	end
+	text_input_event = char
+end
+
 ---@param name string
 ---@return boolean
 function actions.isActionDown(name)
@@ -379,9 +366,9 @@ local function text_split(text, index)
 end
 
 ---@param text string
----@param index number
 ---@return string
-local function text_remove(text, index)
+function actions.textRemoveLast(text)
+	local index = utf8.len(text) + 1
 	local _
 	local left, right = text_split(text, index)
 
@@ -395,22 +382,18 @@ end
 ---@return boolean
 ---@return string
 function actions.textInput(text)
-	if last_pressed_key == nil then
+	if text_input_event == nil then
 		return false, text
 	end
 
-	if last_pressed_key == "backspace" then
-		text = text_remove(text, utf8.len(text) + 1)
-		last_pressed_key = nil
+	if text_input_event == "backspace" then
+		text = actions.textRemoveLast(text)
+		text_input_event = nil
 		return true, text
 	end
 
-	if last_pressed_key == "space" then
-		last_pressed_key = " "
-	end
-
-	text = text .. last_pressed_key
-	last_pressed_key = nil
+	text = text .. text_input_event
+	text_input_event = nil
 
 	return true, text
 end
