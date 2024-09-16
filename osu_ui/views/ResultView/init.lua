@@ -91,6 +91,12 @@ function ResultView:setJudge()
 	local osu = configs.osu_ui
 	local ss = osu.scoreSystem
 	local judge = osu.judgement
+
+	local range_alias = scoring[ss].metadata.rangeValueAlias
+	if range_alias then
+		judge = range_alias[judge]
+	end
+
 	local judge_name = scoring[ss].metadata.name:format(judge)
 
 	self.judgement = judgements[judge_name]
