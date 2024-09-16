@@ -52,6 +52,7 @@ function CollectionItem:applyItemEffects(list, dt)
 	local hover = self:applyHover(dt)
 	local slide = self:applySlide(actual_visual_index, list.smoothScroll + list.windowSize / 2, dt)
 	local selected = self:applySelect(self.visualIndex == selected_visual_index, dt)
+	self:applyFlash(dt)
 
 	local x = hover * 20 - slide
 	self.x = x + selected * 84
@@ -85,24 +86,20 @@ function CollectionItem:draw(list)
 	local active_panel = CollectionItem.activePanel
 	local main_color = inactive_panel
 
-	local ct = self.selectedT
-
-	local color_mix = {
-		main_color[1] * (1 - ct) + active_panel[1] * ct,
-		main_color[2] * (1 - ct) + active_panel[2] * ct,
-		main_color[3] * (1 - ct) + active_panel[3] * ct,
-		main_color[4],
-	}
-
 	local inactive_text = list.assets.params.songSelectInactiveText
 	local active_text = list.assets.params.songSelectActiveText
-	local color_text_mix = {
-		inactive_text[1] * (1 - ct) + active_text[1] * ct,
-		inactive_text[2] * (1 - ct) + active_text[2] * ct,
-		inactive_text[3] * (1 - ct) + active_text[3] * ct,
-	}
 
-	self:drawPanel(list, color_mix, color_text_mix)
+	local ct = self.selectedT
+
+	local panel_color = self.mixColors(main_color, active_panel, ct)
+
+	if self.flashColorT ~= 0 then
+		panel_color = self.lighten2(panel_color, self.flashColorT * 0.3)
+	end
+
+	local text_color = self.mixColors(inactive_text, active_text, ct)
+
+	self:drawPanel(list, panel_color, text_color)
 end
 
 return CollectionItem

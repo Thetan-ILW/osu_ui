@@ -39,7 +39,7 @@ function ListItem:replaceWith(item)
 	self.colorT = 0
 	self.selectedT = 0
 	self.slideX = 55
-	self.flashColorT = 1
+	self.flashColorT = 0
 end
 
 ---@param dt number
@@ -89,6 +89,9 @@ end
 ---@param increase boolean
 function ListItem:applyColor(increase, dt)
 	self.colorT = math_util.clamp(self.colorT + (increase and dt * select_anim_speed or -dt * select_anim_speed), 0, 1)
+end
+
+function ListItem:applyFlash(dt)
 	self.flashColorT = math.max(0, self.flashColorT - dt)
 end
 
@@ -97,6 +100,34 @@ end
 function ListItem.getUnwrap(start_time)
 	local unwrap = math.min(1, love.timer.getTime() - start_time)
 	return 1 - math.pow(1 - math.min(1, unwrap), 4)
+end
+
+function ListItem.mixColors(a, b, t)
+	return {
+		a[1] * (1 - t) + b[1] * t,
+		a[2] * (1 - t) + b[2] * t,
+		a[3] * (1 - t) + b[3] * t,
+		a[4],
+	}
+end
+
+function ListItem.lighten(c, amount)
+	return {
+		math.min(1, c[1] * (1 + amount)),
+		math.min(1, c[2] * (1 + amount)),
+		math.min(1, c[3] * (1 + amount)),
+		c[4],
+	}
+end
+
+function ListItem.lighten2(c, amount)
+	amount = amount * 0.5
+	return {
+		math.min(1, c[1] * (1 + 0.5 * amount) + 1 * amount),
+		math.min(1, c[2] * (1 + 0.5 * amount) + 1 * amount),
+		math.min(1, c[3] * (1 + 0.5 * amount) + 1 * amount),
+		c[4],
+	}
 end
 
 return ListItem
