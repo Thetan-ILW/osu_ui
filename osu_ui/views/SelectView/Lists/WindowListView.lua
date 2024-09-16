@@ -280,6 +280,30 @@ function WindowListView:update(dt)
 	self:processActions()
 	self:loadNewSets()
 
+	if self.selectedVisualItemIndex ~= self.scroll then
+		local area = self.mouseAllowedArea
+
+		local mx, _ = love.graphics.inverseTransformPoint(love.mouse.getX(), 0)
+
+		if mx < area.x then
+			self.scroll = self.selectedVisualItemIndex - self.windowSize / 2
+			self:animateScroll()
+		end
+	end
+
+	if love.mouse.isDown(2) then
+		local set_items_count = self:getChildItemsCount() - 1
+		local item_count = self.maxScroll + set_items_count
+
+		local start_y = self.mouseAllowedArea.y
+		local h = self.mouseAllowedArea.h
+
+		local _, my = love.graphics.inverseTransformPoint(0, love.mouse.getY())
+
+		self.scroll = (item_count * ((my - start_y) / h)) - self.windowSize / 4
+		self:animateScroll()
+	end
+
 	if prev_selected_index ~= self.selectedVisualItemIndex then
 		self:loadChildItems()
 	end
