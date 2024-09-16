@@ -22,6 +22,7 @@ local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
 ---@field itemClass osu.ui.WindowListItem?
 ---@field mouseAllowedArea { w: number, h: number, x: number, y: number }
 ---@field focus boolean
+---@field state "idle" | "item_selected" | "locked"
 local WindowListView = class()
 
 function WindowListView:getSelectedItemIndex() end
@@ -36,6 +37,8 @@ function WindowListView:selectChildItem(index) end
 --- Replaces item at the [window index] with the new item using visual index
 function WindowListView:replaceItem(window_index, visual_index) end
 function WindowListView:loadChildItems() end
+
+function WindowListView:justHoveredOver(item) end
 
 ---@param f fun(ChartSetListView, table, ...)
 function WindowListView:iterOverWindow(f, ...)
@@ -254,12 +257,18 @@ function WindowListView:checkForMouseActions(item, x, y, panel_w, panel_h)
 		return
 	end
 
+	local was_over = item.mouseOver
+
 	item.mouseOver = ui.isOver(panel_w, panel_h, x, y)
 	if item.mouseOver then
 		if ui.mousePressed(1) then
 			self:mouseClick(item)
 		end
 		self.mouseOverIndex = item.visualIndex
+	end
+
+	if not was_over and item.mouseOver then
+		self:justHoveredOver(item)
 	end
 end
 

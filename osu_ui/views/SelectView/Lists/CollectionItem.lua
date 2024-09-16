@@ -8,6 +8,9 @@ local ui = require("osu_ui.ui")
 ---@field chartsCount string
 local CollectionItem = ListItem + {}
 
+CollectionItem.inactivePanel = { 0.13, 0.2, 0.56 }
+CollectionItem.activePanel = { 0.63, 0.94, 0.17 }
+
 ---@param item table
 ---@param tree table
 function CollectionItem:new(item, tree)

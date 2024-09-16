@@ -30,9 +30,12 @@ function ChartListView:new(game, assets)
 	self.font = self.assets.localization.fontGroups.chartSetList
 
 	local img = self.assets.images
+	local snd = self.assets.sounds
 	self.panelImage = img.listButtonBackground
 	self.maniaIcon = img.maniaSmallIconForCharts
 	self.starImage = img.star
+	self.hoverSound = snd.hoverMenu
+	self.selectSound = snd.selectChart
 	self:reloadItems()
 end
 
@@ -53,6 +56,17 @@ function ChartListView:getChildItemsCount()
 end
 
 function ChartListView:selectItem(visual_index)
+	if self.state == "locked" then
+		return
+	end
+
+	ui.playSound(self.selectSound)
+
+	if visual_index == self.selectedVisualItemIndex then
+		self.state = "item_selected"
+		return
+	end
+
 	self.game.selectModel:scrollNoteChartSet(nil, visual_index)
 end
 
@@ -61,6 +75,12 @@ function ChartListView:replaceItem(window_index, visual_index)
 	local item = self.window[window_index]
 	item:replaceWith(chart_set)
 	item.visualIndex = visual_index
+end
+
+---@param item osu.ui.WindowListChartItem
+function ChartListView:justHoveredOver(item)
+	ui.playSound(self.hoverSound)
+	item.flashColorT = 1
 end
 
 function ChartListView:update(dt)

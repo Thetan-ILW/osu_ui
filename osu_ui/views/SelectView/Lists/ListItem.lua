@@ -39,6 +39,7 @@ function ListItem:replaceWith(item)
 	self.colorT = 0
 	self.selectedT = 0
 	self.slideX = 55
+	self.flashColorT = 1
 end
 
 ---@param dt number
@@ -88,6 +89,7 @@ end
 ---@param increase boolean
 function ListItem:applyColor(increase, dt)
 	self.colorT = math_util.clamp(self.colorT + (increase and dt * select_anim_speed or -dt * select_anim_speed), 0, 1)
+	self.flashColorT = math.max(0, self.flashColorT - dt)
 end
 
 ---@param start_time number

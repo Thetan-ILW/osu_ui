@@ -31,9 +31,13 @@ function ChartSetListView:new(game, assets)
 	self.font = self.assets.localization.fontGroups.chartSetList
 
 	local img = self.assets.images
+	local snd = self.assets.sounds
 	self.panelImage = img.listButtonBackground
 	self.maniaIcon = img.maniaSmallIconForCharts
 	self.starImage = img.star
+	self.hoverSound = snd.hoverMenu
+	self.selectSound = snd.selectChart
+
 	self:reloadItems()
 end
 
@@ -50,11 +54,28 @@ function ChartSetListView:getItems()
 end
 
 function ChartSetListView:selectItem(visual_index)
+	if self.state == "locked" then
+		return
+	end
+
+	ui.playSound(self.selectSound)
+
 	self.game.selectModel:scrollNoteChartSet(nil, visual_index)
 	self.game.selectModel:scrollNoteChart(nil, 1)
 end
 
 function ChartSetListView:selectChildItem(index)
+	if self.state == "locked" then
+		return
+	end
+
+	ui.playSound(self.selectSound)
+
+	if index == self:getChildSelectedItemIndex() then
+		self.state = "item_selected"
+		return
+	end
+
 	self.game.selectModel:scrollNoteChart(nil, index)
 end
 
@@ -104,6 +125,12 @@ function ChartSetListView:loadChildItems()
 	self.unwrapStartTime = love.timer.getTime()
 end
 
+---@param item osu.ui.WindowListChartItem
+function ChartSetListView:justHoveredOver(item)
+	ui.playSound(self.hoverSound)
+	item.flashColorT = 1
+end
+
 function ChartSetListView:processActions()
 	local ca = actions.consumeAction
 	local ad = actions.isActionDown
@@ -147,7 +174,7 @@ function ChartSetListView:mouseClick(set)
 	local prev_selected_items_count = self:getChildItemsCount()
 
 	if set.isChart then
-		self.game.selectModel:scrollNoteChart(0, set.chartIndex)
+		self:selectChildItem(set.chartIndex)
 	else
 		self.previousSelectedVisualIndex = self.selectedVisualItemIndex
 		self:selectItem(set.visualIndex)

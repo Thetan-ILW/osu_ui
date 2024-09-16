@@ -19,6 +19,7 @@ function CollectionsListView:new(game, assets)
 	self.creationTime = love.timer.getTime()
 	self.unwrapStartTime = -math.huge
 	self.nextAutoScrollTime = 0
+	self.state = "idle"
 
 	self.mouseAllowedArea = {
 		w = 908,
@@ -30,7 +31,10 @@ function CollectionsListView:new(game, assets)
 	self.font = self.assets.localization.fontGroups.chartSetList
 
 	local img = self.assets.images
+	local snd = self.assets.sounds
 	self.panelImage = img.listButtonBackground
+	self.hoverSound = snd.hoverMenu
+	self.selectSound = snd.selectChart
 	self:reloadItems()
 end
 
@@ -52,6 +56,17 @@ function CollectionsListView:getChildItemsCount()
 end
 
 function CollectionsListView:selectItem(visual_index)
+	if self.state == "locked" then
+		return
+	end
+
+	ui.playSound(self.selectSound)
+
+	if visual_index == self.selectedVisualItemIndex then
+		self.state = "item_selected"
+		return
+	end
+
 	self.game.selectModel:scrollCollection(nil, visual_index)
 end
 
@@ -61,6 +76,12 @@ function CollectionsListView:replaceItem(window_index, visual_index)
 	local tree = self.game.selectModel.collectionLibrary.tree
 	item:replaceWith(collection, tree)
 	item.visualIndex = visual_index
+end
+
+---@param item osu.ui.WindowListChartItem
+function CollectionsListView:justHoveredOver(item)
+	ui.playSound(self.hoverSound)
+	item.flashColorT = 1
 end
 
 function CollectionsListView:update(dt)

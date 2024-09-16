@@ -100,6 +100,11 @@ function Lists:update(dt)
 	if self.list then
 		self.list.focus = self.focus
 		self.list:update(dt)
+
+		if self.list.state == "item_selected" then
+			self.list.state = "locked"
+			self.view:select()
+		end
 	end
 end
 
