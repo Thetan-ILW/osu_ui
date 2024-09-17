@@ -24,7 +24,7 @@ function CollectionsListView:new(game, assets)
 	self.mouseAllowedArea = {
 		w = 908,
 		h = 598,
-		x = 460,
+		x = 502,
 		y = 82,
 	}
 

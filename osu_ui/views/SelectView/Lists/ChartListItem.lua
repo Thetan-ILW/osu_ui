@@ -98,14 +98,13 @@ end
 local gfx = love.graphics
 
 function ChartItem:drawChartPanel(list, panel_color, text_color)
-	local x, y = self.x, self.y
-
 	gfx.push()
 	gfx.setColor(panel_color)
 	gfx.draw(list.panelImage, 0, 52, 0, 1, 1, 0, list.panelImage:getHeight() / 2)
 
+	local preview_icon_w = list.previewIcon and 115 or 0
 	gfx.setColor(text_color)
-	gfx.translate(20, 12)
+	gfx.translate(20 + preview_icon_w, 12)
 	gfx.draw(list.maniaIcon)
 
 	gfx.translate(40, -4)
@@ -122,7 +121,7 @@ function ChartItem:drawChartPanel(list, panel_color, text_color)
 
 	local iw, ih = list.starImage:getDimensions()
 
-	gfx.translate(60, ListItem.panelH + 6)
+	gfx.translate(60 + preview_icon_w, ListItem.panelH + 6)
 	gfx.scale(0.6)
 
 	for si = 1, 10, 1 do
@@ -136,6 +135,7 @@ function ChartItem:drawChartPanel(list, panel_color, text_color)
 	end
 end
 
+---@param list osu.ui.ChartSetListView | osu.ui.ChartListView
 function ChartItem:draw(list)
 	local inactive_panel = ChartItem.inactivePanel
 	local inactive_chart = ChartItem.InactiveChart

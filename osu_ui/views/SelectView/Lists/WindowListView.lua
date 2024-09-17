@@ -291,7 +291,7 @@ function WindowListView:update(dt)
 		end
 	end
 
-	if love.mouse.isDown(2) then
+	if love.mouse.isDown(2) and self.focus then
 		local set_items_count = self:getChildItemsCount() - 1
 		local item_count = self.maxScroll + set_items_count
 
