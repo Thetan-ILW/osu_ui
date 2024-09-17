@@ -84,6 +84,7 @@ function ChartItem:applyChartEffects(list, dt)
 	local slide = self:applySlide(actual_visual_index, list.smoothScroll + list.windowSize / 2, dt)
 	local selected = self:applySelect(true, dt)
 	self:applyColor(self.chartIndex == list.game.selectModel.chartview_index, dt)
+	self:applyFlash(dt)
 
 	local x = hover * 20 - slide
 	self.x = x + selected * 84
