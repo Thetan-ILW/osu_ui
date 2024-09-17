@@ -17,8 +17,8 @@ local t = {
 	vimMotions = false,
 	keybinds = {
 		quit = "escape",
-		increaseVolume = { mod = { "ctrl", "'" } },
-		decreaseVolume = { mod = { "ctrl", ";" } },
+		increaseVolume = { mod = { "alt", "up" } },
+		decreaseVolume = { mod = { "alt", "down" } },
 		play = "return",
 		showMods = "f1",
 		random = "f2",

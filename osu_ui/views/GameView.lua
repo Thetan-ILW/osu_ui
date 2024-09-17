@@ -1,6 +1,7 @@
 local class = require("class")
 local ui = require("osu_ui.ui")
 local actions = require("osu_ui.actions")
+local math_util = require("math_util")
 
 local FadeTransition = require("ui.views.FadeTransition")
 local FrameTimeView = require("ui.views.FrameTimeView")
@@ -191,11 +192,42 @@ function GameView:draw()
 	end
 end
 
+---@param delta number
+function GameView:changeVolume(delta)
+	if self.view == self.ui.gameplayView then
+		return
+	end
+
+	local configs = self.game.configModel.configs
+	local settings = configs.settings
+	local a = settings.audio
+	local v = a.volume
+
+	v.master = math_util.clamp(math_util.round(v.master + (delta * 0.05), 0.05), 0, 1)
+
+	self.notificationView:show(("Volume: %i%%"):format(v.master * 100), true)
+	self.assetModel:updateVolume()
+end
+
+local events = {
+	wheelmoved = function(self, event)
+		if love.keyboard.isDown("lalt") then
+			self:changeVolume(event[2])
+		end
+	end,
+}
+
 ---@param event table
 function GameView:receive(event)
 	self.frameTimeView:receive(event)
 	if not self.view then
 		return
+	end
+
+	local f = events[event.name]
+
+	if f then
+		f(self, event)
 	end
 
 	self.view:receive(event)

@@ -231,7 +231,9 @@ function SelectView:receive(event)
 
 		self.inputMap:call("select")
 	elseif event.name == "wheelmoved" then
-		self.lists:mouseScroll(-event[2])
+		if not actions.isModKeyDown() then
+			self.lists:mouseScroll(-event[2])
+		end
 	end
 
 	self.settingsView:receive(event)

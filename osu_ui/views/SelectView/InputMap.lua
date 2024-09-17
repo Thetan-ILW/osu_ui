@@ -1,24 +1,9 @@
 local InputMap = require("osu_ui.InputMap")
 local actions = require("osu_ui.actions")
 
-local math_util = require("math_util")
-
 ---@class osu.ui.SelectInputMap : osu.ui.InputMap
 ---@operator call: osu.ui.SelectInputMap
 local SelectInputMap = InputMap + {}
-
----@param sv osu.ui.SelectView
----@param delta number
-local function increaseVolume(sv, direction)
-	local configs = sv.game.configModel.configs
-	local settings = configs.settings
-	local a = settings.audio
-	local v = a.volume
-
-	v.master = math_util.clamp(v.master + (direction * 0.05), 0, 1)
-
-	sv.assetModel:updateVolume()
-end
 
 ---@param sv osu.ui.SelectView
 function SelectInputMap:createBindings(sv)
@@ -82,10 +67,10 @@ function SelectInputMap:createBindings(sv)
 			sv.game.previewModel:stop()
 		end,
 		["increaseVolume"] = function()
-			increaseVolume(sv, 1)
+			sv.gameView:changeVolume(1)
 		end,
 		["decreaseVolume"] = function()
-			increaseVolume(sv, -1)
+			sv.gameView:changeVolume(-1)
 		end,
 		["insertMode"] = function()
 			actions.setVimMode("Insert")
