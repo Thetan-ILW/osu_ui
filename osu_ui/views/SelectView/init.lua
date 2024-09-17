@@ -1,6 +1,7 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
 local actions = require("osu_ui.actions")
+local ui = require("osu_ui.ui")
 
 local OsuLayout = require("osu_ui.views.OsuLayout")
 local ViewConfig = require("osu_ui.views.SelectView.ViewConfig")
@@ -19,7 +20,10 @@ local InputMap = require("osu_ui.views.SelectView.InputMap")
 ---@field prevChartViewId number
 ---@field selectModel sphere.SelectModel
 ---@field configs sphere.Configs
+---@field viewConfigFocus boolean
 local SelectView = ScreenView + {}
+
+SelectView.search = ""
 
 local ui_lock = false
 local dim = 0
@@ -84,6 +88,9 @@ function SelectView:update(dt)
 
 	self.settingsView:update()
 
+	self.viewConfigFocus = (self.modal == nil) and not self.settingsView:isFocused() and not self.changingScreen
+	self:updateSearch()
+
 	local graphics = self.configs.settings.graphics
 	dim = graphics.dim.select
 	blur = graphics.blur.select
@@ -91,7 +98,7 @@ function SelectView:update(dt)
 	self.assets:updateVolume(self.game.configModel)
 
 	self.lists:update(dt)
-	self.viewConfig:setFocus((self.modal == nil) and not self.settingsView:isFocused() and not self.changingScreen)
+	self.viewConfig:setFocus(self.viewConfigFocus)
 	self.game.selectController:update()
 	self.chartPreviewView:update(dt)
 end
@@ -168,11 +175,33 @@ function SelectView:select()
 	self.lists:show("charts")
 end
 
-function SelectView:updateSearch(text)
+function SelectView:updateSearch()
+	local vim_motions = actions.isVimMode()
+	local insert_mode = actions.isInsertMode()
+
 	local config = self.game.configModel.configs.select
 	local selectModel = self.game.selectModel
-	config.filterString = text
-	selectModel:debouncePullNoteChartSet()
+
+	local changed = false
+	if (not vim_motions or insert_mode) and self.viewConfigFocus then
+		changed, self.search = actions.textInput(config.filterString)
+	end
+
+	if actions.isEnabled() then
+		if changed then
+			config.filterString = self.search
+			selectModel:debouncePullNoteChartSet()
+			return
+		end
+
+		local delete_all = actions.consumeAction("deleteLine")
+
+		if delete_all then
+			self.search = ""
+			config.filterString = ""
+			selectModel:debouncePullNoteChartSet()
+		end
+	end
 end
 
 function SelectView:receive(event)
@@ -208,10 +237,26 @@ function SelectView:receive(event)
 	self.settingsView:receive(event)
 end
 
-function SelectView:quit()
+---@param back_button_click boolean?
+function SelectView:quit(back_button_click)
 	if self.settingsView.state ~= "hidden" then
 		self.settingsView:processState("hide")
 		return
+	end
+
+	if self.search ~= "" then
+		local config = self.game.configModel.configs.select
+		self.search = ""
+		config.filterString = ""
+		self.game.selectModel:debouncePullNoteChartSet()
+
+		if not back_button_click then
+			return
+		end
+	end
+
+	if not back_button_click then
+		ui.playSound(self.assets.sounds.menuBack)
 	end
 
 	self:changeScreen("mainMenuView")

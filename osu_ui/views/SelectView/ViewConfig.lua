@@ -130,7 +130,7 @@ function ViewConfig:createUI(view)
 			hoverArea = { w = 200, h = 90 },
 			clickSound = assets.sounds.menuBack,
 		}, function()
-			view:changeScreen("mainMenuView")
+			view:quit(true)
 		end)
 	elseif assets.backButtonType == "animation" then
 		buttons.back = ImageButton(assets, {
@@ -140,11 +140,11 @@ function ViewConfig:createUI(view)
 			hoverArea = { w = 200, h = 90 },
 			clickSound = assets.sounds.menuBack,
 		}, function()
-			view:changeScreen("mainMenuView")
+			view:quit(true)
 		end)
 	else
 		back_button = BackButton(assets, { w = 93, h = 90 }, function()
-			view:changeScreen("mainMenuView")
+			view:quit(true)
 		end)
 	end
 
@@ -742,31 +742,10 @@ function ViewConfig:search(view)
 	gfx.setFont(font.search)
 	gfx.setColor(white)
 
-	local vim_motions = actions.isVimMode()
-
-	local config = view.game.configModel.configs.select
-	local changed = false
-	if (not vim_motions or insert_mode) and has_focus then
-		changed, search = actions.textInput(config.filterString)
-	end
-
-	if search == "" then
+	if view.search == "" then
 		ui.text(text.typeToSearch)
 	else
-		ui.text(search)
-	end
-
-	if actions.isEnabled() then
-		if changed then
-			view:updateSearch(search)
-		end
-
-		local delete_all = actions.consumeAction("deleteLine")
-
-		if delete_all then
-			view:updateSearch("")
-			search = ""
-		end
+		ui.text(view.search)
 	end
 end
 
