@@ -53,6 +53,12 @@ local timings_list = {
 	["Lunatic rave 2"] = timings.lr2,
 }
 
+local judge_prefix = {
+	["osu!mania"] = "V2 OD %i",
+	["osu!legacy"] = "OD %i",
+	["Etterna"] = "J%i",
+}
+
 ---@param score_system string
 ---@param judge number
 ---@param play_context sphere.PlayContext
@@ -210,6 +216,13 @@ return function(assets, view)
 			if osu.scoreSystem == "Lunatic rave 2" then
 				return lunatic_rave_judges[v]
 			end
+
+			local prefix = judge_prefix[osu.scoreSystem]
+
+			if prefix then
+				return prefix:format(v)
+			end
+
 			return v
 		end)
 	end
