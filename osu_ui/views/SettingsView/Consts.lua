@@ -9,6 +9,7 @@ return {
 	tabLabelSpacing = 25.0,
 	buttonWidth = 398,
 	buttonHeight = 34,
+	buttonMargin = 26,
 	checkboxWidth = 404,
 	checkboxHeight = 37,
 	comboHeight = 37,

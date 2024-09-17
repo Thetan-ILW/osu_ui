@@ -213,10 +213,9 @@ function SelectView:quit()
 		self.settingsView:processState("hide")
 		return
 	end
+
 	self:changeScreen("mainMenuView")
 end
-
-local gfx = love.graphics
 
 function SelectView:resolutionUpdated()
 	self.viewConfig:resolutionUpdated(self)

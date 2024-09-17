@@ -153,6 +153,7 @@ function Elements.button(label, on_change)
 			font = font.buttons,
 			pixelWidth = consts.buttonWidth,
 			pixelHeight = consts.buttonHeight,
+			margin = consts.buttonMargin,
 			xOffset = -6,
 			color = Elements.buttonColor,
 		}, on_change)
