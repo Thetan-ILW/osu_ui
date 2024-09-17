@@ -5,15 +5,14 @@ local ui = require("osu_ui.ui")
 
 ---@class osu.ui.Button : osu.ui.UiElement
 ---@operator call: osu.ui.Button
----@field label love.Text
----@field scale number
----@field width number
----@field color number[]
----@field margin number
+---@field private label love.Text
+---@field private color number[]
+---@field private margin number
 ---@field private onChange function
 ---@field private totalW number
 ---@field private totalH number
----@field private middleAdditionalScale number
+---@field private middleImgScale number
+---@field private heightScale number
 ---@field private imageLeft love.Image
 ---@field private imageMiddle love.Image
 ---@field private imageRight love.Image
@@ -25,7 +24,7 @@ local ui = require("osu_ui.ui")
 local Button = UiElement + {}
 
 ---@param assets osu.ui.OsuAssets
----@param params { text: string, font: love.Font, scale: number?, width: number?, color: number[]?, margin: number? }
+---@param params { text: string, font: love.Font, pixelWidth: number, pixelHeight: number, color: number[]?, xOffset: number, margin: number? }
 ---@param on_change function
 function Button:new(assets, params, on_change)
 	self.assets = assets
@@ -36,18 +35,16 @@ function Button:new(assets, params, on_change)
 	self.imageRight = img.buttonRight
 
 	self.label = love.graphics.newText(params.font, params.text)
-	self.scale = params.scale or 1
-	self.width = params.width or 1
+	self.xOffset = params.xOffset or 0
+	self.margin = params.margin or 0
 	self.color = params.color or { 1, 1, 1, 1 }
-	self.margin = params.margin or 15
 
-	self.middleAdditionalScale = 283 / (self.imageMiddle:getPixelWidth() / self.imageMiddle:getDPIScale())
+	local borders_width = self.imageLeft:getWidth() + self.imageRight:getWidth()
+	self.middleImgScale = (params.pixelWidth - borders_width) / self.imageMiddle:getWidth()
+	self.heightScale = params.pixelHeight / self.imageMiddle:getHeight()
 
-	self.totalW = self.imageLeft:getWidth() * self.scale
-		+ self.imageMiddle:getWidth() * self.scale * self.width * self.middleAdditionalScale
-		+ self.imageRight:getWidth() * self.scale
-
-	self.totalH = self.imageLeft:getHeight() * self.scale + self.margin
+	self.totalW = params.pixelWidth
+	self.totalH = params.pixelHeight + self.margin / 2
 
 	self.hover = false
 	self.hoverUpdateTime = -math.huge
@@ -97,12 +94,12 @@ function Button:draw()
 	gfx.setColor(self.color)
 
 	gfx.push()
-	gfx.translate(0, self.margin / 2)
-	gfx.draw(left, 0, 0, 0, scale, scale)
-	gfx.translate(left:getWidth() * scale, 0)
-	gfx.draw(middle, 0, 0, 0, scale * self.width * self.middleAdditionalScale, scale)
-	gfx.translate(middle:getWidth() * scale * self.width * self.middleAdditionalScale, 0)
-	gfx.draw(right, 0, 0, 0, scale, scale)
+	gfx.translate(self.xOffset, self.margin / 4)
+	gfx.draw(left, 0, 0, 0, 1, self.heightScale)
+	gfx.translate(left:getWidth(), 0)
+	gfx.draw(middle, 0, 0, 0, self.middleImgScale, self.heightScale)
+	gfx.translate(middle:getWidth() * self.middleImgScale, 0)
+	gfx.draw(right, 0, 0, 0, scale, self.heightScale)
 	gfx.pop()
 
 	gfx.setShader(prev_shader)

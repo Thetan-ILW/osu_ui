@@ -238,8 +238,10 @@ function Combo:drawBody()
 		local color = self.hoverIndex == i and self.hoverColor or black
 		gfx.setColor(color[1], color[2], color[3], self.visibility)
 		gfx.rectangle("fill", 0, 0, w, h, 4)
+		gfx.setColor(0, 0, 0, self.visibility)
+		gfx.draw(self.icon, 8, h / 2, -math.pi / 2, 0.7, 0.7, self.icon:getWidth() / 2, self.icon:getHeight() / 2)
 		gfx.setColor(1, 1, 1, self.visibility)
-		ui.frame(self.format and self.format(v) or tostring(v), 2, 0, w, h, "left", "center")
+		ui.frame(self.format and self.format(v) or tostring(v), 15, 0, w, h, "left", "center")
 	end
 	gfx.pop()
 

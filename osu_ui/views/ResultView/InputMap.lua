@@ -18,6 +18,12 @@ function ResultInputMap:createBindings(view)
 		["quit"] = function()
 			view:sendQuitSignal()
 		end,
+		["increaseVolume"] = function()
+			view.gameView:changeVolume(1)
+		end,
+		["decreaseVolume"] = function()
+			view.gameView:changeVolume(-1)
+		end,
 	}
 end
 

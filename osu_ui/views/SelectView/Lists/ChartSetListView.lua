@@ -207,6 +207,8 @@ function ChartSetListView:drawPanels(item, w, h)
 	local panel_w = ChartListItem.panelW
 
 	if not item.isChart and item.visualIndex == self.selectedVisualItemIndex then
+		item.mouseOver = false -- or else it be forever true
+
 		for _, v in ipairs(self.setItems) do
 			self:drawPanels(v, w, h)
 		end

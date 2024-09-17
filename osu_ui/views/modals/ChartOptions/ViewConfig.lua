@@ -34,8 +34,9 @@ function ViewConfig:new(game, this_modal, assets)
 	self.openAnimationTween = flux.to(self, 2, { openAnimation = 1 }):ease("elasticout")
 end
 
-local scale = 0.9
-local width = 2.76
+local btn_width = 737
+local btn_height = 65
+local btn_spacing = 15
 local green = { 0.52, 0.72, 0.12, 1 }
 local purple = { 0.72, 0.4, 0.76, 1 }
 local red = { 0.91, 0.19, 0, 1 }
@@ -52,8 +53,8 @@ function ViewConfig:loadUI()
 	local modal = self.thisModal
 	manage_locations = Button(assets, {
 		text = text.manageLocations,
-		scale = scale,
-		width = width,
+		pixelWidth = btn_width,
+		pixelHeight = btn_height,
 		color = green,
 		font = b_font,
 	}, function()
@@ -62,8 +63,8 @@ function ViewConfig:loadUI()
 
 	export_to_osu = Button(assets, {
 		text = text.exportToOsu,
-		scale = scale,
-		width = width,
+		pixelWidth = btn_width,
+		pixelHeight = btn_height,
 		color = purple,
 		font = b_font,
 	}, function()
@@ -73,8 +74,8 @@ function ViewConfig:loadUI()
 
 	filters = Button(assets, {
 		text = text.filters,
-		scale = scale,
-		width = width,
+		pixelWidth = btn_width,
+		pixelHeight = btn_height,
 		color = green,
 		font = b_font,
 	}, function()
@@ -83,8 +84,8 @@ function ViewConfig:loadUI()
 
 	edit = Button(assets, {
 		text = text.edit,
-		scale = scale,
-		width = width,
+		pixelWidth = btn_width,
+		pixelHeight = btn_height,
 		color = red,
 		font = b_font,
 	}, function()
@@ -93,8 +94,8 @@ function ViewConfig:loadUI()
 
 	file_manager = Button(assets, {
 		text = text.fileManager,
-		scale = scale,
-		width = width,
+		pixelWidth = btn_width,
+		pixelHeight = btn_height,
 		color = purple,
 		font = b_font,
 	}, function()
@@ -103,8 +104,8 @@ function ViewConfig:loadUI()
 
 	cancel = Button(assets, {
 		text = text.cancel,
-		scale = scale,
-		width = width,
+		pixelWidth = btn_width,
+		pixelHeight = btn_height,
 		color = gray,
 		font = b_font,
 	}, function()
@@ -138,8 +139,8 @@ function ViewConfig:draw(view)
 	gfx.pop()
 
 	local bw, bh = manage_locations:getDimensions()
-	local total_h = (h / 2) - ((bh / 2) * 6)
-	gfx.translate(w / 2 - bw / 2, 10 + total_h)
+	local total_h = (h / 2) - (bh * 6 / 2) - (btn_spacing * 5 / 2)
+	gfx.translate(w / 2 - bw / 2, total_h + 14)
 
 	local a = self.openAnimation
 
@@ -152,27 +153,27 @@ function ViewConfig:draw(view)
 	gfx.translate(50 - a, 0)
 	manage_locations:update(true)
 	manage_locations:draw()
-	gfx.translate(a - 50, 0)
+	gfx.translate(a - 50, btn_spacing)
 
 	gfx.translate(-50 + a, 0)
 	export_to_osu:update(true)
 	export_to_osu:draw()
-	gfx.translate(-a + 50, 0)
+	gfx.translate(-a + 50, btn_spacing)
 
 	gfx.translate(50 - a, 0)
 	filters:update(true)
 	filters:draw()
-	gfx.translate(a - 50, 0)
+	gfx.translate(a - 50, btn_spacing)
 
 	gfx.translate(-50 + a, 0)
 	edit:update(true)
 	edit:draw()
-	gfx.translate(-a + 50, 0)
+	gfx.translate(-a + 50, btn_spacing)
 
 	gfx.translate(50 - a, 0)
 	file_manager:update(true)
 	file_manager:draw()
-	gfx.translate(a - 50, 0)
+	gfx.translate(a - 50, btn_spacing)
 
 	gfx.translate(-50 + a, 0)
 	cancel:update(true)

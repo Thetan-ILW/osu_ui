@@ -31,8 +31,8 @@ function ViewConfig:new(game, assets, modal)
 	self:createUI()
 end
 
-local scale = 0.9
-local width = 2.76
+local btn_width = 737
+local btn_height = 65
 local gray = { 0.42, 0.42, 0.42, 1 }
 
 ---@type osu.ui.Button
@@ -44,8 +44,8 @@ function ViewConfig:createUI()
 
 	close_button = Button(assets, {
 		text = text.close,
-		scale = scale,
-		width = width,
+		pixelWidth = btn_width,
+		pixelHeight = btn_height,
 		color = gray,
 		font = font.buttons,
 	}, function()
