@@ -200,7 +200,6 @@ function WindowListView:keyScroll(delta, target)
 		self.smoothScroll = self.smoothScroll - (prev_child_item_count - 1)
 		self.scroll = self:getSelectedItemIndex() - self.windowSize / 2
 
-		self:loadChildItems()
 		self:followSelection()
 	else
 		self:selectChildItem(self:getChildSelectedItemIndex() + delta)
