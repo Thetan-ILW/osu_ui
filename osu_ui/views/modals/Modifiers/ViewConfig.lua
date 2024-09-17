@@ -38,8 +38,9 @@ function ViewConfig:new(game, assets, modal)
 	self.openAnimationTween = flux.to(self, 2, { openAnimation = 1 }):ease("elasticout")
 end
 
-local scale = 0.9
-local width = 2.76
+local btn_width = 737
+local btn_height = 65
+local btn_spacing = 15
 local red = { 0.91, 0.19, 0, 1 }
 local gray = { 0.42, 0.42, 0.42, 1 }
 
@@ -59,8 +60,8 @@ function ViewConfig:createUI()
 
 	reset_button = Button(assets, {
 		text = text.reset,
-		scale = scale,
-		width = width,
+		pixelWidth = btn_width,
+		pixelHeight = btn_height,
 		color = red,
 		font = font.buttons,
 	}, function()
@@ -73,8 +74,8 @@ function ViewConfig:createUI()
 
 	close_button = Button(assets, {
 		text = text.close,
-		scale = scale,
-		width = width,
+		pixelWidth = btn_width,
+		pixelHeight = btn_height,
 		color = gray,
 		font = font.buttons,
 	}, function()
@@ -211,7 +212,7 @@ function ViewConfig:draw(modal)
 	gfx.translate(50 - a, 0)
 	reset_button:update(self.openAnimation > 0.8)
 	reset_button:draw()
-	gfx.translate(a - 50, 0)
+	gfx.translate(a - 50, btn_spacing)
 
 	gfx.translate(-50 + a, 0)
 	close_button:update(self.openAnimation > 0.8)

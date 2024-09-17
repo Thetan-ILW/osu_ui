@@ -151,8 +151,9 @@ function Elements.button(label, on_change)
 		Button(assets, {
 			text = label,
 			font = font.buttons,
-			scale = consts.buttonSize,
-			width = consts.buttonWidth,
+			pixelWidth = consts.buttonWidth,
+			pixelHeight = consts.buttonHeight,
+			xOffset = -6,
 			color = Elements.buttonColor,
 		}, on_change)
 	)
