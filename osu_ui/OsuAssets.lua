@@ -153,7 +153,6 @@ local images = {
 		replay = "pause-replay",
 		retry = "pause-retry",
 
-		judgeMarvelous = "mania-hit300g",
 		judgePerfect = "mania-hit300",
 		judgeGreat = "mania-hit200",
 		judgeGood = "mania-hit100",
@@ -377,6 +376,14 @@ function OsuAssets:resultView()
 	score_font_path = score_font_path:gsub("\\", "/")
 
 	self.imageFonts.scoreFont = self:getImageFont("score", score_font_path)
+
+	local marv = self.findImage("mania-hit300g-0", self.fileList) or self.findImage("mania-hit300g", self.fileList)
+
+	if marv then
+		self.images.judgeMarvelous = love.graphics.newImage(path_util.join(self.directory, marv))
+	else
+		self.images.judgeMarvelous = love.graphics.newImage(path_util.join(self.defaultsDirectory, "mania-hit300g@2x.png"))
+	end
 end
 
 ---@param filepath string

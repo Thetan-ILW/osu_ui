@@ -247,7 +247,7 @@ function ViewConfig:createUI(view)
 	retry_button = ImageButton(assets, {
 		idleImage = img.retry,
 		ox = 1,
-		hoverArea = { w = 411, h = 122 },
+		hoverArea = { w = 411, h = 95 },
 		clickSound = assets.sounds.menuHit,
 	}, function()
 		view:play("retry")
@@ -744,7 +744,6 @@ function ViewConfig:draw(view)
 		return
 	end
 
-	gfx.translate(0, scroll)
 	gfx.push()
 	self:panel()
 	rightSideButtons(view)
@@ -757,11 +756,13 @@ function ViewConfig:draw(view)
 
 	self:title(view)
 
+	local w, h = Layout:move("base")
+	gfx.setColor(1, 1, 1)
+	gfx.rectangle("fill", w - 13, 99, 10, 330)
+
 	if show_pp then
 		local w, h = gfx.getDimensions()
 		gfx.origin()
-
-		gfx.setColor({ 1, 1, 1, 1 })
 		gfx.setFont(font.pp)
 		ui.frame(ppFormatted, -10, 0, w, h, "right", "bottom")
 	end
