@@ -612,10 +612,8 @@ local function hitGraph(view)
 		HitGraph.missGraph.game = view.game
 		HitGraph.missGraph:draw(w, h - 3)
 	else
-		h = h * 0.86
-		gfx.translate(2, 6)
-		HitGraph.hpGraph.game = view.game
-		HitGraph.hpGraph:draw(w, h)
+		gfx.translate(9, 9)
+		view.hpGraph:draw()
 	end
 
 	if just.is_over(w, h) then

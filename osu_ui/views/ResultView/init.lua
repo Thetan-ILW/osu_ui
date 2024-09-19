@@ -5,6 +5,7 @@ local OsuLayout = require("osu_ui.views.OsuLayout")
 local ViewConfig = require("osu_ui.views.ResultView.ViewConfig")
 local GaussianBlurView = require("sphere.views.GaussianBlurView")
 local BackgroundView = require("sphere.views.BackgroundView")
+local HpGraph = require("osu_ui.views.ResultView.HpGraph")
 
 local InputMap = require("osu_ui.views.ResultView.InputMap")
 local actions = require("osu_ui.actions")
@@ -59,6 +60,11 @@ ResultView.load = thread.coro(function(self)
 
 	self:setJudge()
 	self.viewConfig:loadScore(self)
+
+	self.hpGraph = HpGraph(300, 135,
+		self.game.rhythmModel.scoreEngine.scoreSystem.sequence,
+		self.game.rhythmModel.scoreEngine.scoreSystem.hp
+	)
 
 	canDraw = true
 	loading = false
@@ -126,8 +132,6 @@ end
 function ResultView:resolutionUpdated()
 	self.viewConfig:resolutionUpdated(self)
 end
-
-local gfx = love.graphics
 
 function ResultView:draw()
 	if not self.viewConfig then
