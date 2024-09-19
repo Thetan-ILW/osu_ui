@@ -200,7 +200,6 @@ function WindowListView:keyScroll(delta, target)
 		self.smoothScroll = self.smoothScroll - (prev_child_item_count - 1)
 		self.scroll = self:getSelectedItemIndex() - self.windowSize / 2
 
-		self:loadChildItems()
 		self:followSelection()
 	else
 		self:selectChildItem(self:getChildSelectedItemIndex() + delta)
@@ -291,7 +290,7 @@ function WindowListView:update(dt)
 		end
 	end
 
-	if love.mouse.isDown(2) then
+	if love.mouse.isDown(2) and self.focus then
 		local set_items_count = self:getChildItemsCount() - 1
 		local item_count = self.maxScroll + set_items_count
 

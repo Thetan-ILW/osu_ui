@@ -22,7 +22,6 @@ local Combo = require("osu_ui.ui.Combo")
 local BackButton = require("osu_ui.ui.BackButton")
 local HoverState = require("osu_ui.ui.HoverState")
 
-local CollectionListView = require("osu_ui.views.SelectView.CollectionListView")
 local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
 
 ---@type table<string, string>
@@ -64,7 +63,6 @@ local scroll_speed_str = ""
 local mods_str = ""
 local current_time = 0
 local update_time = 0
-local chart_list_update_time = 0
 local has_scores = false
 local online_scores = false
 local beat = 0
@@ -73,8 +71,6 @@ local beat = 0
 local selected_mode = "mania"
 ---@type {[string]: love.Image}
 local small_icons
-
-local search = ""
 
 local pp = 0
 local accuracy = 0
@@ -274,7 +270,6 @@ function ViewConfig:new(view, assets)
 
 	setFormat()
 
-	self.collectionListView = CollectionListView(game, assets)
 	self.scoreListView = ScoreListView(game, assets)
 
 	Layout:draw()
@@ -284,7 +279,6 @@ function ViewConfig:new(view, assets)
 
 	local select = view.game.configModel.configs.select
 	online_scores = select.scoreSourceName == "online"
-	search = select.filterString
 
 	local w, h = Layout:move("base")
 	top_panel_quad = gfx.newQuad(0, 0, w, img.panelTop:getHeight(), img.panelTop)
@@ -345,7 +339,6 @@ function ViewConfig:updateInfo(view)
 	local gameplay = view.game.configModel.configs.settings.gameplay
 	scroll_speed_str = ("%g (fixed)"):format(speed_model.format[gameplay.speedType]:format(speed_model:get()))
 
-	self.collectionListView:reloadItems()
 	self.scoreListView:reloadItems()
 
 	has_scores = #view.game.selectModel.scoreLibrary.items ~= 0
@@ -420,7 +413,7 @@ function ViewConfig:chartInfo()
 	gfx.setColor({ 1, 1, 1, a })
 	gfx.translate(0, 1)
 	gfx.setFont(font.infoCenter)
-	ui.text(text.chartInfoSecondRow:format(note_count_str, ln_count_str, ""))
+	ui.text(text.chartInfoSecondRow:format(note_count_str, ln_count_str, "0"))
 
 	a = animate(update_time, 0.5)
 	gfx.translate(0, -2)

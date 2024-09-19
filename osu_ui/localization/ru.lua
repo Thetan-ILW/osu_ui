@@ -5,6 +5,7 @@ l.textGroups = {
 		chartCount = "Доступно %i карт.",
 		sessionTime = "Время работы игры %s",
 		time = "Текущее время %s",
+		supporter = "Они следят за тобой."
 	},
 	songSelect = {
 		mappedBy = "Карта от %s",

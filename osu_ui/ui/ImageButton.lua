@@ -27,7 +27,7 @@ local ui = require("osu_ui.ui")
 local ImageButton = UiElement + {}
 
 ---@param assets osu.ui.OsuAssets
----@param params { idleImage: love.Image, animationImage: love.Image[], framerate: number?, hoverImage: love.Image?, ox:number?, oy: number?, hoverArea: {w: number, h: number}, hoverSound: audio.Source?, clickSound: audio.Source?}
+---@param params { idleImage: love.Image, animationImage: love.Image[], framerate: number?, hoverImage: love.Image?, ox:number?, oy: number?, hoverArea: {w: number, h: number}, hoverSound: audio.Source?, clickSound: audio.Source? }
 ---@param on_click function
 function ImageButton:new(assets, params, on_click)
 	self.assets = assets

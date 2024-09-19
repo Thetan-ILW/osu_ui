@@ -14,16 +14,18 @@ local ChartListView = WindowListView + {}
 function ChartListView:new(game, assets)
 	self.game = game
 	self.assets = assets
+	self.config = self.game.configModel.configs.osu_ui
 	self.itemClass = ChartListItem
 
 	self.creationTime = love.timer.getTime()
 	self.unwrapStartTime = -math.huge
 	self.nextAutoScrollTime = 0
+	self.previewIcon = false
 
 	self.mouseAllowedArea = {
 		w = 908,
 		h = 598,
-		x = 460,
+		x = 502,
 		y = 82,
 	}
 
@@ -91,6 +93,8 @@ function ChartListView:update(dt)
 	WindowListView.update(self, dt)
 	self:iterOverWindow(ChartListItem.applySetEffects, dt)
 	self.mouseOverIndex = -1
+
+	self.previewIcon = self.config.songSelect.previewIcon
 end
 
 local gfx = love.graphics

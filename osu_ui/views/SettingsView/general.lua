@@ -109,7 +109,7 @@ return function(assets, view)
 	Elements.sliderPixelWidth = 265
 
 	local background_params = { min = 0, max = 1, increment = 0.01 }
-	slider(text.backgroundDim, 0.2, nil, function()
+	slider(text.backgroundDim, 0.35, nil, function()
 		return dim.select, background_params
 	end, function(v)
 		dim.select = v
@@ -146,7 +146,7 @@ return function(assets, view)
 	c:createGroup("result", text.resultScreen)
 	Elements.currentGroup = "result"
 
-	slider(text.backgroundDim, 0.2, nil, function()
+	slider(text.backgroundDim, 0.35, nil, function()
 		return dim.result, background_params
 	end, function(v)
 		dim.result = v
@@ -158,6 +158,12 @@ return function(assets, view)
 		return blur.result, blur_params
 	end, function(v)
 		blur.result = v
+	end)
+
+	checkbox(text.showDifficultyAndRate, true, nil, function()
+		return osu.result.difficultyAndRate
+	end, function()
+		osu.result.difficultyAndRate = not osu.result.difficultyAndRate
 	end)
 
 	checkbox(text.showHitGraph, false, nil, function()

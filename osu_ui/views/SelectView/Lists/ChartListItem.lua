@@ -1,6 +1,7 @@
 local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
 
 local ui = require("osu_ui.ui")
+local math_util = require("math_util")
 local Format = require("sphere.views.Format")
 
 ---@class osu.ui.WindowListChartItem : osu.ui.WindowListItem
@@ -98,14 +99,13 @@ end
 local gfx = love.graphics
 
 function ChartItem:drawChartPanel(list, panel_color, text_color)
-	local x, y = self.x, self.y
-
 	gfx.push()
 	gfx.setColor(panel_color)
 	gfx.draw(list.panelImage, 0, 52, 0, 1, 1, 0, list.panelImage:getHeight() / 2)
 
+	local preview_icon_w = list.previewIcon and 115 or 0
 	gfx.setColor(text_color)
-	gfx.translate(20, 12)
+	gfx.translate(20 + preview_icon_w, 12)
 	gfx.draw(list.maniaIcon)
 
 	gfx.translate(40, -4)
@@ -120,22 +120,25 @@ function ChartItem:drawChartPanel(list, panel_color, text_color)
 	ui.text(self.thirdRow)
 	gfx.pop()
 
-	local iw, ih = list.starImage:getDimensions()
+	local star = list.starImage
+	local iw, ih = star:getDimensions()
 
-	gfx.translate(60, ListItem.panelH + 6)
-	gfx.scale(0.6)
+	gfx.translate(80 + preview_icon_w, ListItem.panelH - 10)
 
-	for si = 1, 10, 1 do
+	for si = 0, 10, 1 do
 		if si >= self.stars then
-			gfx.setColor(1, 1, 1, 0.3)
+			return
 		end
 
-		gfx.draw(list.starImage, 0, 0, 0, 1, 1, 0, ih)
-		gfx.translate(iw, 0)
+		local scale = math_util.clamp(self.stars - si, 0.3, 1) * 0.6
+
+		gfx.draw(star, 0, 0, 0, scale, scale, iw / 2, ih / 2)
+		gfx.translate(iw * 0.6, 0)
 		gfx.setColor(text_color)
 	end
 end
 
+---@param list osu.ui.ChartSetListView | osu.ui.ChartListView
 function ChartItem:draw(list)
 	local inactive_panel = ChartItem.inactivePanel
 	local inactive_chart = ChartItem.InactiveChart

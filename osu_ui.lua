@@ -12,6 +12,7 @@ local t = {
 	result = {
 		hitGraph = false,
 		pp = false,
+		difficultyAndRate = true,
 	},
 	uiVolume = 0.4,
 	vimMotions = false,
