@@ -72,7 +72,10 @@ end
 
 function Assets:setFileList()
 	self.fileList = {}
-	self.populateFileList(self.fileList, self.directory)
+
+	if self.directory ~= "" then
+		self.populateFileList(self.fileList, self.directory)
+	end
 
 	if not self.defaultsDirectory then
 		return

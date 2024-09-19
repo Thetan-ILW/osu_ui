@@ -337,7 +337,7 @@ function ViewConfig:footer()
 	gfx.setColor(1, 1, 1)
 
 	if ui.isOver(iw, ih, w - iw, h - ih) then
-		ui.tooltip = "Thanks for playing soundsphere xd"
+		ui.tooltip = text.supporter
 	end
 
 	gfx.translate(0, 658)

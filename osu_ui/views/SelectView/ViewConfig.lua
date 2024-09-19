@@ -413,7 +413,7 @@ function ViewConfig:chartInfo()
 	gfx.setColor({ 1, 1, 1, a })
 	gfx.translate(0, 1)
 	gfx.setFont(font.infoCenter)
-	ui.text(text.chartInfoSecondRow:format(note_count_str, ln_count_str, ""))
+	ui.text(text.chartInfoSecondRow:format(note_count_str, ln_count_str, "0"))
 
 	a = animate(update_time, 0.5)
 	gfx.translate(0, -2)

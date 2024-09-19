@@ -2,10 +2,10 @@ local l = {}
 
 l.textGroups = {
 	mainMenu = {
-		chartCount = "You have %i charts available!",
-		sessionTime = "Game has been running for %s",
+		chartCount = "You have %i beatmaps available!",
+		sessionTime = "osu! has been running for %s",
 		time = "It is currently %s",
-		supporter = "Thank you for playing soundsphere!"
+		supporter = "You are a supporter.\nThanks for your generosity!"
 	},
 	settings = {
 		-------------- General
@@ -18,15 +18,15 @@ l.textGroups = {
 		updates = "UPDATES",
 		autoUpdate = "Update game automatically",
 		gitVersion = "Git version of the game.",
-		upToDate = "Your soundsphere is up-to-date!",
-		notUpToDate = "Cannot tell if the game is up to date.",
-		openSoundsphereFolder = "Open soundsphere folder",
+		upToDate = "Your osu! is up-to-date!",
+		notUpToDate = "Cannot tell if osu! is up to date.",
+		openSoundsphereFolder = "Open osu! folder",
 		--- Song select
 		songSelect = "SONG SELECT",
 		difficultyCalculator = "Difficulty calculator:",
-		vimMotions = "Vim motions (ONLY FOR EXPERTS)",
-		previewIcon = "Preview icon (Only shifts text)",
-		chartPreview = "Chart preview",
+		vimMotions = "Nerd motions (ONLY FOR EXPERTS)",
+		previewIcon = "Preview icon",
+		chartPreview = "Beatmap preview",
 		backgroundDim = "Background dim:",
 		backgroundBlur = "Background blur:",
 		-------------- Graphics
@@ -112,7 +112,7 @@ l.textGroups = {
 		-- Offset adjustment
 		offsetAdjustment = "OFFSET ADJUSTMENT",
 		universalOffset = "Universal offset:",
-		chartFormatOffsets = "OFFSET ADJUSTMENT FOR CHART FORMATS",
+		chartFormatOffsets = "OFFSET ADJUSTMENT FOR BEATMAP FORMATS",
 		-------------- Skin
 		skin = "SKIN",
 		-- Skin
@@ -121,7 +121,7 @@ l.textGroups = {
 		openSkinSettings = "Open skin settings",
 		openCurrentSkinFolder = "Open current skin folder",
 		lnShortening = "LN shortening:",
-		resultScreen = "RESULT SCREEN",
+		resultScreen = "RANKING",
 		showHitGraph = "Show hit graph",
 		showPP = "Show PP",
 		-- Camera
@@ -144,8 +144,8 @@ l.textGroups = {
 		other = "OTHER",
 		threadedInput = "Threaded input",
 		threadedInputTip = "Your inputs will be processed in a separate thread, FPS will have no effect on the timings.",
-		taikoNoteHandler = "2K VSRG as Taiko charts",
-		taikoNoteHandlerTip = "Toggle to play taiko charts.",
+		taikoNoteHandler = "2K osu!mania as taiko",
+		taikoNoteHandlerTip = "Toggle to play taiko beatmaps.",
 		-------------- MAINTENANCE
 		maintenance = "MAINTENANCE",
 	},
@@ -154,7 +154,7 @@ l.textGroups = {
 		from = "From %s",
 		chartInfoFirstRow = "Length: %s BPM: %s Objects: %s",
 		chartInfoSecondRow = "Circles: %s Sliders: %s Spinners: %s",
-		chartInfoThirdRow = "Keys: %s OD: %s HP: %s Star rating: %s",
+		chartInfoThirdRow = "Keys:%s OD:%s HP:%s Star rating: %s",
 		--
 		localRanking = "Local ranking",
 		onlineRankin = "Online ranking",
@@ -168,7 +168,7 @@ l.textGroups = {
 		--
 		group = "Group",
 		sort = "Sort",
-		byCharts = "By Charts",
+		byCharts = "By Beatmaps",
 		byLocations = "By Locations",
 		byDirectories = "By Directories",
 		byId = "By ID",
@@ -193,7 +193,7 @@ l.textGroups = {
 		hasMods = "Has mods",
 	},
 	chartOptionsModal = {
-		title = "%s\nWhat do you want to do with this chart?",
+		title = "%s\nWhat do you want to do with this beatmap?",
 		manageLocations = "1. Manage locations",
 		exportToOsu = "2. Export to .osu",
 		filters = "3. Filters",
@@ -207,7 +207,7 @@ l.textGroups = {
 		close = "2. Close",
 	},
 	filtersModal = {
-		title = "Filters allow you to... idk... hide charts you do not want to play. (Change later)",
+		title = "Filters allow you to... idk... hide beatmaps you do not want to play. (Change later)",
 		reset = "1. Reset all filters",
 		close = "2. Close",
 		["original input mode"] = "Mode",
@@ -228,8 +228,8 @@ l.textGroups = {
 		title = "Press the key/button on your keyboard/joystick for the corresponding column. Hit ESC to go back.",
 	},
 	result = {
-		chartBy = "Chart by %s",
-		chartFrom = "Chart from %s",
+		chartBy = "Beatmap by %s",
+		chartFrom = "Beatmap from %s",
 		playedBy = "Played by %s on %s",
 		mean = "Mean: %s",
 		maxError = "Max error: %s",
@@ -238,10 +238,10 @@ l.textGroups = {
 		guest = "Guest",
 	},
 	uiLock = {
-		processingCharts = "Processing charts...",
+		processingCharts = "Processing beatmaps...",
 		path = "Path",
 		chartsFound = "Processed / Found",
-		chartsCached = "Charts cached",
+		chartsCached = "Beatmaps cached",
 	},
 	gameTips = {
 		handStrain = "Don't strain your hands while you play, even if the parts are really hard.",

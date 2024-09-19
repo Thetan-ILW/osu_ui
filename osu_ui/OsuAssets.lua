@@ -234,7 +234,7 @@ end
 ---@return love.Image
 function OsuAssets:loadAvatar()
 	local file_list = {}
-	self.populateFileList(file_list, "userdata")
+	self.populateFileList(file_list, "userdata", "", 5)
 
 	local avatar = self.findImage("avatar", file_list)
 

@@ -32,6 +32,7 @@ function ViewConfig:new(game, this_modal, assets)
 	self.thisModal = this_modal
 	self.openAnimation = 0
 	self.openAnimationTween = flux.to(self, 2, { openAnimation = 1 }):ease("elasticout")
+	self.text = assets.localization.textGroups.chartOptionsModal
 end
 
 local btn_width = 737
@@ -134,7 +135,7 @@ function ViewConfig:draw(view)
 		chart_name = string.format("%s - %s [%s]", chartview.artist, chartview.title, chartview.name)
 	end
 
-	ui.text(("%s\nWhat do you want to do with this chart?"):format(chart_name))
+	ui.text(self.text.title:format(chart_name))
 
 	gfx.pop()
 
