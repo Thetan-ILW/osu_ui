@@ -72,7 +72,17 @@ local back_image_button
 ---@type osu.ui.BackButton
 local back_button
 ---@type osu.ui.ImageButton
+local retry_button
+---@type osu.ui.ImageButton
 local replay_button
+
+---@type osu.ui.ImageButton
+local show_chat_button
+---@type osu.ui.ImageButton
+local show_player_button
+
+---@type osu.ui.ImageButton
+local online_ranking_button
 
 local scroll = 0
 
@@ -232,6 +242,15 @@ function ViewConfig:createUI(view)
 		end)
 	end
 
+	retry_button = ImageButton(assets, {
+		idleImage = img.retry,
+		ox = 1,
+		hoverArea = { w = 411, h = 122 },
+		clickSound = assets.sounds.menuHit,
+	}, function()
+		view:play("retry")
+	end)
+
 	replay_button = ImageButton(assets, {
 		idleImage = img.replay,
 		ox = 1,
@@ -239,6 +258,33 @@ function ViewConfig:createUI(view)
 		clickSound = assets.sounds.menuHit,
 	}, function()
 		view:play("replay")
+	end)
+
+	show_chat_button = ImageButton(assets, {
+		idleImage = img.overlayChat,
+		ox = 1,
+		oy = 1,
+		hoverArea = { w = 89, h = 22 },
+	}, function ()
+		view.notificationView:show("Not implemented")
+	end)
+
+	show_player_button = ImageButton(assets, {
+		idleImage = img.overlayOnline,
+		ox = 1,
+		oy = 1,
+		hoverArea = { w = 89, h = 22 },
+	}, function ()
+		view.notificationView:show("Not implemented")
+	end)
+
+	online_ranking_button = ImageButton(assets, {
+		idleImage = img.onlineRanking,
+		ox = 0.5,
+		oy = 1,
+		hoverArea = { w = 621, h = 77 },
+	}, function ()
+		view.notificationView:show("Not implemented")
 	end)
 end
 
@@ -315,7 +361,7 @@ function ViewConfig:loadScore(view)
 
 	timeRate = view.game.playContext.rate
 
-	timeFormatted = os.date("%c", view.game.selectModel.scoreItem.time)
+	timeFormatted = os.date("%d/%m/%Y %H:%M:%S.", view.game.selectModel.scoreItem.time)
 	setDirectory = chartview.set_dir
 	creator = chartview.creator
 
@@ -578,6 +624,7 @@ function ViewConfig:grade()
 	overlay_rotation = (overlay_rotation + love.timer.getDelta() * 0.5) % (math.pi * 2)
 
 	local additional_s = (1 - self.scoreReveal) * 0.2
+	gfx.setColor(1, 1, 1, self.scoreReveal)
 	gfx.draw(overlay, w - 200, 320, overlay_rotation, 1, 1, ow / 2, oh / 2)
 	gfx.draw(image, w - 192, 320, 0, 1 + additional_s, 1 + additional_s, iw / 2, ih / 2)
 end
@@ -585,9 +632,14 @@ end
 local function rightSideButtons(view)
 	local w, h = Layout:move("base")
 
-	local iw, ih = replay_button:getDimensions()
 	gfx.translate(w, 515)
 
+	retry_button.alpha = 0.5
+	retry_button:update(true)
+	retry_button:draw()
+
+	gfx.translate(0, 96)
+	replay_button.alpha = 0.5
 	replay_button:update(true)
 	replay_button:draw()
 end
@@ -655,6 +707,25 @@ local function mods()
 	end
 end
 
+local function fakeButtons()
+	local w, h = Layout:move("base")
+
+	gfx.push()
+	gfx.translate(w - 3, h + 1)
+	show_chat_button:update(true)
+	show_chat_button:draw()
+
+	gfx.translate(-96, 0)
+	show_player_button.alpha = 0.5
+	show_player_button:update(true)
+	show_player_button:draw()
+	gfx.pop()
+
+	gfx.translate(w / 2, h)
+	online_ranking_button:update(true)
+	online_ranking_button:draw()
+end
+
 ---@param view osu.ui.ResultView
 function ViewConfig:resolutionUpdated(view)
 	self:createUI(view)
@@ -673,8 +744,8 @@ function ViewConfig:draw(view)
 	self:grade()
 	backButton(view)
 	mods()
-
 	hitGraph(view)
+	fakeButtons()
 	gfx.pop()
 
 	self:title(view)

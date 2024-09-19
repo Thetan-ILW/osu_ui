@@ -59,11 +59,15 @@ function HpGraph:new(w, h, points, hp_score_system)
 			})
 		end
 	end
+
+	self.startTime = love.timer.getTime()
 end
 
 local gfx = love.graphics
 
 function HpGraph:draw()
+	local start_time = self.startTime
+
 	gfx.setLineWidth(4)
 	gfx.setLineStyle("smooth")
 
@@ -74,7 +78,7 @@ function HpGraph:draw()
 	for _, v in ipairs(self.lines) do
 		gfx.setColor(colors[v.color])
 		gfx.line(v.p1.x, v.p1.y, v.p2.x, v.p2.y)
-		gfx.circle("fill", v.p2.x, v.p2.y, 1.5)
+		gfx.circle("fill", v.p2.x, v.p2.y, 2)
 	end
 end
 

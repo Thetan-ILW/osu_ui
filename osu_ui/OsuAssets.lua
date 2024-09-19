@@ -71,6 +71,10 @@ local images = {
 
 		noSkinPreview = "no-skin-preview",
 		inputsArrow = "inputs-arrow",
+
+		overlayOnline = "overlay-online",
+		overlayChat = "overlay-show",
+		onlineRanking = "ranking-online",
 	},
 	mainMenuView = {
 		welcomeText = "welcome_text",
@@ -147,6 +151,7 @@ local images = {
 		maxCombo = "ranking-maxcombo",
 		accuracy = "ranking-accuracy",
 		replay = "pause-replay",
+		retry = "pause-retry",
 
 		judgeMarvelous = "mania-hit300g",
 		judgePerfect = "mania-hit300",
