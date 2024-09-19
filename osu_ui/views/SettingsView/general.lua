@@ -160,6 +160,12 @@ return function(assets, view)
 		blur.result = v
 	end)
 
+	checkbox(text.showDifficultyAndRate, true, nil, function()
+		return osu.result.difficultyAndRate
+	end, function()
+		osu.result.difficultyAndRate = not osu.result.difficultyAndRate
+	end)
+
 	checkbox(text.showHitGraph, false, nil, function()
 		return osu.result.hitGraph
 	end, function()

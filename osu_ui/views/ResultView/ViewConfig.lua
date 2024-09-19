@@ -58,6 +58,7 @@ local grade = ""
 local tooltip = ""
 local show_hit_graph = false
 local show_pp = false
+local show_diff_and_rate  = false
 
 local ppFormatted = ""
 local username = ""
@@ -220,6 +221,7 @@ function ViewConfig:new(game, assets, after_gameplay, view)
 	local osu = configs.osu_ui
 	show_pp = osu.result.pp
 	show_hit_graph = osu.result.hitGraph
+	show_diff_and_rate = osu.result.difficultyAndRate
 
 	self:createUI(view)
 end
@@ -508,15 +510,20 @@ function ViewConfig:title(view)
 
 	local title = ("%s - %s"):format(chartview.artist, chartview.title)
 
-	if chartview.name and timeRate == 1 then
-		title = ("%s [%s]"):format(title, chartview.name)
-	elseif chartview.name and timeRate ~= 1 then
-		title = ("%s [%s %0.02fx]"):format(title, chartview.name, timeRate)
-	else
-		title = ("%s [%s %0.02fx]"):format(title, timeRate)
-	end
 
-	title = title .. " " .. difficultyFormatted
+	if show_diff_and_rate then
+		if chartview.name and timeRate == 1 then
+			title = ("%s [%s]"):format(title, chartview.name)
+		elseif chartview.name and timeRate ~= 1 then
+			title = ("%s [%s %0.02fx]"):format(title, chartview.name, timeRate)
+		else
+			title = ("%s [%s %0.02fx]"):format(title, timeRate)
+		end
+
+		title = title .. " " .. difficultyFormatted
+	else
+		title = ("%s [%s]"):format(title, chartview.name)
+	end
 
 	local second_row = text.chartFrom:format(setDirectory)
 

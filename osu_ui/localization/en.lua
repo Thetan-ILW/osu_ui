@@ -29,6 +29,11 @@ l.textGroups = {
 		chartPreview = "Chart preview",
 		backgroundDim = "Background dim:",
 		backgroundBlur = "Background blur:",
+		--- Result screen
+		resultScreen = "RESULT SCREEN",
+		showDifficultyAndRate = "Show difficulty and rate",
+		showHitGraph = "Show hit graph",
+		showPP = "Show PP",
 		-------------- Graphics
 		graphics = "GRAPHICS",
 		-- Renderer
@@ -121,9 +126,6 @@ l.textGroups = {
 		openSkinSettings = "Open skin settings",
 		openCurrentSkinFolder = "Open current skin folder",
 		lnShortening = "LN shortening:",
-		resultScreen = "RESULT SCREEN",
-		showHitGraph = "Show hit graph",
-		showPP = "Show PP",
 		-- Camera
 		camera = "3D CAMERA",
 		cameraControls = "Controls:\nF9 - enter camera mode.\nF10 - reset\nWASD - forward/left/right/back.\nSHIFT/SPACE - up/down.\nLeft mouse button - rotate",
