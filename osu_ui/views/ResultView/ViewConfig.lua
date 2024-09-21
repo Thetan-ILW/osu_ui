@@ -398,7 +398,7 @@ function ViewConfig:loadScore(view)
 		od = 9
 	end
 
-	ppFormatted = ("%i PP"):format(getPP(judge.notes, chartview.osu_diff * timeRate, od, score_num))
+	ppFormatted = ("%i PP"):format(getPP(judge.notes, chartdiff.osu_diff * timeRate, od, score_num))
 
 	local playContext = view.game.playContext
 	local timings = playContext.timings
@@ -509,7 +509,6 @@ function ViewConfig:title(view)
 	end
 
 	local title = ("%s - %s"):format(chartview.artist, chartview.title)
-
 
 	if show_diff_and_rate then
 		if chartview.name and timeRate == 1 then
@@ -764,7 +763,7 @@ function ViewConfig:draw(view)
 		local w, h = gfx.getDimensions()
 		gfx.origin()
 		gfx.setFont(font.pp)
-		ui.frame(ppFormatted, -10, 0, w, h, "right", "bottom")
+		ui.frame(ppFormatted, -10, -30, w, h, "right", "bottom")
 	end
 end
 

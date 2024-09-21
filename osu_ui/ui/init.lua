@@ -5,7 +5,7 @@ local ScrollBar = require("aqua.imgui.ScrollBar")
 
 local ui = {}
 
-local shadow = { 0, 0, 0, 0.7 }
+local shadow = { 0.078, 0.078, 0.078, 0.64 }
 
 ui.inputMode = "keyboard"
 ui.getCanvas = gfx_util.getCanvas
@@ -110,9 +110,11 @@ function ui.frameWithShadow(text, x, y, w, h, ax, ay)
 	ui.frame(text, x, y + 2, w, h, ax, ay)
 	gfx.pop()
 
-	gfx.setColor({ r, g, b, a })
+	gfx.setColor(r, g, b, a)
 	ui.frame(text, x, y, w, h, ax, ay)
 end
+
+local shadow_offset = 0.4
 
 ---@param img love.Text
 ---@param x number
@@ -126,10 +128,14 @@ function ui.textFrameShadow(img, x, y, w, h, ax, ay)
 
 	gfx.push()
 	gfx.setColor(shadow)
-	ui.textFrame(img, x, y + 2, w, h, ax, ay)
+	ui.textFrame(img, x + shadow_offset, y + shadow_offset, w, h, ax, ay)
+	ui.textFrame(img, x - shadow_offset, y - shadow_offset, w, h, ax, ay)
+	ui.textFrame(img, x + shadow_offset, y - shadow_offset, w, h, ax, ay)
+	ui.textFrame(img, x - shadow_offset, y + shadow_offset, w, h, ax, ay)
 	gfx.pop()
 
-	gfx.setColor({ r, g, b, a })
+
+	gfx.setColor(r, g, b, a)
 	ui.textFrame(img, x, y, w, h, ax, ay)
 end
 

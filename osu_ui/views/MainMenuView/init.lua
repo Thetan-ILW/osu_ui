@@ -19,19 +19,22 @@ local MainMenuView = ScreenView + {}
 local show_intro = true
 
 function MainMenuView:load()
-	self.viewConfig = ViewConfig(self.game, self.assets)
-	self.inputMap = InputMap(self)
 	self.selectModel = self.game.selectModel
+	self.prevChartViewId = -1
+	self.game.selectController:load()
 
-	self.settingsView = SettingsView(self.assets, self.game, self.ui)
-
-	love.mouse.setVisible(false)
-
-	self.lastUserActionTime = love.timer.getTime()
 	self.afkPercent = 1
 	self.outroPercent = 0
 	self.introPercent = 0
 	self.state = show_intro and "intro" or "normal"
+
+	self.inputMap = InputMap(self)
+	self.settingsView = SettingsView(self.assets, self.game, self.ui)
+	self.viewConfig = ViewConfig(self, self.assets)
+
+	self.lastUserActionTime = love.timer.getTime()
+	love.mouse.setVisible(false)
+	actions.enable()
 
 	if show_intro then
 		local snd = self.assets.sounds
@@ -43,8 +46,6 @@ function MainMenuView:load()
 
 	self.introTween = flux.to(self, 2, { introPercent = 1 }):ease("linear")
 
-	self.prevChartViewId = -1
-	actions.enable()
 end
 
 function MainMenuView:beginUnload()
