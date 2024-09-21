@@ -285,13 +285,16 @@ function ViewConfig:header(view)
 
 	gfx.push()
 
+	local preview_model = view.game.previewModel
 	---@type audio.bass.BassSource
-	local audio = view.game.previewModel.audio
+	local audio = preview_model.audio
 
 	gfx.translate(w - 32, 36)
 
 	self:button(img.musicList)
 	self:button(img.musicInfo)
+
+	local start_music = false
 
 	if self:button(img.musicForwards) then
 		view.game.selectModel:scrollNoteChartSet(1)
@@ -299,17 +302,26 @@ function ViewConfig:header(view)
 	end
 
 	if self:button(img.musicToStart) then
-		audio:setPosition(0)
+		if not audio then
+			start_music = true
+		else
+			audio:setPosition(0)
+		end
 		view.notificationView:show("Stop playing")
 	end
 
 	if self:button(img.musicPause) then
-		audio:pause()
+		view.game.previewModel:stop()
 		view.notificationView:show("Pause")
+		return
 	end
 
 	if self:button(img.musicPlay) then
-		audio:play()
+		if not audio then
+			start_music = true
+		else
+			audio:play()
+		end
 		view.notificationView:show("Play")
 	end
 
@@ -317,6 +329,11 @@ function ViewConfig:header(view)
 		view.game.selectModel:scrollNoteChartSet(-1)
 		view.notificationView:show("<< Prev")
 	end
+
+	if start_music then
+		preview_model:loadPreview()
+	end
+
 	gfx.setColor(1, 1, 1)
 
 	gfx.pop()

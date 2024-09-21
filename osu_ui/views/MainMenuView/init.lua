@@ -45,7 +45,6 @@ function MainMenuView:load()
 	end
 
 	self.introTween = flux.to(self, 2, { introPercent = 1 }):ease("linear")
-
 end
 
 function MainMenuView:beginUnload()
