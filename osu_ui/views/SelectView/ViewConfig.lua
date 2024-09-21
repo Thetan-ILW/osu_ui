@@ -288,7 +288,7 @@ function ViewConfig:new(view, assets)
 	self:createUI(view)
 end
 
-function ViewConfig:updateInfo(view)
+function ViewConfig:updateInfo(view, chart_changed)
 	local chartview = view.game.selectModel.chartview
 	---@type number
 	local rate = view.game.playContext.rate
@@ -346,13 +346,10 @@ function ViewConfig:updateInfo(view)
 
 	has_scores = #view.game.selectModel.scoreLibrary.items ~= 0
 
-	if prev_chart_id ~= chartview.id then
+	if chart_changed then
 		update_time = current_time
 		self.scoreListView.scoreUpdateTime = love.timer.getTime()
 	end
-
-	---@type number
-	prev_chart_id = chartview.id
 
 	local profile = view.ui.playerProfile
 
