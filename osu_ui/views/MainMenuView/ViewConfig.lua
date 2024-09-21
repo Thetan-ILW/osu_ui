@@ -34,6 +34,9 @@ local snd
 
 local pp = 0
 local accuracy = 0
+local level = 0
+local level_percent = 0
+local rank = 0
 local username = ""
 local chart_count = 0
 local beat = 0
@@ -54,18 +57,25 @@ local gfx = love.graphics
 local smoothed_fft = {}
 local smoothing_factor = 0.2
 
----@param game sphere.GameController
+---@param game osu.ui.MainMenuView
 ---@param assets osu.OsuAssets
-function ViewConfig:new(game, assets)
+function ViewConfig:new(view, assets)
 	self.assets = assets
 	img = assets.images
 	snd = assets.sounds
 	text, font = assets.localization:get("mainMenu")
 	assert(font)
 
-	username = game.configModel.configs.online.user.name or "Guest"
+	username = view.game.configModel.configs.online.user.name or "Guest"
 
-	chart_count = #game.selectModel.noteChartSetLibrary.items
+	local profile = view.ui.playerProfile
+	pp = profile.pp
+	accuracy = profile.accuracy
+	level = profile.osuLevel
+	level_percent = profile.osuLevelPercent
+	rank = profile.rank
+
+	chart_count = #view.game.selectModel.noteChartSetLibrary.items
 	update_time = math.huge
 	menu_state = "hidden"
 
@@ -218,8 +228,8 @@ function ViewConfig:header(view)
 	gfx.translate(6, 6)
 
 	gfx.setFont(font.rank)
-	gfx.setColor({ 1, 1, 1, 0.17 })
-	ui.frame("#69", -1, 10, 322, 78, "right", "top")
+	gfx.setColor( 1, 1, 1, 0.17)
+	ui.frame(("#%i"):format(rank), -1, 10, 322, 78, "right", "top")
 
 	local iw, ih = img.avatar:getDimensions()
 	gfx.setColor(1, 1, 1)
@@ -231,16 +241,23 @@ function ViewConfig:header(view)
 	ui.text(username)
 	gfx.setFont(font.belowUsername)
 
-	ui.text(("Performance: %ipp\nAccuracy: %0.02f%%\nLv10"):format(pp, accuracy * 100))
+	ui.text(("Performance: %ipp\nAccuracy: %0.02f%%\nLv%i"):format(pp, accuracy * 100, level))
 
 	gfx.translate(40, 26)
 
-	gfx.setColor({ 0.15, 0.15, 0.15, 1 })
-	gfx.rectangle("fill", 0, 0, 199, 12, 8, 8)
+	gfx.setColor(0.15, 0.15, 0.15, 1)
+	gfx.rectangle("fill", 0, 0, 197, 10, 8, 8)
 
 	gfx.setLineWidth(1)
-	gfx.setColor({ 0.4, 0.4, 0.4, 1 })
-	gfx.rectangle("line", 0, 0, 199, 12, 6, 6)
+
+	if level_percent > 0.03 then
+		gfx.setColor(0.83, 0.65, 0.17, 1)
+		gfx.rectangle("fill", 0, 0, 196 * level_percent, 10, 8, 8)
+		gfx.rectangle("line", 0, 1, 196 * level_percent, 8, 6, 6)
+	end
+
+	gfx.setColor(0.4, 0.4, 0.4, 1)
+	gfx.rectangle("line", 0, 0, 197, 10, 6, 6)
 	gfx.pop()
 
 	gfx.translate(338, 6)
@@ -268,13 +285,16 @@ function ViewConfig:header(view)
 
 	gfx.push()
 
+	local preview_model = view.game.previewModel
 	---@type audio.bass.BassSource
-	local audio = view.game.previewModel.audio
+	local audio = preview_model.audio
 
 	gfx.translate(w - 32, 36)
 
 	self:button(img.musicList)
 	self:button(img.musicInfo)
+
+	local start_music = false
 
 	if self:button(img.musicForwards) then
 		view.game.selectModel:scrollNoteChartSet(1)
@@ -282,17 +302,26 @@ function ViewConfig:header(view)
 	end
 
 	if self:button(img.musicToStart) then
-		audio:setPosition(0)
+		if not audio then
+			start_music = true
+		else
+			audio:setPosition(0)
+		end
 		view.notificationView:show("Stop playing")
 	end
 
 	if self:button(img.musicPause) then
-		audio:pause()
+		view.game.previewModel:stop()
 		view.notificationView:show("Pause")
+		return
 	end
 
 	if self:button(img.musicPlay) then
-		audio:play()
+		if not audio then
+			start_music = true
+		else
+			audio:play()
+		end
 		view.notificationView:show("Play")
 	end
 
@@ -300,6 +329,11 @@ function ViewConfig:header(view)
 		view.game.selectModel:scrollNoteChartSet(-1)
 		view.notificationView:show("<< Prev")
 	end
+
+	if start_music then
+		preview_model:loadPreview()
+	end
+
 	gfx.setColor(1, 1, 1)
 
 	gfx.pop()
@@ -727,7 +761,7 @@ function ViewConfig:resolutionUpdated()
 	self:createUiElements()
 end
 
----@param view osu.MainMenuView
+---@param view osu.ui.MainMenuView
 function ViewConfig:draw(view)
 	updateFft(view)
 

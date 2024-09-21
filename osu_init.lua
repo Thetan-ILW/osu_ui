@@ -25,9 +25,30 @@ function UserInterface:new(game, mount_path)
 	self.resultView = ResultView(game)
 	self.gameplayView = GameplayView(game)
 	self.editorView = EditorView(game)
+
+	self.game = game
+end
+
+function UserInterface:getMods()
+	local player_profile = self.game.playerProfileModel or {
+		pp = 0,
+		accuracy = 0,
+		osuLevel = 0,
+		osuLevelPercent = 0,
+		rank = 69,
+		getDanClears = function ()
+			return "-", "-"
+		end,
+		isDanIsCleared = function ()
+			return false, false
+		end
+	}
+
+	self.playerProfile = player_profile
 end
 
 function UserInterface:load()
+	self:getMods()
 	self.gameView:load()
 end
 

@@ -74,6 +74,9 @@ local small_icons
 
 local pp = 0
 local accuracy = 0
+local level = 0
+local level_percent = 0
+local rank = 0
 
 local white = { 1, 1, 1, 1 }
 
@@ -285,7 +288,7 @@ function ViewConfig:new(view, assets)
 	self:createUI(view)
 end
 
-function ViewConfig:updateInfo(view)
+function ViewConfig:updateInfo(view, chart_changed)
 	local chartview = view.game.selectModel.chartview
 	---@type number
 	local rate = view.game.playContext.rate
@@ -343,16 +346,28 @@ function ViewConfig:updateInfo(view)
 
 	has_scores = #view.game.selectModel.scoreLibrary.items ~= 0
 
-	if prev_chart_id ~= chartview.id then
+	if chart_changed then
 		update_time = current_time
 		self.scoreListView.scoreUpdateTime = love.timer.getTime()
 	end
 
-	---@type number
-	prev_chart_id = chartview.id
+	local profile = view.ui.playerProfile
 
-	pp = 0
-	accuracy = 0
+	pp = profile.pp
+	accuracy = profile.accuracy
+	level = profile.osuLevel
+	level_percent = profile.osuLevelPercent
+	rank = profile.rank
+
+	local regular, ln = profile:getDanClears(chartview.chartdiff_inputmode)
+
+	if regular ~= "-" or ln ~= "-" then
+		username = ("%s [%s/%s]"):format(username, regular, ln)
+	end
+
+	---@type string
+	local input_mode = view.game.selectController.state.inputMode
+	chart_is_dan, this_dan_cleared = profile:isDanIsCleared(chartview.hash, tostring(input_mode))
 end
 
 ---@param time number
@@ -383,7 +398,7 @@ function ViewConfig:chartInfo()
 
 	local a = animate(update_time, 0.2)
 
-	gfx.setColor({ 1, 1, 1, a })
+	gfx.setColor(1, 1, 1, a)
 
 	gfx.translate(5, 5)
 	gfx.draw(chart_is_dan and img.danIcon or img.rankedIcon)
@@ -406,18 +421,18 @@ function ViewConfig:chartInfo()
 
 	gfx.translate(5, 38)
 	a = animate(update_time, 0.3)
-	gfx.setColor({ 1, 1, 1, a })
+	gfx.setColor(1, 1, 1, a)
 	ui.text(text.chartInfoFirstRow:format(length_str, bpm_str, objects_str), w, "left")
 
 	a = animate(update_time, 0.4)
-	gfx.setColor({ 1, 1, 1, a })
+	gfx.setColor(1, 1, 1, a)
 	gfx.translate(0, 1)
 	gfx.setFont(font.infoCenter)
 	ui.text(text.chartInfoSecondRow:format(note_count_str, ln_count_str, "0"))
 
 	a = animate(update_time, 0.5)
 	gfx.translate(0, -2)
-	gfx.setColor({ 1, 1, 1, a })
+	gfx.setColor(1, 1, 1, a)
 	gfx.setFont(font.infoBottom)
 	ui.text(text.chartInfoThirdRow:format(columns_str, "8", "8", difficulty_str))
 end
@@ -536,28 +551,35 @@ function ViewConfig:bottom(view)
 
 	gfx.setFont(font.rank)
 	gfx.setColor({ 1, 1, 1, 0.17 })
-	ui.frame("#69", -1, 10, 322, 78, "right", "top")
+	ui.frame(("#%i"):format(rank), -1, 10, 322, 78, "right", "top")
 
 	iw, ih = avatar:getDimensions()
 	gfx.setColor(white)
 	gfx.draw(avatar, 0, 0, 0, 74 / iw, 74 / ih)
 
-	gfx.translate(80, -4)
+	gfx.translate(79, -4)
 
 	gfx.setFont(font.username)
 	ui.text(username)
 	gfx.setFont(font.belowUsername)
 
-	gfx.translate(0, 1)
-	ui.text(("Performance: %ipp\nAccuracy: %0.02f%%\nLv10"):format(pp, accuracy * 100))
+	gfx.translate(0, -1)
+	ui.text(("Performance: %ipp\nAccuracy: %0.02f%%\nLv%i"):format(pp, accuracy * 100, level))
 
 	gfx.translate(42, 27)
 
-	gfx.setColor({ 0.15, 0.15, 0.15, 1 })
+	gfx.setColor(0.15, 0.15, 0.15, 1)
 	gfx.rectangle("fill", 0, 0, 197, 10, 8, 8)
 
 	gfx.setLineWidth(1)
-	gfx.setColor({ 0.4, 0.4, 0.4, 1 })
+
+	if level_percent > 0.03 then
+		gfx.setColor(0.83, 0.65, 0.17, 1)
+		gfx.rectangle("fill", 0, 0, 196 * level_percent, 10, 8, 8)
+		gfx.rectangle("line", 0, 1, 196 * level_percent, 8, 6, 6)
+	end
+
+	gfx.setColor(0.4, 0.4, 0.4, 1)
 	gfx.rectangle("line", 0, 0, 197, 10, 6, 6)
 
 	w, h = Layout:move("base")

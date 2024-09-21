@@ -69,15 +69,13 @@ function SelectView:update(dt)
 
 	ui_lock = self.game.cacheModel.isProcessing
 
-	local chartview = self.selectModel.chartview
+	local chartview_i = self.selectModel.chartview_index
+	local chartview_set_i = self.selectModel.chartview_set_index
 
-	if chartview then
-		local chartview_id = self.selectModel.chartview.id
-
-		if chartview_id ~= self.prevChartViewId then
-			self:notechartChanged()
-			self.prevChartViewId = chartview_id
-		end
+	if chartview_i ~= self.prevChartViewIndex or chartview_set_i ~= self.prevChartViewSetIndex then
+		self.prevChartViewIndex = chartview_i
+		self.prevChartViewSetIndex = chartview_set_i
+		self:notechartChanged(true)
 	end
 
 	self.settingsView.modalActive = self.modal == nil
@@ -104,7 +102,7 @@ function SelectView:update(dt)
 end
 
 function SelectView:notechartChanged()
-	self.viewConfig:updateInfo(self)
+	self.viewConfig:updateInfo(self, true)
 end
 
 function SelectView:play()
