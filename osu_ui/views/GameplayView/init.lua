@@ -85,7 +85,6 @@ function GameplayView:draw()
 		self.sequenceView:draw()
 	end
 
-	Foreground(self)
 	just.container()
 
 	local state = self.game.pauseModel.state
