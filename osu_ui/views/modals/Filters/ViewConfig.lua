@@ -99,13 +99,14 @@ local gfx = love.graphics
 
 local simple_mode = {
 	["original input mode"] = true,
+	["actual input mode"] = true,
 	["format (used parser)"] = true,
 	["scratch"] = true,
 	["(not) played"] = true,
 }
 
 local icon_width = 64
-local icon_height = 58
+local icon_height = 42
 local icon_spacing = 28
 
 function ViewConfig:groups()

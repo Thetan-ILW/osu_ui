@@ -35,6 +35,7 @@ function GameView:new(game, game_ui)
 	self.popupView = PopupView()
 	self.tooltipView = TooltipView()
 	self.cursor = CursorView()
+	self.notificationModel = game.notificationModel
 	self.screenshotSaveLocation = love.filesystem.getSource() .. "/userdata/screenshots"
 end
 
@@ -177,6 +178,10 @@ function GameView:update(dt)
 	end
 
 	ui.setTextScale(math.min(768 / wh, 1))
+	OsuLayout:draw()
+
+	self:checkForNotifications()
+
 	self.tooltipView:update()
 	self.view:update(dt)
 	self.cursor:update(dt)
@@ -187,7 +192,6 @@ function GameView:update(dt)
 		end)
 	end
 
-	OsuLayout:draw()
 end
 
 function GameView:draw()
@@ -209,6 +213,28 @@ function GameView:draw()
 
 	if showTasks then
 		AsyncTasksView()
+	end
+end
+
+---@private
+function GameView:checkForNotifications()
+	local msg = self.notificationModel.message
+	if msg ~= "" then
+		if msg ~= self.prevNotification then
+			local first_char = msg:sub(1, 1)
+
+			if first_char == "$" then
+				self.popupView:add(msg:sub(2, #msg), "purple")
+			elseif first_char == "!" then
+				self.popupView:add(msg:sub(2, #msg), "error")
+			elseif first_char == "@" then
+				self.popupView:add(msg:sub(2, #msg), "orange")
+			else
+				self.notificationView:show(msg, true)
+			end
+
+			self.prevNotification = msg
+		end
 	end
 end
 

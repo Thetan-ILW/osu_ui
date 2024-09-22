@@ -66,8 +66,6 @@ end
 local gfx = love.graphics
 
 function HpGraph:draw()
-	local start_time = self.startTime
-
 	gfx.setLineWidth(4)
 	gfx.setLineStyle("smooth")
 
