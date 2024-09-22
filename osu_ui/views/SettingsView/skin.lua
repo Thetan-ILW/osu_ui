@@ -33,7 +33,7 @@ return function(assets, view, skin_preview)
 
 	local configs = view.game.configModel.configs
 	local settings = configs.settings
-	---@type osu.OsuConfig
+	---@type osu.ui.OsuConfig
 	local osu = configs.osu_ui
 	local g = settings.gameplay
 	local graphics = settings.graphics
@@ -97,6 +97,54 @@ return function(assets, view, skin_preview)
 		g.longNoteShortening = v / 1000
 	end, function(v)
 		return ("%ims"):format(v)
+	end)
+
+	c:createGroup("cursor", text.cursor)
+	Elements.currentGroup = "cursor"
+
+	local cursor_size_params = { min = 0.1, max = 2, increment = 0.01 }
+	local trail_density_params = { min = 1, max = 30, increment = 1 }
+	local trail_quality_params = { min = 10, max = 400, increment = 10 }
+	local trail_lifetime_params = { min = 1, max = 10, increment = 1 }
+
+	Elements.sliderPixelWidth = 290
+	slider(text.cursorSize, 1, nil, function ()
+		return osu.cursor.size, cursor_size_params
+	end, function (v)
+		osu.cursor.size = v
+	end)
+
+	slider(text.trailDensity, 10, nil, function ()
+		return osu.cursor.trailDensity, trail_density_params
+	end, function (v)
+		osu.cursor.trailDensity = v
+	end)
+
+	slider(text.trailQuality, 60, nil, function ()
+		return osu.cursor.trailMaxImages, trail_quality_params
+	end, function (v)
+		osu.cursor.trailMaxImages = v
+		view.ui.gameView.cursor:updateSpriteBatch()
+	end)
+
+	slider(text.trailLifetime, 7, nil, function ()
+		return osu.cursor.trailLifetime, trail_lifetime_params
+	end, function (v)
+		osu.cursor.trailLifetime = v
+	end)
+	Elements.sliderPixelWidth = nil
+
+	local trail_styles = { "Vanishing", "Shrinking" }
+	combo(text.trailStyle, "Vanishing", nil, function ()
+		return osu.cursor.trailStyle, trail_styles
+	end, function (v)
+		osu.cursor.trailStyle = v
+	end)
+
+	checkbox(text.showTrail, true, nil, function ()
+		return osu.cursor.showTrail
+	end, function ()
+		osu.cursor.showTrail = not osu.cursor.showTrail
 	end)
 
 	c:createGroup("camera", text.camera)

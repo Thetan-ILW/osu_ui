@@ -126,6 +126,16 @@ l.textGroups = {
 		openSkinSettings = "Open skin settings",
 		openCurrentSkinFolder = "Open current skin folder",
 		lnShortening = "LN shortening:",
+		--- Cursor
+		cursor = "CURSOR",
+		cursorSize = "Cursor size:",
+		showTrail = "Show trail",
+		trailDensity = "Trail density:",
+		trailQuality = "Trail quality:",
+		trailLifetime = "Trail lifetime:",
+		trailStyle = "Trail style",
+		vanishing = "Vanishing",
+		shrinking = "Shrinking",
 		-- Camera
 		camera = "3D CAMERA",
 		cameraControls = "Controls:\nF9 - enter camera mode.\nF10 - reset\nWASD - forward/left/right/back.\nSHIFT/SPACE - up/down.\nLeft mouse button - rotate",
