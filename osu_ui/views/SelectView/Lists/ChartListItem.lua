@@ -3,6 +3,7 @@ local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
 local ui = require("osu_ui.ui")
 local math_util = require("math_util")
 local Format = require("sphere.views.Format")
+local getModifierString = require("osu_ui.views.modifier_string")
 
 ---@class osu.ui.WindowListChartItem : osu.ui.WindowListItem
 ---@operator call: osu.ui.WindowListChartItem
@@ -32,7 +33,19 @@ function ChartItem:replaceWith(chart)
 		self.secondRow = ("%s // %s"):format(chart.artist, chart.creator)
 	end
 
-	self.thirdRow = ("%s (%s)"):format(chart.name, Format.inputMode(chart.inputmode))
+	local rate = chart.rate
+	local mods = getModifierString(chart.modifiers)
+
+	if rate ~= 1 then
+		self.thirdRow = ("%s %gx (%s)"):format(chart.name, rate, Format.inputMode(chart.inputmode))
+	elseif mods ~= "" then
+		self.thirdRow = ("%s (%s)%s"):format(chart.name, Format.inputMode(chart.inputmode), mods)
+	elseif rate ~= 1 and mods ~= "" then
+		self.thirdRow = ("%s %gx (%s)%s"):format(chart.name, rate, Format.inputMode(chart.inputmode), mods)
+	else
+		self.thirdRow = ("%s (%s)"):format(chart.name, Format.inputMode(chart.inputmode))
+	end
+
 	self.stars = math.min(chart.osu_diff or 0, 10)
 	self.isChart = false
 	self.chartIndex = -1
