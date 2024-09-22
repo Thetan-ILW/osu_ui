@@ -23,13 +23,20 @@ function ScreenView:new(game)
 end
 
 ---@param screenName string
-function ScreenView:changeScreen(screenName)
+---@param force boolean
+function ScreenView:changeScreen(screenName, force)
 	if self.modal then
 		self.modal.shouldClose = true
 	end
 
 	self:beginUnload()
-	self.gameView:setView(self.game.ui[screenName])
+
+	if force then
+		self.gameView:forceSetView(self.ui[screenName])
+		return
+	end
+
+	self.gameView:setView(self.ui[screenName])
 end
 
 ---@param modal osu.ui.Modal

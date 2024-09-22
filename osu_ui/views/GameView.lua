@@ -122,6 +122,26 @@ function GameView:setView(view)
 	end)
 end
 
+---@param view osu.ui.ScreenView
+function GameView:forceSetView(view)
+	view.ui = self.ui
+	view.gameView = self
+
+	if self.fadeTransition.coroutine then
+		self.fadeTransition.coroutine = nil
+	end
+
+	self.fadeTransition:transit(function()
+		if self.view then
+			self.view.changingScreen = true
+		end
+
+		view.changingScreen = false
+		self:_setView(view)
+		self.fadeTransition:transitAsync(0, 1)
+	end)
+end
+
 function GameView:reloadView()
 	self:setView(self.view)
 end

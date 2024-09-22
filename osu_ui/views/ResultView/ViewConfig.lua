@@ -333,7 +333,9 @@ function ViewConfig:scoreRevealAnimation()
 end
 
 function ViewConfig:stopAnimations()
-	self.scoreRevealTween:stop()
+	if self.scoreRevealTween then
+		self.scoreRevealTween:stop()
+	end
 	self.scoreReveal = 1
 	self:scoreRevealAnimation()
 end

@@ -59,7 +59,14 @@ ResultView.load = thread.coro(function(self)
 	self.viewConfig = ViewConfig(self.game, self.assets, is_after_gameplay, self)
 
 	self:setJudge()
-	self.viewConfig:loadScore(self)
+
+	local success, result = pcall(self.viewConfig.loadScore, self.viewConfig, self)
+
+	if not success then
+		print(result)
+		self.popupView:add("Failed to load the score.\nCheck the console for the details.", "error")
+		self:changeScreen("selectView", true)
+	end
 
 	self.hpGraph = HpGraph(300, 135,
 		self.game.rhythmModel.scoreEngine.scoreSystem.sequence,
