@@ -34,7 +34,8 @@ function GameView:new(game, game_ui)
 	self.notificationView = NotificationView()
 	self.popupView = PopupView()
 	self.tooltipView = TooltipView()
-	self.cursor = CursorView()
+	self.cursor = CursorView(self.game.persistence.configModel.configs.osu_ui)
+
 	self.notificationModel = game.notificationModel
 	self.screenshotSaveLocation = love.filesystem.getSource() .. "/userdata/screenshots"
 end

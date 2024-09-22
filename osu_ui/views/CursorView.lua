@@ -5,14 +5,32 @@ local class = require("class")
 ---@field alpha number
 local CursorView = class()
 
-function CursorView:new()
+---@param osu_config osu.ui.OsuConfig
+function CursorView:new(osu_config)
 	self.alpha = 1
+	self.config = osu_config.cursor
 end
 
 ---@param assets osu.ui.OsuAssets
 function CursorView:load(assets)
 	self.assets = assets
 	self.params = assets.params
+
+	self.lastX, self.lastY = love.mouse.getPosition()
+	self:updateSpriteBatch()
+end
+
+function CursorView:updateSpriteBatch()
+	self.trailImageCount = self.config.trailMaxImages
+	self.trailSpriteBatch = love.graphics.newSpriteBatch(self.assets.images.cursorTrail)
+
+	self.trailIndex = 1
+	self.trailData = {}
+
+	for i = 1, self.config.trailMaxImages do
+		self.trailSpriteBatch:add(-9999, -9999)
+		self.trailData[i] = { x = 0, y = 0, alpha = 0 }
+	end
 end
 
 local cursor_scale = 1
@@ -27,6 +45,60 @@ function CursorView:update(dt)
 		local add = love.mouse.isDown(1) and dt or -dt
 		cursor_scale = math.min(cursor_scale + add * 3, 1.25)
 		cursor_scale = math.max(cursor_scale, 1)
+	end
+
+	if self.alpha == 0 or not self.config.showTrail then
+		return
+	end
+
+	local cfg = self.config
+	local size = cfg.size
+
+	local trail = self.assets.images.cursorTrail
+	local tw, th = trail:getDimensions()
+	local txo, tyo = tw / 2, th / 2
+
+	local mx, my = love.mouse.getPosition()
+
+	local dx, dy = mx - self.lastX, my - self.lastY
+	local distance = math.sqrt(dx * dx + dy * dy)
+
+	local min_distance = 31 - cfg.trailDensity
+	local max_trail_images = cfg.trailMaxImages
+
+	if distance >= min_distance then
+		local steps = math.ceil(distance / min_distance)
+		local step_x, step_y = dx / steps, dy / steps
+
+		for i = 1, steps do
+			local x = self.lastX + step_x * i
+			local y = self.lastY + step_y * i
+			local data = self.trailData[self.trailIndex]
+			data.x = x
+			data.y = y
+			data.alpha = 1
+
+			self.trailSpriteBatch:set(self.trailIndex, x, y, 0, size, size, txo, tyo)
+			self.trailIndex = 1 + self.trailIndex % max_trail_images
+		end
+
+		self.lastX, self.lastY = mx, my
+	end
+
+	for i = 1, max_trail_images do
+		local data = self.trailData[i]
+		local age = (self.trailIndex - i - 1 + max_trail_images) % max_trail_images
+		local alpha = math.max(0, 1 - age / max_trail_images)
+
+		if self.config.trailStyle == "Vanishing" then
+			self.trailSpriteBatch:setColor(1, 1, 1, alpha * data.alpha)
+			self.trailSpriteBatch:set(i, data.x, data.y, 0, size, size, txo, tyo)
+		else
+			self.trailSpriteBatch:setColor(1, 1, 1, alpha)
+			self.trailSpriteBatch:set(i, data.x, data.y, 0, data.alpha * size, data.alpha * size, txo, tyo)
+		end
+
+		data.alpha = math.max(0, data.alpha - dt * (11 - cfg.trailLifetime))
 	end
 end
 
@@ -58,8 +130,13 @@ function CursorView:draw()
 		mxo, myo = 0, 0
 	end
 
+	if self.config.showTrail then
+		gfx.draw(self.trailSpriteBatch)
+	end
+
+	local s = cursor_scale * self.config.size
 	gfx.draw(middle, x, y, 0, 1, 1, mxo, myo)
-	gfx.draw(cursor, cx + x, cy + y, cursor_rotation, cursor_scale, cursor_scale, cxo, cyo)
+	gfx.draw(cursor, cx + x, cy + y, cursor_rotation, s, s, cxo, cyo)
 end
 
 return CursorView
