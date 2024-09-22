@@ -33,8 +33,8 @@ function ChartItem:replaceWith(chart)
 		self.secondRow = ("%s // %s"):format(chart.artist, chart.creator)
 	end
 
-	local rate = chart.rate
-	local mods = getModifierString(chart.modifiers)
+	local rate = chart.rate or 1
+	local mods = getModifierString(chart.modifiers or {})
 
 	if rate ~= 1 then
 		self.thirdRow = ("%s %gx (%s)"):format(chart.name, rate, Format.inputMode(chart.inputmode))
