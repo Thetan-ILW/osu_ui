@@ -223,6 +223,7 @@ function ViewConfig:new(game, assets, after_gameplay, view)
 	show_hit_graph = osu.result.hitGraph
 	show_diff_and_rate = osu.result.difficultyAndRate
 
+	self.scoreReveal = 0
 	self:createUI(view)
 end
 
@@ -356,13 +357,11 @@ function ViewConfig:loadScore(view)
 	combo_num = base.maxCombo
 	score_num = judge.score or view.judgements["osu!legacy OD9"].score or 0
 
-	self.scoreReveal = 0
 	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout"):onupdate(function()
 		self:scoreRevealAnimation()
 	end)
 
 	timeRate = view.game.playContext.rate
-
 	timeFormatted = os.date("%d/%m/%Y %H:%M:%S.", view.game.selectModel.scoreItem.time)
 	setDirectory = chartview.set_dir
 	creator = chartview.creator

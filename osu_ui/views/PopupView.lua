@@ -20,19 +20,20 @@ function PopupView:load(assets)
 end
 
 local colors = {
-	error = { 0.76, 0.05, 0.05, 1 },
+	error = { 1, 0, 0, 1 },
 	purple = { 0.51, 0.31, 0.8, 1 },
+	orange = { 0.57, 0.32, 0, 1}
 }
 
 local width = 234
 
 ---@param text string
----@param color "error" | "purple"
+---@param color "error" | "purple" | "orange"
 ---@param on_click any
 function PopupView:add(text, color, on_click)
 	local font = self.fonts.popup
 	local _, wrapped_text = font:getWrap(text, (width - 8) / ui.getTextScale())
-	local h = font:getHeight() * font:getLineHeight() * #wrapped_text
+	local h = (font:getHeight() * font:getLineHeight() * ui.getTextScale()) * #wrapped_text
 
 	local t = {
 		text = text,
@@ -42,7 +43,7 @@ function PopupView:add(text, color, on_click)
 		fadeOutAnimation = 0,
 		x = 0,
 		y = 0,
-		h = h + 4,
+		h = h + 16,
 		remove = false,
 	}
 
@@ -93,7 +94,7 @@ function PopupView:draw()
 
 		local a = 1 - msg.fadeOutAnimation
 
-		gfx.setColor(0, 0, 0, math.min(0.8, a))
+		gfx.setColor(0, 0, 0, math.min(0.9, a))
 		gfx.rectangle("fill", x, y, width, mh, 8, 8)
 
 		local color = msg.color

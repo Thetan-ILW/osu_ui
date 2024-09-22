@@ -78,10 +78,14 @@ function Lists:showCharts()
 	local game = self.view.game
 	local assets = self.assets
 
-	local select_config = game.configModel.configs.select
-	local sort = select_config.sortFunction
+	local configs = game.configModel.configs
+	local select_config = configs.select
+	local settings_select = configs.settings.select
 
-	if sets[sort] then
+	local sort = select_config.sortFunction
+	local showing_modded_charts = settings_select.chartdiffs_list
+
+	if sets[sort] and not showing_modded_charts then
 		self.list = ChartSetListView(game, assets)
 	else
 		self.list = ChartListView(game, assets)

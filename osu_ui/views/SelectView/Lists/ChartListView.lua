@@ -75,6 +75,7 @@ end
 function ChartListView:replaceItem(window_index, visual_index)
 	local chart_set = self.items[visual_index]
 	local item = self.window[window_index]
+
 	item:replaceWith(chart_set)
 	item.visualIndex = visual_index
 end
