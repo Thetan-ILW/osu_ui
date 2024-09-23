@@ -62,7 +62,6 @@ end
 function AssetModel:getOsuSkins()
 	---@type string[]
 	local skins = love.filesystem.getDirectoryItems("userdata/skins/")
-
 	local ignore_dir_info = love.filesystem.getInfo("userdata/skins/ignore")
 
 	if ignore_dir_info and ignore_dir_info.type == "directory" then
@@ -78,10 +77,12 @@ function AssetModel:getOsuSkins()
 	table.insert(osu_skin_names, "Default")
 
 	for _, name in ipairs(skins) do
-		---@type string
-		local path = path_util.join("userdata/skins", name, "skin.ini")
-		if love.filesystem.getInfo(path) then
-			table.insert(osu_skin_names, name)
+		local skin_files = love.filesystem.getDirectoryItems(path_util.join("userdata/skins", name))
+		for _, v in ipairs(skin_files) do
+			if v:lower() == "skin.ini" then
+				table.insert(osu_skin_names, name)
+				break
+			end
 		end
 	end
 
