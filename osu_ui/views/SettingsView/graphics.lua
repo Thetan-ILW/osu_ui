@@ -63,6 +63,18 @@ return function(assets, view)
 		m.showFPS = not m.showFPS
 	end)
 
+	local profiler = view.ui.gameView.frameTimeView
+	local show_profiler = profiler.visible and profiler.profiler
+
+	checkbox(text.showProfiler, false, nil, function()
+		return show_profiler
+	end, function()
+		show_profiler = not show_profiler
+		m.showFPS = show_profiler
+		profiler.visible = show_profiler
+		profiler.profiler = show_profiler
+	end)
+
 	checkbox(text.vsyncInSongSelect, true, nil, function()
 		return g.vsyncOnSelect
 	end, function()
