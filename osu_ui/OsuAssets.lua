@@ -143,6 +143,7 @@ local images = {
 		smallGradeA = "ranking-A-small",
 		smallGradeS = "ranking-S-small",
 		smallGradeX = "ranking-X-small",
+		recentScore = "recent-score",
 	},
 	resultView = {
 		title = "ranking-title",

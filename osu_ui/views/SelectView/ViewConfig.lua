@@ -663,15 +663,16 @@ function ViewConfig:scores(view)
 
 	if not has_scores then
 		gfx.translate(20, 298)
-		gfx.setColor({ 1, 1, 1, 1 })
+		gfx.setColor(1, 1, 1, 1)
 		gfx.draw(img.noScores)
 	else
 		gfx.translate(8, 154)
 		list:updateAnimations()
-		list:draw(378, 420, true)
+		list:updateTimeSinceScore()
+		list:draw(440, 420, true)
 	end
 
-	gfx.setCanvas({ prev_canvas, stencil = true })
+	gfx.setCanvas(prev_canvas)
 
 	gfx.origin()
 	gfx.setBlendMode("alpha", "premultiplied")
