@@ -199,7 +199,7 @@ l.textGroups = {
 		typeToSearch = "Type to search!",
 		noMatches = "No matches found.",
 		matchesFound = "%i match(es) found.",
-		noCharts = "No songs? Try clearing the search.\nYou can drop osu!, Etterna or Quaver 'Songs' folder in the game window to add songs.\n\nDrop .osz files to import osu! beatmaps.\n\nOr add charts to `userdata/charts/my_songs`."
+		noCharts = "No songs? Try clearing the search AND the filters.\nYou can drop osu!, Etterna or Quaver 'Songs' folder in the game window to add songs.\n\nDrop .osz files to import osu! beatmaps.\n\nOr add charts to `userdata/charts/my_songs`.",
 	},
 	scoreList = {
 		score = "Score",
@@ -240,6 +240,14 @@ l.textGroups = {
 	},
 	inputsModal = {
 		title = "Press the key/button on your keyboard/joystick for the corresponding column. Hit ESC to go back.",
+	},
+	locationImportModal = {
+		importTitle = "Import songs from this folder? The game will only read the songs from this folder, it will not modify/copy them.",
+		alreadyImported = "The game is already reading songs from this folder. Do you want to refresh the cache?",
+		import = "1. Import",
+		cancel = "2. Cancel",
+		yes = "1. Yes",
+		no = "2. No"
 	},
 	result = {
 		chartBy = "Chart by %s",
@@ -376,6 +384,11 @@ l.fontGroups = {
 		title = { "Aller-Light", 33, "ZenMaruGothic-Regular" },
 		combos = { "Aller", 16, "ZenMaruGothic-Regular" },
 		binds = { "Aller", 16, "ZenMaruGothic-Regular" },
+	},
+	locationImportModal = {
+		title = { "Aller-Light", 33, "ZenMaruGothic-Regular" },
+		directory = { "Aller-Light", 41, "ZenMaruGothic-Regular" },
+		buttons = { "Aller", 42, "ZenMaruGothic-Regular" },
 	},
 	result = {
 		title = { "Aller-Light", 30, "ZenMaruGothic-Regular" },

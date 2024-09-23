@@ -852,11 +852,11 @@ function ViewConfig:draw(view)
 
 	if view.lists.showing == "charts" then
 		self:search(view)
+		self:noChartsText(view)
 	end
 
 	self:topUI(view)
 	self:mods(view)
-	self:noChartsText(view)
 end
 
 return ViewConfig

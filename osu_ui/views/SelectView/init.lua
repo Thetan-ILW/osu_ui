@@ -201,11 +201,8 @@ function SelectView:updateSearch()
 	end
 end
 
-function SelectView:receive(event)
-	self.game.selectController:receive(event)
-	self.chartPreviewView:receive(event)
-
-	if event.name == "keypressed" then
+local events = {
+	keypressed = function(self, event)
 		if self.inputMap:call("music") then
 			return
 		end
@@ -223,16 +220,30 @@ function SelectView:receive(event)
 		end
 
 		if self.modal then
-			return false
+			return
 		end
 
 		self.inputMap:call("select")
-	elseif event.name == "wheelmoved" then
+	end,
+	wheelmoved = function(self, event)
 		if not actions.isModKeyDown() then
 			self.lists:mouseScroll(-event[2])
 		end
+	end,
+	directorydropped = function(self, event)
+		self:openModal("osu_ui.views.modals.LocationImport", event[1])
+	end
+}
+
+function SelectView:receive(event)
+	self.game.selectController:receive(event)
+
+	local f = events[event.name]
+	if f then
+		f(self, event)
 	end
 
+	self.chartPreviewView:receive(event)
 	self.settingsView:receive(event)
 end
 

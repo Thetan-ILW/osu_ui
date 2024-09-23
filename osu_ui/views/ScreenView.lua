@@ -23,7 +23,7 @@ function ScreenView:new(game)
 end
 
 ---@param screenName string
----@param force boolean
+---@param force boolean?
 function ScreenView:changeScreen(screenName, force)
 	if self.modal then
 		self.modal.shouldClose = true
@@ -66,9 +66,9 @@ function ScreenView:closeModal()
 end
 
 ---@param modal_name string
-function ScreenView:openModal(modal_name)
+function ScreenView:openModal(modal_name, ...)
 	---@type osu.ui.Modal
-	local modal = require(modal_name)(self.game, self.assets)
+	local modal = require(modal_name)(self.game, self.assets, ...)
 	self:setModal(modal)
 end
 
