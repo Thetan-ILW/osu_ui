@@ -3,6 +3,8 @@ local ui = require("osu_ui.ui")
 local math_util = require("math_util")
 local time_util = require("time_util")
 
+local getModifierString = require("osu_ui.views.modifier_string")
+
 ---@type table<string, string>
 local text
 
@@ -24,64 +26,10 @@ ScoreListView.scoreUpdateTime = -math.huge
 function ScoreListView:new(game, assets)
 	self.game = game
 	self.assets = assets
+	self.playerProfile = self.game.ui.playerProfile
 
 	text, self.font = assets.localization:get("scoreList")
 	assert(text and self.font)
-end
-
-local modOrder = {
-	{ id = 19, label = "FLN%i", format = true },
-	{ id = 9, label = "NLN" },
-	{ id = 20, label = "MLL%0.01f", format = true },
-	{ id = 23, label = "LC%i", format = true },
-	{ id = 24, label = "CH%i", format = true },
-	{ id = 18, label = "BS" },
-	{ id = 17, label = "RND" },
-	{ id = 16, label = "MR" },
-	{ id = 11, label = "AM%i", format = true },
-	{ id = 11, label = "ALT" },
-}
-
-function ScoreListView:getModifiers(modifiers)
-	if type(modifiers) == "string" then
-		return ""
-	end
-
-	if #modifiers == 0 then
-		return ""
-	end
-
-	local max = 3
-	local current = 0
-	local modLine = ""
-
-	for _, mod in ipairs(modOrder) do
-		for _, enabledMod in ipairs(modifiers) do
-			if mod.id == enabledMod.id then
-				if mod.format and type(enabledMod.value) == "number" then
-					modLine = modLine .. mod.label:format(enabledMod.value)
-				elseif mod.format and type(enabledMod.value) == "string" then
-					modLine = modLine .. mod.label:format(0)
-				else
-					modLine = modLine .. mod.label
-				end
-
-				modLine = modLine .. " "
-
-				current = current + 1
-
-				if current == max then
-					return modLine
-				end
-			end
-		end
-	end
-
-	if modLine:len() == 0 then
-		modLine = text.hasMods
-	end
-
-	return modLine
 end
 
 function ScoreListView:getTooltip(score, mod_line)
@@ -98,30 +46,125 @@ function ScoreListView:getTooltip(score, mod_line)
 	)
 end
 
-function ScoreListView:reloadItems()
-	self.stateCounter = self.game.selectModel.scoreStateCounter
+local function commaValue(n) -- credit http://richard.warburton.it
+	local left,num,right = string.match(n,'^([^%d]*%d)(%d*)(.-)$')
+	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
+end
 
-	if self.items == self.game.selectModel.scoreLibrary.items then
+function ScoreListView:getProfileScore(score)
+	local player_score = self.playerProfile:getScore(score.id)
+
+	if not player_score then
 		return
 	end
 
-	self.items = self.game.selectModel.scoreLibrary.items
-	self.modLines = {}
-	self.timeFormatted = {}
-	self.tooltips = {}
+	local mods_line = getModifierString(score.modifiers)
+	local tooltip = self:getTooltip(score, mods_line)
+
+	if score.rate ~= 1 and score.rate ~= 0 then
+		mods_line = ("%s [%0.02fx]"):format(mods_line, score.rate)
+	end
+
+	local img = self.assets.images
+	local grade = img.smallGradeD
+
+	local acc = player_score.osuAccuracy
+	if acc == 1 then
+		grade = img.smallGradeX
+	elseif acc >= 0.95 then
+		grade = img.smallGradeS
+	elseif acc >= 0.9 then
+		grade = img.smallGradeA
+	elseif acc >= 0.8 then
+		grade = img.smallGradeB
+	elseif acc >= 0.7 then
+		grade = img.smallGradeC
+	end
+
+	return {
+		scoreNum = player_score.osuScore,
+		secondRow = ("Score: %s (%ix)"):format(commaValue(math.floor(player_score.osuScore)), score.max_combo),
+		accuracy = ("%0.02f%%"):format(player_score.osuAccuracy * 100),
+		modsRow = mods_line,
+		tooltip = tooltip,
+		time = score.time,
+		timeSince = 0,
+		gradeImg = grade
+	}
+end
+
+function ScoreListView:getSoundsphereScore(score)
+	local mods_line = getModifierString(score.modifiers)
+	local tooltip = self:getTooltip(score, mods_line)
+
+	if score.rate ~= 1 and score.rate ~= 0 then
+		mods_line = ("%s [%0.02fx]"):format(mods_line, score.rate)
+	end
+
+	local img = self.assets.images
+	local grade = img.smallGradeD
+
+	local score_num = score.score
+	if score_num > 9800 then
+		grade = img.smallGradeX
+	elseif score_num > 8000 then
+		grade = img.smallGradeS
+	elseif score_num > 7000 then
+		grade = img.smallGradeA
+	elseif score_num > 6000 then
+		grade = img.smallGradeB
+	elseif score_num > 5000 then
+		grade = img.smallGradeC
+	end
+
+	return {
+		scoreNum = score_num,
+		secondRow = ("Score: %i (%ix)"):format(score_num, score.max_combo),
+		accuracy = ("%0.02f%%"):format(score.accuracy * 1000),
+		modsRow = mods_line,
+		tooltip = tooltip,
+		time = score.time,
+		timeSince = 0,
+		gradeImg = grade,
+		username = score.user and score.user.name or "You"
+	}
+end
+
+function ScoreListView:reloadItems()
+	self.stateCounter = self.game.selectModel.scoreStateCounter
+
+	if self.scores == self.game.selectModel.scoreLibrary.items then
+		return
+	end
+
+	self.scores = self.game.selectModel.scoreLibrary.items
+	self.items = {}
+
+	local score_source = "local"
+
+	for i, score in ipairs(self.scores) do
+		local item
+
+		if score_source == "local" then
+			item = self:getSoundsphereScore(score)
+		elseif score_source == "profile" then
+			item = self:getProfileScore(score)
+		end
+
+		if item then
+			table.insert(self.items, item)
+		end
+	end
+
+	self.updateTime = love.timer.getTime()
 	self.nextTimeUpdateTime = -1
 	self:updateTimeSinceScore()
-
-	for i, item in ipairs(self.items) do
-		local mod_line = self:getModifiers(item.modifiers)
-		self.modLines[i] = mod_line
-		self.tooltips[i] = self:getTooltip(item, mod_line)
-	end
 
 	local i = self.game.selectModel.scoreItemIndex
 	self.selectedScoreIndex = i
 	self.selectedScore = self.items[i]
-	self.game.selectModel:scrollScore(nil, i)
+	self.game.selectModel:scrollScore(nil, 1)
+	self.targetItemIndex = 1
 end
 
 function ScoreListView:scrollScore(delta)
@@ -199,7 +242,7 @@ local function formatTime(time)
 	local seconds = time.seconds
 
 	if days then
-		if days > 4 then
+		if days > 3 then
 			return
 		end
 		return ("%id"):format(days)
@@ -219,15 +262,12 @@ function ScoreListView:updateTimeSinceScore()
 	end
 
 	self.nextTimeUpdateTime = current_time + 1
-
 	self.timeUpdateTime = love.timer.getTime()
 	for i, score in ipairs(self.items) do
 		local time = time_util.date_diff(os.time(), score.time)
-		self.timeFormatted[i] = formatTime(time)
+		score.timeSince = formatTime(time)
 	end
 end
-
-
 
 ---@param i number
 ---@param w number
@@ -236,19 +276,8 @@ function ScoreListView:drawItem(i, w, h)
 	local img = self.assets.images
 	local item = self.items[i]
 
-	local source = self.game.configModel.configs.select.scoreSourceName
-	local mods = self.modLines[i]
-	local username = "You"
+	local username = item.username
 	local avatar = img.avatar
-
-	if source == "online" then
-		if not item.user then
-			return
-		end
-
-		username = item.user.name
-		avatar = nil
-	end
 
 	username = ("#%i %s"):format(i, username)
 
@@ -256,7 +285,7 @@ function ScoreListView:drawItem(i, w, h)
 
 	if ui.isOver(panel_w, h) and self.focus then
 		self.animations[i] = math_util.clamp(a + 0.05, 0, 0.5)
-		ui.tooltip = self.tooltips[i]
+		ui.tooltip = item.tooltip
 	end
 
 	local background_color = { 0 + a * 0.5, 0 + a * 0.5, 0 + a * 0.5, 0.3 + a * 0.2 }
@@ -266,37 +295,16 @@ function ScoreListView:drawItem(i, w, h)
 	gfx.setColor(background_color)
 	gfx.rectangle("fill", 0, 0, panel_w, 50)
 
-	gfx.setColor({ 1, 1, 1, 1 })
+	gfx.setColor(1, 1, 1, 1)
 	if avatar then
 		local ih = avatar:getHeight()
 		local s = (h - 6) / ih
 		gfx.draw(avatar, 2, 2, 0, s, s)
 	end
 
-
-
-	-- const
-	-- inputmode
-	-- modifiers
-	-- pauses
-	-- perfect
-	-- not_perfect
-
 	gfx.push()
 
-	local grade = img.smallGradeD
-
-	if item.score > 9800 then
-		grade = img.smallGradeX
-	elseif item.score > 8000 then
-		grade = img.smallGradeS
-	elseif item.score > 7000 then
-		grade = img.smallGradeA
-	elseif item.score > 6000 then
-		grade = img.smallGradeB
-	elseif item.score > 5000 then
-		grade = img.smallGradeC
-	end
+	local grade = item.gradeImg
 
 	gfx.push()
 	gfx.translate(-grade:getWidth() / 2 + 67, h / 2 - (grade:getHeight() / 2) - 1)
@@ -306,26 +314,19 @@ function ScoreListView:drawItem(i, w, h)
 	gfx.translate(94, 0)
 	gfx.setFont(self.font.username)
 	ui.textWithShadow(username)
-
 	gfx.setFont(self.font.score)
-	ui.textWithShadow(("%s: %i (%ix)"):format(text.score, item.score, item.max_combo))
+	ui.textWithShadow(item.secondRow)
 	gfx.pop()
 
 	gfx.setFont(self.font.rightSide)
-
-	if item.rate ~= 1 and item.rate ~= 0 then
-		ui.frameWithShadow(("%s [%0.02fx]"):format(mods, item.rate), -4, 0, panel_w, 50, "right", "top")
-	else
-		ui.frameWithShadow(("%s"):format(mods), -4, 0, panel_w, 50, "right", "top")
-	end
-
-	ui.frameWithShadow(("%0.02f NS"):format(item.accuracy * 1000), -4, 0, panel_w, 50, "right", "center")
+	ui.frameWithShadow(item.modsRow, -4, 0, panel_w, 50, "right", "top")
+	ui.frameWithShadow(item.accuracy, -4, 0, panel_w, 50, "right", "center")
 
 	local improvement = "-"
 
 	if self.items[i + 1] then
 		---@type number
-		local difference = item.score - self.items[i + 1].score
+		local difference = item.scoreNum - self.items[i + 1].scoreNum
 
 		if difference > 0 then
 			improvement = ("+%i"):format(difference)
@@ -334,14 +335,14 @@ function ScoreListView:drawItem(i, w, h)
 
 	ui.frameWithShadow(improvement, -4, 0, panel_w, 50, "right", "bottom")
 
-	local time_formatted = self.timeFormatted[i]
-	if time_formatted then
+	local time_since = item.timeSince
+	if time_since then
 		gfx.translate(panel_w + 16, 0)
 		local icon = self.assets.images.recentScore
 		local iw, ih = icon:getDimensions()
 		gfx.setColor(1, 1, 1)
 		gfx.draw(self.assets.images.recentScore, 0, h / 2, 0, 1, 1, iw / 2, ih / 2)
-		ui.frameWithShadow(time_formatted, 16, 0, 100, h, "left", "center")
+		ui.frameWithShadow(time_since, 16, 0, 100, h, "left", "center")
 	end
 end
 

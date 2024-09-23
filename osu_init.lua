@@ -36,6 +36,9 @@ function UserInterface:getMods()
 		osuLevel = 0,
 		osuLevelPercent = 0,
 		rank = 69,
+		getScore = function ()
+			return nil
+		end,
 		getDanClears = function ()
 			return "-", "-"
 		end,

@@ -344,7 +344,6 @@ function ViewConfig:updateInfo(view, chart_changed)
 
 	self.scoreListView:reloadItems()
 
-	has_scores = #view.game.selectModel.scoreLibrary.items ~= 0
 
 	if chart_changed then
 		update_time = current_time
@@ -658,8 +657,9 @@ function ViewConfig:scores(view)
 
 	if online_scores then
 		list:reloadItems()
-		has_scores = true
 	end
+
+	has_scores = #list.items ~= 0
 
 	if not has_scores then
 		gfx.translate(20, 298)
@@ -676,7 +676,7 @@ function ViewConfig:scores(view)
 
 	gfx.origin()
 	gfx.setBlendMode("alpha", "premultiplied")
-	local a = animate(update_time, 0.3)
+	local a = animate(list.updateTime, 0.3)
 	gfx.setColor(a, a, a, a)
 	gfx.draw(canvas)
 	gfx.setBlendMode("alpha")
