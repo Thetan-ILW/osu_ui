@@ -28,6 +28,7 @@ local dim = 0
 local blur = 0
 
 function SelectView:load()
+	self.game.selectController:load()
 	self.chartPreviewView = ChartPreviewView(self.game, self.ui)
 	self.chartPreviewView:load()
 
@@ -74,7 +75,7 @@ function SelectView:update(dt)
 	if chartview_i ~= self.prevChartViewIndex or chartview_set_i ~= self.prevChartViewSetIndex then
 		self.prevChartViewIndex = chartview_i
 		self.prevChartViewSetIndex = chartview_set_i
-		self:notechartChanged(true)
+		self:notechartChanged()
 	end
 
 	self.settingsView.modalActive = self.modal == nil

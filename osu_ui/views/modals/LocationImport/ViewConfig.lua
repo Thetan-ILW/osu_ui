@@ -76,19 +76,23 @@ function ViewConfig:import()
 	local modal = self.modal
 	local game = modal.game
 	local cache_model = game.cacheModel
-	local locationsRepo = cache_model.locationsRepo
-	local locationManager = cache_model.locationManager
+	local locations_repo = cache_model.locationsRepo
+	local location_manager = cache_model.locationManager
 
-	local location = locationsRepo:insertLocation({
-		name = "Songs",
+	local dirs = {}
+	for dir in modal.path:gmatch("[^/\\]+") do
+		table.insert(dirs, dir)
+	end
+
+	local location = locations_repo:insertLocation({
+		name = ("%s %s"):format(dirs[#dirs-1] or "", dirs[#dirs] or ""),
 		is_relative = false,
 		is_internal = false,
 	})
-	locationManager:selectLocations()
-	locationManager:selectLocation(location.id)
-	locationManager:updateLocationPath(modal.path)
+	location_manager:selectLocations()
+	location_manager:selectLocation(location.id)
+	location_manager:updateLocationPath(modal.path)
 	game.selectController:updateCacheLocation(location.id)
-
 	modal.processing = true
 end
 

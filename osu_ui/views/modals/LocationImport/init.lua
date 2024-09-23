@@ -43,10 +43,9 @@ function LocationImportModal:update(dt)
 	self:quit()
 
 	local cache_model = self.game.cacheModel
-	local locationManager = cache_model.locationManager
-	locationManager:selectLocations()
-	locationManager:selectLocation(1)
-
+	local location_manager = cache_model.locationManager
+	location_manager:selectLocation(1)
+	self.game.selectModel:scrollCollection(nil, -math.huge)
 	self.game.ui.gameView:reloadView()
 end
 
