@@ -779,6 +779,20 @@ function ViewConfig:chartPreview(view)
 	gfx.draw(canvas)
 end
 
+function ViewConfig:noChartsText(view)
+	local chart_count = #view.selectModel.noteChartSetLibrary.items
+
+	if chart_count == 0 then
+		local w, h = Layout:move("base")
+		gfx.setFont(font.noCharts)
+		gfx.setColor(0, 0, 0, 0.8)
+		gfx.rectangle("fill", 0, 768 / 2 - 300 / 2, w, 300)
+		gfx.setColor(1, 1, 1)
+		ui.frame(text.noCharts, 0, 0, w, h, "center", "center")
+	end
+
+end
+
 ---@param view osu.ui.SelectView
 function ViewConfig:resolutionUpdated(view)
 	local w, h = Layout:move("base")
@@ -842,6 +856,7 @@ function ViewConfig:draw(view)
 
 	self:topUI(view)
 	self:mods(view)
+	self:noChartsText(view)
 end
 
 return ViewConfig

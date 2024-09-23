@@ -199,6 +199,7 @@ l.textGroups = {
 		typeToSearch = "Type to search!",
 		noMatches = "No matches found.",
 		matchesFound = "%i match(es) found.",
+		noCharts = "No songs? Try clearing the search.\nYou can drop osu!, Etterna or Quaver 'Songs' folder in the game window to add songs.\n\nDrop .osz files to import osu! beatmaps.\n\nOr add charts to `userdata/charts/my_songs`."
 	},
 	scoreList = {
 		score = "Score",
@@ -330,6 +331,7 @@ l.fontGroups = {
 		mods = { "Aller", 41 },
 		search = { "Aller-Bold", 18, "ZenMaruGothic-Bold" },
 		searchMatches = { "Aller-Bold", 15 },
+		noCharts = { "Aller-Bold", 30, "ZenMaruGothic-Bold" }
 	},
 	chartSetList = {
 		title = { "Aller", 22, "ZenMaruGothic-Medium" },

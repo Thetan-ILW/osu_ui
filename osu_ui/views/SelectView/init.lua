@@ -23,8 +23,6 @@ local InputMap = require("osu_ui.views.SelectView.InputMap")
 ---@field viewConfigFocus boolean
 local SelectView = ScreenView + {}
 
-SelectView.search = ""
-
 local ui_lock = false
 local dim = 0
 local blur = 0
@@ -33,10 +31,11 @@ function SelectView:load()
 	self.chartPreviewView = ChartPreviewView(self.game, self.ui)
 	self.chartPreviewView:load()
 
-	self.lists = Lists(self)
-
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs
+
+	self.search = self.configs.select.filterString
+	self.lists = Lists(self)
 
 	self.inputMap = InputMap(self)
 
@@ -177,7 +176,7 @@ function SelectView:updateSearch()
 	local vim_motions = actions.isVimMode()
 	local insert_mode = actions.isInsertMode()
 
-	local config = self.game.configModel.configs.select
+	local config = self.configs.select
 	local selectModel = self.game.selectModel
 
 	local changed = false
