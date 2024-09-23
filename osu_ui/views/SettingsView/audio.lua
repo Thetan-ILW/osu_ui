@@ -7,7 +7,7 @@ local formats = { "osu", "qua", "sm", "ksh" }
 local audio_modes = { "bass_sample", "bass_fx_tempo" }
 
 local function formatMs(v)
-	return ("%dms"):format(v)
+	return ("%dms"):format(v * 1000)
 end
 
 ---@param assets osu.OsuAssets
@@ -152,7 +152,7 @@ return function(assets, view)
 	c:createGroup("offsetAdjustment", text.offsetAdjustment)
 	Elements.currentGroup = "offsetAdjustment"
 
-	local offset = { min = -300, max = 300, increment = 1 }
+	local offset = { min = -0.3, max = 0.3, increment = 0.001 }
 
 	if mode.primary == "bass_sample" then
 		slider(text.universalOffset, 0, nil, function()

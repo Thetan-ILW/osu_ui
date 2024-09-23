@@ -23,20 +23,20 @@ local InputMap = require("osu_ui.views.SelectView.InputMap")
 ---@field viewConfigFocus boolean
 local SelectView = ScreenView + {}
 
-SelectView.search = ""
-
 local ui_lock = false
 local dim = 0
 local blur = 0
 
 function SelectView:load()
+	self.game.selectController:load()
 	self.chartPreviewView = ChartPreviewView(self.game, self.ui)
 	self.chartPreviewView:load()
 
-	self.lists = Lists(self)
-
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs
+
+	self.search = self.configs.select.filterString
+	self.lists = Lists(self)
 
 	self.inputMap = InputMap(self)
 
@@ -75,7 +75,7 @@ function SelectView:update(dt)
 	if chartview_i ~= self.prevChartViewIndex or chartview_set_i ~= self.prevChartViewSetIndex then
 		self.prevChartViewIndex = chartview_i
 		self.prevChartViewSetIndex = chartview_set_i
-		self:notechartChanged(true)
+		self:notechartChanged()
 	end
 
 	self.settingsView.modalActive = self.modal == nil
@@ -177,7 +177,7 @@ function SelectView:updateSearch()
 	local vim_motions = actions.isVimMode()
 	local insert_mode = actions.isInsertMode()
 
-	local config = self.game.configModel.configs.select
+	local config = self.configs.select
 	local selectModel = self.game.selectModel
 
 	local changed = false
@@ -202,11 +202,8 @@ function SelectView:updateSearch()
 	end
 end
 
-function SelectView:receive(event)
-	self.game.selectController:receive(event)
-	self.chartPreviewView:receive(event)
-
-	if event.name == "keypressed" then
+local events = {
+	keypressed = function(self, event)
 		if self.inputMap:call("music") then
 			return
 		end
@@ -224,16 +221,30 @@ function SelectView:receive(event)
 		end
 
 		if self.modal then
-			return false
+			return
 		end
 
 		self.inputMap:call("select")
-	elseif event.name == "wheelmoved" then
+	end,
+	wheelmoved = function(self, event)
 		if not actions.isModKeyDown() then
 			self.lists:mouseScroll(-event[2])
 		end
+	end,
+	directorydropped = function(self, event)
+		self:openModal("osu_ui.views.modals.LocationImport", event[1])
+	end
+}
+
+function SelectView:receive(event)
+	self.game.selectController:receive(event)
+
+	local f = events[event.name]
+	if f then
+		f(self, event)
 	end
 
+	self.chartPreviewView:receive(event)
 	self.settingsView:receive(event)
 end
 

@@ -1,6 +1,7 @@
 local ListView = require("osu_ui.views.ListView")
 local ui = require("osu_ui.ui")
 local math_util = require("math_util")
+local time_util = require("time_util")
 
 ---@type table<string, string>
 local text
@@ -83,6 +84,20 @@ function ScoreListView:getModifiers(modifiers)
 	return modLine
 end
 
+function ScoreListView:getTooltip(score, mod_line)
+	if mod_line == "" then
+		mod_line = "No mods"
+	end
+
+	local judges = ("Perfect:%i NotPerfect:%i Miss:%i"):format(score["perfect"], score["not_perfect"], score["miss"])
+	return text.tooltip:format(
+		os.date("%d/%m/%Y %H:%M:%S.", score.time),
+		judges,
+		score.accuracy,
+		mod_line
+	)
+end
+
 function ScoreListView:reloadItems()
 	self.stateCounter = self.game.selectModel.scoreStateCounter
 
@@ -92,9 +107,15 @@ function ScoreListView:reloadItems()
 
 	self.items = self.game.selectModel.scoreLibrary.items
 	self.modLines = {}
+	self.timeFormatted = {}
+	self.tooltips = {}
+	self.nextTimeUpdateTime = -1
+	self:updateTimeSinceScore()
 
 	for i, item in ipairs(self.items) do
-		self.modLines[i] = self:getModifiers(item.modifiers)
+		local mod_line = self:getModifiers(item.modifiers)
+		self.modLines[i] = mod_line
+		self.tooltips[i] = self:getTooltip(item, mod_line)
 	end
 
 	local i = self.game.selectModel.scoreItemIndex
@@ -118,12 +139,14 @@ function ScoreListView:scrollScore(delta)
 	self.openResult = true
 end
 
+local panel_w = 378
+
 function ScoreListView:mouseClick(w, h, i)
 	if not self.focus then
 		return
 	end
 
-	if ui.isOver(w, h, 0, 0) then
+	if ui.isOver(panel_w, h, 0, 0) then
 		if ui.mousePressed(1) then
 			if self.selectedScoreIndex == i then
 				self.openResult = true
@@ -146,7 +169,7 @@ function ScoreListView:input(w, h)
 	if not self.focus then
 		return
 	end
-	local delta = ui.wheelOver(self, ui.isOver(w, h))
+	local delta = ui.wheelOver(self, ui.isOver(panel_w, h))
 	if delta then
 		self:scroll(-delta)
 		return
@@ -166,6 +189,45 @@ function ScoreListView:updateAnimations()
 		end
 	end
 end
+
+---@param time {[string]: number}
+---@return string?
+local function formatTime(time)
+	local days = time.days
+	local hours = time.hours
+	local minutes = time.minutes
+	local seconds = time.seconds
+
+	if days then
+		if days > 4 then
+			return
+		end
+		return ("%id"):format(days)
+	elseif hours then
+		return ("%ih"):format(hours)
+	elseif minutes then
+		return ("%im"):format(minutes)
+	elseif seconds then
+		return ("%is"):format(seconds)
+	end
+end
+
+function ScoreListView:updateTimeSinceScore()
+	local current_time = love.timer.getTime()
+	if current_time < self.nextTimeUpdateTime then
+		return
+	end
+
+	self.nextTimeUpdateTime = current_time + 1
+
+	self.timeUpdateTime = love.timer.getTime()
+	for i, score in ipairs(self.items) do
+		local time = time_util.date_diff(os.time(), score.time)
+		self.timeFormatted[i] = formatTime(time)
+	end
+end
+
+
 
 ---@param i number
 ---@param w number
@@ -192,8 +254,9 @@ function ScoreListView:drawItem(i, w, h)
 
 	local a = self.animations[i] or 0
 
-	if ui.isOver(w, h) and self.focus then
+	if ui.isOver(panel_w, h) and self.focus then
 		self.animations[i] = math_util.clamp(a + 0.05, 0, 0.5)
+		ui.tooltip = self.tooltips[i]
 	end
 
 	local background_color = { 0 + a * 0.5, 0 + a * 0.5, 0 + a * 0.5, 0.3 + a * 0.2 }
@@ -201,7 +264,7 @@ function ScoreListView:drawItem(i, w, h)
 	gfx.translate((1 - ui.easeOutCubic(self.scoreUpdateTime, 0.3 + (i / 16))) * -w, 0)
 
 	gfx.setColor(background_color)
-	gfx.rectangle("fill", 0, 0, w, 50)
+	gfx.rectangle("fill", 0, 0, panel_w, 50)
 
 	gfx.setColor({ 1, 1, 1, 1 })
 	if avatar then
@@ -209,6 +272,15 @@ function ScoreListView:drawItem(i, w, h)
 		local s = (h - 6) / ih
 		gfx.draw(avatar, 2, 2, 0, s, s)
 	end
+
+
+
+	-- const
+	-- inputmode
+	-- modifiers
+	-- pauses
+	-- perfect
+	-- not_perfect
 
 	gfx.push()
 
@@ -242,12 +314,12 @@ function ScoreListView:drawItem(i, w, h)
 	gfx.setFont(self.font.rightSide)
 
 	if item.rate ~= 1 and item.rate ~= 0 then
-		ui.frameWithShadow(("%s [%0.02fx]"):format(mods, item.rate), -4, 0, w, 50, "right", "top")
+		ui.frameWithShadow(("%s [%0.02fx]"):format(mods, item.rate), -4, 0, panel_w, 50, "right", "top")
 	else
-		ui.frameWithShadow(("%s"):format(mods), -4, 0, w, 50, "right", "top")
+		ui.frameWithShadow(("%s"):format(mods), -4, 0, panel_w, 50, "right", "top")
 	end
 
-	ui.frameWithShadow(("%0.02f NS"):format(item.accuracy * 1000), -4, 0, w, 50, "right", "center")
+	ui.frameWithShadow(("%0.02f NS"):format(item.accuracy * 1000), -4, 0, panel_w, 50, "right", "center")
 
 	local improvement = "-"
 
@@ -260,7 +332,17 @@ function ScoreListView:drawItem(i, w, h)
 		end
 	end
 
-	ui.frameWithShadow(improvement, -4, 0, w, 50, "right", "bottom")
+	ui.frameWithShadow(improvement, -4, 0, panel_w, 50, "right", "bottom")
+
+	local time_formatted = self.timeFormatted[i]
+	if time_formatted then
+		gfx.translate(panel_w + 16, 0)
+		local icon = self.assets.images.recentScore
+		local iw, ih = icon:getDimensions()
+		gfx.setColor(1, 1, 1)
+		gfx.draw(self.assets.images.recentScore, 0, h / 2, 0, 1, 1, iw / 2, ih / 2)
+		ui.frameWithShadow(time_formatted, 16, 0, 100, h, "left", "center")
+	end
 end
 
 return ScoreListView

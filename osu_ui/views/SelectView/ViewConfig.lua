@@ -663,15 +663,16 @@ function ViewConfig:scores(view)
 
 	if not has_scores then
 		gfx.translate(20, 298)
-		gfx.setColor({ 1, 1, 1, 1 })
+		gfx.setColor(1, 1, 1, 1)
 		gfx.draw(img.noScores)
 	else
 		gfx.translate(8, 154)
 		list:updateAnimations()
-		list:draw(378, 420, true)
+		list:updateTimeSinceScore()
+		list:draw(440, 420, true)
 	end
 
-	gfx.setCanvas({ prev_canvas, stencil = true })
+	gfx.setCanvas(prev_canvas)
 
 	gfx.origin()
 	gfx.setBlendMode("alpha", "premultiplied")
@@ -779,6 +780,20 @@ function ViewConfig:chartPreview(view)
 	gfx.draw(canvas)
 end
 
+function ViewConfig:noChartsText(view)
+	local chart_count = #view.selectModel.noteChartSetLibrary.items
+
+	if chart_count == 0 then
+		local w, h = Layout:move("base")
+		gfx.setFont(font.noCharts)
+		gfx.setColor(0, 0, 0, 0.8)
+		gfx.rectangle("fill", 0, 768 / 2 - 300 / 2, w, 300)
+		gfx.setColor(1, 1, 1)
+		ui.frame(text.noCharts, 0, 0, w, h, "center", "center")
+	end
+
+end
+
 ---@param view osu.ui.SelectView
 function ViewConfig:resolutionUpdated(view)
 	local w, h = Layout:move("base")
@@ -838,6 +853,7 @@ function ViewConfig:draw(view)
 
 	if view.lists.showing == "charts" then
 		self:search(view)
+		self:noChartsText(view)
 	end
 
 	self:topUI(view)
