@@ -84,6 +84,20 @@ function ScoreListView:getModifiers(modifiers)
 	return modLine
 end
 
+function ScoreListView:getTooltip(score, mod_line)
+	if mod_line == "" then
+		mod_line = "No mods"
+	end
+
+	local judges = ("Perfect:%i NotPerfect:%i Miss:%i"):format(score["perfect"], score["not_perfect"], score["miss"])
+	return text.tooltip:format(
+		os.date("%d/%m/%Y %H:%M:%S.", score.time),
+		judges,
+		score.accuracy,
+		mod_line
+	)
+end
+
 function ScoreListView:reloadItems()
 	self.stateCounter = self.game.selectModel.scoreStateCounter
 
@@ -94,11 +108,14 @@ function ScoreListView:reloadItems()
 	self.items = self.game.selectModel.scoreLibrary.items
 	self.modLines = {}
 	self.timeFormatted = {}
+	self.tooltips = {}
 	self.nextTimeUpdateTime = -1
 	self:updateTimeSinceScore()
 
 	for i, item in ipairs(self.items) do
-		self.modLines[i] = self:getModifiers(item.modifiers)
+		local mod_line = self:getModifiers(item.modifiers)
+		self.modLines[i] = mod_line
+		self.tooltips[i] = self:getTooltip(item, mod_line)
 	end
 
 	local i = self.game.selectModel.scoreItemIndex
@@ -122,12 +139,14 @@ function ScoreListView:scrollScore(delta)
 	self.openResult = true
 end
 
+local panel_w = 378
+
 function ScoreListView:mouseClick(w, h, i)
 	if not self.focus then
 		return
 	end
 
-	if ui.isOver(w, h, 0, 0) then
+	if ui.isOver(panel_w, h, 0, 0) then
 		if ui.mousePressed(1) then
 			if self.selectedScoreIndex == i then
 				self.openResult = true
@@ -150,7 +169,7 @@ function ScoreListView:input(w, h)
 	if not self.focus then
 		return
 	end
-	local delta = ui.wheelOver(self, ui.isOver(w, h))
+	local delta = ui.wheelOver(self, ui.isOver(panel_w, h))
 	if delta then
 		self:scroll(-delta)
 		return
@@ -209,7 +228,6 @@ function ScoreListView:updateTimeSinceScore()
 end
 
 
-local panel_w = 378
 
 ---@param i number
 ---@param w number
@@ -236,8 +254,9 @@ function ScoreListView:drawItem(i, w, h)
 
 	local a = self.animations[i] or 0
 
-	if ui.isOver(w, h) and self.focus then
+	if ui.isOver(panel_w, h) and self.focus then
 		self.animations[i] = math_util.clamp(a + 0.05, 0, 0.5)
+		ui.tooltip = self.tooltips[i]
 	end
 
 	local background_color = { 0 + a * 0.5, 0 + a * 0.5, 0 + a * 0.5, 0.3 + a * 0.2 }

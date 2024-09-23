@@ -205,6 +205,7 @@ l.textGroups = {
 	scoreList = {
 		score = "Score",
 		hasMods = "Has mods",
+		tooltip = "Achieved on %s\n%s\nAccuracy:%0.02f\nMods:%s"
 	},
 	chartOptionsModal = {
 		title = "%s\nWhat do you want to do with this chart?",
