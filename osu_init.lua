@@ -30,19 +30,26 @@ function UserInterface:new(game, mount_path)
 end
 
 function UserInterface:getMods()
-	local player_profile = self.game.playerProfileModel or {
-		pp = 0,
-		accuracy = 0,
-		osuLevel = 0,
-		osuLevelPercent = 0,
-		rank = 69,
-		getDanClears = function ()
-			return "-", "-"
-		end,
-		isDanIsCleared = function ()
-			return false, false
-		end
-	}
+	local player_profile = self.game.playerProfileModel
+
+	if not player_profile or (player_profile and player_profile.version ~= 1) then
+		player_profile = {
+			pp = 0,
+			accuracy = 0,
+			osuLevel = 0,
+			osuLevelPercent = 0,
+			rank = 69,
+			getScore = function ()
+				return nil
+			end,
+			getDanClears = function ()
+				return "-", "-"
+			end,
+			isDanIsCleared = function ()
+				return false, false
+			end
+		}
+	end
 
 	self.playerProfile = player_profile
 end
