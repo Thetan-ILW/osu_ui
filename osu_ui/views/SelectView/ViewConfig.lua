@@ -46,7 +46,6 @@ local brighten_shader
 local has_focus = true
 local combo_focused = false
 
-local prev_chart_id = 0
 local chart_name = ""
 local charter_row = ""
 local chart_is_dan = false
@@ -58,14 +57,18 @@ local ln_count_str = ""
 local note_count_str = ""
 local columns_str = ""
 local difficulty_str = ""
+local od_str = ""
+local hp_str = ""
 local username = ""
 local scroll_speed_str = ""
 local mods_str = ""
 local current_time = 0
 local update_time = 0
 local has_scores = false
-local online_scores = false
 local beat = 0
+
+---@type "local" | "online" | "osuv1" | "osuv2" | "etterna" | "quaver"
+local score_source
 
 ---@type "circles" | "taiko" | "fruits" | "mania"
 local selected_mode = "mania"
@@ -116,6 +119,10 @@ local combos = {}
 local ranking_options = {
 	["local"] = "Local Ranking",
 	online = "Online Ranking",
+	osuv1 = "Local osu!mania V1",
+	osuv2 = "Local osu!mania V2",
+	etterna = "Local Etterna J4",
+	quaver = "Local Quaver"
 }
 
 ---@param view osu.ui.SelectView
@@ -193,8 +200,18 @@ function ViewConfig:createUI(view)
 		view:openModal("osu_ui.views.modals.ChartOptions")
 	end)
 
-	local sources = view.game.selectModel.scoreLibrary.scoreSources
+	local profile_sources = view.ui.playerProfile.scoreSources
 	local select = view.game.configModel.configs.select
+
+	local sources = { "local" }
+
+	if profile_sources then
+		for i, v in ipairs(profile_sources) do
+			table.insert(sources, v)
+		end
+	end
+
+	table.insert(sources, "online")
 
 	combos.scoreSource = Combo(assets, {
 		font = font.dropdown,
@@ -203,15 +220,19 @@ function ViewConfig:createUI(view)
 		borderColor = { 0.08, 0.51, 0.7, 1 },
 		hoverColor = { 0.08, 0.51, 0.7, 1 },
 	}, function()
-		return select.scoreSourceName, sources
+		return score_source, sources
 	end, function(v)
-		select.scoreSourceName = v
-		view.game.selectModel:pullScore()
-		online_scores = v == "online"
+		score_source = v
 
-		if not online_scores then
-			self.scoreListView:reloadItems()
+		if v == "online" then
+			select.scoreSourceName = "online"
+			view.game.selectModel:pullScore()
+			return
 		end
+
+		select.scoreSourceName = "local"
+		view.game.selectModel:pullScore()
+		self.scoreListView:reloadItems(v)
 	end, function(v)
 		return ranking_options[v]
 	end)
@@ -281,11 +302,30 @@ function ViewConfig:new(view, assets)
 	self.scoreListView.scoreUpdateTime = love.timer.getTime()
 
 	local select = view.game.configModel.configs.select
-	online_scores = select.scoreSourceName == "online"
+	score_source = select.scoreSourceName
 
 	local w, h = Layout:move("base")
 	top_panel_quad = gfx.newQuad(0, 0, w, img.panelTop:getHeight(), img.panelTop)
 	self:createUI(view)
+end
+
+---@param chartview table
+---@return number
+local function getOD(chartview)
+	if chartview.osu_od then
+		return chartview.osu_od
+	end
+
+	---@type string
+	local format = chartview.format
+
+	if format == "sm" or format == "ssc" then
+		return 9
+	elseif format == "ojn" then
+		return 7
+	else
+		return 8
+	end
 end
 
 function ViewConfig:updateInfo(view, chart_changed)
@@ -329,12 +369,15 @@ function ViewConfig:updateInfo(view, chart_changed)
 			difficulty_str = ("%0.02f %s"):format(difficulty, pattern)
 		end
 	elseif diff_column == "enps_diff" then
-		difficulty_str = ("%0.02f ENPS"):format(chartview.enps_diff or 0)
+		difficulty_str = ("%0.02f ENPS"):format((chartview.enps_diff or 0) * rate)
 	elseif diff_column == "osu_diff" then
-		difficulty_str = ("%0.02f*"):format(chartview.osu_diff or 0)
+		difficulty_str = ("%0.02f*"):format((chartview.osu_diff or 0) * rate)
 	else
-		difficulty_str = ("%0.02f"):format(chartview.user_diff or 0)
+		difficulty_str = ("%0.02f"):format((chartview.user_diff or 0) * rate)
 	end
+
+	od_str = tostring(getOD(chartview))
+	hp_str = tostring(chartview.osu_hp or 8)
 
 	username = view.game.configModel.configs.online.user.name or "Guest"
 
@@ -342,7 +385,7 @@ function ViewConfig:updateInfo(view, chart_changed)
 	local gameplay = view.game.configModel.configs.settings.gameplay
 	scroll_speed_str = ("%g (fixed)"):format(speed_model.format[gameplay.speedType]:format(speed_model:get()))
 
-	self.scoreListView:reloadItems()
+	self.scoreListView:reloadItems(score_source)
 
 
 	if chart_changed then
@@ -433,7 +476,7 @@ function ViewConfig:chartInfo()
 	gfx.translate(0, -2)
 	gfx.setColor(1, 1, 1, a)
 	gfx.setFont(font.infoBottom)
-	ui.text(text.chartInfoThirdRow:format(columns_str, "8", "8", difficulty_str))
+	ui.text(text.chartInfoThirdRow:format(columns_str, od_str, hp_str, difficulty_str))
 end
 
 ---@param to_text boolean
@@ -655,8 +698,8 @@ function ViewConfig:scores(view)
 
 	gfx.setBlendMode("alpha", "alphamultiply")
 
-	if online_scores then
-		list:reloadItems()
+	if score_source == "online" then
+		list:reloadItems("online")
 	end
 
 	has_scores = #list.items ~= 0
@@ -676,7 +719,7 @@ function ViewConfig:scores(view)
 
 	gfx.origin()
 	gfx.setBlendMode("alpha", "premultiplied")
-	local a = animate(list.updateTime, 0.3)
+	local a = animate(list.updateTime or 0, 0.3)
 	gfx.setColor(a, a, a, a)
 	gfx.draw(canvas)
 	gfx.setBlendMode("alpha")

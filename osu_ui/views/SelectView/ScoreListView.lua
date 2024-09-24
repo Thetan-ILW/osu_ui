@@ -51,7 +51,7 @@ local function commaValue(n) -- credit http://richard.warburton.it
 	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
 end
 
-function ScoreListView:getProfileScore(score)
+function ScoreListView:getProfileScore(score_index, score, source)
 	local player_score = self.playerProfile:getScore(score.id)
 
 	if not player_score then
@@ -68,7 +68,18 @@ function ScoreListView:getProfileScore(score)
 	local img = self.assets.images
 	local grade = img.smallGradeD
 
-	local acc = player_score.osuAccuracy
+	local acc = 0
+
+	if source == "osuv1" then
+		acc = player_score.osuAccuracy
+	elseif source == "osuv2" then
+		acc = player_score.osuv2Accuracy
+	elseif source == "etterna" then
+		acc = player_score.etternaAccuracy
+	elseif source == "quaver" then
+		acc = player_score.quaverAccuracy
+	end
+
 	if acc == 1 then
 		grade = img.smallGradeX
 	elseif acc >= 0.95 then
@@ -82,18 +93,20 @@ function ScoreListView:getProfileScore(score)
 	end
 
 	return {
+		scoreIndex = score_index,
 		scoreNum = player_score.osuScore,
 		secondRow = ("Score: %s (%ix)"):format(commaValue(math.floor(player_score.osuScore)), score.max_combo),
-		accuracy = ("%0.02f%%"):format(player_score.osuAccuracy * 100),
+		accuracy = ("%0.02f%%"):format(acc * 100),
 		modsRow = mods_line,
 		tooltip = tooltip,
 		time = score.time,
 		timeSince = 0,
-		gradeImg = grade
+		gradeImg = grade,
+		username = "You"
 	}
 end
 
-function ScoreListView:getSoundsphereScore(score)
+function ScoreListView:getSoundsphereScore(score_index, score)
 	local mods_line = getModifierString(score.modifiers)
 	local tooltip = self:getTooltip(score, mods_line)
 
@@ -118,6 +131,7 @@ function ScoreListView:getSoundsphereScore(score)
 	end
 
 	return {
+		scoreIndex = score_index,
 		scoreNum = score_num,
 		secondRow = ("Score: %i (%ix)"):format(score_num, score.max_combo),
 		accuracy = ("%0.02f%%"):format(score.accuracy * 1000),
@@ -130,7 +144,8 @@ function ScoreListView:getSoundsphereScore(score)
 	}
 end
 
-function ScoreListView:reloadItems()
+---@param source string
+function ScoreListView:reloadItems(source)
 	self.stateCounter = self.game.selectModel.scoreStateCounter
 
 	if self.scores == self.game.selectModel.scoreLibrary.items then
@@ -140,15 +155,13 @@ function ScoreListView:reloadItems()
 	self.scores = self.game.selectModel.scoreLibrary.items
 	self.items = {}
 
-	local score_source = "local"
-
 	for i, score in ipairs(self.scores) do
 		local item
 
-		if score_source == "local" then
-			item = self:getSoundsphereScore(score)
-		elseif score_source == "profile" then
-			item = self:getProfileScore(score)
+		if source == "local" or source == "online" then
+			item = self:getSoundsphereScore(i, score)
+		else
+			item = self:getProfileScore(i, score, source)
 		end
 
 		if item then
@@ -161,9 +174,6 @@ function ScoreListView:reloadItems()
 	self:updateTimeSinceScore()
 
 	local i = self.game.selectModel.scoreItemIndex
-	self.selectedScoreIndex = i
-	self.selectedScore = self.items[i]
-	self.game.selectModel:scrollScore(nil, 1)
 	self.targetItemIndex = 1
 end
 
@@ -176,9 +186,6 @@ function ScoreListView:scrollScore(delta)
 	end
 
 	self:scroll(delta)
-	self.selectedScore = score
-	self.selectedScoreIndex = i
-	self.game.selectModel:scrollScore(nil, i)
 	self.openResult = true
 end
 
@@ -191,19 +198,11 @@ function ScoreListView:mouseClick(w, h, i)
 
 	if ui.isOver(panel_w, h, 0, 0) then
 		if ui.mousePressed(1) then
-			if self.selectedScoreIndex == i then
-				self.openResult = true
+			if not self.items[i] then
 				return
 			end
-
-			self.selectedScoreIndex = i
-			self.selectedScore = self.items[i]
-			self.game.selectModel:scrollScore(nil, i)
-
-			if self.oneClickOpen then
-				self.openResult = true
-				return
-			end
+			self.game.selectModel:scrollScore(nil, self.items[i].scoreIndex)
+			self.openResult = true
 		end
 	end
 end
