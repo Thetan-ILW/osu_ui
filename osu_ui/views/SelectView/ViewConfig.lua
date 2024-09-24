@@ -11,7 +11,6 @@ local actions = require("osu_ui.actions")
 local time_util = require("time_util")
 local math_util = require("math_util")
 local table_util = require("table_util")
-local msd_util = require("osu_ui.msd_util")
 local Format = require("sphere.views.Format")
 
 local getBeatValue = require("osu_ui.views.beat_value")
@@ -361,11 +360,12 @@ function ViewConfig:updateInfo(view, chart_changed)
 	local diff_column = view.game.configModel.configs.settings.select.diff_column
 
 	if diff_column == "msd_diff" and chartview.msd_diff_data then
-		local msd = msd_util.getMsdFromData(chartview.msd_diff_data, rate)
+		local etterna_msd = view.ui.etternaMsd
+		local msd = etterna_msd.getMsdFromData(chartview.msd_diff_data, rate)
 
 		if msd then
 			local difficulty = msd.overall
-			local pattern = msd_util.simplifySsr(msd_util.getFirstFromMsd(msd))
+			local pattern = etterna_msd.simplifySsr(etterna_msd.getFirstFromMsd(msd))
 			difficulty_str = ("%0.02f %s"):format(difficulty, pattern)
 		end
 	elseif diff_column == "enps_diff" then
@@ -385,11 +385,9 @@ function ViewConfig:updateInfo(view, chart_changed)
 	local gameplay = view.game.configModel.configs.settings.gameplay
 	scroll_speed_str = ("%g (fixed)"):format(speed_model.format[gameplay.speedType]:format(speed_model:get()))
 
-	self.scoreListView:reloadItems(score_source)
-
-
 	if chart_changed then
 		update_time = current_time
+		self.scoreListView:reloadItems(score_source)
 		self.scoreListView.scoreUpdateTime = love.timer.getTime()
 	end
 
