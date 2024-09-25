@@ -439,6 +439,10 @@ function ViewConfig:loadScore(view)
 
 	modifierIconImages = {}
 
+	if view.game.configModel.configs.select.judgements:find("osu!mania") then
+		table.insert(modifierIconImages, img.scorev2)
+	end
+
 	for _, mod in ipairs(modifiers) do
 		local id = mod.id
 
@@ -450,6 +454,8 @@ function ViewConfig:loadScore(view)
 			table.insert(modifierIconImages, img.mirror)
 		elseif id == 17 then
 			table.insert(modifierIconImages, img.random)
+		elseif id == 19 and mod.value == 3 then
+			table.insert(modifierIconImages, img.fln3)
 		end
 	end
 

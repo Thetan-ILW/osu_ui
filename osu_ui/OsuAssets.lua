@@ -181,6 +181,8 @@ local images = {
 		automap8 = "selection-mod-key8",
 		automap9 = "selection-mod-key9",
 		automap10 = "selection-mod-key10",
+		fln3 = "selection-mod-fln3",
+		scorev2 = "selection-mod-scorev2"
 	},
 }
 
