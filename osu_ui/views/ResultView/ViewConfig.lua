@@ -1,7 +1,6 @@
 local IViewConfig = require("osu_ui.views.IViewConfig")
 local ui = require("osu_ui.ui")
 local just = require("just")
-local msd_util = require("osu_ui.msd_util")
 local flux = require("flux")
 
 local getPP = require("osu_ui.osu_pp")
@@ -377,16 +376,23 @@ function ViewConfig:loadScore(view)
 
 	difficultyFormatted = ("[%0.02f*]"):format(difficulty)
 
-	if diff_column == "msd_diff" and chartdiff.msd_diff_data then
-		local msd = msd_util.getMsdFromData(chartdiff.msd_diff_data, time_rate)
+	if diff_column == "msd_diff" and chartview.msd_diff_data then
+		local etterna_msd = view.ui.etternaMsd
+		local msd = etterna_msd.getMsdFromData(chartview.msd_diff_data, time_rate)
 
 		if msd then
 			difficulty = msd.overall
-			patterns = msd_util.getFirstFromMsd(msd)
+			patterns = etterna_msd.getFirstFromMsd(msd)
 		end
 
-		patterns = msd_util.simplifySsr(patterns)
+		patterns = etterna_msd.simplifySsr(patterns)
 		difficultyFormatted = ("[%0.02f %s]"):format(difficulty, patterns)
+	elseif diff_column == "enps_diff" then
+		difficultyFormatted = ("[%0.02f ENPS]"):format((chartdiff.enps_diff or 0) * timeRate)
+	elseif diff_column == "osu_diff" then
+		difficultyFormatted = ("[%0.02f*]"):format((chartdiff.osu_diff or 0) * timeRate)
+	else
+		difficultyFormatted = ("[%0.02f]"):format((chartview.user_diff or 0) * timeRate)
 	end
 
 	local scoreSystemName = judge.scoreSystemName

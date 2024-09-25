@@ -52,6 +52,18 @@ function UserInterface:getMods()
 	end
 
 	self.playerProfile = player_profile
+
+	local success, result = pcall(require, "minacalc.etterna_msd")
+
+	print(success and "minacalc installed" or "minacalc not installed")
+
+	local etterna_msd = success and result or {
+		getMsdFromData = function ()
+			return nil
+		end
+	}
+
+	self.etternaMsd = etterna_msd
 end
 
 function UserInterface:load()
