@@ -1,8 +1,8 @@
 local Layout = require("ui.views.GameplayView.Layout")
 local Background = require("ui.views.GameplayView.Background")
-local Foreground = require("ui.views.GameplayView.Foreground")
 local ScreenView = require("osu_ui.views.ScreenView")
 local SequenceView = require("sphere.views.SequenceView")
+local RectangleProgressView = require("sphere.views.GameplayView.RectangleProgressView")
 
 local OsuPauseScreen = require("osu_ui.views.GameplayView.OsuPauseScreen")
 local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
@@ -10,7 +10,6 @@ local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
 local just = require("just")
 local ui = require("osu_ui.ui")
 local actions = require("osu_ui.actions")
-local flux = require("flux")
 
 ---@class osu.ui.GameplayView: osu.ui.ScreenView
 ---@operator call: osu.ui.GameplayView
@@ -41,10 +40,18 @@ function GameplayView:load()
 	sequence_view:load()
 
 	local root = note_skin.path:match("(.+/)") or ""
-
 	local assets = OsuPauseAssets(self.ui.assetModel, root)
 	assets:load()
 	self.pauseScreen = OsuPauseScreen(assets)
+
+	self.pauseProgressBar =  RectangleProgressView({
+		x = 0, y = 0, w = 1920, h = 20,
+		color = {1, 1, 1, 1},
+		transform = {0, 0, 0, {1 / 1920, 0}, {0, 1 / 1080}, 0, 0, 0, 0},
+		direction = "left-right",
+		mode = "+",
+		getCurrent = function() return self.game.pauseModel.progress end,
+	})
 
 	self.cursor.alpha = 0
 end
@@ -61,6 +68,7 @@ function GameplayView:retry()
 	self.sequenceView:unload()
 	self.sequenceView:load()
 	self.pauseScreen:hide()
+	self.cursor.alpha = 0
 end
 
 function GameplayView:draw()
@@ -84,6 +92,8 @@ function GameplayView:draw()
 		Background(self)
 		self.sequenceView:draw()
 	end
+
+	self.pauseProgressBar:draw()
 
 	just.container()
 
