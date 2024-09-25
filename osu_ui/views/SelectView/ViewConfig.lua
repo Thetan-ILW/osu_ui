@@ -66,7 +66,10 @@ local update_time = 0
 local has_scores = false
 local beat = 0
 
----@type "local" | "online" | "osuv1" | "osuv2" | "etterna" | "quaver"
+---@alias ScoreSource "local" | "online" | "osuv1" | "osuv2" | "etterna" | "quaver" 
+---@type ScoreSource[]
+local score_sources = {}
+---@type ScoreSource
 local score_source
 
 ---@type "circles" | "taiko" | "fruits" | "mania"
@@ -123,6 +126,16 @@ local ranking_options = {
 	etterna = "Local Etterna J4",
 	quaver = "Local Quaver"
 }
+
+local function setScoreSource(v, configs)
+	score_source = v
+	configs.osu_ui.songSelect.scoreSource = v
+	if v == "online" then
+		configs.select.scoreSourceName = "online"
+		return
+	end
+	configs.select.scoreSourceName = "local"
+end
 
 ---@param view osu.ui.SelectView
 function ViewConfig:createUI(view)
@@ -199,19 +212,6 @@ function ViewConfig:createUI(view)
 		view:openModal("osu_ui.views.modals.ChartOptions")
 	end)
 
-	local profile_sources = view.ui.playerProfile.scoreSources
-	local select = view.game.configModel.configs.select
-
-	local sources = { "local" }
-
-	if profile_sources then
-		for i, v in ipairs(profile_sources) do
-			table.insert(sources, v)
-		end
-	end
-
-	table.insert(sources, "online")
-
 	combos.scoreSource = Combo(assets, {
 		font = font.dropdown,
 		pixelWidth = 328,
@@ -219,17 +219,9 @@ function ViewConfig:createUI(view)
 		borderColor = { 0.08, 0.51, 0.7, 1 },
 		hoverColor = { 0.08, 0.51, 0.7, 1 },
 	}, function()
-		return score_source, sources
+		return score_source, score_sources
 	end, function(v)
-		score_source = v
-
-		if v == "online" then
-			select.scoreSourceName = "online"
-			view.game.selectModel:pullScore()
-			return
-		end
-
-		select.scoreSourceName = "local"
+		setScoreSource(v, view.game.configModel.configs)
 		view.game.selectModel:pullScore()
 		self.scoreListView:reloadItems(v)
 	end, function(v)
@@ -300,8 +292,20 @@ function ViewConfig:new(view, assets)
 	update_time = current_time
 	self.scoreListView.scoreUpdateTime = love.timer.getTime()
 
-	local select = view.game.configModel.configs.select
-	score_source = select.scoreSourceName
+	local configs = view.game.configModel.configs
+	local osu = configs.osu_ui
+
+	local profile_sources = view.ui.playerProfile.scoreSources
+	score_sources = { "local" }
+
+	if profile_sources then
+		for i, v in ipairs(profile_sources) do
+			table.insert(score_sources, v)
+		end
+	end
+
+	table.insert(score_sources, "online")
+	setScoreSource(osu.songSelect.scoreSource, configs)
 
 	local w, h = Layout:move("base")
 	top_panel_quad = gfx.newQuad(0, 0, w, img.panelTop:getHeight(), img.panelTop)
