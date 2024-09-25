@@ -1,7 +1,7 @@
 # osu! UI for soundsphere
 This is a UI theme for [soundsphere](https://soundsphere.xyz/), created for people who like osu! UI, but want the features of soundsphere.   
 Layout is 1:1 to the original osu!. Animations are also very similar.  
-Skinning is fully supported and you can customize everything! See screenshots below.  
+Skinning is fully supported and [you can customize everything](https://github.com/Thetan-ILW/osu_ui/blob/main/Skinning.md)! See screenshots below.  
 # Installing
 - Open `soundsphere`.
 - Navigate to `options -> themes`.
