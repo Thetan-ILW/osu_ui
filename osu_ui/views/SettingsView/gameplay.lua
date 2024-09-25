@@ -37,6 +37,13 @@ local available_judges = {
 	["Lunatic rave 2"] = getJudges(lr2.metadata.range),
 }
 
+local judge_format = {
+	["osu!mania"] = osuMania.metadata.name,
+	["osu!legacy"] = osuLegacy.metadata.name,
+	["Etterna"] = etterna.metadata.name,
+	["Lunatic rave 2"] = lr2.metadata.name,
+}
+
 local lunatic_rave_judges = {
 	[0] = "Easy",
 	[1] = "Normal",
@@ -71,6 +78,14 @@ local function updateScoringOptions(score_system, judge, play_context)
 	end
 end
 
+local function judgeToString(score_system, judge)
+	local format = judge_format[score_system]
+	if format then
+		return format:format(judge)
+	end
+	return score_system
+end
+
 ---@param score_system string
 local function isNearestDefault(score_system)
 	local ss_timings = timings_list[score_system]
@@ -94,7 +109,7 @@ return function(assets, view)
 	local gf = settings.graphics
 	local dim = gf.dim
 	local blur = gf.blur
-	---@type osu.OsuConfig
+	---@type osu.ui.OsuConfig
 	local osu = config.osu_ui
 	---@type sphere.SpeedModel
 	local speed_model = view.game.speedModel
@@ -193,6 +208,8 @@ return function(assets, view)
 		local new_judges = available_judges[v]
 		osu.scoreSystem = v
 		osu.judgement = new_judges and new_judges[1] or 0
+		config.select.judgements = judgeToString(v, osu.judgement)
+		print(config.select.judgements)
 		updateScoringOptions(v, osu.judgement, play_context)
 		view:build("gameplay")
 	end, function(v)
@@ -211,6 +228,8 @@ return function(assets, view)
 			return osu.judgement, judges
 		end, function(v)
 			osu.judgement = v
+			config.select.judgements = judgeToString(osu.scoreSystem, v)
+			print(config.select.judgements)
 			updateScoringOptions(osu.scoreSystem, v, play_context)
 		end, function(v)
 			if osu.scoreSystem == "Lunatic rave 2" then
