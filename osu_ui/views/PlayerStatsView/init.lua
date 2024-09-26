@@ -9,9 +9,18 @@ local PlayerStatsView = ScreenView + {}
 
 function PlayerStatsView:load()
 	self.playerProfile = self.ui.playerProfile
+
+	self.dansInfo = self.playerProfile:getAvailableDans()
+	self.selectedKeymode = "4key"
+	self.selectedDanType = "regular"
+
 	self.activityView = ActivityView(self.assets, self.playerProfile:getActivity())
-	self.danTableView = DanTableView(self.assets, self.playerProfile:getDanTable("4key"))
+	self:createDanTableList()
 	self.viewConfig = ViewConfig(self)
+end
+
+function PlayerStatsView:createDanTableList()
+	self.danTableView = DanTableView(self.assets, self.playerProfile:getDanTable(self.selectedKeymode, self.selectedDanType))
 end
 
 function PlayerStatsView:resolutionUpdated()

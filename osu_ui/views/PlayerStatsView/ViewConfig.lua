@@ -1,6 +1,7 @@
 local IViewConfig = require("osu_ui.views.IViewConfig")
 local OsuLayout = require("osu_ui.views.OsuLayout")
 
+local Combo = require("osu_ui.ui.Combo")
 local BackButton = require("osu_ui.ui.BackButton")
 
 local ui = require("osu_ui.ui")
@@ -9,17 +10,39 @@ local ViewConfig = IViewConfig + {}
 
 local gfx = love.graphics
 
+---@param view osu.ui.PlayerStatsView
 function ViewConfig:new(view)
 	self.view = view
 	self.assets = view.assets
 	self:createUI(view)
 end
 
+---@param view osu.ui.PlayerStatsView
 function ViewConfig:createUI(view)
 	local assets = self.assets
+	local text, font = assets.localization:get("playerStats")
+	assert(text and font)
 
 	self.backButton = BackButton(assets, { w = 93, h = 90 }, function()
 		view:quit()
+	end)
+
+	self.typeCombo = Combo(assets, {
+		font = font.dropdown,
+		pixelWidth = 200,
+		pixelHeight = 34,
+		borderColor = { 0.57, 0.76, 0.9, 1 },
+		hoverColor = { 0.57, 0.76, 0.9, 1 },
+	}, function()
+		return view.selectedDanType, view.dansInfo.types[view.selectedKeymode]
+	end, function(v)
+		view.selectedDanType = v
+		view:createDanTableList()
+	end, function (v)
+		if v == "regular" then
+			return "Regular"
+		end
+		return "Long note"
 	end)
 end
 
@@ -71,6 +94,12 @@ function ViewConfig:danTable(w, h)
 
 	local overlay = self.assets.images.danClearsOverlay
 	gfx.draw(overlay, w, 0, 0, 1, 1, overlay:getWidth())
+
+	gfx.push()
+	gfx.translate(w - 200, 15)
+	self.typeCombo:update(true)
+	self.typeCombo:drawBody()
+	gfx.pop()
 end
 
 function ViewConfig:draw()

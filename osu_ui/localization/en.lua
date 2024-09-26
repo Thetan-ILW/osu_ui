@@ -406,6 +406,7 @@ l.fontGroups = {
 	playerStats = {
 		activity = { "Aller", 18, "ZenMaruGothic-Regular" },
 		danTable = { "Aller", 20, "ZenMaruGothic-Regular" },
+		dropdown = { "Aller", 18 },
 	},
 	uiLock = {
 		title = { "Aller-Bold", 48 },
