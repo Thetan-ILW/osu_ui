@@ -204,7 +204,7 @@ l.textGroups = {
 	},
 	playerStats = {
 		sessionsInYear = "%i sessions in %s",
-		sessionsTime = "Max: %i mins / Avg: %i mins"
+		sessionsTime = "Max: %i minutes / Avg: %i minutes"
 	},
 	scoreList = {
 		score = "Score",
@@ -405,6 +405,7 @@ l.fontGroups = {
 	},
 	playerStats = {
 		activity = { "Aller", 18, "ZenMaruGothic-Regular" },
+		danTable = { "Aller", 20, "ZenMaruGothic-Regular" },
 	},
 	uiLock = {
 		title = { "Aller-Bold", 48 },

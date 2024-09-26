@@ -85,8 +85,8 @@ end
 
 function ActivityView:draw()
 	love.graphics.setColor(1, 1, 1)
-	ui.textFrame(self.sessionCountLabel, 4, 0, self.totalW, self.sessionCountLabel:getHeight(), "left", "top")
-	ui.textFrame(self.sessionTime, -4, 0, self.totalW, self.sessionCountLabel:getHeight(), "right", "top")
+	ui.textFrame(self.sessionCountLabel, 0, -4, self.totalW, self.sessionCountLabel:getHeight(), "left", "top")
+	ui.textFrame(self.sessionTime, 0, -4, self.totalW, self.sessionCountLabel:getHeight(), "right", "top")
 	love.graphics.draw(self.spriteBatch, 0, self.sessionCountLabel:getHeight())
 end
 

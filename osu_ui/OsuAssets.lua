@@ -185,7 +185,10 @@ local images = {
 		scorev2 = "selection-mod-scorev2"
 	},
 	playerStatsView = {
-		activityRectangle = "activity-rectangle"
+		activityRectangle = "activity-rectangle",
+		activityBackground = "profile-activity",
+		danClearsBackground = "profile-dan-clears",
+		danClearsOverlay = "profile-dan-clears-overlay"
 	}
 }
 

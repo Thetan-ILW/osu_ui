@@ -63,6 +63,9 @@ function UserInterface:getMods()
 			end,
 			getActivity = function ()
 				return nil
+			end,
+			getDanTable = function (self, mode)
+				return nil
 			end
 		}
 	end
