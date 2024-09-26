@@ -164,6 +164,7 @@ function actions.resetInputs()
 	keysDown = {}
 	keyPressTimestamps = {}
 	currentAction = nil
+	text_input_event = nil
 end
 
 local function getDownModAction()
@@ -344,6 +345,7 @@ end
 function actions.enable()
 	disabled = false
 	love.keyboard.setKeyRepeat(true)
+	actions.resetInputs()
 end
 
 function actions.disable()
