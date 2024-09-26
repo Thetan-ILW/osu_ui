@@ -184,6 +184,9 @@ local images = {
 		fln3 = "selection-mod-fln3",
 		scorev2 = "selection-mod-scorev2"
 	},
+	playerStatsView = {
+		activityRectangle = "activity-rectangle"
+	}
 }
 
 local sounds = {

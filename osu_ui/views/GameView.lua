@@ -51,7 +51,7 @@ function GameView:load()
 	self.notificationView:load(self.assets)
 	self.popupView:load(self.assets)
 	self.tooltipView:load(self.assets)
-	self:setView(self.ui.mainMenuView)
+	self:setView(self.ui.playerStatsView)
 end
 
 function GameView:loadAssets(view_name)
@@ -95,6 +95,7 @@ function GameView:_setView(view)
 		[self.ui.mainMenuView] = "mainMenuView",
 		[self.ui.selectView] = "selectView",
 		[self.ui.resultView] = "resultView",
+		[self.ui.playerStatsView] = "playerStatsView"
 	}
 
 	self:loadAssets(view_names[view])

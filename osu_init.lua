@@ -8,6 +8,7 @@ local SelectView = require("osu_ui.views.SelectView")
 local GameplayView = require("osu_ui.views.GameplayView")
 local ResultView = require("osu_ui.views.ResultView")
 local MainMenuView = require("osu_ui.views.MainMenuView")
+local PlayerStatsView = require("osu_ui.views.PlayerStatsView")
 local EditorView = require("ui.views.EditorView")
 
 ---@class osu.ui.UserInterface
@@ -24,6 +25,7 @@ function UserInterface:new(game, mount_path)
 	self.selectView = SelectView(game)
 	self.resultView = ResultView(game)
 	self.gameplayView = GameplayView(game)
+	self.playerStatsView = PlayerStatsView(game)
 	self.editorView = EditorView(game)
 
 	self.game = game
@@ -31,6 +33,17 @@ end
 
 function UserInterface:getMods()
 	local player_profile = self.game.playerProfileModel
+
+	---@alias DayStats { date: string, sessionTime: number, chartsPlayed: number }
+	---@alias ActivityRectangle { stats: DayStats, alphaColor: number, week: number, day: number } 
+
+	---@class Activity
+	---@operator call: Activity
+	---@field year number | string
+	---@field rectangles ActivityRectangle[]
+	---@field sessionCount number
+	---@field maxSessionTime number
+	---@field avgSessionTime number
 
 	if not player_profile or (player_profile and player_profile.version ~= 1) then
 		player_profile = {
@@ -47,6 +60,9 @@ function UserInterface:getMods()
 			end,
 			isDanIsCleared = function ()
 				return false, false
+			end,
+			getActivity = function ()
+				return nil
 			end
 		}
 	end
