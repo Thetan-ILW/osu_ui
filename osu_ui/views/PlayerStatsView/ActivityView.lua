@@ -68,6 +68,7 @@ function ActivityView:createUI()
 
 	self.sessionCountLabel = love.graphics.newText(font.activity, text.sessionsInYear:format(activity.sessionCount, activity.year))
 	self.sessionTime = love.graphics.newText(font.activity, text.sessionsTime:format(activity.maxSessionTime, activity.avgSessionTime))
+	self.creationTime = love.timer.getTime()
 end
 
 ---@return boolean

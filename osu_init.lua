@@ -69,6 +69,12 @@ function UserInterface:getMods()
 			end,
 			getDanTable = function (_self, mode, type)
 				return nil
+			end,
+			getOverallStats = function ()
+				return nil
+			end,
+			getModeStats = function ()
+				return nil
 			end
 		}
 	end

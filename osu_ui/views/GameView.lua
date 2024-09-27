@@ -51,7 +51,7 @@ function GameView:load()
 	self.notificationView:load(self.assets)
 	self.popupView:load(self.assets)
 	self.tooltipView:load(self.assets)
-	self:setView(self.ui.playerStatsView)
+	self:setView(self.ui.mainMenuView)
 end
 
 function GameView:loadAssets(view_name)
@@ -171,7 +171,7 @@ function GameView:update(dt)
 
 	if time > last_height_check + 0.5 then
 		if prev_window_res ~= resolution then
-			self.assets.localization:updateScale()
+			self.assets.localization:updateScale() ---TODO: Default fonts are not being updated. Fix this pls
 			self.view:resolutionUpdated()
 			prev_window_res = resolution
 		end

@@ -51,6 +51,8 @@ local logo_click_time = -math.huge
 ---@type table<string, {image: love.Image, hoverImage: love.Image, y: number, hoverState: osu.ui.HoverState}>
 local buttons = {}
 
+local player_profile_hover
+
 local gfx = love.graphics
 
 ---@type number[]
@@ -137,6 +139,8 @@ function ViewConfig:createUiElements()
 		hoverState = HoverState("quadout", 0.2),
 	}
 
+	player_profile_hover = HoverState("quadout", 0.2)
+
 	---@type string[]
 	local game_tips = self.assets.localization.textGroups.gameTips
 
@@ -187,7 +191,7 @@ end
 
 local parallax = 0.01
 
----@param view osu.MainMenuView
+---@param view osu.ui.MainMenuView
 local function background(view)
 	local w, h = Layout:move("base")
 	local mx, my = love.mouse.getPosition()
@@ -227,6 +231,12 @@ function ViewConfig:header(view)
 	gfx.push()
 	gfx.translate(6, 6)
 
+	local over, alpha, just_hovered = player_profile_hover:check(330, 86, 0, 0, self.hasFocus)
+
+	if over and ui.mousePressed(1) then
+		view:changeScreen("playerStatsView")
+	end
+
 	gfx.setFont(font.rank)
 	gfx.setColor( 1, 1, 1, 0.17)
 	ui.frame(("#%i"):format(rank), -1, 10, 322, 78, "right", "top")
@@ -259,6 +269,9 @@ function ViewConfig:header(view)
 	gfx.setColor(0.4, 0.4, 0.4, 1)
 	gfx.rectangle("line", 0, 0, 197, 10, 6, 6)
 	gfx.pop()
+
+	gfx.setColor(1, 1, 1, alpha * 0.2)
+	gfx.rectangle("fill", 0, 0, 330, 86, 5, 5)
 
 	gfx.translate(338, 6)
 	gfx.setColor(1, 1, 1)
