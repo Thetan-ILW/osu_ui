@@ -1,12 +1,14 @@
 local IViewConfig = require("osu_ui.views.IViewConfig")
 local Layout = require("osu_ui.views.OsuLayout")
 
+local ImageButton = require("osu_ui.ui.ImageButton")
 local Combo = require("osu_ui.ui.Combo")
 local BackButton = require("osu_ui.ui.BackButton")
 
 local ui = require("osu_ui.ui")
 local gfx_util = require("gfx_util")
 local map = require("math_util").map
+local Format = require("sphere.views.Format")
 
 local ViewConfig = IViewConfig + {}
 
@@ -60,6 +62,28 @@ function ViewConfig:createUI(view)
 	end, function (v)
 		view.selectedKeymode = v
 		view:createDanTableList()
+	end, function (v)
+		return Format.inputMode(v)
+	end)
+
+	local img = assets.images
+
+	self.selectProfileButton = ImageButton(assets, {
+		idleImage = img.profileSelect,
+		hoverImage = img.profileSelectOver,
+		oy = 1,
+		hoverArea = { w = 88, h = 90 },
+	}, function ()
+		view.notificationView:show("Not implemented")
+	end)
+
+	self.displayOptionsButton = ImageButton(assets, {
+		idleImage = img.profileDisplayOptions,
+		hoverImage = img.profileDisplayOptionsOver,
+		oy = 1,
+		hoverArea = { w = 74, h = 90 },
+	}, function ()
+		view.notificationView:show("Not implemented")
 	end)
 end
 
@@ -213,50 +237,158 @@ function ViewConfig:userInfo(w, h)
 	gfx.rectangle("line", 0, 0, 197, 10, 6, 6)
 
 	gfx.pop()
+	gfx.push()
+
+	gfx.translate(338, 6)
+
+	local stats = self.view.overallStats
+	gfx.setColor(1, 1, 1)
+	gfx.setFont(self.font.headerInfo)
+	ui.textWithShadow(("Total Performance Points: %i"):format(stats.pp)) ---TODO: add commas
+	ui.textWithShadow(("Total Play Time: %s"):format(os.date("%H hours %M minutes", stats.timePlayed))) ---TODO: shows incorrect time
+	ui.textWithShadow(("Play Count: %i"):format(stats.chartsPlayed))
+
+	gfx.pop()
 end
 
-function ViewConfig:overallStats(w, h)
+local key_value_w = 320
+local function modeKeyValue(k, v)
 	gfx.push()
-	gfx.translate(5, 100)
-	local stats = self.view.overallStats
-
-	gfx.setColor(1, 1, 1)
-	gfx.setFont(self.font.stats)
-	ui.text("Total statistics:")
-	ui.text(("Charts played: %s"):format(stats.chartsPlayed))
-	ui.text(("Time played: %s"):format(os.date("%H hours %M minutes", stats.timePlayed))) ---TODO: shows incorrect time
-	ui.text(("Etterna J4 accuracy: %0.02f%%"):format(stats.etternaAccuracy * 100))
-	ui.text(("osu!mania V1 accuracy: %0.02f%%"):format(stats.osuv1Accuracy * 100))
-	ui.text(("osu!mania V2 accuracy: %0.02f%%"):format(stats.osuv2Accuracy * 100))
+	ui.text(k)
 	gfx.pop()
+	ui.text(v, key_value_w, "right")
 end
 
 function ViewConfig:modeStats(w, h)
 	gfx.push()
 	local stats = self.view.modeStats
-	gfx.translate(5, 400)
+	local ov_stats = self.view.overallStats
+	gfx.translate(10, 100)
 	gfx.setColor(1, 1, 1)
-	gfx.setFont(self.font.stats)
+	gfx.setFont(self.font.modeStats)
 
-	ui.text(("%s statistics:"):format(self.view.selectedKeymode))
-	ui.text(("Perfomance points: %i"):format(stats.pp))
-	ui.text(("Avg. Star rating: %0.2f*"):format(stats.avgStarRate))
-	ui.text(("Avg. ENPS: %0.2f"):format(stats.avgEnps))
-	ui.text(("Avg. BPM: %i"):format(stats.avgTempo))
+	ui.text(("%s statistics:"):format(Format.inputMode(self.view.selectedKeymode)))
 
+	modeKeyValue("Performance Points:", ("%i"):format(stats.pp))
+	modeKeyValue("osu!mania V1 accuracy:", ("%0.02f%%"):format(ov_stats.osuv1Accuracy * 100))
+	modeKeyValue("Avg. Star Rating:", ("%0.02f*"):format(stats.avgStarRate))
+	modeKeyValue("Avg. ENPS:", ("%0.2f"):format(stats.avgEnps))
+	modeKeyValue("Avg. BPM:", ("%i"):format(stats.avgTempo))
+
+	gfx.pop()
+end
+
+local ssr_colors = {
+	{ 0.25, 0.79, 0.90, 1 }, -- Easy (aqua)
+	{ 0.24, 0.78, 0.17, 1 }, -- Normal (green)
+	{ 0.89, 0.78, 0.22, 1 }, -- Hard (yellow)
+	{ 0.91, 0.15, 0.32, 1 }, -- Instane (red)
+	{ 0.97, 0.20, 0.26, 1 }, -- Expert (pink)
+	{ 0.90, 0.15, 0.91, 1 }, -- Very Expert (very pink)
+}
+
+local ssr_ranges = {
+	{ 0, 8 },
+	{ 8, 15 },
+	{ 15, 23 },
+	{ 23, 29 },
+	{ 29, 32 },
+	{ 32, 36 },
+}
+
+---@param difficulty number
+---@return table
+local function getSsrColor(difficulty)
+	local ranges = ssr_ranges
+
+	local colorIndex = 1
+	for i = #ranges, 1, -1 do
+		local range = ranges[i]
+		if difficulty >= range[1] then
+			colorIndex = i
+			break
+		end
+	end
+
+	local lowerLimit, upperLimit
+	if colorIndex == 1 then
+		lowerLimit = 0
+		upperLimit = ranges[1][2]
+	elseif colorIndex == #ssr_colors then
+		return ssr_colors[#ssr_colors]
+	else
+		lowerLimit, upperLimit = ranges[colorIndex][1], ranges[colorIndex][2]
+	end
+
+	local color1, color2 = ssr_colors[colorIndex], ssr_colors[colorIndex + 1]
+
+	local mixingRatio = (difficulty - lowerLimit) / (upperLimit - lowerLimit)
+
+	return {
+		color1[1] * (1 - mixingRatio) + color2[1] * mixingRatio,
+		color1[2] * (1 - mixingRatio) + color2[2] * mixingRatio,
+		color1[3] * (1 - mixingRatio) + color2[3] * mixingRatio,
+		1,
+	}
+end
+
+local function ssrKeyValue(k, v)
+	gfx.push()
+	gfx.setColor(1, 1, 1)
+	ui.text(k)
+	gfx.pop()
+
+	gfx.setColor(getSsrColor(v))
+	ui.text(("%0.02f MSD"):format(v), 320, "right")
+end
+
+function ViewConfig:ssrTable(w, h)
+	local stats = self.view.modeStats
+
+	gfx.push()
+	gfx.translate(0, h - 90)
+	local panel = self.assets.images.profileSsrPanel
+	gfx.draw(panel, 0, 0, 0, 1, 1, 0, panel:getHeight())
+	gfx.pop()
+	gfx.push()
+
+	gfx.translate(20, 488)
+	for i, k in ipairs(stats.patternNames) do
+		ssrKeyValue(k:upper(), stats.patterns[k])
+	end
+	gfx.pop()
+end
+
+function ViewConfig:bottom(w, h)
+	gfx.push()
+	local bottom_img = self.assets.images.profilePanelBottom
+	local iw, ih = bottom_img:getDimensions()
+	gfx.translate(0, h - ih)
+	gfx.draw(bottom_img, 0, 0, 0, w / iw, 1)
+
+	gfx.pop()
+	gfx.push()
+
+	gfx.translate(224, h)
+	self.selectProfileButton:update(true)
+	self.selectProfileButton:draw()
+	gfx.translate(92, 0)
+	self.displayOptionsButton:update(true)
+	self.displayOptionsButton:draw()
 	gfx.pop()
 end
 
 function ViewConfig:draw()
 	local w, h = Layout:move("base")
 	self:background()
-	self:overallStats(w, h)
 	self:modeStats(w, h)
-	self:activity(w, h)
-	self:activityTooltip(w, h)
+	self:ssrTable(w, h)
 	self:danTable(w, h)
 	self:header(w, h)
 	self:userInfo(w, h)
+	self:bottom(w, h)
+	self:activity(w, h)
+	self:activityTooltip(w, h)
 
 	gfx.push()
 	gfx.translate(0, h - 58)

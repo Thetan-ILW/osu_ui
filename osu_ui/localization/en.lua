@@ -411,7 +411,9 @@ l.fontGroups = {
 		username = { "Aller", 20, "ZenMaruGothic-Regular" },
 		belowUsername = { "Aller", 14 },
 		rank = { "Aller-Light", 50 },
-		stats = { "Aller", 26, "ZenMaruGothic-Regular" }
+		stats = { "Aller", 24, "ZenMaruGothic-Regular" },
+		modeStats = { "Aller", 21, "ZenMaruGothic-Regular" },
+		headerInfo = { "Aller", 18, "ZenMaruGothic-Regular" },
 	},
 	uiLock = {
 		title = { "Aller-Bold", 48 },

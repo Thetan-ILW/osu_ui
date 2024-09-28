@@ -188,7 +188,13 @@ local images = {
 		activityRectangle = "activity-rectangle",
 		activityBackground = "profile-activity",
 		danClearsBackground = "profile-dan-clears",
-		danClearsOverlay = "profile-dan-clears-overlay"
+		danClearsOverlay = "profile-dan-clears-overlay",
+		profilePanelBottom = "profile-bottom",
+		profileSelect = "profile-select",
+		profileSelectOver = "profile-select-over",
+		profileDisplayOptions = "profile-display-options",
+		profileDisplayOptionsOver = "profile-display-options-over",
+		profileSsrPanel = "profile-ssr-panel",
 	}
 }
 
