@@ -208,6 +208,10 @@ function WindowListView:keyScroll(delta, target)
 end
 
 function WindowListView:processActions()
+	if not self.focus then
+		return
+	end
+
 	local ca = actions.consumeAction
 	local ad = actions.isActionDown
 	local gc = actions.getCount
