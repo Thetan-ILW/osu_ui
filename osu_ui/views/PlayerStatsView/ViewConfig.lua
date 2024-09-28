@@ -104,17 +104,17 @@ function ViewConfig:activityTooltip(w, h)
 	gfx.pop()
 end
 
-local dan_table_w, dan_table_h = 370, 423
+local dan_table_w, dan_table_h = 370, 430
 
 function ViewConfig:danTable(w, h)
 	gfx.push()
-	gfx.translate(0, 86)
+	gfx.translate(0, 89)
 	local img = self.assets.images.danClearsBackground
 	gfx.setColor(1, 1, 1)
 	gfx.draw(img, w, 0, 0, 1, 1, img:getWidth())
 
 	gfx.push()
-	gfx.translate(w - dan_table_w, 70)
+	gfx.translate(w - dan_table_w - 10, 75)
 	local dan_table = self.view.danTableView
 	dan_table:update(dan_table_w, dan_table_h)
 	dan_table:draw(dan_table_w, dan_table_h)
@@ -126,8 +126,8 @@ function ViewConfig:danTable(w, h)
 
 	gfx.push()
 	gfx.translate(w - 200, 15)
-	self.typeCombo:update(true)
-	self.typeCombo:drawBody()
+	--self.typeCombo:update(true)
+	--self.typeCombo:drawBody()
 	gfx.pop()
 	gfx.pop()
 end
