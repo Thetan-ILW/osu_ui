@@ -234,7 +234,9 @@ function ViewConfig:header(view)
 	local over, alpha, just_hovered = player_profile_hover:check(330, 86, 0, 0, self.hasFocus)
 
 	if over and ui.mousePressed(1) then
-		view:changeScreen("playerStatsView")
+		if not view.ui.playerProfile.notInstalled then
+			view:changeScreen("playerStatsView")
+		end
 	end
 
 	gfx.setFont(font.rank)

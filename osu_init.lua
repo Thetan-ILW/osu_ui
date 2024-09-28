@@ -47,6 +47,7 @@ function UserInterface:getMods()
 
 	if not player_profile or (player_profile and player_profile.version ~= 1) then
 		player_profile = {
+			notInstalled = true,
 			pp = 0,
 			accuracy = 0,
 			osuLevel = 0,
