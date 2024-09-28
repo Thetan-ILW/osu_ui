@@ -407,6 +407,7 @@ l.fontGroups = {
 		activity = { "Aller", 18, "ZenMaruGothic-Regular" },
 		danTable = { "Aller", 20, "ZenMaruGothic-Regular" },
 		dropdown = { "Aller", 18 },
+		textNearDropdown = { "Aller-Light", 30 },
 		username = { "Aller", 20, "ZenMaruGothic-Regular" },
 		belowUsername = { "Aller", 14 },
 		rank = { "Aller-Light", 50 },

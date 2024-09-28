@@ -35,8 +35,8 @@ function ViewConfig:createUI(view)
 		font = font.dropdown,
 		pixelWidth = 200,
 		pixelHeight = 34,
-		borderColor = { 0.57, 0.76, 0.9, 1 },
-		hoverColor = { 0.57, 0.76, 0.9, 1 },
+		borderColor = { 0.68, 0.82, 0.54, 1 },
+		hoverColor = { 0.68, 0.82, 0.54, 1 },
 	}, function()
 		return view.selectedDanType, view.dansInfo.types[view.selectedKeymode]
 	end, function(v)
@@ -47,6 +47,19 @@ function ViewConfig:createUI(view)
 			return "Regular"
 		end
 		return "Long note"
+	end)
+
+	self.modeCombo = Combo(assets, {
+		font = font.dropdown,
+		pixelWidth = 200,
+		pixelHeight = 34,
+		borderColor = { 0.57, 0.76, 0.9, 1 },
+		hoverColor = { 0.57, 0.76, 0.9, 1 },
+	}, function ()
+		return view.selectedKeymode, view.dansInfo.modes
+	end, function (v)
+		view.selectedKeymode = v
+		view:createDanTableList()
 	end)
 end
 
@@ -123,19 +136,43 @@ function ViewConfig:danTable(w, h)
 	local overlay = self.assets.images.danClearsOverlay
 	gfx.setColor(1, 1, 1)
 	gfx.draw(overlay, w, 0, 0, 1, 1, overlay:getWidth())
-
-	gfx.push()
-	gfx.translate(w - 200, 15)
-	--self.typeCombo:update(true)
-	--self.typeCombo:drawBody()
 	gfx.pop()
+end
+
+function ViewConfig:header(w, h)
+	gfx.push()
+	gfx.setColor(0, 0, 0, 0.4)
+	gfx.rectangle("fill", 0, 0, w, 86)
+
+
+	gfx.translate(w - 200, 30)
+	gfx.push()
+	self.typeCombo:update(true)
+	self.typeCombo:drawBody()
+	gfx.pop()
+
+	gfx.translate(-self.font.textNearDropdown:getWidth("Dan type") * ui.getTextScale(), 0)
+	gfx.setFont(self.font.textNearDropdown)
+	gfx.setColor(0.68, 0.82, 0.54)
+	gfx.push()
+	ui.text("Dan type")
+	gfx.pop()
+
+	gfx.translate(-self.modeCombo:getWidth(), 0)
+	gfx.push()
+	self.modeCombo:update(true)
+	self.modeCombo:drawBody()
+	gfx.pop()
+
+	gfx.translate(-self.font.textNearDropdown:getWidth("Mode") * ui.getTextScale(), 0)
+	gfx.setFont(self.font.textNearDropdown)
+	gfx.setColor(0.57, 0.76, 0.9)
+	ui.text("Mode")
 	gfx.pop()
 end
 
 function ViewConfig:userInfo(w, h)
 	gfx.push()
-	gfx.setColor(0, 0, 0, 0.4)
-	gfx.rectangle("fill", 0, 0, w, 86)
 	gfx.translate(6, 6)
 
 	local overall_stats = self.view.overallStats
@@ -213,12 +250,13 @@ end
 function ViewConfig:draw()
 	local w, h = Layout:move("base")
 	self:background()
-	self:userInfo(w, h)
 	self:overallStats(w, h)
 	self:modeStats(w, h)
 	self:activity(w, h)
 	self:activityTooltip(w, h)
 	self:danTable(w, h)
+	self:header(w, h)
+	self:userInfo(w, h)
 
 	gfx.push()
 	gfx.translate(0, h - 58)
