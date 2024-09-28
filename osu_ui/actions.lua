@@ -175,6 +175,11 @@ local function getDownModAction()
 			goto continue
 		end
 
+		if type(k) == "number" then
+			print(require("inspect")(modKeysDown))
+			return
+		end
+
 		table.insert(keys, k)
 
 		if k == "lctrl" or k == "rctrl" then
@@ -185,6 +190,11 @@ local function getDownModAction()
 	end
 
 	for k, _ in pairs(keysDown) do
+		if type(k) == "number" then
+			print(require("inspect")(modKeysDown))
+			return
+		end
+
 		table.insert(keys, k)
 	end
 

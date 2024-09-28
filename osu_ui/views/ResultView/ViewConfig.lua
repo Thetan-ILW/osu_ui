@@ -388,11 +388,11 @@ function ViewConfig:loadScore(view)
 		patterns = etterna_msd.simplifySsr(patterns)
 		difficultyFormatted = ("[%0.02f %s]"):format(difficulty, patterns)
 	elseif diff_column == "enps_diff" then
-		difficultyFormatted = ("[%0.02f ENPS]"):format((chartdiff.enps_diff or 0))
+		difficultyFormatted = ("[%0.02f ENPS]"):format((chartview.enps_diff or 0) * timeRate)
 	elseif diff_column == "osu_diff" then
-		difficultyFormatted = ("[%0.02f*]"):format((chartdiff.osu_diff or 0))
+		difficultyFormatted = ("[%0.02f*]"):format((chartview.osu_diff or 0) * timeRate)
 	else
-		difficultyFormatted = ("[%0.02f]"):format((chartview.user_diff or 0))
+		difficultyFormatted = ("[%0.02f]"):format((chartview.user_diff or 0) * timeRate)
 	end
 
 	local scoreSystemName = judge.scoreSystemName
