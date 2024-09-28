@@ -55,15 +55,16 @@ return function(assets, view, skin_preview)
 		c:add("skin", skin_preview)
 	end
 
-	local input_mode = ""
+	local input_mode = tostring(view.game.selectController.state.inputMode)
+	local selected_note_skin = view.game.noteSkinModel:getNoteSkin(input_mode)
+	local skins = view.game.noteSkinModel:getSkinInfos(input_mode)
 
 	combo(text.currentSkin, "Default", nil, function()
-		input_mode = tostring(view.game.selectController.state.inputMode)
-		local selected_note_skin = view.game.noteSkinModel:getNoteSkin(input_mode)
-		local skins = view.game.noteSkinModel:getSkinInfos(input_mode)
 		return selected_note_skin, skins
 	end, function(v)
 		view.game.noteSkinModel:setDefaultNoteSkin(input_mode, v:getPath())
+		input_mode = tostring(view.game.selectController.state.inputMode)
+		selected_note_skin = view.game.noteSkinModel:getNoteSkin(input_mode)
 		local skin_preview_img = view.game.ui.assetModel:loadSkinPreview(v.dir)
 		skin_preview:setImage(skin_preview_img)
 	end, function(v)

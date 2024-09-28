@@ -202,6 +202,10 @@ l.textGroups = {
 		matchesFound = "%i match(es) found.",
 		noCharts = "No songs? Try clearing the search AND the filters.\nYou can drop osu!, Etterna or Quaver 'Songs' folder in the game window to add songs.\n\nDrop .osz files to import osu! beatmaps.\n\nOr add charts to `userdata/charts/my_songs`.",
 	},
+	playerStats = {
+		sessionsInYear = "%i sessions in %s",
+		sessionsTime = "Max: %i minutes / Avg: %i minutes"
+	},
 	scoreList = {
 		score = "Score",
 		hasMods = "Has mods",
@@ -398,6 +402,18 @@ l.fontGroups = {
 		playInfo = { "Aller", 22, "ZenMaruGothic-Regular" },
 		graphInfo = { "ZenMaruGothic-Regular", 18 },
 		pp = { "ZenMaruGothic-Medium", 36 },
+	},
+	playerStats = {
+		activity = { "Aller", 18, "ZenMaruGothic-Regular" },
+		danTable = { "Aller", 20, "ZenMaruGothic-Regular" },
+		dropdown = { "Aller", 18 },
+		textNearDropdown = { "Aller-Light", 30 },
+		username = { "Aller", 20, "ZenMaruGothic-Regular" },
+		belowUsername = { "Aller", 14 },
+		rank = { "Aller-Light", 50 },
+		stats = { "Aller", 24, "ZenMaruGothic-Regular" },
+		modeStats = { "Aller", 21, "ZenMaruGothic-Regular" },
+		headerInfo = { "Aller", 18, "ZenMaruGothic-Regular" },
 	},
 	uiLock = {
 		title = { "Aller-Bold", 48 },

@@ -75,6 +75,7 @@ function HpGraph:draw()
 
 	for _, v in ipairs(self.lines) do
 		gfx.setColor(colors[v.color])
+		gfx.circle("fill", v.p1.x, v.p1.y, 2)
 		gfx.line(v.p1.x, v.p1.y, v.p2.x, v.p2.y)
 		gfx.circle("fill", v.p2.x, v.p2.y, 2)
 	end

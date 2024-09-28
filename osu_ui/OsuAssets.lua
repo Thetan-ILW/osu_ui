@@ -181,7 +181,21 @@ local images = {
 		automap8 = "selection-mod-key8",
 		automap9 = "selection-mod-key9",
 		automap10 = "selection-mod-key10",
+		fln3 = "selection-mod-fln3",
+		scorev2 = "selection-mod-scorev2"
 	},
+	playerStatsView = {
+		activityRectangle = "activity-rectangle",
+		activityBackground = "profile-activity",
+		danClearsBackground = "profile-dan-clears",
+		danClearsOverlay = "profile-dan-clears-overlay",
+		profilePanelBottom = "profile-bottom",
+		profileSelect = "profile-select",
+		profileSelectOver = "profile-select-over",
+		profileDisplayOptions = "profile-display-options",
+		profileDisplayOptionsOver = "profile-display-options-over",
+		profileSsrPanel = "profile-ssr-panel",
+	}
 }
 
 local sounds = {
