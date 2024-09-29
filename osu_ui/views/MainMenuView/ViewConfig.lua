@@ -62,6 +62,7 @@ local smoothing_factor = 0.2
 ---@param game osu.ui.MainMenuView
 ---@param assets osu.OsuAssets
 function ViewConfig:new(view, assets)
+	self.view = view
 	self.assets = assets
 	img = assets.images
 	snd = assets.sounds
@@ -390,6 +391,10 @@ function ViewConfig:footer()
 	end
 
 	gfx.translate(0, 658)
+	if self.view.game.configModel.configs.osu_ui.mainMenu.hideGameTips then
+		return	
+	end
+
 	self.gameTipLabel:draw()
 end
 

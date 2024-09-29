@@ -21,6 +21,10 @@ l.textGroups = {
 		upToDate = "Your soundsphere is up-to-date!",
 		notUpToDate = "Cannot tell if the game is up to date.",
 		openSoundsphereFolder = "Open soundsphere folder",
+		--- Main menu
+		mainMenu = "MAIN MENU",
+		hideGameTips = "Hide game tips",
+		disableIntro = "Disable intro",
 		--- Song select
 		songSelect = "SONG SELECT",
 		difficultyCalculator = "Difficulty calculator:",
@@ -29,6 +33,8 @@ l.textGroups = {
 		chartPreview = "Chart preview",
 		backgroundDim = "Background dim:",
 		backgroundBlur = "Background blur:",
+		preciseRates = "0.025x Music speed increment",
+		preciseRatesTip = "Allows music speed to be increased by 0.025x instead of 0.05x.",
 		--- Result screen
 		resultScreen = "RESULT SCREEN",
 		showDifficultyAndRate = "Show difficulty and rate",

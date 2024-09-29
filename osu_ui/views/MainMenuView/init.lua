@@ -16,7 +16,7 @@ local SettingsView = require("osu_ui.views.SettingsView")
 ---@field outroTween table?
 local MainMenuView = ScreenView + {}
 
-local show_intro = false
+local show_intro = true
 
 function MainMenuView:load()
 	self.selectModel = self.game.selectModel
@@ -28,6 +28,13 @@ function MainMenuView:load()
 	self.introPercent = 0
 	self.state = show_intro and "intro" or "normal"
 
+	if self.game.configModel.configs.osu_ui.mainMenu.disableIntro then
+		if show_intro then
+			show_intro = false
+			self.state = "normal"
+		end
+	end
+
 	self.inputMap = InputMap(self)
 	self.settingsView = SettingsView(self.assets, self.game, self.ui)
 	self.viewConfig = ViewConfig(self, self.assets)
@@ -35,6 +42,7 @@ function MainMenuView:load()
 	self.lastUserActionTime = love.timer.getTime()
 	love.mouse.setVisible(false)
 	actions.enable()
+
 
 	if show_intro then
 		local snd = self.assets.sounds

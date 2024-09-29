@@ -773,7 +773,7 @@ function ViewConfig:updateOtherInfo(view)
 		local rate_str
 
 		if rate_type == "linear" then
-			rate_str = ("%0.02fx"):format(time_rate_model:get())
+			rate_str = ("%gx"):format(time_rate_model:get())
 		else
 			rate_str = ("%iQ"):format(time_rate_model:get())
 		end

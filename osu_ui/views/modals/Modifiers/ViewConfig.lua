@@ -57,6 +57,10 @@ function ViewConfig:createUI()
 	local assets = self.assets
 	local modal = self.modal
 	local play_context = self.game.playContext
+	local osu = self.game.configModel.configs.osu_ui
+
+	---@type sphere.TimeRateModel
+	local time_rate_model = self.game.timeRateModel
 
 	reset_button = Button(assets, {
 		text = text.reset,
@@ -70,6 +74,9 @@ function ViewConfig:createUI()
 		for i = 1, #modifiers do
 			modifier_select_model:remove(1)
 		end
+
+		self.game.modifierSelectModel:change()
+		time_rate_model:set(1)
 	end)
 
 	close_button = Button(assets, {
@@ -84,17 +91,20 @@ function ViewConfig:createUI()
 
 	---@type "linear" | "exp"
 	local rate_type = self.game.configModel.configs.settings.gameplay.rate_type
-	---@type sphere.TimeRateModel
-	local time_rate_model = self.game.timeRateModel
 
 	local rate_format = {
-		linear = "%0.2fx",
+		linear = "%gx",
 		exp = "%0.fQ",
 	}
+
 	local rate_params = {
 		linear = { min = 0.75, max = 1.75, increment = 0.05 },
 		exp = { min = -6, max = 10, increment = 1 },
 	}
+
+	if osu.songSelect.preciseRates then
+		rate_params.linear = { min = 0.75, max = 1.75, increment = 0.025 }
+	end
 
 	rate_slider = Slider(assets, {
 		label = "Music speed:",

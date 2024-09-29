@@ -13,9 +13,14 @@ local t = {
 		trailMaxImages = 60,
 		trailStyle = "Vanishing"
 	},
+	mainMenu = {
+		disableIntro = false,
+		hideGameTips = false,
+	},
 	songSelect = {
 		previewIcon = false,
 		scoreSource = "local",
+		preciseRates = false
 	},
 	result = {
 		hitGraph = false,
