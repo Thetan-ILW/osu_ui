@@ -1,0 +1,8 @@
+{
+    "name": "osu_ui",
+    "display_name": "osu!",
+    "creator": "Thetan",
+    "types": {
+        "ui": "osu_init",
+    },
+}
