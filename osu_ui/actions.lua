@@ -354,14 +354,15 @@ function actions.isActionDown(name)
 end
 
 function actions.enable()
+	actions.resetInputs()
 	disabled = false
 	love.keyboard.setKeyRepeat(true)
 end
 
 function actions.disable()
+	actions.resetInputs()
 	disabled = true
 	love.keyboard.setKeyRepeat(false)
-	actions.resetInputs()
 end
 
 function actions.isEnabled()

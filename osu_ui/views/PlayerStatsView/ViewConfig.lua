@@ -61,7 +61,7 @@ function ViewConfig:createUI(view)
 		return view.selectedKeymode, view.dansInfo.modes
 	end, function (v)
 		view.selectedKeymode = v
-		view:createDanTableList()
+		view:updateModeInfo()
 	end, function (v)
 		return Format.inputMode(v)
 	end)
@@ -168,8 +168,10 @@ function ViewConfig:header(w, h)
 	gfx.setColor(0, 0, 0, 0.4)
 	gfx.rectangle("fill", 0, 0, w, 86)
 
+	gfx.setColor(1, 1, 1, 0.8)
+	ui.frame(("Top regular: %s | Top LN: %s"):format(self.view.regularDan, self.view.lnDan), -15, 7, w, h, "right", "top")
 
-	gfx.translate(w - 200, 30)
+	gfx.translate(w - 200, 40)
 	gfx.push()
 	self.typeCombo:update(true)
 	self.typeCombo:drawBody()
@@ -263,14 +265,22 @@ function ViewConfig:modeStats(w, h)
 	gfx.push()
 	local stats = self.view.modeStats
 	local ov_stats = self.view.overallStats
-	gfx.translate(10, 100)
+	gfx.translate(0, 89)
 	gfx.setColor(1, 1, 1)
+
+	gfx.draw(self.assets.images.profileModePanel)
+
+	gfx.setFont(self.font.statsModeLargeText)
+	gfx.translate(20, 14)
+	ui.text(("%s STATISTICS"):format(Format.inputMode(self.view.selectedKeymode)), 320, "center")
+
 	gfx.setFont(self.font.modeStats)
-
-	ui.text(("%s statistics:"):format(Format.inputMode(self.view.selectedKeymode)))
-
+	gfx.translate(0, 3)
 	modeKeyValue("Performance Points:", ("%i"):format(stats.pp))
 	modeKeyValue("osu!mania V1 accuracy:", ("%0.02f%%"):format(ov_stats.osuv1Accuracy * 100))
+	modeKeyValue("osu!mania V2 accuracy:", ("%0.02f%%"):format(ov_stats.osuv2Accuracy * 100))
+	modeKeyValue("Etterna J4 accuracy:", ("%0.02f%%"):format(ov_stats.etternaAccuracy * 100))
+	gfx.translate(0, 15)
 	modeKeyValue("Avg. Star Rating:", ("%0.02f*"):format(stats.avgStarRate))
 	modeKeyValue("Avg. ENPS:", ("%0.2f"):format(stats.avgEnps))
 	modeKeyValue("Avg. BPM:", ("%i"):format(stats.avgTempo))
@@ -378,9 +388,21 @@ function ViewConfig:bottom(w, h)
 	gfx.pop()
 end
 
+function ViewConfig:modeIcon(w, h)
+	gfx.push()
+	local image = self.assets.images.maniaIcon
+	local iw, ih = image:getDimensions()
+
+	gfx.translate(w / 2 - iw / 2, h / 2 - ih / 2)
+	gfx.setColor(1, 1, 1, 0.2)
+	gfx.draw(image)
+	gfx.pop()
+end
+
 function ViewConfig:draw()
 	local w, h = Layout:move("base")
 	self:background()
+	self:modeIcon(w, h)
 	self:modeStats(w, h)
 	self:ssrTable(w, h)
 	self:danTable(w, h)

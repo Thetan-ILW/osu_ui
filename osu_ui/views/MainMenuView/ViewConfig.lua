@@ -229,7 +229,6 @@ function ViewConfig:header(view)
 	gfx.rectangle("fill", 0, 0, w, 86)
 
 	gfx.push()
-	gfx.translate(6, 6)
 
 	local over, alpha, just_hovered = player_profile_hover:check(330, 86, 0, 0, self.hasFocus)
 
@@ -239,6 +238,7 @@ function ViewConfig:header(view)
 		end
 	end
 
+	gfx.translate(6, 6)
 	gfx.setFont(font.rank)
 	gfx.setColor( 1, 1, 1, 0.17)
 	ui.frame(("#%i"):format(rank), -1, 10, 322, 78, "right", "top")

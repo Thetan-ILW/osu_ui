@@ -131,7 +131,9 @@ function CursorView:draw()
 	end
 
 	if self.config.showTrail then
+		gfx.setBlendMode("add")
 		gfx.draw(self.trailSpriteBatch)
+		gfx.setBlendMode("alpha")
 	end
 
 	local s = cursor_scale * self.config.size
