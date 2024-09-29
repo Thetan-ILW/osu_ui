@@ -76,6 +76,8 @@ local score_source
 local selected_mode = "mania"
 ---@type {[string]: love.Image}
 local small_icons
+---@type osu.ui.HoverState
+local player_profile_hover
 
 local pp = 0
 local accuracy = 0
@@ -268,6 +270,8 @@ function ViewConfig:createUI(view)
 		fruits = img.fruitsSmallIcon,
 		mania = img.maniaSmallIcon,
 	}
+
+	player_profile_hover = HoverState("quadout", 0.2)
 end
 
 ---@param view osu.ui.SelectView
@@ -593,6 +597,16 @@ function ViewConfig:bottom(view)
 	w, h = Layout:move("base")
 	gfx.translate(630, 693)
 
+	local over, alpha, just_hovered = player_profile_hover:check(330, 86, 0, 0, has_focus)
+
+	if over and ui.mousePressed(1) then
+		if not view.ui.playerProfile.notInstalled then
+			view:changeScreen("playerStatsView")
+		end
+	end
+
+	gfx.push()
+
 	gfx.setFont(font.rank)
 	gfx.setColor({ 1, 1, 1, 0.17 })
 	ui.frame(("#%i"):format(rank), -1, 10, 322, 78, "right", "top")
@@ -625,6 +639,10 @@ function ViewConfig:bottom(view)
 
 	gfx.setColor(0.4, 0.4, 0.4, 1)
 	gfx.rectangle("line", 0, 0, 197, 10, 6, 6)
+
+	gfx.pop()
+	gfx.setColor(1, 1, 1, alpha * 0.2)
+	gfx.rectangle("fill", -2, -2, 322, 78, 5, 5)
 
 	w, h = Layout:move("base")
 	local hover, animation, just_hovered = osu_logo_button:check(200, 90, w - 200, h - 90, has_focus)
@@ -770,7 +788,7 @@ function ViewConfig:modeLogo()
 	local iw, ih = image:getDimensions()
 
 	gfx.translate(w / 2 - iw / 2, h / 2 - ih / 2)
-	gfx.setColor({ 1, 1, 1, 0.2 })
+	gfx.setColor(1, 1, 1, 0.2)
 	gfx.draw(image)
 end
 

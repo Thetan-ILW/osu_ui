@@ -238,6 +238,10 @@ function WindowListView:mouseClick(set)
 end
 
 function WindowListView:mouseScroll(y)
+	if not self.focus then
+		return
+	end
+
 	if self.windowSize == 0 then
 		return
 	end

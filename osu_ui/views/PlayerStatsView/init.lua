@@ -15,11 +15,16 @@ function PlayerStatsView:load()
 	self.selectedDanType = "regular"
 
 	self.overallStats = self.playerProfile:getOverallStats()
-	self.modeStats = self.playerProfile:getModeStats(self.selectedKeymode)
 	self.activityView = ActivityView(self.assets, self.playerProfile:getActivity())
-	self:createDanTableList()
+	self:updateModeInfo()
 
 	self.viewConfig = ViewConfig(self)
+end
+
+function PlayerStatsView:updateModeInfo()
+	self.modeStats = self.playerProfile:getModeStats(self.selectedKeymode)
+	self.regularDan, self.lnDan = self.playerProfile:getDanClears(self.selectedKeymode)
+	self:createDanTableList()
 end
 
 function PlayerStatsView:createDanTableList()

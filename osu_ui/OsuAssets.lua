@@ -75,6 +75,8 @@ local images = {
 		overlayOnline = "overlay-online",
 		overlayChat = "overlay-show",
 		onlineRanking = "ranking-online",
+
+		maniaIcon = "mode-mania",
 	},
 	mainMenuView = {
 		welcomeText = "welcome_text",
@@ -135,7 +137,6 @@ local images = {
 		fruitsSmallIcon = "mode-fruits-small",
 		maniaSmallIcon = "mode-mania-small",
 		maniaSmallIconForCharts = "mode-mania-small-for-charts",
-		maniaIcon = "mode-mania",
 
 		smallGradeD = "ranking-D-small",
 		smallGradeC = "ranking-C-small",
@@ -195,6 +196,7 @@ local images = {
 		profileDisplayOptions = "profile-display-options",
 		profileDisplayOptionsOver = "profile-display-options-over",
 		profileSsrPanel = "profile-ssr-panel",
+		profileModePanel = "profile-mode-panel"
 	}
 }
 
