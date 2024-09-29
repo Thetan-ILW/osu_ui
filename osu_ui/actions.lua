@@ -72,6 +72,7 @@ function actions.updateActions(osu_config)
 		currentConfig = osu_config.keybinds
 	end
 
+	actions.resetInputs()
 	singleKeyActions = {}
 	comboActions = {}
 
@@ -164,6 +165,7 @@ function actions.resetInputs()
 	keysDown = {}
 	keyPressTimestamps = {}
 	currentAction = nil
+	text_input_event = nil
 end
 
 local function getDownModAction()
