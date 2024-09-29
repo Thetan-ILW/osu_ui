@@ -95,6 +95,20 @@ return function(assets, view)
 		love.system.openURL(love.filesystem.getSource())
 	end)
 
+	c:createGroup("mainMenu", text.mainMenu)
+	Elements.currentGroup = "mainMenu"
+	checkbox(text.disableIntro, false, nil, function ()
+		return osu.mainMenu.disableIntro
+	end, function ()
+		osu.mainMenu.disableIntro = not osu.mainMenu.disableIntro
+	end)
+
+	checkbox(text.hideGameTips, false, nil, function ()
+		return osu.mainMenu.hideGameTips
+	end, function ()
+		osu.mainMenu.hideGameTips = not osu.mainMenu.hideGameTips
+	end)
+
 	c:createGroup("songSelect", text.songSelect)
 	Elements.currentGroup = "songSelect"
 

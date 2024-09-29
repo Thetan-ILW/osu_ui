@@ -21,6 +21,10 @@ l.textGroups = {
 		upToDate = "Your soundsphere is up-to-date!",
 		notUpToDate = "Cannot tell if the game is up to date.",
 		openSoundsphereFolder = "Open soundsphere folder",
+		--- Main menu
+		mainMenu = "MAIN MENU",
+		hideGameTips = "Hide game tips",
+		disableIntro = "Disable intro",
 		--- Song select
 		songSelect = "SONG SELECT",
 		difficultyCalculator = "Difficulty calculator:",
