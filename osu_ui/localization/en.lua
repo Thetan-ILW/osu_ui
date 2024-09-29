@@ -29,6 +29,8 @@ l.textGroups = {
 		chartPreview = "Chart preview",
 		backgroundDim = "Background dim:",
 		backgroundBlur = "Background blur:",
+		preciseRates = "0.025x Music speed increment",
+		preciseRatesTip = "Allows music speed to be increased by 0.025x instead of 0.05x.",
 		--- Result screen
 		resultScreen = "RESULT SCREEN",
 		showDifficultyAndRate = "Show difficulty and rate",

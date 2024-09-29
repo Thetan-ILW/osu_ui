@@ -143,6 +143,12 @@ return function(assets, view)
 		ss.chart_preview = not ss.chart_preview
 	end)
 
+	checkbox(text.preciseRates, false, text.preciseRatesTip, function ()
+		return osu.songSelect.preciseRates
+	end, function ()
+		osu.songSelect.preciseRates = not osu.songSelect.preciseRates
+	end)
+
 	c:createGroup("result", text.resultScreen)
 	Elements.currentGroup = "result"
 

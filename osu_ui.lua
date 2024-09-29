@@ -16,6 +16,7 @@ local t = {
 	songSelect = {
 		previewIcon = false,
 		scoreSource = "local",
+		preciseRates = false
 	},
 	result = {
 		hitGraph = false,

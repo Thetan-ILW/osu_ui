@@ -527,9 +527,9 @@ function ViewConfig:title(view)
 		if chartview.name and timeRate == 1 then
 			title = ("%s [%s]"):format(title, chartview.name)
 		elseif chartview.name and timeRate ~= 1 then
-			title = ("%s [%s %0.02fx]"):format(title, chartview.name, timeRate)
+			title = ("%s [%s %gx]"):format(title, chartview.name, timeRate)
 		else
-			title = ("%s [%s %0.02fx]"):format(title, timeRate)
+			title = ("%s [%s %gx]"):format(title, timeRate)
 		end
 
 		title = title .. " " .. difficultyFormatted
