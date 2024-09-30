@@ -54,7 +54,14 @@ function Lists:showCollections()
 	local game = self.view.game
 	local assets = self.assets
 
-	self.game.selectModel.collectionLibrary:load(self.showing == "locations")
+	local config = self.game.configModel.configs.settings.select
+	local loc_in_collections = self.showing == "locations"
+
+	if config.locations_in_collections ~= loc_in_collections then
+		config.locations_in_collections = loc_in_collections
+		self.game.selectModel.collectionLibrary:load(loc_in_collections)
+	end
+
 	self.list = CollectionsListView(game, assets)
 
 	self.pullNoteChart = true

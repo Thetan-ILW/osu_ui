@@ -66,6 +66,7 @@ end
 ---@param dt number
 function SelectView:update(dt)
 	ScreenView.update(self, dt)
+	self.game.selectController:update()
 
 	ui_lock = self.game.cacheModel.isProcessing
 
@@ -97,7 +98,6 @@ function SelectView:update(dt)
 
 	self.lists:update(dt)
 	self.viewConfig:setFocus(self.viewConfigFocus)
-	self.game.selectController:update()
 	self.chartPreviewView:update(dt)
 end
 
@@ -238,13 +238,13 @@ local events = {
 
 function SelectView:receive(event)
 	self.game.selectController:receive(event)
+	self.chartPreviewView:receive(event)
 
 	local f = events[event.name]
 	if f then
 		f(self, event)
 	end
 
-	self.chartPreviewView:receive(event)
 	self.settingsView:receive(event)
 end
 
