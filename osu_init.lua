@@ -33,18 +33,14 @@ function UserInterface:new(game, mount_path)
 end
 
 function UserInterface:getMods()
-	local player_profile = self.game.playerProfileModel
+	local package_manager = self.game.packageManager
+	local player_profile_pkg = package_manager:getPackage("player_profile")
 
-	---@alias DayStats { date: string, sessionTime: number, chartsPlayed: number }
-	---@alias ActivityRectangle { stats: DayStats, alphaColor: number, week: number, day: number } 
+	local player_profile
 
-	---@class Activity
-	---@operator call: Activity
-	---@field year number | string
-	---@field rectangles ActivityRectangle[]
-	---@field sessionCount number
-	---@field maxSessionTime number
-	---@field avgSessionTime number
+	if player_profile_pkg then
+		player_profile = self.game.playerProfileModel
+	end
 
 	if not player_profile or (player_profile and player_profile.version ~= 1) then
 		player_profile = {
@@ -83,13 +79,14 @@ function UserInterface:getMods()
 
 	self.playerProfile = player_profile
 
-	local success, result = pcall(require, "minacalc.etterna_msd")
+	local minacalc_pkg = package_manager:getPackage("msd_calculator")
 
-	print(success and "minacalc installed" or "minacalc not installed")
-
-	local etterna_msd = success and result or {
+	local etterna_msd = minacalc_pkg and require("minacalc.etterna_msd") or {
 		getMsdFromData = function ()
 			return nil
+		end,
+		simplifySsr = function ()
+			return "minacalc not installed"
 		end
 	}
 
