@@ -252,8 +252,8 @@ function WindowListView:mouseScroll(y)
 	end
 
 	local area = self.mouseAllowedArea
-	Layout:move("base")
-	local has_focus = ui.isOver(area.w, area.h, area.x, area.y)
+	local w, h = Layout:move("base")
+	local has_focus = ui.isOver(w, area.h, area.x, area.y)
 
 	if has_focus then
 		self.scroll = self.scroll + y
@@ -263,7 +263,7 @@ end
 
 function WindowListView:checkForMouseActions(item, x, y, panel_w, panel_h)
 	local area = self.mouseAllowedArea
-	local in_area = ui.isOver(area.w, area.h, area.x, area.y)
+	local in_area = ui.isOver(ui.layoutW, area.h, area.x, area.y)
 
 	if not in_area or not self.focus then
 		return

@@ -5,6 +5,9 @@ local ScrollBar = require("aqua.imgui.ScrollBar")
 
 local ui = {}
 
+ui.layoutW = 0
+ui.layoutH = 0
+
 local shadow = { 0.078, 0.078, 0.078, 0.64 }
 
 ui.inputMode = "keyboard"
