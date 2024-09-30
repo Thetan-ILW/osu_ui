@@ -40,6 +40,10 @@ function ui.getTextScale()
 	return text_scale
 end
 
+function ui.ts(x, y)
+	return love.math.newTransform(x, y)
+end
+
 function ui.text(text, w, ax)
 	love.graphics.push()
 	love.graphics.applyTransform(text_transform)
@@ -117,7 +121,7 @@ function ui.frameWithShadow(text, x, y, w, h, ax, ay)
 	ui.frame(text, x, y, w, h, ax, ay)
 end
 
-local shadow_offset = 0.4
+local shadow_offset = 0.6
 
 ---@param img love.Text
 ---@param x number

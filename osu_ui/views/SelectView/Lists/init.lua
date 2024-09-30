@@ -6,7 +6,7 @@ local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsLi
 
 ---@class osu.ui.SelectViewLists
 ---@operator call: osu.ui.SelectViewLists
----@field showing "charts" | "locations" | "directories"
+---@field showing "charts" | "locations" | "directories" | "collections"
 local Lists = class()
 
 Lists.groups = {
@@ -38,8 +38,12 @@ function Lists:new(view)
 	view.game.selectController:load()
 end
 
----@param mode "charts" | "locations" | "directories"
+---@param mode "charts" | "locations" | "directories" | "collections"
 function Lists:show(mode)
+	if mode == self.showing then
+		return
+	end
+
 	self.showing = mode
 
 	if mode == "charts" then
@@ -55,7 +59,14 @@ function Lists:showCollections()
 	local assets = self.assets
 
 	local config = self.game.configModel.configs.settings.select
-	local loc_in_collections = self.showing == "locations"
+
+	local loc_in_collections = false
+	if self.showing == "locations" then
+		loc_in_collections = true
+	elseif self.showing == "collections" then
+		loc_in_collections = config.locations_in_collections
+		self.showing = loc_in_collections and "locations" or "directories"
+	end
 
 	if config.locations_in_collections ~= loc_in_collections then
 		config.locations_in_collections = loc_in_collections

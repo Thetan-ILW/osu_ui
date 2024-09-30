@@ -20,6 +20,7 @@ local ImageButton = require("osu_ui.ui.ImageButton")
 local Combo = require("osu_ui.ui.Combo")
 local BackButton = require("osu_ui.ui.BackButton")
 local HoverState = require("osu_ui.ui.HoverState")
+local TabButton = require("osu_ui.ui.TabButton")
 
 local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
 
@@ -120,6 +121,9 @@ local buttons = {}
 ---@type table<string, osu.ui.Combo>
 local combos = {}
 
+---@type {[string]: osu.ui.TabButton}
+local tabs = {}
+
 local ranking_options = {
 	["local"] = "Local Ranking",
 	online = "Online Ranking",
@@ -137,6 +141,24 @@ local function setScoreSource(v, configs)
 		return
 	end
 	configs.select.scoreSourceName = "local"
+end
+
+function ViewConfig:updateTabs()
+	for i, v in pairs(tabs) do
+		v.active = false
+	end
+
+	local select_config = self.view.game.configModel.configs.select
+	local sort = select_config.sortFunction
+	if self.view.lists.showing ~= "charts" then
+		tabs.collections.active = true
+	elseif sort == "last played" then
+		tabs.recent.active = true
+	elseif sort == "artist" then
+		tabs.artist.active = true
+	elseif sort == "difficulty" then
+		tabs.difficulty.active = true
+	end
 end
 
 ---@param view osu.ui.SelectView
@@ -272,11 +294,34 @@ function ViewConfig:createUI(view)
 	}
 
 	player_profile_hover = HoverState("quadout", 0.2)
+
+	local tab_y = 54
+	local tab_font = font.tabs
+	tabs.collections = TabButton(assets, { label = text.collections, font = tab_font, transform = ui.ts(739, tab_y) }, function ()
+		self.view.lists:show("collections")
+	end)
+	tabs.recent = TabButton(assets, { label = text.recent, font = tab_font, transform = ui.ts(857, tab_y)}, function ()
+		view.game.selectModel:setSortFunction("last played")
+		self.view.lists:show("charts")
+	end)
+	tabs.artist = TabButton(assets, { label = text.artist, font = tab_font, transform = ui.ts(975, tab_y)}, function ()
+		view.game.selectModel:setSortFunction("artist")
+		self.view.lists:show("charts")
+	end)
+	tabs.difficulty = TabButton(assets, { label = text.difficulty, font = tab_font, transform = ui.ts(1093, tab_y) }, function ()
+		view.game.selectModel:setSortFunction("difficulty")
+		self.view.lists:show("charts")
+	end)
+	tabs.noGrouping = TabButton(assets, { label = text.noGrouping, font = tab_font, transform = ui.ts(1211, tab_y)}, function ()
+		view.game.selectModel:setSortFunction("title")
+		self.view.lists:show("charts")
+	end)
 end
 
 ---@param view osu.ui.SelectView
 ---@param _assets osu.ui.OsuAssets
 function ViewConfig:new(view, assets)
+	self.view = view
 	local game = view.game
 	self.assets = assets
 	avatar = assets.images.avatar
@@ -426,13 +471,6 @@ local function animate(time, interval)
 	return math_util.clamp(progress * progress, 0, 1)
 end
 
-local function tab(label)
-	gfx.setColor({ 0.86, 0.08, 0.23, 1 })
-	gfx.draw(img.tab)
-
-	gfx.setColor(white)
-	ui.frame(label, 0, 2, 137, 21, "center", "center")
-end
 
 local function rainbow(x, a)
 	local r = math.abs(math.sin(x * 2 * math.pi))
@@ -499,6 +537,8 @@ local function moveToGroup(to_text)
 	gfx.translate(-210 - (to_text and text_x or 0), 0)
 end
 
+local tab_order = {"noGrouping", "difficulty", "artist", "recent", "collections"}
+
 function ViewConfig:top()
 	local w, h = Layout:move("base")
 
@@ -522,17 +562,23 @@ function ViewConfig:top()
 	ui.text(text.group)
 
 	w, h = Layout:move("base")
+
+	if has_focus then
+		for i, v in ipairs(tab_order) do
+			local tab = tabs[v]
+			if tab:mouse() then
+				break
+			end
+		end
+	end
+
 	gfx.setFont(font.tabs)
-	gfx.translate(w - 632, 54)
-	tab(text.collections)
-	gfx.translate(118, 0)
-	tab(text.recent)
-	gfx.translate(118, 0)
-	tab(text.artist)
-	gfx.translate(118, 0)
-	tab(text.difficulty)
-	gfx.translate(118, 0)
-	tab(text.noGrouping)
+	self:updateTabs()
+	tabs.collections:draw()
+	tabs.recent:draw()
+	tabs.artist:draw()
+	tabs.difficulty:draw()
+	tabs.noGrouping:draw()
 end
 
 ---@param view osu.ui.SelectView
