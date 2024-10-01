@@ -12,6 +12,7 @@ local CollectionsListView = WindowListView + {}
 ---@param game sphere.GameController
 ---@param assets osu.ui.OsuAssets
 function CollectionsListView:new(game, assets)
+	WindowListView.new(self)
 	self.game = game
 	self.assets = assets
 	self.itemClass = CollectionItem

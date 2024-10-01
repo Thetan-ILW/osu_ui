@@ -5,6 +5,7 @@ local actions = require("osu_ui.actions")
 local ui = require("osu_ui.ui")
 local Layout = require("osu_ui.views.OsuLayout")
 
+local HoverState = require("osu_ui.ui.HoverState")
 local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
 
 --[[
@@ -39,6 +40,10 @@ function WindowListView:replaceItem(window_index, visual_index) end
 function WindowListView:loadChildItems() end
 
 function WindowListView:justHoveredOver(item) end
+
+function WindowListView:new()
+	self.returnBackArea = HoverState("linear", 0)
+end
 
 ---@param f fun(ChartSetListView, table, ...)
 function WindowListView:iterOverWindow(f, ...)
@@ -165,7 +170,7 @@ end
 function WindowListView:followSelection(index)
 	local target = (index or self:getSelectedItemIndex()) - math.floor(self.windowSize / 2)
 	self.scroll = math_util.clamp(target, self.minScroll, self.maxScroll)
-	self.scrollTween = flux.to(self, 0.2, { smoothScroll = target }):ease("quadout")
+	self.scrollTween = flux.to(self, 0.3, { smoothScroll = target }):ease("quadout")
 end
 
 ---@param delta number
@@ -247,8 +252,8 @@ function WindowListView:mouseScroll(y)
 	end
 
 	local area = self.mouseAllowedArea
-	Layout:move("base")
-	local has_focus = ui.isOver(area.w, area.h, area.x, area.y)
+	local w, h = Layout:move("base")
+	local has_focus = ui.isOver(w, area.h, area.x, area.y)
 
 	if has_focus then
 		self.scroll = self.scroll + y
@@ -258,7 +263,7 @@ end
 
 function WindowListView:checkForMouseActions(item, x, y, panel_w, panel_h)
 	local area = self.mouseAllowedArea
-	local in_area = ui.isOver(area.w, area.h, area.x, area.y)
+	local in_area = ui.isOver(ui.layoutW, area.h, area.x, area.y)
 
 	if not in_area or not self.focus then
 		return
@@ -288,13 +293,10 @@ function WindowListView:update(dt)
 	self:loadNewSets()
 
 	if self.selectedVisualItemIndex ~= self.scroll then
-		local area = self.mouseAllowedArea
+		local _, _, just_hovered = self.returnBackArea:check(502, 768)
 
-		local mx, _ = love.graphics.inverseTransformPoint(love.mouse.getX(), 0)
-
-		if mx < area.x then
-			self.scroll = self.selectedVisualItemIndex - self.windowSize / 2
-			self:animateScroll()
+		if just_hovered then
+			self:followSelection()
 		end
 	end
 

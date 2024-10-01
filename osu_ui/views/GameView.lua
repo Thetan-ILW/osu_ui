@@ -181,6 +181,7 @@ function GameView:update(dt)
 
 	ui.setTextScale(math.min(768 / wh, 1))
 	OsuLayout:draw()
+	ui.layoutW, ui.layoutH = OsuLayout:move("base")
 
 	self:checkForNotifications()
 

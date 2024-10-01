@@ -13,6 +13,7 @@ local ChartSetListView = WindowListView + {}
 ---@param game sphere.GameController
 ---@param assets osu.ui.OsuAssets
 function ChartSetListView:new(game, assets)
+	WindowListView.new(self)
 	self.game = game
 	self.assets = assets
 	self.config = self.game.configModel.configs.osu_ui
