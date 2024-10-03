@@ -158,6 +158,8 @@ function ViewConfig:updateTabs()
 		tabs.artist.active = true
 	elseif sort == "difficulty" then
 		tabs.difficulty.active = true
+	else
+		tabs.noGrouping.active = true
 	end
 end
 
@@ -418,7 +420,7 @@ function ViewConfig:updateInfo(view, chart_changed)
 
 		if msd then
 			local difficulty = msd.overall
-			local pattern = etterna_msd.simplifySsr(etterna_msd.getFirstFromMsd(msd))
+			local pattern = etterna_msd.simplifySsr(etterna_msd.getFirstFromMsd(msd), chartview.chartdiff_inputmode)
 			difficulty_str = ("%0.02f %s"):format(difficulty, pattern)
 		end
 	elseif diff_column == "enps_diff" then

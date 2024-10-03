@@ -186,7 +186,10 @@ function Assets.loadAudio(root, file_name, file_list, use_sound_data)
 		table.insert(Assets.errors, ("Corrupted sound %s | %s"):format(path, error))
 	end
 
-	table.insert(Assets.errors, ("Failed to load sound %s | Error: %s"):format(path, table.concat(result)))
+	if type(result) == "table" then
+		result = table.concat(result)
+	end
+	table.insert(Assets.errors, ("Failed to load sound %s | Error: %s"):format(path, result))
 end
 
 ---@type love.Image?
