@@ -158,6 +158,8 @@ function ViewConfig:updateTabs()
 		tabs.artist.active = true
 	elseif sort == "difficulty" then
 		tabs.difficulty.active = true
+	else
+		tabs.noGrouping.active = true
 	end
 end
 
