@@ -52,6 +52,7 @@ local timeFormatted = ""
 local setDirectory = ""
 local creator = ""
 local difficultyFormatted = ""
+local manip_factor_str = ""
 
 local grade = ""
 local tooltip = ""
@@ -371,6 +372,16 @@ function ViewConfig:loadScore(view)
 	local diff_column = view.game.configModel.configs.settings.select.diff_column
 	local time_rate = view.game.playContext.rate
 
+	local manip_factor = view.ui.manipFactor
+	local score_container = view.game.rhythmModel.scoreEngine.scoreSystem
+
+	if score_container.hits then
+		local mf_total, mf_left, mf_right = manip_factor(score_container.hits)
+		manip_factor_str = ("MF: %i%% L: %i%% R: %i%%"):format(mf_total * 100, mf_left * 100, mf_right * 100)
+	else
+		manip_factor_str = ""
+	end
+
 	local difficulty = (chartview.difficulty or 0) * time_rate
 	local patterns = chartview.level and "Lv." .. chartview.level or ""
 
@@ -669,10 +680,10 @@ local function hitGraph(view)
 	local w, h = 301, 160
 
 	gfx.translate(256, 608)
-	gfx.setColor({ 1, 1, 1, 1 })
+	gfx.setColor(1, 1, 1, 1)
 
+	gfx.push()
 	gfx.draw(img.graph)
-
 	if show_hit_graph then
 		h = h * 0.9
 		gfx.translate(0, 5)
@@ -686,6 +697,18 @@ local function hitGraph(view)
 		gfx.translate(9, 9)
 		view.hpGraph:draw()
 	end
+	gfx.pop()
+
+	if manip_factor_str == "" then
+		return
+	end
+
+	gfx.setColor(0, 0, 0, 0.5)
+	gfx.setFont(font.graphInfo)
+	local rw, rh = font.graphInfo:getWidth(manip_factor_str) * ui.getTextScale(), font.graphInfo:getHeight() * ui.getTextScale()
+	gfx.rectangle("fill", 10, h - 20 - rh, rw + 10, rh, 5, 5)
+	gfx.setColor(1, 1, 1, 1)
+	ui.frameWithShadow(manip_factor_str, 15, -2, w, h - 20, "left", "bottom")
 
 	if just.is_over(w, h) then
 		ui.tooltip = tooltip

@@ -80,7 +80,6 @@ function UserInterface:getMods()
 	self.playerProfile = player_profile
 
 	local minacalc_pkg = package_manager:getPackage("msd_calculator")
-
 	local etterna_msd = minacalc_pkg and require("minacalc.etterna_msd") or {
 		getMsdFromData = function ()
 			return nil
@@ -91,6 +90,9 @@ function UserInterface:getMods()
 	}
 
 	self.etternaMsd = etterna_msd
+
+	local manip_factor_pkg = package_manager:getPackage("manip_factor")
+	self.manipFactor = manip_factor_pkg and require("manip_factor") or nil
 end
 
 function UserInterface:load()
