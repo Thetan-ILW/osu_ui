@@ -416,7 +416,7 @@ function ViewConfig:loadScore(view)
 		od = 9
 	end
 
-	ppFormatted = ("%i PP"):format(getPP(judge.notes, chartdiff.osu_diff * timeRate, od, score_num))
+	ppFormatted = ("%i PP"):format(getPP(judge.notes, chartdiff.osu_diff, od, score_num))
 
 	local playContext = view.game.playContext
 	local timings = playContext.timings
