@@ -7,6 +7,7 @@ local BackButton = require("osu_ui.ui.BackButton")
 
 local ui = require("osu_ui.ui")
 local gfx_util = require("gfx_util")
+local time_util = require("time_util")
 local map = require("math_util").map
 local Format = require("sphere.views.Format")
 
@@ -19,6 +20,7 @@ function ViewConfig:new(view)
 	self.view = view
 	self.assets = view.assets
 	self.username = view.game.configModel.configs.online.user.name or "Guest"
+	self:formatInfo(view)
 	self:createUI(view)
 end
 
@@ -85,6 +87,29 @@ function ViewConfig:createUI(view)
 	}, function ()
 		view.notificationView:show("Not implemented")
 	end)
+
+end
+
+function ViewConfig:formatInfo(view)
+	local stats = view.overallStats
+	local play_time = time_util.date_diff(0, stats.timePlayed)
+	self.playTime = ("Total Play Time: %i hours %i minutes"):format(play_time.hours or 0, play_time.minutes or 0)
+	self.pp = ("Total Performance Points: %i"):format(stats.pp)
+	self.playCount = ("Play Count: %i"):format(stats.chartsPlayed)
+	self.rank = ("#%i"):format(stats.rank)
+	self.infoBelowUser = ("Playing since: %s\nKeys pressed: %s\nLv%i"):format(stats.profileCreationDate, stats.keysPressed, stats.level)
+
+	self.topDans = ("Top regular: %s | Top LN: %s"):format(self.view.regularDan, self.view.lnDan)
+
+	local mode = self.view.modeStats
+	self.selectedKeyMode = ("%s STATISTICS"):format(Format.inputMode(self.view.selectedKeymode))
+	self.modePP = ("%i"):format(stats.pp)
+	self.modeOsuV1 = ("%0.02f%%"):format(mode.osuv1Accuracy * 100)
+	self.modeOsuV2 = ("%0.02f%%"):format(mode.osuv2Accuracy * 100)
+	self.modeEtterna = ("%0.02f%%"):format(mode.etternaAccuracy * 100)
+	self.avgStarRate = ("%0.02f*"):format(mode.avgStarRate)
+	self.avgEnps = ("%0.2f"):format(mode.avgEnps)
+	self.avgTempo = ("%i"):format(mode.avgTempo)
 end
 
 local parallax = 0.01
@@ -169,7 +194,7 @@ function ViewConfig:header(w, h)
 	gfx.rectangle("fill", 0, 0, w, 86)
 
 	gfx.setColor(1, 1, 1, 0.8)
-	ui.frame(("Top regular: %s | Top LN: %s"):format(self.view.regularDan, self.view.lnDan), -15, 7, w, h, "right", "top")
+	ui.frame(self.topDans, -15, 7, w, h, "right", "top")
 
 	gfx.translate(w - 200, 40)
 	gfx.push()
@@ -211,7 +236,7 @@ function ViewConfig:userInfo(w, h)
 
 	gfx.setFont(font.rank)
 	gfx.setColor( 1, 1, 1, 0.17)
-	ui.frame(("#%i"):format(overall_stats.rank), -1, 10, 322, 78, "right", "top")
+	ui.frame(self.rank, -1, 10, 322, 78, "right", "top")
 
 	gfx.translate(80, -4)
 
@@ -219,7 +244,7 @@ function ViewConfig:userInfo(w, h)
 	gfx.setFont(font.username)
 	ui.text(self.username)
 	gfx.setFont(font.belowUsername)
-	ui.text(("Playing since: %s\nKeys pressed: %s\nLv%i"):format(overall_stats.profileCreationDate, overall_stats.keysPressed, overall_stats.level))
+	ui.text(self.infoBelowUser)
 
 	gfx.translate(40, 26)
 
@@ -243,12 +268,11 @@ function ViewConfig:userInfo(w, h)
 
 	gfx.translate(338, 6)
 
-	local stats = self.view.overallStats
 	gfx.setColor(1, 1, 1)
 	gfx.setFont(self.font.headerInfo)
-	ui.textWithShadow(("Total Performance Points: %i"):format(stats.pp)) ---TODO: add commas
-	ui.textWithShadow(("Total Play Time: %s"):format(os.date("%H hours %M minutes", stats.timePlayed))) ---TODO: shows incorrect time
-	ui.textWithShadow(("Play Count: %i"):format(stats.chartsPlayed))
+	ui.textWithShadow(self.pp)
+	ui.textWithShadow(self.playTime)
+	ui.textWithShadow(self.playCount)
 
 	gfx.pop()
 end
@@ -264,7 +288,6 @@ end
 function ViewConfig:modeStats(w, h)
 	gfx.push()
 	local stats = self.view.modeStats
-	local ov_stats = self.view.overallStats
 	gfx.translate(0, 89)
 	gfx.setColor(1, 1, 1)
 
@@ -272,18 +295,18 @@ function ViewConfig:modeStats(w, h)
 
 	gfx.setFont(self.font.statsModeLargeText)
 	gfx.translate(20, 14)
-	ui.text(("%s STATISTICS"):format(Format.inputMode(self.view.selectedKeymode)), 320, "center")
+	ui.text(self.selectedKeyMode, 320, "center")
 
 	gfx.setFont(self.font.modeStats)
 	gfx.translate(0, 3)
-	modeKeyValue("Performance Points:", ("%i"):format(stats.pp))
-	modeKeyValue("osu!mania V1 accuracy:", ("%0.02f%%"):format(ov_stats.osuv1Accuracy * 100))
-	modeKeyValue("osu!mania V2 accuracy:", ("%0.02f%%"):format(ov_stats.osuv2Accuracy * 100))
-	modeKeyValue("Etterna J4 accuracy:", ("%0.02f%%"):format(ov_stats.etternaAccuracy * 100))
+	modeKeyValue("Performance Points:", self.modePP)
+	modeKeyValue("osu!mania V1 accuracy:", self.modeOsuV1)
+	modeKeyValue("osu!mania V2 accuracy:", self.modeOsuV2)
+	modeKeyValue("Etterna J4 accuracy:", self.modeEtterna)
 	gfx.translate(0, 15)
-	modeKeyValue("Avg. Star Rating:", ("%0.02f*"):format(stats.avgStarRate))
-	modeKeyValue("Avg. ENPS:", ("%0.2f"):format(stats.avgEnps))
-	modeKeyValue("Avg. BPM:", ("%i"):format(stats.avgTempo))
+	modeKeyValue("Avg. Star Rating:", self.avgStarRate)
+	modeKeyValue("Avg. ENPS:", self.avgEnps)
+	modeKeyValue("Avg. BPM:", self.avgTempo)
 
 	gfx.pop()
 end
