@@ -46,7 +46,7 @@ local char_alias = {
 
 local images = {
 	global = {
-		osuLogo = "menu-osu",
+		osuLogo = "menu-osu-logo",
 		cursor = "cursor",
 		cursorMiddle = "cursormiddle",
 		cursorTrail = "cursortrail",
