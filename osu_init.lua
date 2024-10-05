@@ -141,7 +141,7 @@ function UserInterface:load()
 	self.gameView:load(self.mainMenuView)
 	actions.updateActions(self.game.persistence.configModel.configs.osu_ui)
 
-	self.prevWindowResolution = love.graphics.getWidth() * love.graphics.getHeight()
+	self.prevWindowResolution = -999
 end
 
 function UserInterface:unload()

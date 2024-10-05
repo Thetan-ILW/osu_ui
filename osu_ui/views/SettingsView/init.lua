@@ -78,11 +78,14 @@ function SettingsView:new(assets, game, game_ui)
 	self.skinPreview = SkinPreview(assets, consts.settingsWidth - consts.tabIndentIndent - consts.tabIndent)
 
 	local input_mode = tostring(game.selectController.state.inputMode)
-	local selected_note_skin = game.noteSkinModel:getNoteSkin(input_mode)
 
-	if selected_note_skin then
-		local skin_preview_img = asset_model:loadSkinPreview(selected_note_skin.directoryPath)
-		self.skinPreview:setImage(skin_preview_img)
+	if input_mode ~= "" then
+		local selected_note_skin = game.noteSkinModel:getNoteSkin(input_mode)
+
+		if selected_note_skin then
+			local skin_preview_img = asset_model:loadSkinPreview(selected_note_skin.directoryPath)
+			self.skinPreview:setImage(skin_preview_img)
+		end
 	end
 
 	text, font = assets.localization:get("settings")
