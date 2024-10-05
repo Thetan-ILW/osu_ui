@@ -94,6 +94,7 @@ function GameplayView:draw()
 	end
 
 	self.pauseProgressBar:draw()
+	self.ui.screenOverlayView:draw()
 
 	just.container()
 

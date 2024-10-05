@@ -63,7 +63,7 @@ return function(assets, view)
 		m.showFPS = not m.showFPS
 	end)
 
-	local profiler = view.ui.gameView.frameTimeView
+	local profiler = view.ui.screenOverlayView.frameTimeView
 	local show_profiler = profiler.visible and profiler.profiler
 
 	checkbox(text.showProfiler, false, nil, function()

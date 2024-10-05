@@ -299,6 +299,7 @@ function SelectView:draw()
 	self.settingsView:draw()
 
 	self:drawModal()
+	self.ui.screenOverlayView:draw()
 end
 
 return SelectView

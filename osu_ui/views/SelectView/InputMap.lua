@@ -67,10 +67,10 @@ function SelectInputMap:createBindings(sv)
 			sv.game.previewModel:stop()
 		end,
 		["increaseVolume"] = function()
-			sv.gameView:changeVolume(1)
+			sv.ui.globalEvents:changeVolume(1)
 		end,
 		["decreaseVolume"] = function()
-			sv.gameView:changeVolume(-1)
+			sv.ui.globalEvents:changeVolume(-1)
 		end,
 		["insertMode"] = function()
 			actions.setVimMode("Insert")

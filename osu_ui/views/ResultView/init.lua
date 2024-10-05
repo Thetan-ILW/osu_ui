@@ -157,6 +157,7 @@ function ResultView:draw()
 	GaussianBlurView:draw(background_blur)
 
 	self.viewConfig:draw(self)
+	self.ui.screenOverlayView:draw()
 end
 
 function ResultView:receive(event)
