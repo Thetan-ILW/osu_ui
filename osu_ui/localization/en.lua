@@ -212,6 +212,15 @@ l.textGroups = {
 		sessionsInYear = "%i sessions in %s",
 		sessionsTime = "Max: %i minutes / Avg: %i minutes"
 	},
+	firstTimeSetup = {
+		underLogo = "You can allow gucci!mania to use songs and skins from other games.\nThe game will only read files from these folders, nothing will be copied.",
+		useOsuSongs = "Use beatmaps from osu! folder",
+		useEtternaSongs = "Use songs from Etterna folder",
+		useQuaverSongs = "Use songs from Quaver folder",
+		useOsuSkins = "Use skins from osu! folder",
+		applyOsuSettings = "Apply settings from osu! (Scroll speed, skin, etc...)",
+		done = "Done"
+	},
 	scoreList = {
 		score = "Score",
 		hasMods = "Has mods",
@@ -422,6 +431,12 @@ l.fontGroups = {
 		modeStats = { "Aller", 21, "ZenMaruGothic-Regular" },
 		headerInfo = { "Aller", 18, "ZenMaruGothic-Regular" },
 		topDans = { "Aller-Light", 27 },
+	},
+	firstTimeSetup = {
+		checkboxes = { "Aller", 16, "ZenMaruGothic-Regular" },
+		combos = { "Aller", 16, "ZenMaruGothic-Regular" },
+		buttons = { "Aller", 42, "ZenMaruGothic-Regular" },
+		info = { "Aller", 24 },
 	},
 	uiLock = {
 		title = { "Aller-Bold", 48 },

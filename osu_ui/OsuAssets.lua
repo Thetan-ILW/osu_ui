@@ -45,6 +45,10 @@ local char_alias = {
 }
 
 local images = {
+	firstTimeSetupView = {
+		welcomeImage = "gucci-welcome",
+		background = "gucci-welcome-background"
+	},
 	global = {
 		osuLogo = "menu-osu-logo",
 		cursor = "cursor",
