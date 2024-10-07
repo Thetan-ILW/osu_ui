@@ -166,7 +166,7 @@ function ViewConfig:options(w, h)
 
 	local bw, _ = self.doneButton:getDimensions()
 	gfx.translate(w / 2 - bw / 2, 620)
-	self.doneButton:update(true)
+	self.doneButton:update(self.view.state == "selecting")
 	self.doneButton:draw()
 	gfx.pop()
 end
@@ -242,7 +242,7 @@ function ViewConfig:goodbye(w, h)
 
 	local bw, _ = self.startButton:getDimensions()
 	gfx.translate(w / 2 - bw / 2, 480)
-	self.startButton:update(true)
+	self.startButton:update(self.view.state == "end")
 	self.startButton:draw()
 	gfx.pop()
 end

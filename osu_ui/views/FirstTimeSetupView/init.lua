@@ -2,19 +2,32 @@ local ScreenView = require("osu_ui.views.ScreenView")
 local ViewConfig = require("osu_ui.views.FirstTimeSetupView.ViewConfig")
 
 local flux = require("flux")
+local path_util = require("path_util")
+
+local gucci = require("gucci_init")
 
 ---@class osu.ui.FirstTimeSetupView : osu.ui.ScreenView
 ---@operator call: osu.ui.FirstTimeSetupView
 ---@field state "selecting" | "transit_to_cache" | "cache" | "transit_to_end" | "end"
+---@field otherGamesPaths {[string]: string}
 local FirstTimeSetupView = ScreenView + {}
 
 function FirstTimeSetupView:load()
 	love.mouse.setVisible(false)
 
+	self.otherGamesPaths = self.ui.otherGamesPaths
+
+	for k, v in pairs(self.otherGamesPaths) do
+		if k == "osu!" then
+			self.osuFound = true
+		elseif k == "Etterna" then
+			self.etternaFound = true
+		elseif k == "Quaver" then
+			self.quaverFound = true
+		end
+	end
+
 	self.state = "selecting"
-	self.osuFound = true
-	self.etternaFound = true
-	self.quaverFound = false
 
 	self.useOsuSongs = self.osuFound
 	self.useEtternaSongs = self.etternaFound
@@ -23,6 +36,33 @@ function FirstTimeSetupView:load()
 	self.applyOsuSettings = self.osuFound
 
 	self.viewConfig = ViewConfig(self)
+end
+
+function FirstTimeSetupView:setOsuSettings()
+	local osu_path = self.otherGamesPaths["osu!"]
+	local user = "steamuser"--os.getenv("USERNAME")
+	local osu_config = gucci.readOsuConfig(path_util.join(osu_path, ("osu!.%s.cfg"):format(user)))
+
+	local configs = self.game.configModel.configs
+	local settings = configs.settings
+	local osu = configs.osu_ui
+
+	osu.cursor.size = osu_config.osu.cursorSize
+
+	local volume = settings.audio.volume
+	volume.master = osu_config.volume.master
+	volume.music = osu_config.volume.music
+	volume.effect = osu_config.volume.effect
+
+	settings.gameplay.speedType = "osu"
+	self.game.speedModel:set(osu_config.gameplay.scrollSpeed)
+
+	settings.graphics.dim.gameplay = osu_config.gameplay.dim
+
+	for i = 1, 10 do
+		self.game.noteSkinModel:setDefaultNoteSkin(("%ikey"):format(i), ("userdata/skins/%s/skin.ini"):format(osu_config.gameplay.skin))
+	end
+	osu.skin = osu_config.gameplay.skin
 end
 
 function FirstTimeSetupView:applySelected()
@@ -41,10 +81,25 @@ function FirstTimeSetupView:applySelected()
 	self.songDirs = {}
 
 	if self.useOsuSongs then
-		table.insert(self.songDirs, { name = "osu!", path = "/home/thetan/Games/osu/drive_c/osu/Songs", added = false })
+		table.insert(self.songDirs, { name = "osu!", path = path_util.join(self.otherGamesPaths["osu!"], "Songs"), added = false })
 	end
 	if self.useEtternaSongs then
-		table.insert(self.songDirs, { name = "Etterna", path = "/home/thetan/Games/Etterna/Songs", added = false })
+		table.insert(self.songDirs, { name = "Etterna", path = path_util.join(self.otherGamesPaths["Etterna"], "Songs"), added = false })
+	end
+	if self.useQuaverSongs then
+		table.insert(self.songDirs, { name = "Quaver", path = path_util.join(self.otherGamesPaths["Quaver"], "Songs"), added = false })
+	end
+
+	if self.useOsuSkins then
+		local path = path_util.join(self.otherGamesPaths["osu!"], "Skins")
+		self.ui:mountOsuSkins(path)
+
+		local osu = self.game.configModel.configs.osu_ui
+		osu.gucci.osuSkinsPath = path
+	end
+
+	if self.applyOsuSettings then
+		self:setOsuSettings()
 	end
 
 	self.state = "transit_to_cache"
@@ -68,8 +123,9 @@ function FirstTimeSetupView:update()
 	elseif state == "transit_to_end" then
 		if self.endTransitProgress == 1 then
 			self.state = "end"
+			local osu = self.game.configModel.configs.osu_ui
+			osu.gucci.installed = true
 		end
-	elseif state == "end" then
 	end
 end
 

@@ -17,9 +17,12 @@ local FirstTimeSetupView = require("osu_ui.views.FirstTimeSetupView")
 local ScreenOverlayView = require("osu_ui.views.ScreenOverlayView")
 local OsuLayout = require("osu_ui.views.OsuLayout")
 
+local physfs = require("physfs")
+
 ---@class osu.ui.UserInterface
 ---@operator call: osu.ui.UserInterface
 ---@field assets osu.ui.OsuAssets
+---@field otherGamesPaths {[string]: string}?
 local UserInterface = class()
 
 ---@param game sphere.GameController
@@ -106,6 +109,9 @@ function UserInterface:getMods()
 
 	local manip_factor_pkg = package_manager:getPackage("manip_factor")
 	self.manipFactor = manip_factor_pkg and require("manip_factor") or nil
+
+	local gucci_pkg = package_manager:getPackage("gucci")
+	self.gucci = gucci_pkg and require("gucci_init") or nil
 end
 
 function UserInterface:loadAssets(view_name)
@@ -117,7 +123,7 @@ function UserInterface:loadAssets(view_name)
 	local language = osu.language
 
 	---@type string
-	local skin_path = ("userdata/skins/%s"):format(osu.skin)
+	local skin_path = ("userdata/skins/%s"):format(osu.skin:trim())
 
 	local assets = asset_model:get("osu")
 
@@ -138,12 +144,53 @@ end
 
 function UserInterface:load()
 	self:getMods()
+
+	local osu_skins_path = self.game.configModel.configs.osu_ui.gucci.osuSkinsPath
+	if osu_skins_path ~= "" then
+		self:mountOsuSkins(osu_skins_path)
+	end
+
 	self:loadAssets()
 	self.screenOverlayView:load(self.assets)
-	self.gameView:load(self.firstTimeSetupView)
+
+	---@type osu.ui.ScreenView
+	local view = self.mainMenuView
+
+	if self.gucci then
+		if not love.filesystem.getInfo("userdata/GUCCI_INSTALLED") then
+			local other_games = self.gucci.findOtherGames()
+
+			local has_other_games = false
+			for _, _ in pairs(other_games) do
+				has_other_games = true
+			end
+
+			if has_other_games then
+				self.otherGamesPaths = other_games
+				view = self.firstTimeSetupView
+			end
+		end
+	end
+	self.gameView:load(view)
 	actions.updateActions(self.game.persistence.configModel.configs.osu_ui)
 
 	self.prevWindowResolution = -999
+end
+
+local osu_skins_mounted = false
+
+function UserInterface:mountOsuSkins(path)
+	if osu_skins_mounted then
+		return
+	end
+
+	local success, err = physfs.mount(path, "/userdata/skins", false)
+	if not success then
+		print(err)
+		return
+	end
+	self.game.noteSkinModel:load()
+	osu_skins_mounted = true
 end
 
 function UserInterface:unload()

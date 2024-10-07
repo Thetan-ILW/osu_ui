@@ -107,6 +107,10 @@ local t = {
 		toStart = { op = { "g", "g" } },
 		toEnd = { mod = { "shift", "g" } },
 	},
+	gucci = {
+		installed = false,
+		osuSkinsPath = "",
+	}
 }
 
 return t
