@@ -47,7 +47,7 @@ local char_alias = {
 local images = {
 	firstTimeSetupView = {
 		welcomeImage = "gucci-welcome",
-		background = "gucci-welcome-background"
+		welcomeBackground = "gucci-welcome-background"
 	},
 	global = {
 		osuLogo = "menu-osu-logo",
@@ -362,6 +362,13 @@ function OsuAssets:load(default_localization)
 		    return vec4(texturecolor.rgb + amount, texturecolor.a) * color;
 		}
 	]]),
+		gray = love.graphics.newShader([[
+		vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
+		{
+		    vec4 texturecolor = Texel(tex, texture_coords);
+		    return vec4(0.8, 0.8, 0.8, texturecolor.a);
+		}
+	]])
 	}
 end
 

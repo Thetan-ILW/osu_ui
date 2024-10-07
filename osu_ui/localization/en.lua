@@ -219,7 +219,13 @@ l.textGroups = {
 		useQuaverSongs = "Use songs from Quaver folder",
 		useOsuSkins = "Use skins from osu! folder",
 		applyOsuSettings = "Apply settings from osu! (Scroll speed, skin, etc...)",
-		done = "Done"
+		done = "Done",
+		goodbye = "All selected options have been applied.\nGood luck playing the game!",
+		start = "Start",
+		chartsFound = "Processed / Found",
+		chartsCached = "Songs cached",
+		path = "Path",
+		warning = "DO NOT CLOSE THE GAME! Processing songs takes time, you can minimise the game."
 	},
 	scoreList = {
 		score = "Score",
@@ -437,6 +443,9 @@ l.fontGroups = {
 		combos = { "Aller", 16, "ZenMaruGothic-Regular" },
 		buttons = { "Aller", 42, "ZenMaruGothic-Regular" },
 		info = { "Aller", 24 },
+		status = { "Aller", 36 },
+		warning = { "Aller", 18 }
+
 	},
 	uiLock = {
 		title = { "Aller-Bold", 48 },

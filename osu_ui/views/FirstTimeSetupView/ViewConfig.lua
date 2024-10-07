@@ -23,14 +23,14 @@ function ViewConfig:createUI()
 	local text, font = assets.localization:get("firstTimeSetup")
 	assert(text and font)
 
-	self.infoText = text.underLogo
-	self.infoFont = font.info
+	self.text, self.font = text, font
 
 	self.checkboxContainer = {
 		Checkbox(assets, {
 			text = text.useOsuSongs,
 			font = font.checkboxes,
-			pixelHeight = 37
+			pixelHeight = 37,
+			disabled = not view.osuFound
 		}, function ()
 			return view.useOsuSongs
 		end,  function ()
@@ -39,7 +39,8 @@ function ViewConfig:createUI()
 		Checkbox(assets, {
 			text = text.useEtternaSongs,
 			font = font.checkboxes,
-			pixelHeight = 37
+			pixelHeight = 37,
+			disabled = not view.etternaFound
 		}, function ()
 			return view.useEtternaSongs
 		end,  function ()
@@ -48,7 +49,8 @@ function ViewConfig:createUI()
 		Checkbox(assets, {
 			text = text.useQuaverSongs,
 			font = font.checkboxes,
-			pixelHeight = 37
+			pixelHeight = 37,
+			disabled = not view.quaverFound
 		}, function ()
 			return view.useQuaverSongs
 		end,  function ()
@@ -57,7 +59,8 @@ function ViewConfig:createUI()
 		Checkbox(assets, {
 			text = text.useOsuSkins,
 			font = font.checkboxes,
-			pixelHeight = 37
+			pixelHeight = 37,
+			disabled = not view.osuFound
 		}, function ()
 			return view.useOsuSkins
 		end,  function ()
@@ -66,7 +69,8 @@ function ViewConfig:createUI()
 		Checkbox(assets, {
 			text = text.applyOsuSettings,
 			font = font.checkboxes,
-			pixelHeight = 37
+			pixelHeight = 37,
+			disabled = not view.osuFound
 		}, function ()
 			return view.applyOsuSettings
 		end,  function ()
@@ -94,6 +98,16 @@ function ViewConfig:createUI()
 		view:applySelected()
 	end)
 
+	self.startButton = Button(assets, {
+		text = text.start,
+		font = font.buttons,
+		pixelWidth = 737,
+		pixelHeight = 65,
+		color = { 0.52, 0.72, 0.12, 1 }
+	}, function ()
+		view:start()
+	end)
+
 	---TODO: Add master volume at the bottom
 	---TODO: Add language swtich dropdown at the top
 end
@@ -116,7 +130,7 @@ local function background(image)
 	)
 end
 
-local  checkbox_y = 380
+local checkbox_y = 380
 function ViewConfig:checkboxes(w, h)
 	gfx.push()
 	gfx.setColor(0, 0, 0, 1 - math_util.clamp(love.timer.getTime() - self.hoverTime, 0, 0.5) * 2)
@@ -142,31 +156,147 @@ function ViewConfig:checkboxes(w, h)
 	gfx.pop()
 end
 
+function ViewConfig:options(w, h)
+	gfx.push()
+	gfx.setColor(1, 1, 1)
+	gfx.setFont(self.font.info)
+	ui.frameWithShadow(self.text.underLogo, 0, 270, w, h, "center", "top")
+
+	self:checkboxes(w, h)
+
+	local bw, _ = self.doneButton:getDimensions()
+	gfx.translate(w / 2 - bw / 2, 620)
+	self.doneButton:update(true)
+	self.doneButton:draw()
+	gfx.pop()
+end
+
+local game_colors = {
+	["osu!"] = { 0.97, 0.38, 0.82 },
+	Etterna = { 0.52, 0.09, 0.92 },
+	Quaver = { 0.28, 0.84, 0.93 }
+}
+
+function ViewConfig:progress(w, h)
+	gfx.push()
+	local view = self.view
+
+	gfx.translate(9, h - #view.songDirs * 40)
+	gfx.setFont(self.font.info)
+
+	for i, v in ipairs(view.songDirs) do
+		gfx.setColor(game_colors[v.name])
+		gfx.rectangle("fill", 0, 0, 30, 30, 8, 8)
+		gfx.rectangle("line", 0, 0, 30, 30, 8, 8)
+
+		gfx.setColor(1, 1, 1)
+		local processing = view.currentSongsDirIndex == i
+
+		if processing then
+			ui.frameWithShadow(("%s (Processing)"):format(v.name), 40, 0, w, 30, "left", "center")
+		elseif v.added then
+			ui.frameWithShadow(("%s (Complete)"):format(v.name), 40, 0, w, 30, "left", "center")
+		else
+			ui.frameWithShadow(("%s"):format(v.name), 40, 0, w, 30, "left", "center")
+		end
+
+		gfx.translate(0, 40)
+	end
+
+	gfx.pop()
+
+	local dir = view.songDirs[view.currentSongsDirIndex]
+
+	local path = "Waiting..."
+	if dir then
+		path = dir.path
+	end
+
+	local cache_model = view.game.cacheModel
+	local count = cache_model.shared.chartfiles_count
+	local current = cache_model.shared.chartfiles_current
+
+	gfx.setFont(self.font.status)
+
+	local label = ("%s: %s\n%s: %s/%s\n%s: %0.02f%%"):format(
+		self.text.path,
+		path,
+		self.text.chartsFound,
+		current,
+		count,
+		self.text.chartsCached,
+		current / count * 100
+	)
+
+	ui.frameWithShadow(label, 0, 0, w, h, "center", "center")
+
+	gfx.setFont(self.font.warning)
+	ui.frameWithShadow(self.text.warning, 0, -9, w, h, "center", "bottom")
+end
+
+function ViewConfig:goodbye(w, h)
+	gfx.push()
+	gfx.setColor(1, 1, 1)
+	gfx.setFont(self.font.info)
+	ui.frameWithShadow(self.text.goodbye, 0, 360, w, h, "center", "top")
+
+	local bw, _ = self.startButton:getDimensions()
+	gfx.translate(w / 2 - bw / 2, 480)
+	self.startButton:update(true)
+	self.startButton:draw()
+	gfx.pop()
+end
+
+function ViewConfig:transit(a, b, progress, w, h)
+	local prev_canvas = gfx.getCanvas()
+	local canvas_a = ui.getCanvas("transit_a")
+	local canvas_b = ui.getCanvas("transit_b")
+	gfx.setBlendMode("alpha", "alphamultiply")
+
+	gfx.setCanvas(canvas_a)
+	gfx.clear()
+	a(self, w, h)
+	gfx.setCanvas(canvas_b)
+	gfx.clear()
+	b(self, w, h)
+	gfx.setCanvas(prev_canvas)
+
+	gfx.setBlendMode("alpha", "premultiplied")
+	local alpha = 1 - progress
+	gfx.setColor(alpha, alpha, alpha, alpha)
+	gfx.origin()
+	gfx.draw(canvas_a)
+	alpha = progress
+	gfx.setColor(alpha, alpha, alpha, alpha)
+	gfx.draw(canvas_b)
+end
 
 function ViewConfig:draw()
 	local w, h = Layout:move("base")
 
 	local img = self.view.assets.images
 	gfx.push()
-	background(img.background)
+	background(img.welcomeBackground)
 	gfx.pop()
-
-	gfx.setFont(self.infoFont)
-
-	gfx.setColor(1, 1, 1)
-	ui.frameWithShadow(self.infoText, 0, 270, w, h, "center", "top")
-
-	self:checkboxes(w, h)
 
 	local welcome_image = img.welcomeImage
 	local iw, ih = welcome_image:getDimensions()
+	gfx.setColor(1, 1, 1)
 	gfx.draw(welcome_image, w / 2 - iw / 2)
 
+	local view = self.view
 
-	local bw, _ = self.doneButton:getDimensions()
-	gfx.translate(w / 2 - bw / 2, 620)
-	self.doneButton:update(true)
-	self.doneButton:draw()
+	if view.state == "selecting" then
+		self:options(w, h)
+	elseif view.state == "transit_to_cache" then
+		self:transit(self.options, self.progress, view.setupTransitProgress, w, h)
+	elseif view.state == "setup" or view.state == "cache" then
+		self:progress(w, h)
+	elseif view.state == "transit_to_end" then
+		self:transit(self.progress, self.goodbye, view.endTransitProgress, w, h)
+	elseif view.state == "end" then
+		self:goodbye(w, h)
+	end
 end
 
 return ViewConfig
