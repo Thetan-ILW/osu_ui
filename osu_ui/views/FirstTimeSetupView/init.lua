@@ -40,8 +40,13 @@ end
 
 function FirstTimeSetupView:setOsuSettings()
 	local osu_path = self.otherGamesPaths["osu!"]
-	local user = "steamuser"--os.getenv("USERNAME")
+	local user = os.getenv("USERNAME")
 	local osu_config = gucci.readOsuConfig(path_util.join(osu_path, ("osu!.%s.cfg"):format(user)))
+
+	if not osu_config then
+		print("Failed to import osu config")
+		return
+	end
 
 	local configs = self.game.configModel.configs
 	local settings = configs.settings

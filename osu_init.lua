@@ -145,9 +145,14 @@ end
 function UserInterface:load()
 	self:getMods()
 
-	local osu_skins_path = self.game.configModel.configs.osu_ui.gucci.osuSkinsPath
-	if osu_skins_path ~= "" then
-		self:mountOsuSkins(osu_skins_path)
+	local windows = jit.os == "Windows"
+	local osu = self.game.configModel.configs.osu_ui
+
+	if windows then
+		local osu_skins_path = osu.gucci.osuSkinsPath
+		if osu_skins_path ~= "" then
+			self:mountOsuSkins(osu_skins_path)
+		end
 	end
 
 	self:loadAssets()
@@ -156,8 +161,8 @@ function UserInterface:load()
 	---@type osu.ui.ScreenView
 	local view = self.mainMenuView
 
-	if self.gucci then
-		if not love.filesystem.getInfo("userdata/GUCCI_INSTALLED") then
+	if self.gucci and windows then
+		if not osu.gucci.installed then
 			local other_games = self.gucci.findOtherGames()
 
 			local has_other_games = false
@@ -171,6 +176,7 @@ function UserInterface:load()
 			end
 		end
 	end
+
 	self.gameView:load(view)
 	actions.updateActions(self.game.persistence.configModel.configs.osu_ui)
 
