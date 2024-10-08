@@ -103,6 +103,8 @@ function FirstTimeSetupView:applySelected()
 		osu.gucci.osuSkinsPath = path
 	end
 
+	gucci.setDefaultSettings(self.game.configModel.configs)
+
 	if self.applyOsuSettings then
 		self:setOsuSettings()
 	end
