@@ -807,7 +807,7 @@ function ViewConfig:draw(view)
 
 	gfx.setColor(1, 1, 1)
 	self:copyright()
-	self:osuDirect(view)
+	--self:osuDirect(view)
 
 	gfx.setCanvas({ prev_canvas, stencil = true })
 
