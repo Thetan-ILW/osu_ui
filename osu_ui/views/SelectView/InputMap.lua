@@ -28,6 +28,7 @@ function SelectInputMap:createBindings(sv)
 	self.select = {
 		["random"] = function()
 			sv.selectModel:scrollRandom()
+			sv.lists.list:followSelection()
 		end,
 		["autoPlay"] = function()
 			sv.game.rhythmModel:setAutoplay(true)

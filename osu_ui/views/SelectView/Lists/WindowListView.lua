@@ -167,6 +167,7 @@ function WindowListView:animateScroll()
 	self.scrollTween = flux.to(self, 0.2, { smoothScroll = self.scroll }):ease("quadout")
 end
 
+---@param index number?
 function WindowListView:followSelection(index)
 	local target = (index or self:getSelectedItemIndex()) - math.floor(self.windowSize / 2)
 	self.scroll = math_util.clamp(target, self.minScroll, self.maxScroll)

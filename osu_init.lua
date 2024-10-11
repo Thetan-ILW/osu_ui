@@ -161,18 +161,24 @@ function UserInterface:load()
 	---@type osu.ui.ScreenView
 	local view = self.mainMenuView
 
-	if self.gucci and windows then
+	if self.gucci then
 		if not osu.gucci.installed then
-			local other_games = self.gucci.findOtherGames()
+			if windows then
+				local other_games = self.gucci.findOtherGames()
+				local has_other_games = false
+				for _, _ in pairs(other_games) do
+					has_other_games = true
+				end
 
-			local has_other_games = false
-			for _, _ in pairs(other_games) do
-				has_other_games = true
-			end
-
-			if has_other_games then
-				self.otherGamesPaths = other_games
-				view = self.firstTimeSetupView
+				if has_other_games then
+					self.otherGamesPaths = other_games
+					view = self.firstTimeSetupView
+				else
+					self.screenOverlayView.popupView:add("There are no other rhythm games installed on your PC. You should add songs manually. Join our Discord if you need help.", "purple")
+				end
+			else
+				self.gucci.setDefaultSettings(self.game.configModel.configs)
+				osu.gucci.installed = true
 			end
 		end
 	end
