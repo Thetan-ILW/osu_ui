@@ -46,6 +46,7 @@ l.textGroups = {
 		renderer = "RENDERER",
 		vsyncType = "Vsync type:",
 		fpsLimit = "FPS limit:",
+		unlimitedFps = "Unlimited FPS",
 		showFPS = "Show FPS",
 		showProfiler = "Show profiler",
 		vsyncInSongSelect = "Vsync in Song Select",

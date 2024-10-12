@@ -132,6 +132,9 @@ function SettingsView:build(tab)
 		if tab == "gameplay" then
 			table.remove(self.containers, 3)
 			table.insert(self.containers, 3, gameplay(assets, self))
+		elseif tab == "graphics" then
+			table.remove(self.containers, 2)
+			table.insert(self.containers, 2, graphics(assets, self))
 		else
 			error("you forgor")
 		end

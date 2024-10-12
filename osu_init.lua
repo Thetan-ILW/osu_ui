@@ -209,6 +209,17 @@ function UserInterface:unload()
 	self.gameView:unload()
 end
 
+function UserInterface:resolutionUpdated()
+	self.assets.localization:updateScale() ---TODO: Default fonts are not being updated. Fix this pls
+	self.gameView:resolutionUpdated()
+	OsuLayout:draw()
+	ui.layoutW, ui.layoutH = OsuLayout:move("base")
+
+	local ww, wh = love.graphics.getDimensions()
+	local resolution = ww * wh
+	self.prevWindowResolution = resolution
+end
+
 ---@param dt number
 function UserInterface:update(dt)
 	local time = love.timer.getTime()
@@ -217,12 +228,7 @@ function UserInterface:update(dt)
 
 	if time > self.lastResolutionCheck + 0.5 then
 		if self.prevWindowResolution ~= resolution then
-			self.assets.localization:updateScale() ---TODO: Default fonts are not being updated. Fix this pls
-			self.gameView:resolutionUpdated()
-			self.prevWindowResolution = resolution
-
-			OsuLayout:draw()
-			ui.layoutW, ui.layoutH = OsuLayout:move("base")
+			self:resolutionUpdated()
 		end
 
 		self.lastResolutionCheck = time
