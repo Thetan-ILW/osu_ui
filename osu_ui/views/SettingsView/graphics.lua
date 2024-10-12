@@ -7,8 +7,8 @@ local vsyncNames = {
 	[-1] = "adaptive",
 }
 
----@param assets osu.OsuAssets
----@param view osu.SettingsView
+---@param assets osu.ui.OsuAssets
+---@param view osu.ui.SettingsView
 ---@return osu.SettingsView.GroupContainer?
 return function(assets, view)
 	local text, font = assets.localization:get("settings")
@@ -43,18 +43,30 @@ return function(assets, view)
 	combo(text.vsyncType, 1, nil, function()
 		return flags.vsync, { 1, 0, -1 }
 	end, function(v)
+		g.vsyncOnSelect = not (v == 0)
 		flags.vsync = v
 	end, function(v)
 		return text[vsyncNames[v]] or ""
 	end)
 
-	local fps_params = { min = 60, max = 2048, increment = 1 }
-	slider(text.fpsLimit, 240, nil, function()
-		return g.fps, fps_params
-	end, function(v)
-		g.fps = v
-	end, function(v)
-		return ("%i FPS"):format(v)
+	local unlimited_fps = g.fps == 0
+
+	if not unlimited_fps then
+		local fps_params = { min = 60, max = 2048, increment = 1 }
+		slider(text.fpsLimit, 240, nil, function()
+			return g.fps, fps_params
+		end, function(v)
+			g.fps = v
+		end, function(v)
+			return ("%i FPS"):format(v)
+		end)
+	end
+
+	checkbox(text.unlimitedFps, false, nil, function ()
+		return g.fps == 0
+	end, function()
+		g.fps = (g.fps == 0) and 240 or 0
+		view:build("graphics")
 	end)
 
 	checkbox(text.showFPS, false, nil, function()
@@ -63,7 +75,7 @@ return function(assets, view)
 		m.showFPS = not m.showFPS
 	end)
 
-	local profiler = view.ui.gameView.frameTimeView
+	local profiler = view.ui.screenOverlayView.frameTimeView
 	local show_profiler = profiler.visible and profiler.profiler
 
 	checkbox(text.showProfiler, false, nil, function()
@@ -115,7 +127,12 @@ return function(assets, view)
 	combo(text.windowResolution, nil, nil, function()
 		return g.mode.window, modes
 	end, function(v)
+		local prev_canvas = love.graphics.getCanvas()
+		love.graphics.setCanvas()
 		g.mode.window = v
+		love.window.setMode(v.width, v.height, flags)
+		love.graphics.setCanvas(prev_canvas)
+		view.ui:resolutionUpdated()
 	end, function(mode)
 		return mode.width .. "x" .. mode.height
 	end)

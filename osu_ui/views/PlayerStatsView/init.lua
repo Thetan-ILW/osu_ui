@@ -42,6 +42,7 @@ end
 
 function PlayerStatsView:draw()
 	self.viewConfig:draw()
+	self.ui.screenOverlayView:draw()
 end
 
 return PlayerStatsView

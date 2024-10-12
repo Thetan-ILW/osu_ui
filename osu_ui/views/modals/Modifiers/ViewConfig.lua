@@ -117,6 +117,8 @@ function ViewConfig:createUI()
 	end, function(v)
 		self.game.modifierSelectModel:change()
 		time_rate_model:set(v)
+		local select_view = modal.mainView
+		select_view.viewConfig:updateInfo(select_view)
 	end, function(v)
 		return rate_format[rate_type]:format(v)
 	end)

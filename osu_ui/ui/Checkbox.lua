@@ -16,7 +16,7 @@ local math_util = require("math_util")
 local Checkbox = UiElement + {}
 
 ---@param assets osu.ui.OsuAssets
----@param params { text: string, font: love.Font, pixelWidth: number?, pixelHeight: number, defaultValue: boolean?, tip: string? }
+---@param params { text: string, font: love.Font, pixelWidth: number?, pixelHeight: number, defaultValue: boolean?, tip: string?, disabled: boolean? }
 ---@param get_value function
 ---@param on_change function
 function Checkbox:new(assets, params, get_value, on_change)
@@ -27,6 +27,7 @@ function Checkbox:new(assets, params, get_value, on_change)
 	self.defaultValue = params.defaultValue
 	self.valueChanged = false
 	self.tip = params.tip
+	self.disabled = params.disabled
 	self.getValue = get_value
 	self.onChange = on_change
 
@@ -58,7 +59,7 @@ function Checkbox:update(has_focus)
 		ui.tooltip = self.tip
 	end
 
-	if self.hover and ui.mousePressed(1) then
+	if self.hover and ui.mousePressed(1) and not self.disabled then
 		self.onChange()
 		self.changeTime = love.timer.getTime()
 
@@ -81,11 +82,16 @@ function Checkbox:draw()
 	local image_size = self.imgOn:getHeight() * self.imageScale
 	local x = image_size / 2 - (image_size * scale) / 2
 
+	local prev_shader = gfx.getShader()
+	if self.disabled then
+		gfx.setShader(self.assets.shaders.gray)
+	end
 	if self.toggled then
 		gfx.draw(self.imgOn, x / 2, x, 0, self.imageScale * scale, self.imageScale * scale)
 	else
 		gfx.draw(self.imgOff, x / 2, x, 0, self.imageScale * scale, self.imageScale * scale)
 	end
+	gfx.setShader(prev_shader)
 
 	x = self.imgOff:getWidth() * self.imageScale
 	ui.textFrame(self.label, x, 0, self.totalW - x, self.totalH, "left", "center")

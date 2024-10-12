@@ -105,13 +105,33 @@ function SelectView:notechartChanged()
 	self.viewConfig:updateInfo(self, true)
 end
 
+---@param mode string
+---@param binds table
+local function shouldBindKeys(mode, binds)
+	if not binds or not binds[1] then
+		return true
+	end
+
+	local ks = mode:split("key")
+	local ss = ks[2]:split("scratch")
+	local keys = tonumber(ks[1])
+	local scratches = tonumber(ss[1]) or 0
+	if keys + scratches ~= #binds then
+		return true
+	end
+
+	for _, column in ipairs(binds) do
+		if #column == 0 then
+			return true
+		end
+	end
+	return false
+end
+
 function SelectView:play()
 	if not self.game.selectModel:notechartExists() then
 		return
 	end
-
-	self.assets.sounds.menuHit:stop()
-	self.assets.sounds.menuHit:play()
 
 	local multiplayer_model = self.game.multiplayerModel
 	if multiplayer_model.room and not multiplayer_model.isPlaying then
@@ -119,6 +139,19 @@ function SelectView:play()
 		self:changeScreen("multiplayerView")
 		return
 	end
+
+	local mode = tostring(self.game.selectController.state.inputMode)
+	local binds = self.game.configModel.configs.input[mode]
+
+	if shouldBindKeys(mode, binds) then
+		self:openModal("osu_ui.views.modals.Inputs")
+		self.popupView:add("You need to bind keys first.", "purple")
+		return
+	end
+
+	self.assets.sounds.menuHit:stop()
+	self.assets.sounds.menuHit:play()
+
 
 	self:changeScreen("gameplayView")
 end
@@ -299,6 +332,7 @@ function SelectView:draw()
 	self.settingsView:draw()
 
 	self:drawModal()
+	self.ui.screenOverlayView:draw()
 end
 
 return SelectView

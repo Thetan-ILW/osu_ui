@@ -230,6 +230,7 @@ function MainMenuView:draw()
 	self.viewConfig:draw(self)
 	self.settingsView:draw()
 	self:drawModal()
+	self.ui.screenOverlayView:draw()
 
 	if self.state == "outro" then
 		gfx.origin()

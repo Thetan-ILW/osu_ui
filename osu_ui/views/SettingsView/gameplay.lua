@@ -103,6 +103,8 @@ return function(assets, view)
 	local text, font = assets.localization:get("settings")
 	assert(text and font)
 
+	local gucci = view.ui.gucci ~= nil
+
 	local config = view.game.configModel.configs
 	local settings = config.settings
 	local g = settings.gameplay
@@ -143,7 +145,7 @@ return function(assets, view)
 		if v == "osu" then
 			return "osu!"
 		end
-		return "soundsphere"
+		return gucci and "gucci!mania" or "soundsphere"
 	end)
 
 	combo(text.tempoFactor, "average", text.tempoFactorTip, function()
@@ -217,6 +219,8 @@ return function(assets, view)
 			return "osu!mania (scoreV1)"
 		elseif v == "osu!mania" then
 			return "osu!mania (scoreV2)"
+		elseif gucci and v == "soundsphere" then
+			return "Normalscore V2"
 		end
 		return v
 	end)

@@ -39,9 +39,9 @@ function Button:new(assets, params, on_change)
 	self.margin = params.margin or 0
 	self.color = params.color or { 1, 1, 1, 1 }
 
-	local borders_width = self.imageLeft:getWidth() + self.imageRight:getWidth()
-	self.middleImgScale = (params.pixelWidth - borders_width) / self.imageMiddle:getWidth()
 	self.heightScale = params.pixelHeight / self.imageMiddle:getHeight()
+	local borders_width = self.imageLeft:getWidth() * self.heightScale + self.imageRight:getWidth() * self.heightScale
+	self.middleImgScale = (params.pixelWidth - borders_width) / self.imageMiddle:getWidth()
 
 	self.totalW = params.pixelWidth
 	self.totalH = params.pixelHeight + self.margin / 2
@@ -95,11 +95,11 @@ function Button:draw()
 
 	gfx.push()
 	gfx.translate(self.xOffset, self.margin / 4)
-	gfx.draw(left, 0, 0, 0, 1, self.heightScale)
-	gfx.translate(left:getWidth(), 0)
+	gfx.draw(left, 0, 0, 0, self.heightScale, self.heightScale)
+	gfx.translate(left:getWidth() * self.heightScale, 0)
 	gfx.draw(middle, 0, 0, 0, self.middleImgScale, self.heightScale)
 	gfx.translate(middle:getWidth() * self.middleImgScale, 0)
-	gfx.draw(right, 0, 0, 0, scale, self.heightScale)
+	gfx.draw(right, 0, 0, 0, self.heightScale, self.heightScale)
 	gfx.pop()
 
 	gfx.setShader(prev_shader)

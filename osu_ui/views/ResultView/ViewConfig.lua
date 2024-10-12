@@ -396,7 +396,7 @@ function ViewConfig:loadScore(view)
 			patterns = etterna_msd.getFirstFromMsd(msd)
 		end
 
-		patterns = etterna_msd.simplifySsr(patterns)
+		patterns = etterna_msd.simplifySsr(patterns, chartdiff.inputmode)
 		difficultyFormatted = ("[%0.02f %s]"):format(difficulty, patterns)
 	elseif diff_column == "enps_diff" then
 		difficultyFormatted = ("[%0.02f ENPS]"):format((chartdiff.enps_diff or 0))
@@ -416,7 +416,7 @@ function ViewConfig:loadScore(view)
 		od = 9
 	end
 
-	ppFormatted = ("%i PP"):format(getPP(judge.notes, chartdiff.osu_diff * timeRate, od, score_num))
+	ppFormatted = ("%i PP"):format(getPP(judge.notes, chartdiff.osu_diff, od, score_num))
 
 	local playContext = view.game.playContext
 	local timings = playContext.timings
@@ -477,6 +477,12 @@ function ViewConfig:loadScore(view)
 		table.insert(modifierIconImages, img.doubleTime)
 	elseif timeRate == 0.75 then
 		table.insert(modifierIconImages, img.halfTime)
+	end
+
+	if view.judgeName == "Etterna J4" then
+		table.insert(modifierIconImages, img.j4)
+	elseif view.judgeName == "Etterna J7" then
+		table.insert(modifierIconImages, img.j7)
 	end
 
 	local ratingHitTimingWindow = view.game.configModel.configs.settings.gameplay.ratingHitTimingWindow

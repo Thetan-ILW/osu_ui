@@ -78,11 +78,14 @@ function SettingsView:new(assets, game, game_ui)
 	self.skinPreview = SkinPreview(assets, consts.settingsWidth - consts.tabIndentIndent - consts.tabIndent)
 
 	local input_mode = tostring(game.selectController.state.inputMode)
-	local selected_note_skin = game.noteSkinModel:getNoteSkin(input_mode)
 
-	if selected_note_skin then
-		local skin_preview_img = asset_model:loadSkinPreview(selected_note_skin.directoryPath)
-		self.skinPreview:setImage(skin_preview_img)
+	if input_mode ~= "" then
+		local selected_note_skin = game.noteSkinModel:getNoteSkin(input_mode)
+
+		if selected_note_skin then
+			local skin_preview_img = asset_model:loadSkinPreview(selected_note_skin.directoryPath)
+			self.skinPreview:setImage(skin_preview_img)
+		end
 	end
 
 	text, font = assets.localization:get("settings")
@@ -129,6 +132,9 @@ function SettingsView:build(tab)
 		if tab == "gameplay" then
 			table.remove(self.containers, 3)
 			table.insert(self.containers, 3, gameplay(assets, self))
+		elseif tab == "graphics" then
+			table.remove(self.containers, 2)
+			table.insert(self.containers, 2, graphics(assets, self))
 		else
 			error("you forgor")
 		end

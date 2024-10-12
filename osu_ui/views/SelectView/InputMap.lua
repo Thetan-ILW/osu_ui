@@ -28,6 +28,7 @@ function SelectInputMap:createBindings(sv)
 	self.select = {
 		["random"] = function()
 			sv.selectModel:scrollRandom()
+			sv.lists.list:followSelection()
 		end,
 		["autoPlay"] = function()
 			sv.game.rhythmModel:setAutoplay(true)
@@ -67,10 +68,10 @@ function SelectInputMap:createBindings(sv)
 			sv.game.previewModel:stop()
 		end,
 		["increaseVolume"] = function()
-			sv.gameView:changeVolume(1)
+			sv.ui.globalEvents:changeVolume(1)
 		end,
 		["decreaseVolume"] = function()
-			sv.gameView:changeVolume(-1)
+			sv.ui.globalEvents:changeVolume(-1)
 		end,
 		["insertMode"] = function()
 			actions.setVimMode("Insert")

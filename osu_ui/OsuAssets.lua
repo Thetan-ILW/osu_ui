@@ -45,6 +45,10 @@ local char_alias = {
 }
 
 local images = {
+	firstTimeSetupView = {
+		welcomeImage = "gucci-welcome",
+		welcomeBackground = "gucci-welcome-background"
+	},
 	global = {
 		osuLogo = "menu-osu-logo",
 		cursor = "cursor",
@@ -183,7 +187,9 @@ local images = {
 		automap9 = "selection-mod-key9",
 		automap10 = "selection-mod-key10",
 		fln3 = "selection-mod-fln3",
-		scorev2 = "selection-mod-scorev2"
+		scorev2 = "selection-mod-scorev2",
+		j4 = "selection-mod-j4",
+		j7 = "selection-mod-j7",
 	},
 	playerStatsView = {
 		activityRectangle = "activity-rectangle",
@@ -358,6 +364,13 @@ function OsuAssets:load(default_localization)
 		    return vec4(texturecolor.rgb + amount, texturecolor.a) * color;
 		}
 	]]),
+		gray = love.graphics.newShader([[
+		vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
+		{
+		    vec4 texturecolor = Texel(tex, texture_coords);
+		    return vec4(0.8, 0.8, 0.8, texturecolor.a);
+		}
+	]])
 	}
 end
 

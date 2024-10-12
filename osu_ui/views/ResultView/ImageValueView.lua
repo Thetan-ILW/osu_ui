@@ -1,4 +1,3 @@
-local transform = require("gfx_util").transform
 local inside = require("table_util").inside
 local class = require("class")
 
@@ -12,8 +11,13 @@ function ImageValueView:load()
 	if not self.files then
 		return
 	end
+
+	self.maxCharW = 0
 	for char, path in pairs(self.files) do
 		images[char] = love.graphics.newImage(path)
+		if tonumber(char) then
+			self.maxCharW = math.max(images[char]:getWidth(), self.maxCharW)
+		end
 	end
 end
 
@@ -30,7 +34,11 @@ function ImageValueView:getDimensions(value)
 		local char = value:sub(i, i)
 		local image = images[char]
 		if image then
-			width = width + image:getWidth() - overlap
+			if tonumber(char) then
+				width = width + self.maxCharW - overlap
+			else
+				width = width + image:getWidth() - overlap
+			end
 			height = math.max(height, image:getHeight())
 		end
 	end
@@ -80,8 +88,13 @@ function ImageValueView:draw()
 		local char = value:sub(i, i)
 		local image = images[char]
 		if image then
-			love.graphics.draw(image, x, self.y + (height * (1 - oy) - image:getHeight()) * sy, 0, sx, sy)
-			x = x + (image:getWidth() - overlap) * sx
+			if tonumber(char) then
+				love.graphics.draw(image, x + (self.maxCharW - image:getWidth()) / 2, self.y + (height * (1 - oy) - image:getHeight()) * sy, 0, sx, sy)
+				x = x + (self.maxCharW - overlap) * sx
+			else
+				love.graphics.draw(image, x, self.y + (height * (1 - oy) - image:getHeight()) * sy, 0, sx, sy)
+				x = x + (image:getWidth() - overlap) * sx
+			end
 		end
 	end
 end

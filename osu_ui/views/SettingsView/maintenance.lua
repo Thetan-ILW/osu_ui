@@ -15,6 +15,8 @@ return function(assets, view)
 	local settings = configs.settings
 	local g = settings.graphics
 
+	local gucci = view.ui.gucci ~= nil
+
 	local c = GroupContainer(text.maintenance, assets, font, assets.images.maintenanceTab)
 
 	Elements.assets = assets
@@ -24,12 +26,17 @@ return function(assets, view)
 	c:createGroup("maintenance", text.maintenance)
 	Elements.currentGroup = "maintenance"
 
-	button("Switch to default UI", function()
-		g.userInterface = "Default"
-		view.game.uiModel:switchTheme()
-	end)
+	if not gucci then
+		button("Switch to default UI", function()
+			g.userInterface = "Default"
+			view.game.uiModel:switchTheme()
+		end)
+	end
 
 	if Elements.canAdd(version.date) then
+		c:add("maintenance", Label(assets, { font = font.labels, pixelWidth = consts.labelWidth - 24 - 28, pixelHeight = 230, align = "left",
+			text = "Credits:\n\nMinaCalc:\nhttps://github.com/etternagame/etterna\nhttps://github.com/kangalio/minacalc-standalone\n\nManip Factor:\nhttps://github.com/MaidOfFire/ManipFactorEtterna\n\nsoundsphere:\nhttps://github.com/semyon422/soundsphere\nhttps://soundsphere.xyz/"}))
+
 		local label = version.date == "" and text.gitVersion or version.date
 		c:add(
 			"maintenance",
@@ -37,6 +44,10 @@ return function(assets, view)
 				assets,
 				{ text = label, font = font.labels, pixelWidth = consts.labelWidth - 24 - 28, pixelHeight = 64 },
 				function()
+					if gucci then
+						love.system.openURL("https://github.com/Thetan-ILW/gucci/commits/main/")
+						return
+					end
 					love.system.openURL("https://github.com/semyon422/soundsphere/commits/master/")
 				end
 			)

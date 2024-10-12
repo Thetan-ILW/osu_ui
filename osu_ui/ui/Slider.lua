@@ -54,7 +54,7 @@ function Slider:getPosAndWidth()
 	end
 
 	local x = self.label:getWidth() * ui.getTextScale()
-	local w = self.totalW - x - 15 - text_indent
+	local w = self.totalW - x - 15
 
 	return x, w
 end
@@ -147,13 +147,13 @@ function Slider:draw()
 	gfx.push()
 	gfx.translate(x + text_indent, self.totalH / 2 - line_height)
 
+	gfx.setLineWidth(1)
 	gfx.setColor(0.89, 0.47, 0.56)
-	gfx.rectangle("fill", 0, 0, math.max(head_x - head_radius, 0), line_height)
+	gfx.line(0, 0, math.max(head_x - head_radius, 0), 0)
 	gfx.setColor(0.89, 0.47, 0.56, 0.6)
-	gfx.rectangle("fill", head_x + head_radius, 0, w - head_x - r2, line_height)
+	gfx.line(head_x + head_radius, 0, w - r2, 0)
 
 	gfx.setColor(0.89, 0.47, 0.56)
-	gfx.setLineWidth(1)
 	gfx.circle("line", head_x, 0, head_radius)
 
 	gfx.pop()

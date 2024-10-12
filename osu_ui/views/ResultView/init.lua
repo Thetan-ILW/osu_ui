@@ -114,6 +114,7 @@ function ResultView:setJudge()
 
 	self.judgement = judgements[judge_name]
 	self.judgements = judgements
+	self.judgeName = judge_name
 	self.noScore = false
 end
 
@@ -157,6 +158,7 @@ function ResultView:draw()
 	GaussianBlurView:draw(background_blur)
 
 	self.viewConfig:draw(self)
+	self.ui.screenOverlayView:draw()
 end
 
 function ResultView:receive(event)

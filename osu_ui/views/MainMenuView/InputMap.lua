@@ -16,10 +16,10 @@ function MainMenuInputMap:createBindings(mv)
 			mv:sendQuitSignal()
 		end,
 		["increaseVolume"] = function()
-			mv.gameView:changeVolume(1)
+			mv.ui.globalEvents:changeVolume(1)
 		end,
 		["decreaseVolume"] = function()
-			mv.gameView:changeVolume(-1)
+			mv.ui.globalEvents:changeVolume(-1)
 		end,
 		["showSettings"] = function()
 			mv:toggleSettings()

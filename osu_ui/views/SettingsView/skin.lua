@@ -89,7 +89,7 @@ return function(assets, view, skin_preview)
 		end
 
 		view.game.rhythmModel:setAutoplay(true)
-		view.game.gameView.view:changeScreen("gameplayView")
+		view.ui.gameView.view:changeScreen("gameplayView")
 	end)
 	Elements.buttonColor = prev_color
 

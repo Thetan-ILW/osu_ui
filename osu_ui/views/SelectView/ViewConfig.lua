@@ -227,6 +227,7 @@ function ViewConfig:createUI(view)
 		hoverArea = { w = 74, h = 90 },
 	}, function()
 		view.selectModel:scrollRandom()
+		view.lists.list:followSelection()
 	end)
 
 	buttons.chartOptions = ImageButton(assets, {
