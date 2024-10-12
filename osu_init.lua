@@ -175,6 +175,7 @@ function UserInterface:load()
 					view = self.firstTimeSetupView
 				else
 					self.screenOverlayView.popupView:add("There are no other rhythm games installed on your PC. You should add songs manually. Join our Discord if you need help.", "purple")
+					osu.gucci.installed = true
 				end
 			else
 				self.gucci.setDefaultSettings(self.game.configModel.configs)

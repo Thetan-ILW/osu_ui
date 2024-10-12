@@ -158,7 +158,6 @@ function FirstTimeSetupView:cache()
 
 	i = self.currentSongsDirIndex
 
-
 	local loc_name = self.songDirs[i].name
 	local loc_path = self.songDirs[i].path
 
