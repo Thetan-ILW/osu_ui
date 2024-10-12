@@ -396,7 +396,7 @@ function ViewConfig:loadScore(view)
 			patterns = etterna_msd.getFirstFromMsd(msd)
 		end
 
-		patterns = etterna_msd.simplifySsr(patterns)
+		patterns = etterna_msd.simplifySsr(patterns, chartdiff.inputmode)
 		difficultyFormatted = ("[%0.02f %s]"):format(difficulty, patterns)
 	elseif diff_column == "enps_diff" then
 		difficultyFormatted = ("[%0.02f ENPS]"):format((chartdiff.enps_diff or 0))

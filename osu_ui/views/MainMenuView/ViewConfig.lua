@@ -392,7 +392,7 @@ function ViewConfig:footer()
 
 	gfx.translate(0, 658)
 	if self.view.game.configModel.configs.osu_ui.mainMenu.hideGameTips then
-		return	
+		return
 	end
 
 	self.gameTipLabel:draw()
@@ -412,6 +412,10 @@ function ViewConfig:copyright()
 	gfx.pop()
 
 	if hover and ui.mousePressed(1) then
+		if self.view.ui.gucci then
+			love.system.openURL("https://github.com/Thetan-ILW")
+			return
+		end
 		love.system.openURL("https://soundsphere.xyz")
 	end
 end

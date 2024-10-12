@@ -34,8 +34,8 @@ return function(assets, view)
 	end
 
 	if Elements.canAdd(version.date) then
-		c:add("maintenance", Label(assets, { font = font.labels, pixelWidth = consts.labelWidth - 24 - 28, pixelHeight = 180,
-			text = "Credits:\n\nMinaCalc:\nhttps://github.com/etternagame/etterna\nhttps://github.com/kangalio/minacalc-standalone\n\nManip Factor:\nhttps://github.com/MaidOfFire/ManipFactorEtterna"}))
+		c:add("maintenance", Label(assets, { font = font.labels, pixelWidth = consts.labelWidth - 24 - 28, pixelHeight = 230, align = "left",
+			text = "Credits:\n\nMinaCalc:\nhttps://github.com/etternagame/etterna\nhttps://github.com/kangalio/minacalc-standalone\n\nManip Factor:\nhttps://github.com/MaidOfFire/ManipFactorEtterna\n\nsoundsphere:\nhttps://github.com/semyon422/soundsphere\nhttps://soundsphere.xyz/"}))
 
 		local label = version.date == "" and text.gitVersion or version.date
 		c:add(
