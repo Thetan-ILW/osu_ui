@@ -187,7 +187,9 @@ local images = {
 		automap9 = "selection-mod-key9",
 		automap10 = "selection-mod-key10",
 		fln3 = "selection-mod-fln3",
-		scorev2 = "selection-mod-scorev2"
+		scorev2 = "selection-mod-scorev2",
+		j4 = "selection-mod-j4",
+		j7 = "selection-mod-j7",
 	},
 	playerStatsView = {
 		activityRectangle = "activity-rectangle",

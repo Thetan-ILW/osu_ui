@@ -114,6 +114,7 @@ function ResultView:setJudge()
 
 	self.judgement = judgements[judge_name]
 	self.judgements = judgements
+	self.judgeName = judge_name
 	self.noScore = false
 end
 

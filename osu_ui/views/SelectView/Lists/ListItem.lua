@@ -12,7 +12,7 @@ local math_util = require("math_util")
 ---@field slideX number
 local ListItem = class()
 
-ListItem.panelW = 500
+ListItem.panelW = 1000
 ListItem.panelH = 90
 
 local function color(r, g, b, a)

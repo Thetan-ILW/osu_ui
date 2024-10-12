@@ -479,6 +479,12 @@ function ViewConfig:loadScore(view)
 		table.insert(modifierIconImages, img.halfTime)
 	end
 
+	if view.judgeName == "Etterna J4" then
+		table.insert(modifierIconImages, img.j4)
+	elseif view.judgeName == "Etterna J7" then
+		table.insert(modifierIconImages, img.j7)
+	end
+
 	local ratingHitTimingWindow = view.game.configModel.configs.settings.gameplay.ratingHitTimingWindow
 	local ss_score = not show and scoreItem.score
 		or erfunc.erf(ratingHitTimingWindow / (normalscore.accuracyAdjusted * math.sqrt(2))) * 10000

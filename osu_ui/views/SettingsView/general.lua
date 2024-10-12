@@ -65,30 +65,32 @@ return function(assets, view)
 		osu.originalMetadata = not osu.originalMetadata
 	end)
 
-	c:createGroup("updates", text.updates)
-	Elements.currentGroup = "updates"
+	if not view.ui.gucci then
+		c:createGroup("updates", text.updates)
+		Elements.currentGroup = "updates"
 
-	checkbox(text.autoUpdate, true, nil, function()
-		return m.autoUpdate
-	end, function()
-		m.autoUpdate = not m.autoUpdate
-	end)
+		checkbox(text.autoUpdate, true, nil, function()
+			return m.autoUpdate
+		end, function()
+			m.autoUpdate = not m.autoUpdate
+		end)
 
-	local git = love.filesystem.getInfo(".git")
+		local git = love.filesystem.getInfo(".git")
 
-	local version_label = git and text.gitVersion or (m.autoUpdate and text.upToDate or text.notUpToDate)
+		local version_label = git and text.gitVersion or (m.autoUpdate and text.upToDate or text.notUpToDate)
 
-	if Elements.canAdd(version_label) then
-		c:add(
-			"updates",
-			Label(assets, {
-				text = version_label,
-				font = font.labels,
-				pixelWidth = consts.labelWidth - 24 - 28,
-				pixelHeight = 37,
-				align = "left",
-			})
-		)
+		if Elements.canAdd(version_label) then
+			c:add(
+				"updates",
+				Label(assets, {
+					text = version_label,
+					font = font.labels,
+					pixelWidth = consts.labelWidth - 24 - 28,
+					pixelHeight = 37,
+					align = "left",
+				})
+			)
+		end
 	end
 
 	Elements.button(text.openSoundsphereFolder, function()
