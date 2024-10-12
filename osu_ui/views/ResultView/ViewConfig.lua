@@ -46,6 +46,7 @@ local missValue
 local comboValue
 local accuracyValue
 local scoreValue
+local score_loaded = false
 
 local timeRate = 1
 local timeFormatted = ""
@@ -338,10 +339,13 @@ function ViewConfig:stopAnimations()
 		self.scoreRevealTween:stop()
 	end
 	self.scoreReveal = 1
-	self:scoreRevealAnimation()
+	if score_loaded then
+		self:scoreRevealAnimation()
+	end
 end
 
 function ViewConfig:loadScore(view)
+	score_loaded = false
 	isOnlineScore = view.game.configModel.configs.select.scoreSourceName == "online"
 
 	if isOnlineScore or view.noScore then
@@ -519,6 +523,8 @@ function ViewConfig:loadScore(view)
 		scroll,
 		mods
 	)
+
+	score_loaded = true
 end
 
 function ViewConfig:title(view)
