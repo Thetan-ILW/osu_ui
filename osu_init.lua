@@ -13,7 +13,6 @@ local ResultView = require("osu_ui.views.ResultView")
 local MainMenuView = require("osu_ui.views.MainMenuView")
 local PlayerStatsView = require("osu_ui.views.PlayerStatsView")
 local EditorView = require("ui.views.EditorView")
-local FirstTimeSetupView = require("osu_ui.views.FirstTimeSetupView")
 local ScreenOverlayView = require("osu_ui.views.ScreenOverlayView")
 local OsuLayout = require("osu_ui.views.OsuLayout")
 
@@ -41,7 +40,6 @@ function UserInterface:new(game, mount_path)
 	self.gameplayView = GameplayView(game)
 	self.playerStatsView = PlayerStatsView(game)
 	self.editorView = EditorView(game)
-	self.firstTimeSetupView = FirstTimeSetupView(game)
 	self.screenOverlayView = ScreenOverlayView(game)
 
 	self.lastResolutionCheck = -math.huge
@@ -112,6 +110,11 @@ function UserInterface:getMods()
 
 	local gucci_pkg = package_manager:getPackage("gucci")
 	self.gucci = gucci_pkg and require("gucci_init") or nil
+
+	if self.gucci then
+		local FirstTimeSetupView = require("osu_ui.views.FirstTimeSetupView")
+		self.firstTimeSetupView = FirstTimeSetupView(self.game)
+	end
 end
 
 function UserInterface:loadAssets(view_name)

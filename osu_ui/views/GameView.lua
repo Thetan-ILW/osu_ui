@@ -28,12 +28,15 @@ function GameView:_setView(view)
 	view.prevView = self.view
 
 	local view_names = {
-		[self.ui.firstTimeSetupView] = "firstTimeSetupView",
 		[self.ui.mainMenuView] = "mainMenuView",
 		[self.ui.selectView] = "selectView",
 		[self.ui.resultView] = "resultView",
 		[self.ui.playerStatsView] = "playerStatsView"
 	}
+
+	if self.ui.gucci then
+		view_names[self.ui.firstTimeSetupView] = "firstTimeSetupView"
+	end
 
 	local overlay = self.ui.screenOverlayView
 	self.ui:loadAssets(view_names[view])
