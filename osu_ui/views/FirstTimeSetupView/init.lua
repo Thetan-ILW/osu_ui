@@ -41,10 +41,12 @@ end
 function FirstTimeSetupView:setOsuSettings()
 	local osu_path = self.otherGamesPaths["osu!"]
 	local user = os.getenv("USERNAME")
-	local osu_config = gucci.readOsuConfig(path_util.join(osu_path, ("osu!.%s.cfg"):format(user)))
 
-	if not osu_config then
-		print("Failed to import osu config")
+	local config_path = path_util.join(osu_path, ("osu!.%s.cfg"):format(user))
+	local success, osu_config = pcall(gucci.readOsuConfig, config_path)
+
+	if not success or not osu_config then
+		self.popupView:add("Failed to import osu config. Path: " .. config_path, "error")
 		return
 	end
 
