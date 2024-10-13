@@ -146,12 +146,14 @@ function SelectView:play()
 	if shouldBindKeys(mode, binds) then
 		self:openModal("osu_ui.views.modals.Inputs")
 		self.popupView:add("You need to bind keys first.", "purple")
+		self.lists:unlock()
 		return
 	end
 
+	self.lists:lock()
+
 	self.assets.sounds.menuHit:stop()
 	self.assets.sounds.menuHit:play()
-
 
 	self:changeScreen("gameplayView")
 end

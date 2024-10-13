@@ -124,9 +124,20 @@ function Lists:update(dt)
 		self.list:update(dt)
 
 		if self.list.state == "item_selected" then
-			self.list.state = "locked"
 			self.view:select()
 		end
+	end
+end
+
+function Lists:lock()
+	if self.list then
+		self.list.state = "locked"
+	end
+end
+
+function Lists:unlock()
+	if self.list then
+		self.list.state = "idle"
 	end
 end
 
