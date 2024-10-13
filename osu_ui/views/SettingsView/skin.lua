@@ -135,7 +135,7 @@ return function(assets, view, skin_preview)
 		return osu.cursor.trailMaxImages, trail_quality_params
 	end, function (v)
 		osu.cursor.trailMaxImages = v
-		view.ui.gameView.cursor:updateSpriteBatch()
+		view.ui.screenOverlayView.cursor:updateSpriteBatch()
 	end)
 
 	slider(text.trailLifetime, 7, nil, function ()

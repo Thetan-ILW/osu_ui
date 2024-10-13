@@ -13,6 +13,8 @@ return function(assets, view, ui)
 	local text, font = assets.localization:get("settings")
 	assert(text and font)
 
+	local gucci = ui.gucci ~= nil
+
 	local settings = view.game.configModel.configs.settings
 	local g = settings.graphics
 	local gp = settings.gameplay
@@ -74,11 +76,15 @@ return function(assets, view, ui)
 		g.asynckey = not g.asynckey
 	end)
 
-	checkbox(text.taikoNoteHandler, false, text.taikoNoteHandlerTip, function()
-		return play_context.single
-	end, function()
-		play_context.single = not play_context.single
-	end)
+	if not gucci then
+		checkbox(text.taikoNoteHandler, false, text.taikoNoteHandlerTip, function()
+			return play_context.single
+		end, function()
+			play_context.single = not play_context.single
+		end)
+	else
+		play_context.single = false
+	end
 
 	c:removeEmptyGroups()
 
