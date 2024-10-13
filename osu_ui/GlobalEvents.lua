@@ -32,10 +32,8 @@ end
 function GlobalEvents:keypressed(event)
 	local key = event[2]
 
-	if key == "f12" then
-		self.ui.screenOverlayView.popupView:add(("Saved screenshot to %s"):format(self.screenshotSaveLocation), "purple", function()
-			love.system.openURL(self.screenshotSaveLocation)
-		end)
+	if key == "f12" and not event[3] then
+		self.game.app.screenshotModel:capture(false)
 	end
 
 	actions.keyPressed(event)

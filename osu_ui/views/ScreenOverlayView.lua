@@ -21,6 +21,7 @@ function ScreenOverlayView:new(game)
 	self.tooltipView = TooltipView()
 	self.cursor = CursorView(self.configs.osu_ui)
 	self.notificationModel = game.notificationModel
+	self.screenshotModel = game.app.screenshotModel
 
 	self.showTasks = false
 end
@@ -79,6 +80,14 @@ function ScreenOverlayView:checkForNotifications()
 
 			self.prevNotification = msg
 		end
+	end
+
+	local screenshot = self.screenshotModel.lastSavedImagePath
+	if screenshot then
+		self.popupView:add("Screenshot saved to " .. screenshot, "purple", function ()
+			love.system.openURL(screenshot)
+		end)
+		self.screenshotModel.lastSavedImagePath = nil
 	end
 end
 
