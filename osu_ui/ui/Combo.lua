@@ -75,7 +75,6 @@ function Combo:open()
 	ui.playSound(sound)
 end
 
----@private
 function Combo:close()
 	if self.visibilityTween then
 		self.visibilityTween:stop()

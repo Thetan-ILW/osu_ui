@@ -126,15 +126,15 @@ function ViewConfig:panel(view)
 	gfx.rectangle("fill", 0, self.hoverRectTargetPosition, 438, self.hoverRectTargetSize)
 
 	---@type osu.ui.Combo[]
-	local open_combos = {}
+	self.openCombos = {}
 
 	for _, c in ipairs(view.containers) do
-		if -view.scrollPosition + 768 > c.position and -view.scrollPosition < c.position + c.height then
+		if #c.openCombos ~= 0 or (-view.scrollPosition + 768 > c.position and -view.scrollPosition < c.position + c.height) then
 			c:draw(self.focus)
 
 			if #c.openCombos ~= 0 then
 				for _, combo in ipairs(c.openCombos) do
-					table.insert(open_combos, combo)
+					table.insert(self.openCombos, combo)
 				end
 			end
 		else
@@ -144,10 +144,10 @@ function ViewConfig:panel(view)
 
 	view.bottomSpacing:draw()
 
-	if #open_combos ~= 0 then
-		for i = #open_combos, 1, -1 do
+	if #self.openCombos ~= 0 then
+		for i = #self.openCombos, 1, -1 do
 			gfx.pop()
-			open_combos[i]:drawBody()
+			self.openCombos[i]:drawBody()
 		end
 	end
 

@@ -200,6 +200,10 @@ function SettingsView:close()
 	end
 	self.visibilityTween = flux.to(self, 0.5, { visibility = 0 }):ease("quadout")
 	self.state = "fade_out"
+
+	for i, v in ipairs(self.viewConfig.openCombos) do
+		v:close()
+	end
 end
 
 ---@param event? "toggle" | "hide"
@@ -295,9 +299,10 @@ end
 ---@param event table
 function SettingsView:receive(event)
 	if event.name == "wheelmoved" and self.state ~= "hidden" and self.viewConfig.focus then
+		local total_height = #self.viewConfig.openCombos and math.huge or self.totalHeight
 		---@type number
 		local delta = -event[2]
-		local max = math_util.clamp(self.totalHeight - 768, 0, self.totalHeight - 768)
+		local max = math_util.clamp(total_height - 768, 0, total_height - 768)
 		self.scrollTargetPosition = math_util.clamp(self.scrollTargetPosition + (delta * 90), 0, max)
 
 		if self.scrollTween then
