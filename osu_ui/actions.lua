@@ -300,42 +300,48 @@ function actions.keyPressed(event)
 		return
 	end
 
-	local key = event[2]
-	local repeatt = event[3]
+	local success = pcall(function()
 
-	if not repeatt then
-		if tonumber(key) and not actions.isInsertMode() then
-			count = count .. key
+		local key = event[2]
+		local repeatt = event[3]
+		if not repeatt then
+			if tonumber(key) and not actions.isInsertMode() then
+				count = count .. key
+			end
+
+			if not modKeysList[key] then
+				keyPressTimestamps[key] = event.time
+			end
+
+			if actions.isModKeyDown() then
+				currentAction = getComboAction()
+				return
+			end
+
+			if inputMode == "keyboard" then
+				currentAction = singleKeyActions[key]
+				return
+			end
 		end
 
-		if not modKeysList[key] then
-			keyPressTimestamps[key] = event.time
-		end
-
-		if actions.isModKeyDown() then
-			currentAction = getComboAction()
+		if actions.isInsertMode() and key ~= "escape" then
 			return
 		end
 
-		if inputMode == "keyboard" then
+		if not repeatt then
+			local action = nextInTree(key)
+
+			if action then
+				currentAction = action
+				return
+			end
+
 			currentAction = singleKeyActions[key]
-			return
 		end
-	end
+	end)
 
-	if actions.isInsertMode() and key ~= "escape" then
-		return
-	end
-
-	if not repeatt then
-		local action = nextInTree(key)
-
-		if action then
-			currentAction = action
-			return
-		end
-
-		currentAction = singleKeyActions[key]
+	if not success then
+		actions.resetInputs()
 	end
 end
 
