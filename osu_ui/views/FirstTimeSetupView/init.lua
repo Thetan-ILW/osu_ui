@@ -3,6 +3,7 @@ local ViewConfig = require("osu_ui.views.FirstTimeSetupView.ViewConfig")
 
 local flux = require("flux")
 local path_util = require("path_util")
+local winapi = require("winapi")
 
 local gucci = require("gucci_init")
 
@@ -40,13 +41,21 @@ end
 
 function FirstTimeSetupView:setOsuSettings()
 	local osu_path = self.otherGamesPaths["osu!"]
-	local user = os.getenv("USERNAME")
 
-	local config_path = path_util.join(osu_path, ("osu!.%s.cfg"):format(user))
-	local success, osu_config = pcall(gucci.readOsuConfig, config_path)
+	local success, osu_config = pcall(function()
+		local user = winapi.getenv("username")
+		local config_path = path_util.join(osu_path, ("osu!.%s.cfg"):format(user))
+		local osu_config = gucci.readOsuConfig(config_path)
+
+		if not osu_config then
+			self.popupView:add("osu! config not found.", "error")
+		end
+
+		return osu_config
+	end)
 
 	if not success or not osu_config then
-		self.popupView:add("Failed to import osu config. Path: " .. config_path, "error")
+		self.popupView:add("Failed to load osu! config.", "error")
 		return
 	end
 

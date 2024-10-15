@@ -269,6 +269,7 @@ function ViewConfig:transit(a, b, progress, w, h)
 	alpha = progress
 	gfx.setColor(alpha, alpha, alpha, alpha)
 	gfx.draw(canvas_b)
+	gfx.setBlendMode("alpha")
 end
 
 function ViewConfig:draw()
