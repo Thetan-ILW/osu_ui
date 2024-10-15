@@ -3,7 +3,7 @@
     "display_name": "osu!",
     "desc": "A complete recreation of osu! UI",
     "creator": "Thetan",
-    "version": 2,
+    "version": 3,
     "types": {
         "ui": "osu_init",
     },

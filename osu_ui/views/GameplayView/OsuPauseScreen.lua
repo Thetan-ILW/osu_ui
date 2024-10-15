@@ -1,10 +1,9 @@
 local IViewConfig = require("osu_ui.views.IViewConfig")
 
 local flux = require("flux")
-local just = require("just")
 local ui = require("osu_ui.ui")
 
-local Layout = require("osu_ui.views.GameplayView.OsuLayout")
+local ImageButton = require("osu_ui.ui.ImageButton")
 
 ---@class osu.ui.PauseViewConfig : osu.ui.IViewConfig
 local PauseViewConfig = IViewConfig + {}
@@ -19,11 +18,56 @@ local snd
 
 local failed = false
 
+---@param view osu.ui.GameplayView
 ---@param assets osu.ui.OsuPauseAssets
-function PauseViewConfig:new(assets)
+function PauseViewConfig:new(view, assets)
+	self.view = view
+	self.assets = assets
 	img = assets.images
 	snd = assets.sounds
+	self:createUI()
 end
+
+function PauseViewConfig:createUI()
+	local assets = self.assets
+	local gameplayController = self.view.game.gameplayController
+
+	local bw, bh = 380, 95
+
+	self.continueButton = ImageButton(assets, {
+		idleImage = img.continue,
+		ox = 0.5,
+		oy = 0.5,
+		hoverArea = { w = bw, h = bh },
+		clickSound = assets.sounds.continueClick,
+	}, function()
+		gameplayController:changePlayState("play")
+		self:hide()
+	end)
+
+	self.retryButton = ImageButton(assets, {
+		idleImage = img.retry,
+		ox = 0.5,
+		oy = 0.5,
+		hoverArea = { w = bw, h = bh },
+		clickSound = assets.sounds.retryClick,
+	}, function()
+		gameplayController:changePlayState("retry")
+		self:hide()
+	end)
+
+	self.backButton = ImageButton(assets, {
+		idleImage = img.back,
+		ox = 0.5,
+		oy = 0.5,
+		hoverArea = { w = bw, h = bh },
+		clickSound = assets.sounds.retryClick,
+	}, function()
+		self.view:quit()
+	end)
+end
+
+local gfx = love.graphics
 
 function PauseViewConfig:show()
 	if self.tween then
@@ -48,64 +92,34 @@ function PauseViewConfig:unload()
 end
 
 function PauseViewConfig:overlay()
+	gfx.push()
 	local image = img.overlay
 
 	if failed then
 		image = img.overlayFail
 	end
 
-	Layout:move("overlay")
-
 	local iw, ih = image:getDimensions()
-	love.graphics.translate(-iw / 2, -ih / 2)
-	love.graphics.draw(image)
-end
-
----@param image love.Image
----@param position_name string
-local function button(image, position_name)
-	local iw, ih = image:getDimensions()
-	local w, h = Layout:move(position_name)
-
-	local x = -(iw / 2)
-	local y = -(ih / 2)
-
-	love.graphics.translate(x, y)
-	local changed, active, hovered = just.button("button" .. position_name, just.is_over(iw, ih))
-
-	love.graphics.setColor({ 1, 1, 1, 1 })
-
-	if hovered then
-		love.graphics.setColor({ 0.7, 0.7, 1, 1 })
-	end
-
-	love.graphics.draw(image)
-
-	return changed
+	love.graphics.draw(image, ui.layoutW / 2, ui.layoutH / 2, 0, 1, 1, iw / 2, ih / 2)
+	gfx.pop()
 end
 
 ---@param view osu.ui.GameplayView
-function PauseViewConfig:buttons(view)
-	local gameplayController = view.game.gameplayController
-
+function PauseViewConfig:buttons()
+	gfx.push()
+	gfx.translate(ui.layoutW / 2, 224)
 	if not failed then
-		if button(img.continue, "continue") then
-			snd.continueClick:play()
-			gameplayController:changePlayState("play")
-			self:hide()
-		end
+		self.continueButton:update(true)
+		self.continueButton:draw()
 	end
 
-	if button(img.retry, "retry") then
-		snd.retryClick:play()
-		gameplayController:changePlayState("retry")
-		self:hide()
-	end
-
-	if button(img.back, "back") then
-		snd.backClick:play()
-		view:quit()
-	end
+	gfx.translate(0, 176)
+	self.retryButton:update(true)
+	self.retryButton:draw()
+	gfx.translate(0, 176)
+	self.backButton:update(true)
+	self.backButton:draw()
+	gfx.pop()
 end
 
 local next_audio_update_time = -math.huge
@@ -129,32 +143,29 @@ function PauseViewConfig:updateAudio(view)
 	next_audio_update_time = love.timer.getTime() + 0.036
 end
 
+function PauseViewConfig:resolutionUpdated()
+	self:createUI()
+end
+
 ---@param view osu.ui.GameplayView
----@param game_canvas love.Canvas
-function PauseViewConfig:draw(view, game_canvas)
+function PauseViewConfig:draw(view)
 	---@type boolean
 	failed = view.game.rhythmModel.scoreEngine.scoreSystem.hp:isFailed()
 
 	self:updateAudio(view)
-
-	love.graphics.setColor({ 1, 1, 1, 1 })
-	love.graphics.setBlendMode("alpha", "premultiplied")
-	love.graphics.origin()
-	love.graphics.draw(game_canvas)
-	love.graphics.setBlendMode("alpha")
-
-	Layout:draw()
 
 	local prev_canvas = love.graphics.getCanvas()
 	local layer = ui.getCanvas("pauseOverlay")
 	love.graphics.setCanvas({ layer, stencil = true })
 	love.graphics.clear()
 	self:overlay()
-	self:buttons(view)
+	self:buttons()
 	love.graphics.setCanvas({ prev_canvas, stencil = true })
 
-	love.graphics.origin()
 	local a = self.alpha
+	love.graphics.origin()
+	love.graphics.setColor(0.1 * a, 0.1 * a, a, a * 0.1)
+	love.graphics.rectangle("fill", 0, 0, ui.layoutW, ui.layoutH)
 	love.graphics.setColor(a, a, a, a)
 	love.graphics.draw(layer)
 

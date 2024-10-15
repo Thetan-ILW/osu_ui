@@ -752,7 +752,7 @@ function ViewConfig:drawIntro(view)
 	background(view)
 	self:header(view)
 	self:footer()
-	self:osuDirect(view)
+	--self:osuDirect(view)
 	self:osuLogo(view)
 
 	gfx.setCanvas({ prev_canvas, stencil = true })

@@ -126,6 +126,51 @@ return function(assets, view)
 	local combo = Elements.combo
 	local slider = Elements.slider
 
+	c:createGroup("screen", text.screen)
+	Elements.currentGroup = "screen"
+
+	checkbox(text.renderAtNativeRes, false, nil, function()
+		return osu.gameplay.nativeRes
+	end, function()
+		osu.gameplay.nativeRes = not osu.gameplay.nativeRes
+		view:build("gameplay")
+	end)
+
+	if osu.gameplay.nativeRes then
+		local modes = love.window.getFullscreenModes()
+
+		if not osu.gameplay.nativeResSize then
+			osu.gameplay.nativeResSize = modes[1]
+		end
+
+		combo(text.screenResolution, nil, nil, function()
+			return osu.gameplay.nativeResSize, modes
+		end, function(v)
+			osu.gameplay.nativeResSize = v
+		end, function(mode)
+			return mode.width .. "x" .. mode.height
+		end)
+
+		Elements.sliderPixelWidth = 250
+		local percent = { min = 0, max = 1, increment = 0.01 }
+		slider(text.positionX, 0.5, nil, function()
+			return osu.gameplay.nativeResX, percent
+		end, function(v)
+			osu.gameplay.nativeResX = v
+		end, function (v)
+			return ("%i%%"):format(v * 100)
+		end)
+
+		slider(text.positionY, 0.5, nil, function()
+			return osu.gameplay.nativeResY, percent
+		end, function(v)
+			osu.gameplay.nativeResY = v
+		end, function (v)
+			return ("%i%%"):format(v * 100)
+		end)
+		Elements.sliderPixelWidth = nil
+	end
+
 	c:createGroup("scrollSpeed", text.scrollSpeed)
 	Elements.currentGroup = "scrollSpeed"
 

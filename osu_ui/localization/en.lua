@@ -69,6 +69,12 @@ l.textGroups = {
 		backgroundImages = "Background images",
 		-------------- Gameplay
 		gameplay = "GAMEPLAY",
+		-- Screen
+		screen = "SCREEN",
+		screenResolution = "Screen resolution:",
+		positionX = "Horizontal position:",
+		positionY = "Vertical position:",
+		renderAtNativeRes = "Render at native resolution",
 		-- Scroll speed
 		scrollSpeed = "SCROLL SPEED",
 		scrollSpeedType = "Speed type",

@@ -17,6 +17,7 @@ local images = {
 
 local sounds = {
 	loop = "pause-loop",
+	hoverOverRect = "click-short",
 	continueClick = "pause-continue-click",
 	retryClick = "pause-retry-click",
 	backClick = "pause-back-click",

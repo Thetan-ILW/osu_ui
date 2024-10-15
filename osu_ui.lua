@@ -27,6 +27,12 @@ local t = {
 		pp = false,
 		difficultyAndRate = true,
 	},
+	gameplay = {
+		nativeRes = false,
+		nativeResX = 0.5,
+		nativeResY = 0.5
+		--nativeResSize is defined in the gameplay settings!!!
+	},
 	uiVolume = 0.4,
 	vimMotions = false,
 	keybinds = {

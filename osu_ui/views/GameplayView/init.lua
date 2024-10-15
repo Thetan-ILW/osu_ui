@@ -1,4 +1,4 @@
-local Layout = require("ui.views.GameplayView.Layout")
+local Layout = require("osu_ui.views.OsuLayout")
 local Background = require("ui.views.GameplayView.Background")
 local ScreenView = require("osu_ui.views.ScreenView")
 local SequenceView = require("sphere.views.SequenceView")
@@ -8,12 +8,29 @@ local OsuPauseScreen = require("osu_ui.views.GameplayView.OsuPauseScreen")
 local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
 
 local just = require("just")
-local ui = require("osu_ui.ui")
 local actions = require("osu_ui.actions")
 
 ---@class osu.ui.GameplayView: osu.ui.ScreenView
 ---@operator call: osu.ui.GameplayView
 local GameplayView = ScreenView + {}
+
+
+local native_res_w = 0
+local native_res_h = 0
+local native_res_x = 0
+local native_res_y = 0
+local base_get_dimensions = love.graphics.getDimensions
+local base_get_width = love.graphics.getWidth
+local base_get_height = love.graphics.getHeight
+local new_get_dimensions = function ()
+	return native_res_w, native_res_h
+end
+local new_get_width = function ()
+	return native_res_w
+end
+local new_get_height = function ()
+	return native_res_h
+end
 
 ---@param game sphere.GameController
 function GameplayView:new(game)
@@ -39,10 +56,20 @@ function GameplayView:load()
 	sequence_view:setSequenceConfig(note_skin.playField)
 	sequence_view:load()
 
+	local osu = self.game.configModel.configs.osu_ui
+	self.renderAtNativeResolution = osu.gameplay.nativeRes
+
+	if self.renderAtNativeResolution then
+		native_res_w, native_res_h = osu.gameplay.nativeResSize.width, osu.gameplay.nativeResSize.height
+		native_res_x, native_res_y = osu.gameplay.nativeResX, osu.gameplay.nativeResY
+		self.gameplayCanvas = love.graphics.newCanvas(native_res_w, native_res_h)
+	end
+
 	local root = note_skin.path:match("(.+/)") or ""
 	local assets = OsuPauseAssets(self.ui.assetModel, root)
 	assets:load()
-	self.pauseScreen = OsuPauseScreen(assets)
+	assets.shaders = self.ui.assets.shaders
+	self.pauseScreen = OsuPauseScreen(self, assets)
 
 	self.pauseProgressBar =  RectangleProgressView({
 		x = 0, y = 0, w = 1920, h = 20,
@@ -61,6 +88,7 @@ function GameplayView:unload()
 	self.game.gameplayController:unload()
 	self.game.rhythmModel.observable:remove(self.sequenceView)
 	self.sequenceView:unload()
+
 end
 
 function GameplayView:retry()
@@ -71,32 +99,64 @@ function GameplayView:retry()
 	self.cursor.alpha = 0
 end
 
+function GameplayView:resolutionUpdated()
+	self.pauseScreen:resolutionUpdated()
+end
+
+local gfx = love.graphics
+
+function GameplayView:drawNativeResolution()
+	gfx.push()
+
+	local prev_canvas = gfx.getCanvas()
+
+	gfx.setCanvas(self.gameplayCanvas)
+	gfx.clear()
+
+	gfx.getDimensions = new_get_dimensions
+	gfx.getWidth = new_get_width
+	gfx.getHeight = new_get_height
+	Background(self)
+	self.sequenceView:draw()
+	gfx.getDimensions = base_get_dimensions
+	gfx.getWidth = base_get_width
+	gfx.getHeight = base_get_height
+
+	gfx.setCanvas(prev_canvas)
+	gfx.origin()
+	gfx.translate((gfx.getWidth() - native_res_w) * native_res_x, (gfx.getHeight() - native_res_h) * native_res_y)
+	gfx.setColor(1, 1, 1)
+	gfx.draw(self.gameplayCanvas)
+	gfx.pop()
+
+	if self.subscreen == "pause" then
+		Layout:move("base")
+		self.pauseScreen:draw(self)
+	end
+end
+
+function GameplayView:drawFull()
+	Background(self)
+	self.sequenceView:draw()
+
+	if self.subscreen == "pause" then
+		Layout:move("base")
+		self.pauseScreen:draw(self)
+	end
+end
+
 function GameplayView:draw()
-	just.container("screen container", true)
 	self:keypressed()
 	self:keyreleased()
 
-	Layout:draw()
-	if self.subscreen == "pause" then
-		local prev_canvas = love.graphics.getCanvas()
-		local game_canvas = ui.getCanvas("playfield")
-
-		love.graphics.setCanvas(game_canvas)
-		love.graphics.clear()
-		Background(self)
-		self.sequenceView:draw()
-		love.graphics.setCanvas(prev_canvas)
-
-		self.pauseScreen:draw(self, game_canvas)
+	if self.renderAtNativeResolution then
+		self:drawNativeResolution()
 	else
-		Background(self)
-		self.sequenceView:draw()
+		self:drawFull()
 	end
 
 	self.pauseProgressBar:draw()
 	self.ui.screenOverlayView:draw()
-
-	just.container()
 
 	local state = self.game.pauseModel.state
 	local multiplayerModel = self.game.multiplayerModel

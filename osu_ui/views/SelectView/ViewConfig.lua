@@ -339,8 +339,6 @@ function ViewConfig:new(view, assets)
 
 	self.scoreListView = ScoreListView(game, assets)
 
-	Layout:draw()
-
 	update_time = current_time
 	self.scoreListView.scoreUpdateTime = love.timer.getTime()
 

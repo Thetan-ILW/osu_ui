@@ -318,7 +318,6 @@ function SelectView:resolutionUpdated()
 end
 
 function SelectView:draw()
-	OsuLayout:draw()
 	local w, h = OsuLayout:move("base")
 
 	GaussianBlurView:draw(blur)

@@ -8,10 +8,10 @@ local FadeTransition = require("ui.views.FadeTransition")
 ---@field ui osu.ui.UserInterface
 local GameView = class()
 
----@param ui osu.ui.UserInterface
-function GameView:new(ui)
-	self.game = ui.game
-	self.ui = ui
+---@param game_ui osu.ui.UserInterface
+function GameView:new(game_ui)
+	self.game = game_ui.game
+	self.ui = game_ui
 	self.fadeTransition = FadeTransition()
 end
 
