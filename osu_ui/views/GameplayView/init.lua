@@ -130,17 +130,17 @@ function GameplayView:drawNativeResolution()
 	gfx.pop()
 
 	if self.subscreen == "pause" then
-		Layout:move("base")
 		self.pauseScreen:draw(self)
 	end
 end
 
 function GameplayView:drawFull()
+	gfx.push()
 	Background(self)
 	self.sequenceView:draw()
+	gfx.pop()
 
 	if self.subscreen == "pause" then
-		Layout:move("base")
 		self.pauseScreen:draw(self)
 	end
 end
@@ -148,6 +148,8 @@ end
 function GameplayView:draw()
 	self:keypressed()
 	self:keyreleased()
+
+	Layout:move("base")
 
 	if self.renderAtNativeResolution then
 		self:drawNativeResolution()

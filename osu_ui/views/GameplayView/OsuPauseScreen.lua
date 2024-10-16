@@ -163,9 +163,9 @@ function PauseViewConfig:draw(view)
 	love.graphics.setCanvas({ prev_canvas, stencil = true })
 
 	local a = self.alpha
-	love.graphics.origin()
 	love.graphics.setColor(0.1 * a, 0.1 * a, a, a * 0.1)
 	love.graphics.rectangle("fill", 0, 0, ui.layoutW, ui.layoutH)
+	love.graphics.origin()
 	love.graphics.setColor(a, a, a, a)
 	love.graphics.draw(layer)
 

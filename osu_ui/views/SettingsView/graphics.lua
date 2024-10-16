@@ -1,5 +1,18 @@
 local GroupContainer = require("osu_ui.views.SettingsView.GroupContainer")
 local Elements = require("osu_ui.views.SettingsView.Elements")
+local utf8validate = require("utf8validate")
+
+local function formatSkinName(v)
+	if not v then
+		return "??"
+	end
+	local len = v:len()
+	if len > 38 then
+		return utf8validate(v:sub(1, 38), ".") .. ".."
+	end
+
+	return v
+end
 
 local vsyncNames = {
 	[1] = "enabled",
@@ -113,7 +126,7 @@ return function(assets, view)
 	end, function(v)
 		osu.skin = v
 		view.ui.gameView:reloadView()
-	end)
+	end, formatSkinName)
 
 	combo(text.fullscreenType, "desktop", nil, function()
 		return flags.fullscreentype, { "desktop", "exclusive" }
