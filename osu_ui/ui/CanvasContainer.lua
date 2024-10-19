@@ -1,0 +1,45 @@
+local Container = require("osu_ui.ui.Container")
+
+---@class osu.ui.CanvasContainer : osu.ui.Container
+---@operator call: osu.ui.CanvasContainer
+local CanvasContainer = Container + {}
+
+---@param depth number?
+---@param transform love.Transform?
+function CanvasContainer:new(depth, transform)
+	self.depth = depth or 0
+	self.transform = transform or love.math.newTransform()
+	self.children = {}
+	self.canvas = love.graphics.newCanvas(love.graphics.getDimensions())
+	self.alpha = 0
+end
+
+local gfx = love.graphics
+
+function CanvasContainer:draw()
+	local prev_canvas = gfx.getCanvas()
+	gfx.setCanvas(self.canvas)
+	gfx.clear()
+	gfx.setBlendMode("alpha", "alphamultiply")
+
+	gfx.push()
+	gfx.applyTransform(self.transform)
+	for i = #self.childrenOrder, 1, -1 do
+		local child = self.children[self.childrenOrder[i]]
+		gfx.push()
+		gfx.applyTransform(child.transform)
+		child:draw()
+		gfx.pop()
+	end
+	gfx.pop()
+
+	local a = self.alpha
+	gfx.setCanvas(prev_canvas)
+	gfx.setBlendMode("alpha", "premultiplied")
+	gfx.setColor(a, a, a, a)
+	gfx.origin()
+	gfx.draw(self.canvas)
+	gfx.setBlendMode("alpha")
+end
+
+return CanvasContainer

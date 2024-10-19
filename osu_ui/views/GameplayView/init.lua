@@ -1,11 +1,11 @@
-local Layout = require("osu_ui.views.OsuLayout")
 local Background = require("ui.views.GameplayView.Background")
 local ScreenView = require("osu_ui.views.ScreenView")
 local SequenceView = require("sphere.views.SequenceView")
 local RectangleProgressView = require("sphere.views.GameplayView.RectangleProgressView")
 
-local OsuPauseScreen = require("osu_ui.views.GameplayView.OsuPauseScreen")
 local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
+
+local PauseScreen = require("osu_ui.views.GameplayView.PauseScreen")
 
 local just = require("just")
 local actions = require("osu_ui.actions")
@@ -13,7 +13,6 @@ local actions = require("osu_ui.actions")
 ---@class osu.ui.GameplayView: osu.ui.ScreenView
 ---@operator call: osu.ui.GameplayView
 local GameplayView = ScreenView + {}
-
 
 local native_res_w = 0
 local native_res_h = 0
@@ -48,9 +47,7 @@ function GameplayView:load()
 	self.failed = false
 
 	local sequence_view = self.sequenceView
-
 	local note_skin = self.game.noteSkinModel.noteSkin
-
 	sequence_view.game = self.game
 	sequence_view.subscreen = "gameplay"
 	sequence_view:setSequenceConfig(note_skin.playField)
@@ -66,10 +63,10 @@ function GameplayView:load()
 	end
 
 	local root = note_skin.path:match("(.+/)") or ""
-	local assets = OsuPauseAssets(self.ui.assetModel, root)
-	assets:load()
-	assets.shaders = self.ui.assets.shaders
-	self.pauseScreen = OsuPauseScreen(self, assets)
+	self.assets = OsuPauseAssets(self.ui.assetModel, root)
+	self.assets:load()
+	self.assets.shaders = self.ui.assets.shaders
+	self.pauseScreen = PauseScreen(self)
 
 	self.pauseProgressBar =  RectangleProgressView({
 		x = 0, y = 0, w = 1920, h = 20,
@@ -84,7 +81,6 @@ function GameplayView:load()
 end
 
 function GameplayView:unload()
-	self.pauseScreen:unload()
 	self.game.gameplayController:unload()
 	self.game.rhythmModel.observable:remove(self.sequenceView)
 	self.sequenceView:unload()
@@ -95,7 +91,6 @@ function GameplayView:retry()
 	self.game.gameplayController:retry()
 	self.sequenceView:unload()
 	self.sequenceView:load()
-	self.pauseScreen:hide()
 	self.cursor.alpha = 0
 end
 
@@ -130,7 +125,7 @@ function GameplayView:drawNativeResolution()
 	gfx.pop()
 
 	if self.subscreen == "pause" then
-		self.pauseScreen:draw(self)
+		self.pauseScreen:draw()
 	end
 end
 
@@ -141,15 +136,13 @@ function GameplayView:drawFull()
 	gfx.pop()
 
 	if self.subscreen == "pause" then
-		self.pauseScreen:draw(self)
+		self.pauseScreen:draw()
 	end
 end
 
 function GameplayView:draw()
 	self:keypressed()
 	self:keyreleased()
-
-	Layout:move("base")
 
 	if self.renderAtNativeResolution then
 		self:drawNativeResolution()
@@ -171,7 +164,7 @@ function GameplayView:draw()
 		and self.game.rhythmModel.inputManager.mode ~= "internal"
 	then
 		self.game.gameplayController:pause()
-		self.pauseScreen:show()
+		--self.pauseScreen:show()
 	end
 end
 
@@ -187,6 +180,7 @@ function GameplayView:update(dt)
 			self.pauseScreen:show()
 		end
 		self.subscreen = "pause"
+		self.pauseScreen:update(dt)
 	end
 
 	if self.game.pauseModel.needRetry then

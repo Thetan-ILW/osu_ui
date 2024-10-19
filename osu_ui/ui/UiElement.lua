@@ -1,8 +1,8 @@
-local class = require("class")
+local Container = require("osu_ui.ui.Container")
 
 local math_util = require("math_util")
 
----@class osu.ui.UiElement
+---@class osu.ui.UiElement : osu.ui.Container
 ---@operator call: osu.ui.UiElement
 ---@field activeTip string?
 ---@field protected tip string?
@@ -16,7 +16,7 @@ local math_util = require("math_util")
 ---@field protected totalH number
 ---@field protected margin number
 ---@field protected hover boolean
-local UiElement = class()
+local UiElement = Container + {}
 
 function UiElement:getDimensions()
 	return self.totalW, self.totalH

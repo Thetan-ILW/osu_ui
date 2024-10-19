@@ -27,7 +27,7 @@ local ui = require("osu_ui.ui")
 local ImageButton = UiElement + {}
 
 ---@param assets osu.ui.OsuAssets
----@param params { idleImage: love.Image, animationImage: love.Image[], framerate: number?, hoverImage: love.Image?, ox:number?, oy: number?, hoverArea: {w: number, h: number}, hoverSound: audio.Source?, clickSound: audio.Source? }
+---@param params { idleImage: love.Image, animationImage: love.Image[], framerate: number?, hoverImage: love.Image?, ox:number?, oy: number?, hoverArea: {w: number, h: number}, hoverSound: audio.Source?, clickSound: audio.Source?, depth: number, transform: love.Transform }
 ---@param on_click function
 function ImageButton:new(assets, params, on_click)
 	self.assets = assets
@@ -63,9 +63,11 @@ function ImageButton:new(assets, params, on_click)
 
 	self.ox = params.ox or 0
 	self.oy = params.oy or 0
+	self.depth = params.depth or 0
+	self.transform = params.transform or love.math.newTransform()
 end
 
-function ImageButton:update(has_focus)
+function ImageButton:mouseInput(has_focus)
 	local hw, hh = self.hoverWidth, self.hoverHeight
 
 	local hover ---@type boolean
@@ -80,6 +82,11 @@ function ImageButton:update(has_focus)
 		ui.playSound(self.clickSound)
 		self.onClick()
 	end
+
+	return hover
+end
+
+function ImageButton:update(has_focus)
 end
 
 local gfx = love.graphics

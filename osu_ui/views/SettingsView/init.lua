@@ -109,7 +109,7 @@ function SettingsView:build(tab)
 	})
 
 	self.gameBehaviorLabel = Label(self.assets, {
-		text = "Change the way soundsphere behaves",
+		text = "Change the way gucci!mania behaves",
 		pixelWidth = consts.labelWidth,
 		font = font.gameBehaviorLabel,
 		color = { 0.83, 0.38, 0.47, 1 },
