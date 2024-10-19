@@ -66,7 +66,8 @@ function GameplayView:load()
 	self.assets = OsuPauseAssets(self.ui.assetModel, root)
 	self.assets:load()
 	self.assets.shaders = self.ui.assets.shaders
-	self.pauseScreen = PauseScreen(self)
+	self.pauseScreen = PauseScreen(0.98, love.math.newTransform(0, 0))
+	self.pauseScreen:load(self)
 
 	self.pauseProgressBar =  RectangleProgressView({
 		x = 0, y = 0, w = 1920, h = 20,
@@ -84,7 +85,6 @@ function GameplayView:unload()
 	self.game.gameplayController:unload()
 	self.game.rhythmModel.observable:remove(self.sequenceView)
 	self.sequenceView:unload()
-
 end
 
 function GameplayView:retry()
@@ -95,7 +95,8 @@ function GameplayView:retry()
 end
 
 function GameplayView:resolutionUpdated()
-	self.pauseScreen:resolutionUpdated()
+	self.pauseScreen = PauseScreen()
+	self.pauseScreen:load(self)
 end
 
 local gfx = love.graphics

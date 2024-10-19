@@ -2,27 +2,23 @@ local ScreenView = require("osu_ui.views.ScreenView")
 local thread = require("thread")
 
 local OsuLayout = require("osu_ui.views.OsuLayout")
-local ViewConfig = require("osu_ui.views.ResultView.ViewConfig")
+local DisplayInfo = require("osu_ui.views.ResultView.DisplayInfo")
+local View = require("osu_ui.views.ResultView.View")
+
 local GaussianBlurView = require("sphere.views.GaussianBlurView")
 local BackgroundView = require("sphere.views.BackgroundView")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
 
 local InputMap = require("osu_ui.views.ResultView.InputMap")
 local actions = require("osu_ui.actions")
-
-local Soundsphere = require("sphere.models.RhythmModel.ScoreEngine.SoundsphereScoring")
-local OsuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
-local OsuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScoring")
-local Etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
-local Lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
-local Quaver = require("sphere.models.RhythmModel.ScoreEngine.QuaverScoring")
+local flux = require("flux")
 
 ---@class osu.ui.ResultView: osu.ui.ScreenView
 ---@operator call: osu.ui.ResultView
----@field judgeName string
----@field judgements table
----@field noScore boolean
----@field viewConfig osu.ui.ResultViewConfig
+---@field view osu.ui.ResultViewContainer
+---@field displayInfo osu.ui.ResultDisplayInfo
+---@field scoreReveal number
+---@field scoreRevealTween table?
 local ResultView = ScreenView + {}
 
 local dim = 0
@@ -41,37 +37,13 @@ ResultView.load = thread.coro(function(self)
 
 	self.inputMap = InputMap(self)
 
-	local is_after_gameplay = self.prevView == self.ui.gameplayView
-
-	if is_after_gameplay then
-		local audio_engine = self.game.rhythmModel.audioEngine
-		local music_volume = (audio_engine.volume.master * audio_engine.volume.music) * 0.3
-		local effects_volume = (audio_engine.volume.master * audio_engine.volume.effects) * 0.3
-
-		audio_engine.backgroundContainer:setVolume(music_volume)
-		audio_engine.foregroundContainer:setVolume(effects_volume)
-	end
-
 	if self.prevView == self.ui.selectView then
 		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
 	end
 
-	self.viewConfig = ViewConfig(self.game, self.assets, is_after_gameplay, self)
-
-	self:setJudge()
-
-	local success, result = pcall(self.viewConfig.loadScore, self.viewConfig, self)
-
-	if not success then
-		print(result)
-		self.popupView:add("Failed to load the score.\nCheck the console for the details.", "error")
-		self:changeScreen("selectView", true)
-	end
-
-	self.hpGraph = HpGraph(300, 135,
-		self.game.rhythmModel.scoreEngine.scoreSystem.sequence,
-		self.game.rhythmModel.scoreEngine.scoreSystem.hp
-	)
+	self.displayInfo = DisplayInfo(self)
+	self.view = View(0.98, love.math.newTransform(0, 0))
+	self.view:load(self)
 
 	canDraw = true
 	loading = false
@@ -79,50 +51,15 @@ ResultView.load = thread.coro(function(self)
 	love.mouse.setVisible(false)
 	self.cursor.alpha = 1
 	actions.enable()
+
+	self.scoreReveal = 0
+	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
 end)
 
-local scoring = {
-	["osu!legacy"] = OsuLegacy,
-	["osu!mania"] = OsuMania,
-	["Etterna"] = Etterna,
-	["Quaver"] = Quaver,
-	["Lunatic rave 2"] = Lr2,
-	["soundsphere"] = Soundsphere,
-}
+function ResultView:unload() end
 
-function ResultView:setJudge()
-	local score_system = self.game.rhythmModel.scoreEngine.scoreSystem
-	local judgements = score_system.judgements
-
-	if not judgements then
-		self.noScore = true
-		self.gameView.popupView:add("Can't load score! You probably have no replay on the disk.", "error")
-		return
-	end
-
-	local configs = self.game.configModel.configs
-	local osu = configs.osu_ui
-	local ss = osu.scoreSystem
-	local judge = osu.judgement
-
-	local range_alias = scoring[ss].metadata.rangeValueAlias
-	if range_alias then
-		judge = range_alias[judge]
-	end
-
-	local judge_name = scoring[ss].metadata.name:format(judge)
-
-	self.judgement = judgements[judge_name]
-	self.judgements = judgements
-	self.judgeName = judge_name
-	self.noScore = false
-end
-
-function ResultView:unload()
-	self.viewConfig:unload()
-end
-
-function ResultView:update()
+---@param dt number
+function ResultView:update(dt)
 	if loading then
 		return
 	end
@@ -134,18 +71,15 @@ function ResultView:update()
 	background_blur = graphics.blur.result
 
 	self.assets:updateVolume(self.game.configModel)
-	self.game.previewModel:update()
+	self.view:update(dt)
 end
 
 function ResultView:resolutionUpdated()
-	self.viewConfig:resolutionUpdated(self)
+	self.view = View(0.98, love.math.newTransform(0, 0))
+	self.view:load(self)
 end
 
 function ResultView:draw()
-	if not self.viewConfig then
-		return
-	end
-
 	if not canDraw then
 		return
 	end
@@ -157,7 +91,7 @@ function ResultView:draw()
 	BackgroundView:draw(w, h, dim, 0.01)
 	GaussianBlurView:draw(background_blur)
 
-	self.viewConfig:draw(self)
+	self.view:draw()
 	self.ui.screenOverlayView:draw()
 end
 
@@ -167,7 +101,10 @@ function ResultView:receive(event)
 	end
 
 	if event.name == "mousepressed" then
-		self.viewConfig:stopAnimations()
+		if self.scoreRevealTween then
+			self.scoreRevealTween:stop()
+		end
+		self.scoreReveal = 1
 	end
 end
 

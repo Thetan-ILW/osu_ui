@@ -27,6 +27,7 @@ local Button = UiElement + {}
 ---@param params { text: string, font: love.Font, pixelWidth: number, pixelHeight: number, color: number[]?, xOffset: number, margin: number? }
 ---@param on_change function
 function Button:new(assets, params, on_change)
+	UiElement.new(self, params)
 	self.assets = assets
 
 	local img = assets.images
@@ -58,8 +59,7 @@ end
 
 local gfx = love.graphics
 
----@param has_focus boolean
-function Button:update(has_focus)
+function Button:mouseInput(has_focus)
 	local just_hovered = false
 	self.hover, self.animation, just_hovered = self.hoverState:check(self.totalW, self.totalH)
 

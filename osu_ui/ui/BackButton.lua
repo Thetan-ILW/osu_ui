@@ -23,15 +23,16 @@ local polygon1 = { -50, 0, 33, 0, 25, 45, -50, 45 }
 local polygon2 = { 33, 0, 93, 0, 85, 45, 25, 45 }
 
 ---@param assets osu.ui.OsuAssets
----@param hoverArea {w: number, h: number}
+---@param params { hoverArea: {w: number, h: number} }
 ---@param on_click function
-function BackButton:new(assets, hoverArea, on_click)
+function BackButton:new(assets, params, on_click)
+	UiElement.new(self, params)
 	self.assets = assets
 	local font = self.assets.localization.fontGroups.misc.backButton
 	self.label = love.graphics.newText(font, "back")
 
-	self.hoverW = hoverArea.w
-	self.hoverH = hoverArea.h
+	self.hoverW = params.hoverArea.w
+	self.hoverH = params.hoverArea.h
 	self.hoverState = HoverState("elasticout", 0.7)
 	self.openAnimation = 0
 	self.onClick = on_click
@@ -45,7 +46,7 @@ function BackButton:new(assets, hoverArea, on_click)
 	self.hoverSound = assets.sounds.hoverOverRect
 end
 
-function BackButton:update(has_focus)
+function BackButton:mouseInput(has_focus)
 	local hover, animation, just_hovered = self.hoverState:check(self.hoverW, self.hoverH, 0, 0, has_focus)
 	self.openAnimation = animation
 

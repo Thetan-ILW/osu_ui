@@ -179,7 +179,7 @@ function SettingsView:build(tab)
 
 	self.totalHeight = pos
 
-	self.backButton = BackButton(assets, { w = 64, h = 200 }, function()
+	self.backButton = BackButton(assets, { hoverArea = { w = 64, h = 200 } }, function()
 		self:processState("hide")
 	end)
 end

@@ -11,25 +11,22 @@ local Container = class()
 ---@param transform love.Transform?
 function Container:new(depth, transform)
 	self.depth = depth or 0
-	self.transform = transform or love.math.newTransform()
+	self.transform = transform or love.math.newTransform(0, 0)
+	self.originalTransform = self.transform:clone()
 	self.children = {}
 end
 
+function Container:load() end
+
 ---@param id string
----@param child osu.ui.Container | function
+---@param child osu.ui.Container
+---@return osu.ui.Container
 function Container:addChild(id, child)
 	if self.children[id] then
 		error(("Children with the id %s already exist"):format(id))
 	end
-
-	if type(child) == "function" then
-		local c = Container()
-		c.draw = child
-		c.update = function() end
-		child = c
-	end
-
 	self.children[id] = child
+	return child
 end
 
 ---@param id string
@@ -92,6 +89,7 @@ function Container:update(dt)
 		local child = self.children[id]
 		gfx.push()
 		gfx.applyTransform(child.transform)
+		child:updateTransform()
 		child:update(dt)
 		gfx.pop()
 	end
@@ -106,10 +104,30 @@ function Container:draw()
 		local child = self.children[self.childrenOrder[i]]
 		gfx.push()
 		gfx.applyTransform(child.transform)
+		gfx.setColor(1, 1, 1)
 		child:draw()
+		child:resetTransform()
 		gfx.pop()
 	end
 	gfx.pop()
+end
+
+function Container:updateTransform() end
+
+function Container:resetTransform()
+	self.transform = self.originalTransform:clone()
+end
+
+local function emptyUpdate() end
+
+---@param f function
+---@param depth number?
+---@param transform love.transform?
+function Container.drawFunction(f, depth, transform)
+	local c = Container(depth, transform)
+	c.draw = f
+	c.update = emptyUpdate
+	return c
 end
 
 return Container

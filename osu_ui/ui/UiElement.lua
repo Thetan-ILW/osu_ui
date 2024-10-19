@@ -18,6 +18,15 @@ local math_util = require("math_util")
 ---@field protected hover boolean
 local UiElement = Container + {}
 
+---@param params table?
+function UiElement:new(params)
+	if not params then
+		Container.new(self)
+		return
+	end
+	Container.new(self, params.depth, params.transform)
+end
+
 function UiElement:getDimensions()
 	return self.totalW, self.totalH
 end

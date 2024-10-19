@@ -1,13 +1,23 @@
-local class = require("class")
+local UiElement = require("osu_ui.ui.UiElement")
 
-local HpGraph = class()
+---@class osu.ui.HpGraph : osu.ui.UiElement
+---@operator call: osu.ui.HpGraph
+local HpGraph = UiElement + {}
 
 local colors = {
 	green = { 0.6, 0.8, 0.2 },
 	red = { 1, 0, 0 }
 }
 
-function HpGraph:new(w, h, points, hp_score_system)
+---@param params { w: number, h: number, points: table, hpScoreSystem: table }
+function HpGraph:new(params)
+	UiElement.new(self, params)
+
+	local w = params.w
+	local h = params.h
+	local points = params.points
+	local hp_score_system = params.hpScoreSystem
+
 	local low_res = {}
 
 	for i, v in ipairs(points) do
@@ -59,8 +69,6 @@ function HpGraph:new(w, h, points, hp_score_system)
 			})
 		end
 	end
-
-	self.startTime = love.timer.getTime()
 end
 
 local gfx = love.graphics

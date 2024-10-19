@@ -6,11 +6,17 @@ local CanvasContainer = Container + {}
 
 ---@param depth number?
 ---@param transform love.Transform?
-function CanvasContainer:new(depth, transform)
+---@param width number?
+---@param height number?
+function CanvasContainer:new(depth, transform, width, height)
 	self.depth = depth or 0
 	self.transform = transform or love.math.newTransform()
 	self.children = {}
-	self.canvas = love.graphics.newCanvas(love.graphics.getDimensions())
+	if width and height then
+		self.canvas = love.graphics.newCanvas(width, height)
+	else
+		self.canvas = love.graphics.newCanvas(love.graphics.getDimensions())
+	end
 	self.alpha = 0
 end
 

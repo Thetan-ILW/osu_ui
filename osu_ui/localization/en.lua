@@ -430,6 +430,7 @@ l.fontGroups = {
 		playInfo = { "Aller", 22, "ZenMaruGothic-Regular" },
 		graphInfo = { "ZenMaruGothic-Regular", 18 },
 		pp = { "ZenMaruGothic-Medium", 36 },
+		onlineRanking = { "Aller", 32, "ZenMaruGothic-Regular" },
 	},
 	playerStats = {
 		activity = { "Aller", 18, "ZenMaruGothic-Regular" },

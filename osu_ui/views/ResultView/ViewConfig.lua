@@ -246,23 +246,6 @@ function ViewConfig:createUI(view)
 		end)
 	end
 
-	retry_button = ImageButton(assets, {
-		idleImage = img.retry,
-		ox = 1,
-		hoverArea = { w = 411, h = 95 },
-		clickSound = assets.sounds.menuHit,
-	}, function()
-		view:play("retry")
-	end)
-
-	replay_button = ImageButton(assets, {
-		idleImage = img.replay,
-		ox = 1,
-		hoverArea = { w = 411, h = 122 },
-		clickSound = assets.sounds.menuHit,
-	}, function()
-		view:play("replay")
-	end)
 
 	show_chat_button = ImageButton(assets, {
 		idleImage = img.overlayChat,
@@ -598,25 +581,6 @@ local function valueView(value_view, x, y)
 	gfx.pop()
 end
 
-local ppy = 1.6
-
-local score_x = 220 * ppy
-local score_y = 94 * ppy
-
-local img_x1 = 40 * ppy
-local img_x2 = 240 * ppy
-local text_x1 = 80 * ppy
-local text_x2 = 280 * ppy
-
-local row1 = 160 * ppy
-local row2 = 220 * ppy
-local row3 = 280 * ppy
-local row4 = 320 * ppy
-
-local combo_x = text_x1 - 65 * ppy
-local combo_y = row4 + 38
-local acc_x = text_x2 - 86 * ppy
-local acc_y = row4 + 38
 
 function ViewConfig:panel()
 	local w, h = Layout:move("base")
@@ -646,29 +610,6 @@ function ViewConfig:panel()
 
 	valueView(comboValue, combo_x, combo_y)
 	valueView(accuracyValue, acc_x, acc_y)
-end
-
-local overlay_rotation = 0
-
-function ViewConfig:grade()
-	local image = img["grade" .. grade]
-
-	if not image then
-		return
-	end
-
-	local overlay = img.backgroundOverlay
-
-	local w, h = Layout:move("base")
-	local iw, ih = image:getDimensions()
-	local ow, oh = overlay:getDimensions()
-
-	overlay_rotation = (overlay_rotation + love.timer.getDelta() * 0.5) % (math.pi * 2)
-
-	local additional_s = (1 - self.scoreReveal) * 0.2
-	gfx.setColor(1, 1, 1, self.scoreReveal)
-	gfx.draw(overlay, w - 200, 320, overlay_rotation, 1, 1, ow / 2, oh / 2)
-	gfx.draw(image, w - 192, 320, 0, 1 + additional_s, 1 + additional_s, iw / 2, ih / 2)
 end
 
 local function rightSideButtons(view)

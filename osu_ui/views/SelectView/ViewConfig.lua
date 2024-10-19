@@ -187,7 +187,7 @@ function ViewConfig:createUI(view)
 			view:quit(true)
 		end)
 	else
-		back_button = BackButton(assets, { w = 93, h = 90 }, function()
+		back_button = BackButton(assets, { hoverArea = { w = 93, h = 90 } }, function()
 			view:quit(true)
 		end)
 	end
