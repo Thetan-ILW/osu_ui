@@ -239,6 +239,7 @@ function UserInterface:update(dt)
 		self.lastResolutionCheck = time
 	end
 
+	OsuLayout:move("base")
 	ui.setTextScale(math.min(768 / wh, 1))
 
 	self.gameView:update(dt)

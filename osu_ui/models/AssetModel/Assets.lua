@@ -115,6 +115,13 @@ function Assets.findAudio(name, file_list)
 	end
 end
 
+---@param name string
+---@param file_list {[string]: string}
+---@return string?
+function Assets.findFile(name, file_list)
+	return file_list[name:lower()]
+end
+
 ---@param root string
 ---@param file_name string
 ---@param file_list {[string]: string}

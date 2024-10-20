@@ -370,6 +370,14 @@ function View:load(result_view)
 		result_view:quit()
 	end))
 
+	local customizations = assets.customViews.resultView
+	if customizations then
+		local success, error = pcall(customizations, assets, display_info, self)
+		if not success then
+			result_view.popupView:add(error, "error")
+		end
+	end
+
 	self:sortChildren()
 end
 

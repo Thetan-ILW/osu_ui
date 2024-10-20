@@ -58,6 +58,8 @@ function BackButton:mouseInput(has_focus)
 		self.onClick()
 		ui.playSound(self.clickSound)
 	end
+
+	return hover
 end
 
 local gfx = love.graphics

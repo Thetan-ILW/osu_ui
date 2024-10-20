@@ -347,6 +347,7 @@ function OsuAssets:load(default_localization)
 	self.sounds = {}
 	self.imageFonts = {}
 	self.animations = {}
+	self.customViews = {}
 	self.loadedViews = {}
 
 	self:populateImages(images.global, self.images)
@@ -374,11 +375,30 @@ function OsuAssets:load(default_localization)
 	}
 end
 
+local custom_views = {
+	resultView = "ResultView"
+}
+
+function OsuAssets:loadCustomViews(view_name)
+	if not custom_views[view_name] then
+		return
+	end
+
+	local filename = path_util.join("gucci", custom_views[view_name] .. ".lua")
+	if not filename then
+		return
+	end
+
+	self.customViews[view_name] = love.filesystem.load(path_util.join(self.directory, filename))()
+end
+
 ---@param view_name string?
 function OsuAssets:loadViewAssets(view_name)
 	if not view_name then
 		return
 	end
+
+	self:loadCustomViews(view_name)
 
 	if self.loadedViews[view_name] then
 		return

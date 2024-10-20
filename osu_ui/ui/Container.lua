@@ -11,9 +11,14 @@ local Container = class()
 ---@param transform love.Transform?
 function Container:new(depth, transform)
 	self.depth = depth or 0
-	self.transform = transform or love.math.newTransform(0, 0)
-	self.originalTransform = self.transform:clone()
+	self:setTransform(transform or love.math.newTransform())
 	self.children = {}
+end
+
+---@param transform love.Transform
+function Container:setTransform(transform)
+	self.originalTransform = transform:clone()
+	self.transform = transform:clone()
 end
 
 function Container:load() end
@@ -51,7 +56,7 @@ end
 
 ---@param id string
 ---@return osu.ui.Container?
-function Container:getChildById(id)
+function Container:getChild(id)
 	return self.children[id]
 end
 
