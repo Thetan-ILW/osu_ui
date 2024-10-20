@@ -11,8 +11,8 @@ local Container = class()
 ---@param transform love.Transform?
 function Container:new(depth, transform)
 	self.depth = depth or 0
-	self:setTransform(transform or love.math.newTransform())
 	self.children = {}
+	self:setTransform(transform or love.math.newTransform())
 end
 
 ---@param transform love.Transform
@@ -80,6 +80,7 @@ function Container:update(dt)
 	for _, id in ipairs(self.childrenOrder) do
 		local child = self.children[id]
 		gfx.push()
+		child:updateTransform()
 		gfx.applyTransform(child.transform)
 		if child:mouseInput(mouse_focus) then
 			mouse_focus = false
@@ -87,14 +88,6 @@ function Container:update(dt)
 		if child:keyboardInput(keyboard_focus) then
 			keyboard_focus = false
 		end
-		gfx.pop()
-	end
-
-	for _, id in ipairs(self.childrenOrder) do
-		local child = self.children[id]
-		gfx.push()
-		gfx.applyTransform(child.transform)
-		child:updateTransform()
 		child:update(dt)
 		gfx.pop()
 	end

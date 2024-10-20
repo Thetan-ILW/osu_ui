@@ -46,7 +46,9 @@ local events = {
 	wheelmoved = function(self, event)
 		if love.keyboard.isDown("lalt") then
 			self:changeVolume(event[2])
+			return
 		end
+		actions.wheelMoved(event[2])
 	end,
 	keypressed = function(self, event)
 		self:keypressed(event)

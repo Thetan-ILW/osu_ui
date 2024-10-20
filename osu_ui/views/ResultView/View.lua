@@ -1,4 +1,5 @@
 local Container = require("osu_ui.ui.Container")
+local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 
 local ui = require("osu_ui.ui")
 local Label = require("osu_ui.ui.Label")
@@ -59,8 +60,10 @@ function View:load(result_view)
 		transform = love.math.newTransform(ui.layoutW - 32, 0)
 	}))
 
+	local area = self:addChild("scrollArea", ScrollAreaContainer(nil, nil, 768 / 2, 1368, 768 * 2))
+
 	---- PANEL ----
-	self:addChild("statsPanel", Image({ image = img.panel, depth = 0.5, transform = love.math.newTransform(0, 102) }))
+	area:addChild("statsPanel", Image({ image = img.panel, depth = 0.5, transform = love.math.newTransform(0, 102) }))
 
 	local ppy = 1.6
 
@@ -86,7 +89,7 @@ function View:load(result_view)
 	local score_font = assets.imageFonts.scoreFont
 	local judge_format = "%ix"
 
-	self:addChild("score", ImageValueView({
+	area:addChild("score", ImageValueView({
 		files = score_font,
 		overlap = overlap,
 		align = "center",
@@ -99,7 +102,7 @@ function View:load(result_view)
 		return math.ceil(result_view.scoreReveal * display_info.score)
 	end))
 
-	self:addChild("marvelousImage", Image({
+	area:addChild("marvelousImage", Image({
 		image = img.judgeMarvelous,
 		ox = 0.5,
 		oy = 0.5,
@@ -107,7 +110,7 @@ function View:load(result_view)
 		transform = love.math.newTransform(img_x2, row1, 0, 0.5, 0.5)
 	}))
 
-	self:addChild("marvelousCount", ImageValueView({
+	area:addChild("marvelousCount", ImageValueView({
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
@@ -120,7 +123,7 @@ function View:load(result_view)
 		return math.ceil(result_view.scoreReveal * display_info.marvelous)
 	end))
 
-	self:addChild("perfectImage", Image({
+	area:addChild("perfectImage", Image({
 		image = img.judgePerfect,
 		ox = 0.5,
 		oy = 0.5,
@@ -128,7 +131,7 @@ function View:load(result_view)
 		transform = love.math.newTransform(img_x1, row1, 0, 0.5, 0.5)
 	}))
 
-	self:addChild("perfectCount", ImageValueView({
+	area:addChild("perfectCount", ImageValueView({
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
@@ -142,7 +145,7 @@ function View:load(result_view)
 	end))
 
 	if display_info.great then
-		self:addChild("greatImage", Image({
+		area:addChild("greatImage", Image({
 			image = img.judgeGreat,
 			ox = 0.5,
 			oy = 0.5,
@@ -150,7 +153,7 @@ function View:load(result_view)
 			transform = love.math.newTransform(img_x1, row2, 0, 0.5, 0.5)
 		}))
 
-		self:addChild("greatCount", ImageValueView({
+		area:addChild("greatCount", ImageValueView({
 			files = score_font,
 			overlap = overlap,
 			format = judge_format,
@@ -165,7 +168,7 @@ function View:load(result_view)
 	end
 
 	if display_info.good then
-		self:addChild("goodImage", Image({
+		area:addChild("goodImage", Image({
 			image = img.judgeGood,
 			ox = 0.5,
 			oy = 0.5,
@@ -173,7 +176,7 @@ function View:load(result_view)
 			transform = love.math.newTransform(img_x2, row2, 0, 0.5, 0.5)
 		}))
 
-		self:addChild("goodCount", ImageValueView({
+		area:addChild("goodCount", ImageValueView({
 			files = score_font,
 			overlap = overlap,
 			format = judge_format,
@@ -188,7 +191,7 @@ function View:load(result_view)
 	end
 
 	if display_info.bad then
-		self:addChild("badImage", Image({
+		area:addChild("badImage", Image({
 			image = img.judgeBad,
 			ox = 0.5,
 			oy = 0.5,
@@ -196,7 +199,7 @@ function View:load(result_view)
 			transform = love.math.newTransform(img_x1, row3, 0, 0.5, 0.5)
 		}))
 
-		self:addChild("badCount", ImageValueView({
+		area:addChild("badCount", ImageValueView({
 			files = score_font,
 			overlap = overlap,
 			format = judge_format,
@@ -210,7 +213,7 @@ function View:load(result_view)
 		end))
 	end
 
-	self:addChild("missImage", Image({
+	area:addChild("missImage", Image({
 		image = img.judgeMiss,
 		ox = 0.5,
 		oy = 0.5,
@@ -218,7 +221,7 @@ function View:load(result_view)
 		transform = love.math.newTransform(img_x2, row3, 0, 0.5, 0.5)
 	}))
 
-	self:addChild("missCount", ImageValueView({
+	area:addChild("missCount", ImageValueView({
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
@@ -231,7 +234,7 @@ function View:load(result_view)
 		return math.ceil(result_view.scoreReveal * display_info.miss)
 	end))
 
-	self:addChild("combo", ImageValueView({
+	area:addChild("combo", ImageValueView({
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
@@ -244,7 +247,7 @@ function View:load(result_view)
 		return math.ceil(result_view.scoreReveal * display_info.combo)
 	end))
 
-	self:addChild("accuracy", ImageValueView({
+	area:addChild("accuracy", ImageValueView({
 		files = score_font,
 		overlap = overlap,
 		format = "%0.02f%%",
@@ -258,13 +261,13 @@ function View:load(result_view)
 		return result_view.scoreReveal * display_info.accuracy
 	end))
 
-	self:addChild("comboText", Image({ image = img.maxCombo, depth = 0.54, transform = love.math.newTransform(8, 480)}))
-	self:addChild("accuracyText", Image({ image = img.accuracy, depth = 0.54, transform = love.math.newTransform(291, 480)}))
+	area:addChild("comboText", Image({ image = img.maxCombo, depth = 0.54, transform = love.math.newTransform(8, 480)}))
+	area:addChild("accuracyText", Image({ image = img.accuracy, depth = 0.54, transform = love.math.newTransform(291, 480)}))
 
 	---- GRAPH ----
 	local score_system = result_view.game.rhythmModel.scoreEngine.scoreSystem
-	self:addChild("graph", Image({ image = img.graph, depth = 0.5, transform = love.math.newTransform(256, 608)}))
-	self:addChild("hpGraph", HpGraph({
+	area:addChild("graph", Image({ image = img.graph, depth = 0.5, transform = love.math.newTransform(256, 608)}))
+	area:addChild("hpGraph", HpGraph({
 		w = 300,
 		h = 135,
 		points = score_system.sequence,
@@ -275,7 +278,7 @@ function View:load(result_view)
 
 	---- GRADE ----
 	local overlay_rotation = 0
-	local overlay = self:addChild("backgroundOverlay", Image({
+	local overlay = area:addChild("backgroundOverlay", Image({
 		image = img.backgroundOverlay,
 		ox = 0.5,
 		oy = 0.5,
@@ -287,7 +290,7 @@ function View:load(result_view)
 		self.transform:rotate(overlay_rotation)
 	end
 
-	local grade = self:addChild("grade", Image({
+	local grade = area:addChild("grade", Image({
 		image = img["grade" .. display_info.grade],
 		ox = 0.5,
 		oy = 0.5,
@@ -300,7 +303,7 @@ function View:load(result_view)
 	end
 
 	---- BUTTONS ----
-	self:addChild("retryButton", ImageButton(assets, {
+	area:addChild("retryButton", ImageButton(assets, {
 		idleImage = img.retry,
 		ox = 1,
 		oy = 0.5,
@@ -313,7 +316,7 @@ function View:load(result_view)
 		result_view:play("retry")
 	end))
 
-	self:addChild("watchReplayButton", ImageButton(assets, {
+	area:addChild("watchReplayButton", ImageButton(assets, {
 		idleImage = img.replay,
 		ox = 1,
 		oy = 0.5,
@@ -350,7 +353,7 @@ function View:load(result_view)
 		result_view.notificationView:show("Not implemented")
 	end))
 
-	self:addChild("onlineRanking", Button(assets, {
+	area:addChild("onlineRanking", Button(assets, {
 		text = "▼ Online Ranking ▼",
 		font = font.onlineRanking,
 		pixelWidth = 320,
@@ -362,7 +365,7 @@ function View:load(result_view)
 		result_view.notificationView:show("Not implemented")
 	end))
 
-	self:addChild("backButton", BackButton(assets, {
+	area:addChild("backButton", BackButton(assets, {
 		hoverArea = { w = 93, h = 90 },
 		depth = 1,
 		transform = love.math.newTransform(0, ui.layoutH - 58)
@@ -379,6 +382,7 @@ function View:load(result_view)
 	end
 
 	self:sortChildren()
+	area:sortChildren()
 end
 
 return View

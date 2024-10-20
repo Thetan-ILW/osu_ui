@@ -384,7 +384,7 @@ function OsuAssets:loadCustomViews(view_name)
 		return
 	end
 
-	local filename = path_util.join("gucci", custom_views[view_name] .. ".lua")
+	local filename = self.findFile(path_util.join("gucci", custom_views[view_name] .. ".lua"), self.fileList)
 	if not filename then
 		return
 	end

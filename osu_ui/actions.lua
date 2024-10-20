@@ -29,6 +29,8 @@ local singleKeyActions = {} -- [key] = action_name
 
 local currentConfig = {}
 
+local wheelScroll = 0
+
 local bufferTime = 0.2
 local keyPressTimestamps = {}
 local keysDown = {}
@@ -101,6 +103,10 @@ function actions.updateActions(osu_config)
 	currentVimNode = operationsTree
 end
 
+function actions.wheelMoved(delta)
+	wheelScroll = delta
+end
+
 ---@return string?
 function actions.getAction()
 	return currentAction
@@ -166,6 +172,7 @@ function actions.resetInputs()
 	keyPressTimestamps = {}
 	currentAction = nil
 	text_input_event = nil
+	wheelScroll = 0
 end
 
 local function getDownModAction()
@@ -416,6 +423,13 @@ function actions.textInput(text)
 	text_input_event = nil
 
 	return true, text
+end
+
+---@return number
+function actions.getWheelScroll()
+	local s = wheelScroll
+	wheelScroll = 0
+	return s
 end
 
 return actions

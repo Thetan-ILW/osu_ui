@@ -96,6 +96,10 @@ function ResultView:draw()
 end
 
 function ResultView:receive(event)
+	if loading then
+		return
+	end
+
 	if event.name == "keypressed" then
 		self.inputMap:call("view")
 	end
