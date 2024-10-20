@@ -11,16 +11,19 @@ local ScrollAreaContainer = Container + {}
 local scroll_deceleration_default = -0.98
 local velocity_cutoff = 0.01
 local clamping_force_factor = 2
+local scroll_distance = 232
+
+local frame_aim_time = 1000 / 60
 
 ---@param depth number?
 ---@param transform love.Transform?
 ---@param scroll_limit number?
----@param width number?
----@param height number?
+---@param width number
+---@param height number
 function ScrollAreaContainer:new(depth, transform, scroll_limit, width, height)
 	self.depth = depth or 0
-	self.totalW = width or 1368
-	self.totalH = height or 768
+	self.totalW = width
+	self.totalH = height
 	self.children = {}
 	self:setTransform(transform or love.math.newTransform(0, 0))
 
@@ -35,11 +38,6 @@ local function sign(v)
 	return (v > 0 and 1) or (v == 0 and 0) or -1
 end
 
-
-local frame_aim_time = 1000 / 60
-local function getFrameRatio(dt_ms)
-	return dt_ms / frame_aim_time
-end
 
 function ScrollAreaContainer:isScrolling()
 	return math.abs(self.scrollVelocity) > velocity_cutoff or self.isDragging
@@ -63,7 +61,7 @@ function ScrollAreaContainer:updateScrollVelocity(dt)
 	local scroll_velocity_this_frame = self.scrollVelocity
 
 	local dt_ms = dt * 1000
-	local frame_ratio = getFrameRatio(dt_ms)
+	local frame_ratio = dt_ms / frame_aim_time
 	local clamped_position = math_util.clamp(self.scrollPosition, 0, self.scrollLimit)
 	local clamped_difference = clamped_position - self.scrollPosition
 
@@ -138,12 +136,12 @@ function ScrollAreaContainer:mouseInput(has_focus)
 		if (self.scrollVelocity > 0) then
 			self.scrollVelocity = 0
 		end
-		self:scrollToPosition(-100 + self.scrollPosition, 0)
+		self:scrollToPosition(-scroll_distance + self.scrollPosition, 0)
 	elseif scroll < 0 then
 		if (self.scrollVelocity < 0) then
 			self.scrollVelocity = 0
 		end
-		self:scrollToPosition(100 + self.scrollPosition, 0)
+		self:scrollToPosition(scroll_distance + self.scrollPosition, 0)
 	end
 end
 

@@ -73,7 +73,6 @@ local gfx = love.graphics
 ---@param dt number
 function Container:update(dt)
 	gfx.push()
-	gfx.applyTransform(self.transform)
 
 	local mouse_focus, keyboard_focus = true, true
 
@@ -97,7 +96,6 @@ end
 
 function Container:draw()
 	gfx.push()
-	gfx.applyTransform(self.transform)
 	for i = #self.childrenOrder, 1, -1 do
 		local child = self.children[self.childrenOrder[i]]
 		gfx.push()

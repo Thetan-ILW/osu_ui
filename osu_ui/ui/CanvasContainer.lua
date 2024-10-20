@@ -35,6 +35,7 @@ function CanvasContainer:draw()
 		gfx.push()
 		gfx.applyTransform(child.transform)
 		child:draw()
+		child:resetTransform()
 		gfx.pop()
 	end
 	gfx.pop()

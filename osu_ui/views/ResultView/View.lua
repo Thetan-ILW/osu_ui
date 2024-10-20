@@ -2,6 +2,7 @@ local Container = require("osu_ui.ui.Container")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 
 local ui = require("osu_ui.ui")
+local math_util = require("math_util")
 local Label = require("osu_ui.ui.Label")
 local Image = require("osu_ui.ui.Image")
 local ImageButton = require("osu_ui.ui.ImageButton")
@@ -9,6 +10,7 @@ local ImageValueView = require("osu_ui.ui.ImageValueView")
 local Button = require("osu_ui.ui.Button")
 local BackButton = require("osu_ui.ui.BackButton")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
+local ScrollBar = require("osu_ui.ui.ScrollBar")
 
 ---@class osu.ui.ResultViewContainer : osu.ui.Container
 ---@operator call: osu.ui.ResultViewContainer
@@ -25,6 +27,15 @@ function View:load(result_view)
 
 	local text, font = assets.localization:get("result")
 	assert(text and font)
+
+	local area = self:addChild("scrollArea", ScrollAreaContainer(0, nil, 768, 1368, 768 * 2))
+	---@cast area osu.ui.ScrollAreaContainer
+	self:addChild("scrollBar", ScrollBar({
+		container = area,
+		windowHeight = 768 - 96 - 6,
+		depth = 1,
+		transform = love.math.newTransform(ui.layoutW - 13, 99)
+	}))
 
 	---- HEADER ----
 	self:addChild("headerBackground", Container.drawFunction(function ()
@@ -59,8 +70,6 @@ function View:load(result_view)
 		depth = 0.98,
 		transform = love.math.newTransform(ui.layoutW - 32, 0)
 	}))
-
-	local area = self:addChild("scrollArea", ScrollAreaContainer(nil, nil, 768 / 2, 1368, 768 * 2))
 
 	---- PANEL ----
 	area:addChild("statsPanel", Image({ image = img.panel, depth = 0.5, transform = love.math.newTransform(0, 102) }))
@@ -353,7 +362,7 @@ function View:load(result_view)
 		result_view.notificationView:show("Not implemented")
 	end))
 
-	area:addChild("onlineRanking", Button(assets, {
+	local online_ranking = area:addChild("onlineRanking", Button(assets, {
 		text = "▼ Online Ranking ▼",
 		font = font.onlineRanking,
 		pixelWidth = 320,
@@ -362,8 +371,14 @@ function View:load(result_view)
 		depth = 0.95,
 		transform = love.math.newTransform(ui.layoutW / 2 - 160, ui.layoutH - 41.6)
 	}, function ()
-		result_view.notificationView:show("Not implemented")
+		area:scrollToPosition(768, 0)
 	end))
+	---@cast online_ranking osu.ui.Button
+	function online_ranking:updateTransform()
+		local position = area.scrollPosition
+		local alpha = 1 - math_util.clamp((position / area.totalH * 16), 0, 1)
+		self.color[4] = alpha
+	end
 
 	area:addChild("backButton", BackButton(assets, {
 		hoverArea = { w = 93, h = 90 },

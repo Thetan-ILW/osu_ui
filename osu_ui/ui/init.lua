@@ -132,9 +132,11 @@ local shadow_offset = 0.6
 ---@param ay? "top" | "center" | "bottom"
 function ui.textFrameShadow(img, x, y, w, h, ax, ay)
 	local r, g, b, a = gfx.getColor()
+	local shadow_color = shadow
+	shadow_color[4] = a
 
 	gfx.push()
-	gfx.setColor(shadow)
+	gfx.setColor(shadow_color)
 	ui.textFrame(img, x + shadow_offset, y + shadow_offset, w, h, ax, ay)
 	ui.textFrame(img, x - shadow_offset, y - shadow_offset, w, h, ax, ay)
 	ui.textFrame(img, x + shadow_offset, y - shadow_offset, w, h, ax, ay)

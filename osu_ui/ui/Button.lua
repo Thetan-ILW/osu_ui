@@ -105,7 +105,7 @@ function Button:draw()
 	gfx.setShader(prev_shader)
 
 	gfx.push()
-	gfx.setColor({ 1, 1, 1, 1 })
+	gfx.setColor(1, 1, 1, self.color[4])
 	ui.textFrameShadow(self.label, 0, 0, self.totalW, self.totalH, "center", "center")
 	gfx.pop()
 
