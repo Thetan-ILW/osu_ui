@@ -13,6 +13,7 @@ local ResultView = require("osu_ui.views.ResultView")
 local MainMenuView = require("osu_ui.views.MainMenuView")
 local PlayerStatsView = require("osu_ui.views.PlayerStatsView")
 local EditorView = require("ui.views.EditorView")
+local TestView = require("osu_ui.views.TestView")
 local ScreenOverlayView = require("osu_ui.views.ScreenOverlayView")
 local OsuLayout = require("osu_ui.views.OsuLayout")
 
@@ -40,6 +41,7 @@ function UserInterface:new(game, mount_path)
 	self.gameplayView = GameplayView(game)
 	self.playerStatsView = PlayerStatsView(game)
 	self.editorView = EditorView(game)
+	self.testView = TestView()
 	self.screenOverlayView = ScreenOverlayView(game)
 
 	self.lastResolutionCheck = -math.huge
@@ -162,7 +164,7 @@ function UserInterface:load()
 	self.screenOverlayView:load(self.assets)
 
 	---@type osu.ui.ScreenView
-	local view = self.mainMenuView
+	local view = self.testView
 
 	if self.gucci then
 		if not osu.gucci.installed then

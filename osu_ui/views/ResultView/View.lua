@@ -113,10 +113,8 @@ function View:load(result_view)
 
 	area:addChild("marvelousImage", Image({
 		image = img.judgeMarvelous,
-		ox = 0.5,
-		oy = 0.5,
 		depth = 0.54,
-		transform = love.math.newTransform(img_x2, row1, 0, 0.5, 0.5)
+		transform = love.math.newTransform(img_x2, row1, 0, 0.5, 0.5, Image.getOrigin(img.judgeMarvelous, 0.5, 0.5))
 	}))
 
 	area:addChild("marvelousCount", ImageValueView({
@@ -134,10 +132,8 @@ function View:load(result_view)
 
 	area:addChild("perfectImage", Image({
 		image = img.judgePerfect,
-		ox = 0.5,
-		oy = 0.5,
 		depth = 0.54,
-		transform = love.math.newTransform(img_x1, row1, 0, 0.5, 0.5)
+		transform = love.math.newTransform(img_x1, row1, 0, 0.5, 0.5, Image.getOrigin(img.judgePerfect, 0.5, 0.5))
 	}))
 
 	area:addChild("perfectCount", ImageValueView({
@@ -156,10 +152,8 @@ function View:load(result_view)
 	if display_info.great then
 		area:addChild("greatImage", Image({
 			image = img.judgeGreat,
-			ox = 0.5,
-			oy = 0.5,
 			depth = 0.54,
-			transform = love.math.newTransform(img_x1, row2, 0, 0.5, 0.5)
+			transform = love.math.newTransform(img_x1, row2, 0, 0.5, 0.5, Image.getOrigin(img.judgeGreat, 0.5, 0.5))
 		}))
 
 		area:addChild("greatCount", ImageValueView({
@@ -179,10 +173,8 @@ function View:load(result_view)
 	if display_info.good then
 		area:addChild("goodImage", Image({
 			image = img.judgeGood,
-			ox = 0.5,
-			oy = 0.5,
 			depth = 0.54,
-			transform = love.math.newTransform(img_x2, row2, 0, 0.5, 0.5)
+			transform = love.math.newTransform(img_x2, row2, 0, 0.5, 0.5, Image.getOrigin(img.judgeGreat, 0.5, 0.5))
 		}))
 
 		area:addChild("goodCount", ImageValueView({

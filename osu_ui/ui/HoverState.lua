@@ -1,6 +1,5 @@
 local class = require("class")
 
-local ui = require("osu_ui.ui")
 local flux = require("flux")
 
 ---@class osu.ui.HoverState
@@ -41,14 +40,12 @@ end
 ---@param h number
 ---@param x number?
 ---@param y number?
----@param has_focus boolean?
 ---@return boolean
 ---@return number
 ---@return boolean
-function HoverState:check(w, h, x, y, has_focus)
-	has_focus = has_focus == nil and true or has_focus
-	---@cast has_focus boolean
-	local over = ui.isOver(w, h, x or 0, y or 0) and has_focus
+function HoverState:check(w, h, x, y)
+	local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
+	local over = mx >= x and mx < w and my >= y and my < h
 	local just_hovered = false
 	local state = self.state
 

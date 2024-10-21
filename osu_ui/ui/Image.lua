@@ -1,23 +1,24 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
+---@alias ImageParams { image: love.Image }
+
 ---@class osu.ui.Image : osu.ui.UiElement
----@operator call: osu.ui.Image
----@field ox number
----@field oy number
+---@overload fun(params: ImageParams): osu.ui.Image
+---@field image love.Image
 local Image = UiElement + {}
 
----@param params { image: love.Image, ox: number?, oy: number? }
-function Image:new(params)
-	UiElement.new(self, params)
-	self.image = params.image
-
-	local iw, ih = self.image:getDimensions()
-	self.ox = iw * (params.ox or 0)
-	self.oy = ih * (params.oy or 0)
+function Image:load()
+	UiElement.load(self)
+	assert(self.image, "Image is not defined")
+	self.totalW, self.totalH = self.image:getDimensions()
+	self:replaceTransform(self.transform)
 end
 
+local gfx = love.graphics
+
 function Image:draw()
-	love.graphics.draw(self.image, 0, 0, 0, 1, 1, self.ox, self.oy)
+	gfx.setColor(self.color)
+	gfx.draw(self.image)
 end
 
 return Image
