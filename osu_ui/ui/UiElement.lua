@@ -1,10 +1,16 @@
 local class = require("class")
 
+local HoverState = require("osu_ui.ui.HoverState")
+
 ---@alias Color [number, number, number, number]
+---@alias AlignX "left" | "center" | "right"
+---@alias AlignY "top" | "center" | "bottom"
 ---@alias ProtoOrigin { x: number, y: number }
+---@alias InputEvent "mousePressed" | "mouseReleased" | "keyPresseed" | "keyReleased" | "wheelUp" | "wheelDown"
 
 ---@class osu.ui.UiElement
 ---@operator call: osu.ui.UiElement
+---@field parent osu.ui.Container
 ---@field transform love.Transform
 ---@field originalTransform love.Transform
 ---@field origin ProtoOrigin
@@ -13,6 +19,7 @@ local class = require("class")
 ---@field totalH number
 ---@field color Color
 ---@field alpha number
+---@field hoverState osu.ui.HoverState
 ---@field mouseOver boolean
 ---@field blockMouseFocus boolean
 local UiElement = class()
@@ -25,9 +32,14 @@ function UiElement:load()
 	self.color = self.color or { 1, 1, 1, 1 }
 	self.alpha = self.alpha or 1
 	self.totalW, self.totalH = self.totalW or 0, self.totalH or 0
+	self.hoverState = HoverState("quadout", 0.4)
 	self.mouseOver = false
 	self.blockMouseFocus = true
+	self:replaceTransform(self.transform)
 end
+
+--- Called when building (function build()) a container, UiElements with the greatest depth are bound first.
+function UiElement:bindEvents() end
 
 ---@param tf love.Transform
 function UiElement:replaceTransform(tf)
@@ -39,7 +51,6 @@ end
 ---@return number
 ---@return number
 function UiElement:getOrigin()
-	assert(self.totalW > 0 and self.totalH > 0, "Size of the UI Element is not defined")
 	return self.totalW * self.origin.x, self.totalH * self.origin.y
 end
 
@@ -72,16 +83,24 @@ function UiElement:getPosition()
 	return self.transform:transformPoint(0, 0)
 end
 
+function UiElement:justHovered() end
+
 ---@param has_focus boolean
 ---@return boolean blocking_focus
 function UiElement:setMouseFocus(has_focus)
 	if not has_focus then
 		self.mouseOver = false
+		self.hoverState:loseFocus()
 		return false
 	end
 
-	local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
-	self.mouseOver = mx >= 0 and mx < self.totalW and my >= 0 and my < self.totalH
+	local mouse_over, just_hovered = self.hoverState:check(self.totalW, self.totalH, 0, 0)
+	self.mouseOver = mouse_over
+
+	if just_hovered then
+		self:justHovered()
+	end
+
 	return not (self.mouseOver and self.blockMouseFocus)
 end
 
@@ -92,10 +111,7 @@ function UiElement:draw() end
 local gfx = love.graphics
 
 function UiElement:debugDraw()
-	gfx.setColor(1, 0, 0)
-	if not self.mouseOver then
-		gfx.setColor(1, 0, 0, 0.2)
-	end
+	gfx.setColor(1, 0, 0, self.hoverState.progress)
 
 	gfx.setLineWidth(2)
 	gfx.rectangle("line", 0, 0, self.totalW, self.totalH)

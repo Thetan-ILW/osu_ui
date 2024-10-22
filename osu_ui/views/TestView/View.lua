@@ -1,38 +1,56 @@
 local Container = require("osu_ui.ui.Container")
-local CanvasContainer = require("osu_ui.ui.CanvasContainer")
+local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 
 local Image = require("osu_ui.ui.Image")
+local Label = require("osu_ui.ui.Label")
 
 ---@class TestViewContainer : osu.ui.Container
 ---@operator call: TestViewContainer
----@field assets osu.ui.Assets
+---@field assets osu.ui.OsuAssets
 local View = Container + {}
+
+function View:updateTransform()
+	self:forEachChild(function(child)
+		child.alpha = (1 + math.sin(love.timer.getTime() * 3)) / 2
+	end)
+end
 
 function View:load()
 	Container.load(self)
 	local assets = self.assets
 
-
-	local canvas = self:addChild("canvas", CanvasContainer({
-		totalW = 300,
-		totalH = 300
+	local scroll = self:addChild("scroll", ScrollAreaContainer({
+		scrollLimit = self.parent.totalH * 0.5,
+		width = self.parent.totalW,
+		height = self.parent.totalH * 1.5
 	}))
-	---@cast canvas osu.ui.CanvasContainer
+	---@cast scroll osu.ui.ScrollAreaContainer
 
-	canvas:addChild("background", Image({
+	scroll:addChild("background", Image({
 		image = assets.images.osuLogo,
-		transform = love.math.newTransform(0, 0),
-		origin = { x = 0, y = 0 },
-		depth = 0,
 	}))
 
-	canvas:addChild("img", Image({
+	scroll:addChild("img", Image({
 		image = assets.images.generalTab,
-		transform = love.math.newTransform(0, 0),
 		depth = 0.1,
+		blockMouseFocus = true
 	}))
 
-	canvas:build()
+	local label = scroll:addChild("label", Label({
+		text = "Hello, World!",
+		font = assets.localization.fontGroups.songSelect.chartName,
+		hoverSound = assets.sounds.hoverOverRect,
+		depth = 0.5,
+		blockMouseFocus = true,
+		transform = love.math.newTransform(200, 0)
+	}))
+
+	function label:updateTransform()
+		label:resetTransform()
+		label.transform:apply(love.math.newTransform(math.sin(love.timer.getTime()) * 200, 0))
+	end
+
+	scroll:build()
 	self:build()
 end
 

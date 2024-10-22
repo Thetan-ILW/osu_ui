@@ -8,16 +8,16 @@ local UiElement = require("osu_ui.ui.UiElement")
 local Image = UiElement + {}
 
 function Image:load()
-	UiElement.load(self)
 	assert(self.image, "Image is not defined")
 	self.totalW, self.totalH = self.image:getDimensions()
-	self:replaceTransform(self.transform)
+	UiElement.load(self)
 end
 
 local gfx = love.graphics
 
 function Image:draw()
-	gfx.setColor(self.color)
+	local c = self.color
+	gfx.setColor(c[1], c[2], c[3], c[4] * self.alpha)
 	gfx.draw(self.image)
 end
 

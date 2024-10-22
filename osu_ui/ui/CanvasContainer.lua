@@ -8,9 +8,9 @@ local Container = require("osu_ui.ui.Container")
 local CanvasContainer = Container + {}
 
 function CanvasContainer:load()
-	Container.load(self)
 	self.automaticSizeCalc = false
 	self.canvas = love.graphics.newCanvas(self.totalW, self.totalH)
+	Container.load(self)
 end
 
 local gfx = love.graphics
@@ -24,9 +24,12 @@ function CanvasContainer:draw()
 	for i = #self.childrenOrder, 1, -1 do
 		local child = self.children[self.childrenOrder[i]]
 		gfx.push()
-		gfx.origin()
 		gfx.applyTransform(child.transform)
 		child:draw()
+		gfx.pop()
+
+		gfx.push()
+		gfx.applyTransform(child.transform)
 		child:debugDraw()
 		gfx.pop()
 	end

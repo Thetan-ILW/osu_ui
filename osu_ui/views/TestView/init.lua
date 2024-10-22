@@ -8,7 +8,7 @@ local View = require("osu_ui.views.TestView.View")
 local TestView = ScreenView + {}
 
 function TestView:load()
-	self.mainContainer = ScreenContainer({ nativeHeight = 768, transform = love.math.newTransform(200, 0) })
+	self.mainContainer = ScreenContainer({ nativeHeight = 768, transform = love.math.newTransform(0, 0) })
 	self.mainContainer:load()
 	self.mainContainer:addChild("view", View({ assets = self.assets }))
 	self.mainContainer:build()
@@ -23,6 +23,13 @@ end
 function TestView:draw()
 	love.graphics.origin()
 	self.mainContainer:draw()
+end
+
+function TestView:receive(event)
+	if event.name == "framestarted" then
+		return
+	end
+	self.mainContainer:receive(event)
 end
 
 return TestView
