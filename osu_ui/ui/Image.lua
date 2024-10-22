@@ -16,8 +16,6 @@ end
 local gfx = love.graphics
 
 function Image:draw()
-	local c = self.color
-	gfx.setColor(c[1], c[2], c[3], c[4] * self.alpha)
 	gfx.draw(self.image)
 end
 

@@ -1,7 +1,11 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
+---@alias HpGraphParams { totalW: number, totalH: number, points: table, hpScoreSystem: table }
+
 ---@class osu.ui.HpGraph : osu.ui.UiElement
----@operator call: osu.ui.HpGraph
+---@overload fun(params: HpGraphParams): osu.ui.HpGraph
+---@field points table
+---@field hpScoreSystem table
 local HpGraph = UiElement + {}
 
 local colors = {
@@ -9,14 +13,11 @@ local colors = {
 	red = { 1, 0, 0 }
 }
 
----@param params { w: number, h: number, points: table, hpScoreSystem: table }
-function HpGraph:new(params)
-	UiElement.new(self, params)
-
-	local w = params.w
-	local h = params.h
-	local points = params.points
-	local hp_score_system = params.hpScoreSystem
+function HpGraph:load()
+	local w = self.totalW
+	local h = self.totalH
+	local points = self.points
+	local hp_score_system = self.hpScoreSystem
 
 	local low_res = {}
 
@@ -69,6 +70,8 @@ function HpGraph:new(params)
 			})
 		end
 	end
+
+	UiElement.load(self)
 end
 
 local gfx = love.graphics

@@ -12,41 +12,43 @@ local HoverState = require("osu_ui.ui.HoverState")
 ---@operator call: osu.ui.UiElement
 ---@field parent osu.ui.Container
 ---@field transform love.Transform
----@field originalTransform love.Transform
+---@field x number
+---@field y number
 ---@field origin ProtoOrigin
+---@field scale number
+---@field rotation number
 ---@field depth number
 ---@field totalW number
 ---@field totalH number
 ---@field color Color
 ---@field alpha number
 ---@field hoverState osu.ui.HoverState
+---@field hoverWidth number
+---@field hoverHeight number
 ---@field mouseOver boolean
 ---@field blockMouseFocus boolean
 local UiElement = class()
 
 function UiElement:load()
-	self.transform = self.transform or love.math.newTransform()
-	self.originalTransform = self.transform:clone()
+	self.x = self.x or 0
+	self.y = self.y or 0
 	self.origin = self.origin or { x = 0, y = 0 }
+	self.scale = self.scale or 1
+	self.rotation = self.rotation or 0
 	self.depth = self.depth or 0
 	self.color = self.color or { 1, 1, 1, 1 }
 	self.alpha = self.alpha or 1
 	self.totalW, self.totalH = self.totalW or 0, self.totalH or 0
 	self.hoverState = HoverState("quadout", 0.4)
+	self.hoverWidth = self.hoverWidth or self.totalW
+	self.hoverHeight = self.hoverHeight or self.totalH
 	self.mouseOver = false
-	self.blockMouseFocus = true
-	self:replaceTransform(self.transform)
+	self.blockMouseFocus = self.blockMouseFocus == nil and true or self.blockMouseFocus
+	self:applyTransform()
 end
 
 --- Called when building (function build()) a container, UiElements with the greatest depth are bound first.
 function UiElement:bindEvents() end
-
----@param tf love.Transform
-function UiElement:replaceTransform(tf)
-	tf:apply(love.math.newTransform(0, 0, 0, 1, 1, self:getOrigin()))
-	self.transform = tf:clone()
-	self.originalTransform = tf:clone()
-end
 
 ---@return number
 ---@return number
@@ -54,12 +56,9 @@ function UiElement:getOrigin()
 	return self.totalW * self.origin.x, self.totalH * self.origin.y
 end
 
-function UiElement:resetTransform()
-	self.transform = self.originalTransform:clone()
+function UiElement:applyTransform()
+	self.transform = love.math.newTransform(self.x, self.y, self.rotation, self.scale, self.scale, self:getOrigin())
 end
-
---- Use to animate the properties
-function UiElement:updateTransform() end
 
 ---@return number
 ---@return number
@@ -91,17 +90,18 @@ function UiElement:setMouseFocus(has_focus)
 	if not has_focus then
 		self.mouseOver = false
 		self.hoverState:loseFocus()
-		return false
+		return true
 	end
 
-	local mouse_over, just_hovered = self.hoverState:check(self.totalW, self.totalH, 0, 0)
+	local hw, hh = self.hoverWidth, self.hoverHeight
+	local mouse_over, just_hovered = self.hoverState:check(hw, hh, 0, 0)
 	self.mouseOver = mouse_over
 
 	if just_hovered then
 		self:justHovered()
 	end
 
-	return not (self.mouseOver and self.blockMouseFocus)
+	return self.mouseOver and self.blockMouseFocus
 end
 
 ---@param dt number
@@ -111,15 +111,12 @@ function UiElement:draw() end
 local gfx = love.graphics
 
 function UiElement:debugDraw()
-	gfx.setColor(1, 0, 0, self.hoverState.progress)
+	gfx.setColor(1, 0, 0, 0.2 + self.hoverState.progress * 0.8)
 
 	gfx.setLineWidth(2)
 	gfx.rectangle("line", 0, 0, self.totalW, self.totalH)
 	local ox, oy = self:getOrigin()
 	gfx.circle("line", ox, oy, 5)
-
-	gfx.setColor(0, 1, 0, 0.8)
-	gfx.circle("line", 0, 0, 2)
 end
 
 return UiElement

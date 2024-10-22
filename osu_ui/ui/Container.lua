@@ -28,6 +28,7 @@ end
 ---@param child osu.ui.UiElement
 ---@return osu.ui.UiElement
 function Container:addChild(id, child)
+	assert(self.children, debug.traceback("Wrong usage of Container class. load() it first. Maybe you forgot to call a base load()?"))
 	if self.children[id] then
 		error(("Children with the id %s already exist"):format(id))
 	end
@@ -76,7 +77,10 @@ function Container:build()
 		table.insert(self.childrenOrder, v.id)
 		v.child:bindEvents()
 	end
-	self:replaceTransform(self.originalTransform)
+
+	self:applyTransform()
+	self.hoverWidth = self.totalW
+	self.hoverHeight = self.totalH
 end
 
 ---@param id string
@@ -102,8 +106,7 @@ function Container:update(dt)
 		local child = self.children[id]
 		gfx.push()
 		gfx.applyTransform(child.transform)
-		mouse_focus = child:setMouseFocus(mouse_focus)
-		child:updateTransform()
+		mouse_focus = not child:setMouseFocus(mouse_focus)
 		child:update(dt)
 		gfx.pop()
 	end
@@ -115,6 +118,8 @@ function Container:draw()
 		gfx.push()
 		gfx.applyTransform(child.transform)
 		if child.alpha > 0 then
+			local c = child.color
+			gfx.setColor(c[1], c[2], c[3], c[4] * child.alpha)
 			child:draw()
 		end
 		gfx.pop()
@@ -187,7 +192,7 @@ function Container:receive(event)
 		end
 	end
 
-	for i, child in ipairs(self.childContainers) do
+	for _, child in ipairs(self.childContainers) do
 		local handled = child:receive(event)
 		if handled then
 			return true

@@ -12,7 +12,7 @@ local ui = require("osu_ui.ui")
 ---@field heightLimit number
 ---@field label love.Text
 ---@field align AlignX
----@field hoverSound audio.Source
+---@field hoverSound audio.Source?
 ---@field onClick function?
 local Label = UiElement + {}
 
@@ -39,7 +39,9 @@ end
 local gfx = love.graphics
 
 function Label:justHovered()
-	ui.playSound(self.hoverSound)
+	if self.hoverSound then
+		ui.playSound(self.hoverSound)
+	end
 end
 
 function Label:update()
@@ -51,8 +53,6 @@ function Label:update()
 end
 
 function Label:draw()
-	local c = self.color
-	gfx.setColor(c[1], c[2], c[3], c[4] * self.alpha)
 	ui.textFrame(self.label, 0, 0, self.totalW, self.totalH, self.ax, self.ay)
 	gfx.translate(0, self.totalH)
 end

@@ -36,7 +36,7 @@ function MainMenuView:load()
 	end
 
 	self.inputMap = InputMap(self)
-	self.settingsView = SettingsView(self.assets, self.game, self.ui)
+	--self.settingsView = SettingsView(self.assets, self.game, self.ui)
 	self.viewConfig = ViewConfig(self, self.assets)
 
 	self.lastUserActionTime = love.timer.getTime()
@@ -140,13 +140,13 @@ function MainMenuView:update(dt)
 		end
 	end
 
-	self.settingsView.modalActive = self.modal == nil
+	--self.settingsView.modalActive = self.modal == nil
 
 	if self.changingScreen then
-		self.settingsView:processState("hide")
+		--self.settingsView:processState("hide")
 	end
 
-	self.settingsView:update()
+	--self.settingsView:update()
 
 	if self.state ~= "intro" then
 		self.game.selectController:update()
@@ -190,12 +190,12 @@ function MainMenuView:sendQuitSignal()
 		self.modal:quit()
 		return
 	end
-	self.settingsView:processState("hide")
+	--self.settingsView:processState("hide")
 end
 
 function MainMenuView:resolutionUpdated()
 	self.viewConfig:resolutionUpdated()
-	self.settingsView:resolutionUpdated()
+	--self.settingsView:resolutionUpdated()
 
 	if self.modal then
 		self.modal.viewConfig:resolutionUpdated()
@@ -221,14 +221,14 @@ function MainMenuView:receive(event)
 		self:processState("user_returned")
 	end
 
-	self.settingsView:receive(event)
+	--self.settingsView:receive(event)
 end
 
 local gfx = love.graphics
 
 function MainMenuView:draw()
 	self.viewConfig:draw(self)
-	self.settingsView:draw()
+	--self.settingsView:draw()
 	self:drawModal()
 	self.ui.screenOverlayView:draw()
 

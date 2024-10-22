@@ -1,35 +1,37 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
+---@alias ImageValueViewParams { files: {[string]: string}, overlap: number?, align?: "left" | "center" | "right",  oy: number?, format: string, multiplier: number }
+
 ---@class osu.ui.ImageValueView : osu.ui.UiElement
----@operator call: osu.ui.ImageValueView
+---@overload fun(params: ImageValueViewParams): osu.ui.ImageValueView
+---@field overlap number
+---@field align AlignX
+---@field format string
+---@field multiplier number
+---@field images love.Image[]
 local ImageValueView = UiElement + {}
 
----@param params { files: {[string]: string}, overlap: number?, align?: "left" | "center" | "right",  oy: number?, scale: number?, format: string, multiplier: number }
----@param value function | number
-function ImageValueView:new(params, value)
-	UiElement.new(self, params)
-
-	self.overlap = params.overlap or 0
-	self.align = params.align or "left"
-	self.oy = params.oy or 0
-	self.scale = params.scale or 1
-	self.format = params.format or "%i"
-	self.multiplier = params.multiplier or 1
-	self.value = value
+function ImageValueView:load()
+	self.overlap = self.overlap or 0
+	self.align = self.align or "left"
+	self.format = self.format or "%i"
+	self.multiplier = self.multiplier or 1
 
 	local images = {}
 	self.images = images
-	if not params.files then
+	if not self.files then
 		return
 	end
 
 	self.maxCharW = 0
-	for char, path in pairs(params.files) do
+	for char, path in pairs(self.files) do
 		images[char] = love.graphics.newImage(path)
 		if tonumber(char) then
 			self.maxCharW = math.max(images[char]:getWidth(), self.maxCharW)
 		end
 	end
+
+	UiElement.load(self)
 end
 
 ---@param value table
@@ -80,9 +82,7 @@ function ImageValueView:draw()
 	end
 	value = tostring(value)
 
-	local sx = self.scale
-	local sy = self.scale
-	local oy = self.oy or 0
+	local oy = self.origin.y
 	local align = self.align
 
 	local width, height = self:getDimensions(value)
@@ -91,20 +91,20 @@ function ImageValueView:draw()
 
 	local x = 0
 	if align == "center" then
-		x = x - width / 2 * sx
+		x = x - width / 2
 	elseif align == "right" then
-		x = x - width * sx
+		x = x - width
 	end
 	for i = 1, #value do
 		local char = value:sub(i, i)
 		local image = images[char]
 		if image then
 			if tonumber(char) then
-				love.graphics.draw(image, x + (self.maxCharW - image:getWidth()) / 2, (height * (1 - oy) - image:getHeight()) * sy, 0, sx, sy)
-				x = x + (self.maxCharW - overlap) * sx
+				love.graphics.draw(image, x + (self.maxCharW - image:getWidth()) / 2, (height * (1 - oy) - image:getHeight()), 0)
+				x = x + (self.maxCharW - overlap)
 			else
-				love.graphics.draw(image, x, (height * (1 - oy) - image:getHeight()) * sy, 0, sx, sy)
-				x = x + (image:getWidth() - overlap) * sx
+				love.graphics.draw(image, x, (height * (1 - oy) - image:getHeight()), 0)
+				x = x + (image:getWidth() - overlap)
 			end
 		end
 	end

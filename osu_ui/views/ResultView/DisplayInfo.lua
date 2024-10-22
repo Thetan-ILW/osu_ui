@@ -34,6 +34,8 @@ function DisplayInfo:new(result_view)
 	if self.chartview then
 		self:getDifficulty()
 		self:getChartInfo()
+	else
+		self:setDefaultChartView()
 	end
 
 	self:getJudgement()
@@ -41,7 +43,28 @@ function DisplayInfo:new(result_view)
 	if self.judgement then
 		self:getGrade()
 		self:getStats()
+	else
+		self:setJudgementDefaults()
 	end
+end
+
+function DisplayInfo:setDefaultChartView()
+	self.chartName = "No chart name - No chart name"
+	self.chartSource = "No chart source"
+	self.playInfo = "No play info"
+end
+
+function DisplayInfo:setJudgementDefaults()
+	self.score = 0
+	self.marvelous = 0
+	self.perfect = 0
+	self.great = 0
+	self.good = 0
+	self.bad = 0
+	self.miss = 0
+	self.accuracy = 0
+	self.combo = 0
+	self.grade = "D"
 end
 
 function DisplayInfo:getDifficulty()

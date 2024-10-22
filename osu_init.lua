@@ -164,7 +164,7 @@ function UserInterface:load()
 	self.screenOverlayView:load(self.assets)
 
 	---@type osu.ui.ScreenView
-	local view = self.testView
+	local view = self.resultView
 
 	if self.gucci then
 		if not osu.gucci.installed then

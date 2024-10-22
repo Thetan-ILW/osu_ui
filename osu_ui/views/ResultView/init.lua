@@ -15,7 +15,6 @@ local flux = require("flux")
 
 ---@class osu.ui.ResultView: osu.ui.ScreenView
 ---@operator call: osu.ui.ResultView
----@field view osu.ui.ResultViewContainer
 ---@field displayInfo osu.ui.ResultDisplayInfo
 ---@field scoreReveal number
 ---@field scoreRevealTween table?
@@ -42,13 +41,12 @@ ResultView.load = thread.coro(function(self)
 	end
 
 	self.displayInfo = DisplayInfo(self)
-	self.view = View(0.98, love.math.newTransform(0, 0))
-	self.view:load(self)
+	self.gameView.screenContainer:addChild("view", View({ depth = 0, resultView = self }))
 
 	canDraw = true
 	loading = false
 
-	love.mouse.setVisible(false)
+	--love.mouse.setVisible(false)
 	self.cursor.alpha = 1
 	actions.enable()
 
@@ -71,12 +69,9 @@ function ResultView:update(dt)
 	background_blur = graphics.blur.result
 
 	self.assets:updateVolume(self.game.configModel)
-	self.view:update(dt)
 end
 
 function ResultView:resolutionUpdated()
-	self.view = View(0.98, love.math.newTransform(0, 0))
-	self.view:load(self)
 end
 
 function ResultView:draw()
@@ -90,9 +85,6 @@ function ResultView:draw()
 	GaussianBlurView:draw(background_blur)
 	BackgroundView:draw(w, h, dim, 0.01)
 	GaussianBlurView:draw(background_blur)
-
-	self.view:draw()
-	self.ui.screenOverlayView:draw()
 end
 
 function ResultView:receive(event)

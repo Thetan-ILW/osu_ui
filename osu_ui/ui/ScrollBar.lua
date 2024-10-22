@@ -1,28 +1,30 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
+---@alias ScrollBarParams { container: osu.ui.ScrollAreaContainer, windowHeight: number, totalW: number }
+
 ---@class osu.ui.ScrollBar : osu.ui.UiElement
----@operator call: osu.ui.ScrollBar
+---@overload fun(params: ScrollBarParams): osu.ui.ScrollBar
 ---@field container osu.ui.ScrollAreaContainer
 ---@field windowHeight number
+---@field position number
+---@field totalW number
+---@field totalH number
 local ScrollBar = UiElement + {}
-
----@param params { container: osu.ui.ScrollAreaContainer, windowHeight: number }
-function ScrollBar:new(params)
-	UiElement.new(self, params)
-	self.container = params.container
-	self.windowHeight = params.windowHeight
-end
 
 local gfx = love.graphics
 
-function ScrollBar:draw()
+---@param dt number
+function ScrollBar:update(dt)
 	local c = self.container
 	local scroll_limit = c.scrollLimit * 2
 	local ratio = self.windowHeight / scroll_limit
-	local size = self.windowHeight * ratio
-	local position = c.scrollPosition * ((self.windowHeight - size) / c.scrollLimit)
-	gfx.setColor(1, 1, 1)
-	gfx.rectangle("fill", 0, position, 10, size)
+	self.y = c.scrollPosition * ((self.windowHeight - self.totalH) / c.scrollLimit)
+	self.totalH = self.windowHeight * ratio
+	self:applyTransform()
+end
+
+function ScrollBar:draw()
+	gfx.rectangle("fill", 0, 0, self.totalW, self.totalH)
 end
 
 return ScrollBar

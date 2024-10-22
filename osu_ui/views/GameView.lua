@@ -1,6 +1,7 @@
 local class = require("class")
 
 local FadeTransition = require("ui.views.FadeTransition")
+local ScreenContainer = require("osu_ui.ui.ScreenContainer")
 
 ---@class osu.ui.GameView
 ---@operator call: osu.ui.GameView
@@ -13,9 +14,11 @@ function GameView:new(game_ui)
 	self.game = game_ui.game
 	self.ui = game_ui
 	self.fadeTransition = FadeTransition()
+	self.screenContainer = ScreenContainer({ nativeHeight = 768 })
 end
 
 function GameView:load(view)
+	self.screenContainer:load()
 	self:forceSetView(view)
 end
 
@@ -47,6 +50,7 @@ function GameView:_setView(view)
 	self.view.popupView = overlay.popupView
 	self.view.cursor = overlay.cursor
 	self.view:load()
+	self.screenContainer:build()
 end
 
 ---@param view osu.ui.ScreenView
@@ -108,10 +112,12 @@ function GameView:update(dt)
 	end
 
 	self.view:update(dt)
+	self.screenContainer:setSize(love.graphics.getDimensions())
+	self.screenContainer:update(dt)
 end
 
 function GameView:resolutionUpdated()
-	self.view:resolutionUpdated()
+	--self.view:resolutionUpdated()
 end
 
 ---@param event table
@@ -121,15 +127,15 @@ function GameView:receive(event)
 	end
 
 	self.view:receive(event)
+	self.screenContainer:receive(event)
 end
-
 function GameView:draw()
 	if not self.view then
 		return
 	end
 
 	self.fadeTransition:drawBefore()
-	self.view:draw()
+	self.screenContainer:draw()
 	self.fadeTransition:drawAfter()
 end
 

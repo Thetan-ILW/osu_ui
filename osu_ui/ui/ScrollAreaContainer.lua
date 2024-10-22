@@ -130,7 +130,7 @@ function ScrollAreaContainer:tryDrag(dt)
 	self.scrollDeceleration = self.scrollVelocity == 0 and 0.5 or -math.max(0.5, throwing_scroll_decay - 0.002 / math.abs(self.scrollVelocity))
 
 	love.graphics.push()
-	love.graphics.replaceTransform(self.originalTransform)
+	love.graphics.replaceTransform(love.math.newTransform(0, 0, self.rotation, self.scale, self.scale, self:getOrigin()))
 	local _, new_mouse_y = love.graphics.inverseTransformPoint(love.mouse.getPosition())
 	local _, drag_origin = love.graphics.inverseTransformPoint(0, self.dragOriginY)
 	local _, drag_scroll_origin = love.graphics.inverseTransformPoint(0, self.dragScrollOriginY)
@@ -163,11 +163,15 @@ function ScrollAreaContainer:update(dt)
 
 	local clamped_position = math_util.clamp(self.scrollPosition, 0, self.scrollLimit)
         if (math.abs(self.scrollVelocity) <= velocity_cutoff and clamped_position == self.scrollVelocity) then
+		self.y = -self.scrollPosition
+		self:applyTransform()
 		return
 	end
 
 	local scroll_velocity_this_frame = self:updateScrollVelocity(dt)
 	self.scrollPosition = self.scrollPosition + scroll_velocity_this_frame * (dt * 1000)
+	self.y = -self.scrollPosition
+	self:applyTransform()
 end
 
 function ScrollAreaContainer:wheelUp()
@@ -205,11 +209,6 @@ function ScrollAreaContainer:mouseReleased()
 
 	self.isDragging = false
 	return true
-end
-
-function ScrollAreaContainer:updateTransform()
-	self:resetTransform()
-	self.transform:apply(love.math.newTransform(0, -self.scrollPosition))
 end
 
 return ScrollAreaContainer

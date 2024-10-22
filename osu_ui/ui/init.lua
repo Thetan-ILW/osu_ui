@@ -203,4 +203,13 @@ function ui.easeOutCubic(time, interval)
 	return math_util.clamp(1 - math.pow(1 - progress, 3), 0, 1)
 end
 
+function ui.lighten(c, amount)
+	return {
+		math.min(1, c[1] * (1 + amount)),
+		math.min(1, c[2] * (1 + amount)),
+		math.min(1, c[3] * (1 + amount)),
+		c[4],
+	}
+end
+
 return ui

@@ -51,7 +51,7 @@ end
 function ScreenContainer:draw()
 	gfx.push()
 	gfx.applyTransform(self.transform)
-	Container.debugDraw(self)
+	--Container.debugDraw(self)
 	gfx.applyTransform(self.nativeTransform)
 	gfx.translate(love.graphics.inverseTransformPoint(self.transform:transformPoint(0, 0)))
 
