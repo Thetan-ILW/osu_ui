@@ -7,7 +7,6 @@ local View = require("osu_ui.views.ResultView.View")
 
 local GaussianBlurView = require("sphere.views.GaussianBlurView")
 local BackgroundView = require("sphere.views.BackgroundView")
-local HpGraph = require("osu_ui.views.ResultView.HpGraph")
 
 local InputMap = require("osu_ui.views.ResultView.InputMap")
 local actions = require("osu_ui.actions")
@@ -72,6 +71,8 @@ function ResultView:update(dt)
 end
 
 function ResultView:resolutionUpdated()
+	self.gameView.screenContainer:removeChild("view")
+	self.gameView.screenContainer:addChild("view", View({ depth = 0, resultView = self }))
 end
 
 function ResultView:draw()

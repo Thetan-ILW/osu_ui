@@ -1,6 +1,5 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
-local ScreenContainer = require("osu_ui.ui.ScreenContainer")
 local View = require("osu_ui.views.TestView.View")
 
 ---@class TestView : osu.ui.ScreenView
@@ -8,28 +7,20 @@ local View = require("osu_ui.views.TestView.View")
 local TestView = ScreenView + {}
 
 function TestView:load()
-	self.mainContainer = ScreenContainer({ nativeHeight = 768, transform = love.math.newTransform(0, 0) })
-	self.mainContainer:load()
-	self.mainContainer:addChild("view", View({ assets = self.assets }))
-	self.mainContainer:build()
+	self.gameView.screenContainer:addChild("view", View({ assets = self.assets }))
 end
 
 function TestView:update(dt)
-	love.graphics.origin()
-	self.mainContainer:setSize(love.graphics.getDimensions())
-	self.mainContainer:update(dt)
 end
 
 function TestView:draw()
-	love.graphics.origin()
-	self.mainContainer:draw()
 end
 
 function TestView:receive(event)
-	if event.name == "framestarted" then
-		return
+	if event.name == "mousepressed" then
+		self.gameView.screenContainer:removeChild("view")
+		self.gameView.screenContainer:addChild("view", View({ depth = 0, assets = self.assets }))
 	end
-	self.mainContainer:receive(event)
 end
 
 return TestView

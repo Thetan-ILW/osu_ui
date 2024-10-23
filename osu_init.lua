@@ -15,7 +15,6 @@ local PlayerStatsView = require("osu_ui.views.PlayerStatsView")
 local EditorView = require("ui.views.EditorView")
 local TestView = require("osu_ui.views.TestView")
 local ScreenOverlayView = require("osu_ui.views.ScreenOverlayView")
-local OsuLayout = require("osu_ui.views.OsuLayout")
 
 local physfs = require("physfs")
 
@@ -192,8 +191,6 @@ function UserInterface:load()
 
 	self.gameView:load(view)
 	actions.updateActions(self.game.persistence.configModel.configs.osu_ui)
-
-	self.prevWindowResolution = -999
 end
 
 local osu_skins_mounted = false
@@ -217,10 +214,10 @@ function UserInterface:unload()
 end
 
 function UserInterface:resolutionUpdated()
-	self.assets.localization:updateScale() ---TODO: Default fonts are not being updated. Fix this pls
-	self.gameView:resolutionUpdated()
-	OsuLayout:draw()
-	ui.layoutW, ui.layoutH = OsuLayout:move("base")
+	if self.prevWindowResolution ~= 0 then
+		self.assets.localization:updateScale() ---TODO: Default fonts are not being updated. Fix this pls
+		self.gameView:resolutionUpdated()
+	end
 
 	local ww, wh = love.graphics.getDimensions()
 	local resolution = ww * wh
@@ -241,7 +238,6 @@ function UserInterface:update(dt)
 		self.lastResolutionCheck = time
 	end
 
-	OsuLayout:move("base")
 	ui.setTextScale(math.min(768 / wh, 1))
 
 	self.gameView:update(dt)

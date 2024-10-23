@@ -39,13 +39,15 @@ function UiElement:load()
 	self.color = self.color or { 1, 1, 1, 1 }
 	self.alpha = self.alpha or 1
 	self.totalW, self.totalH = self.totalW or 0, self.totalH or 0
-	self.hoverState = HoverState("quadout", 0.4)
+	self.hoverState = self.hoverState or HoverState("quadout", 0.4)
 	self.hoverWidth = self.hoverWidth or self.totalW
 	self.hoverHeight = self.hoverHeight or self.totalH
 	self.mouseOver = false
 	self.blockMouseFocus = self.blockMouseFocus == nil and true or self.blockMouseFocus
 	self:applyTransform()
 end
+
+function UiElement:unload() end
 
 --- Called when building (function build()) a container, UiElements with the greatest depth are bound first.
 function UiElement:bindEvents() end

@@ -172,10 +172,11 @@ function ScrollAreaContainer:update(dt)
 	self.scrollPosition = self.scrollPosition + scroll_velocity_this_frame * (dt * 1000)
 	self.y = -self.scrollPosition
 	self:applyTransform()
+
 end
 
 function ScrollAreaContainer:wheelUp()
-	if (self.scrollVelocity > 0) then
+	if self.scrollVelocity > 0 then
 		self.scrollVelocity = 0
 	end
 	self:scrollToPosition(-scroll_distance + self.scrollPosition, 0)
@@ -183,7 +184,7 @@ function ScrollAreaContainer:wheelUp()
 end
 
 function ScrollAreaContainer:wheelDown()
-	if (self.scrollVelocity < 0) then
+	if self.scrollVelocity < 0 then
 		self.scrollVelocity = 0
 	end
 	self:scrollToPosition(scroll_distance + self.scrollPosition, 0)

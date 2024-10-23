@@ -11,7 +11,7 @@ local Container = UiElement + {}
 
 function Container:load()
 	self.blockMouseFocus = self.blockMouseFocus or false
-	self.automaticSizeCalc = true
+	self.automaticSizeCalc = self.automaticSizeCalc or true
 	self.children = {}
 	self.childrenOrder = {}
 	self.childContainers = {}
@@ -22,6 +22,12 @@ function Container:load()
 	end
 
 	UiElement.load(self)
+end
+
+function Container:unload()
+	if self.parent then
+		self.parent:removeChildContainer(self)
+	end
 end
 
 ---@param id string
@@ -40,12 +46,22 @@ end
 
 ---@param id string
 function Container:removeChild(id)
+	self.children[id]:unload()
 	self.children[id] = nil
 end
 
 ---@param child osu.ui.Container
 function Container:registerChildContainer(child)
 	table.insert(self.childContainers, child)
+end
+
+function Container:removeChildContainer(child)
+	for i, v in ipairs(self.childContainers) do
+		if v == child then
+			table.remove(self.childContainers, i)
+			return
+		end
+	end
 end
 
 ---@param child osu.ui.UiElement

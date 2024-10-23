@@ -1,7 +1,6 @@
 local Container = require("osu_ui.ui.Container")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 
-local ui = require("osu_ui.ui")
 local math_util = require("math_util")
 local ImageButton = require("osu_ui.ui.ImageButton")
 local ImageValueView = require("osu_ui.ui.ImageValueView")
@@ -19,15 +18,15 @@ local ScrollBar = require("osu_ui.ui.ScrollBar")
 ---@field resultView osu.ui.ResultView
 local View = Container + {}
 
-local gfx = love.graphics
-
 function View:load()
 	Container.load(self)
 	local result_view = self.resultView
 	local display_info = result_view.displayInfo
 	local assets = result_view.assets
 	local img = assets.images
+	local snd = assets.sounds
 
+	local all_fonts = assets.localization.fontGroups
 	local text, font = assets.localization:get("result")
 	assert(text and font)
 
@@ -40,7 +39,7 @@ function View:load()
 		height = height * 2
 	}))
 	---@cast area osu.ui.ScrollAreaContainer
-	---
+
 	self:addChild("scrollBar", ScrollBar({
 		x = width - 13, y = 99,
 		totalW = 10,
@@ -394,40 +393,49 @@ function View:load()
 		end
 	}))
 
-	area:build()
-	self:build()
-	if true then
-		return
-	end
-
-	local online_ranking = area:addChild("onlineRanking", Button(assets, {
+	local online_ranking = area:addChild("onlineRanking", Button({
+		x = width / 2 - 160, y = height - 41.6,
 		text = "▼ Online Ranking ▼",
 		font = font.onlineRanking,
-		pixelWidth = 320,
-		pixelHeight = 48,
+		totalW = 320,
+		totalH = 48,
 		color = { 0.46, 0.09, 0.8, 1 },
+		imageLeft = img.buttonLeft,
+		imageMiddle = img.buttonMiddle,
+		imageRight = img.buttonRight,
 		depth = 0.95,
-		transform = love.math.newTransform(ui.layoutW / 2 - 160, ui.layoutH - 41.6)
-	}, function ()
-		area:scrollToPosition(768, 0)
-	end))
+		onClick = function ()
+			area:scrollToPosition(768, 0)
+		end
+	}))
 	---@cast online_ranking osu.ui.Button
-	function online_ranking:updateTransform()
+	function online_ranking:update(dt)
+		Button.update(self, dt)
 		local position = area.scrollPosition
 		local alpha = 1 - math_util.clamp((position / area.totalH * 16), 0, 1)
 		self.color[4] = alpha
 	end
 
-
-	area:addChild("backButton", BackButton(assets, {
-		hoverArea = { w = 93, h = 90 },
+	area:addChild("backButton", BackButton({
+		y = height - 58,
+		font = all_fonts.misc.backButton,
+		text = "back",
+		arrowImage = img.menuBackArrow,
+		clickSound = snd.menuBack,
+		hoverSound = snd.hoverOverRect,
+		hoverWidth = 93,
+		hoverHeight = 58,
 		depth = 1,
-		transform = love.math.newTransform(0, ui.layoutH - 58)
-	}, function ()
-		result_view:quit()
-	end))
+		onClick = function ()
+			result_view:quit()
+		end
+	}))
 
-
+	area:build()
+	self:build()
+	if true then
+		return
+	end
 
 	local customizations = assets.customViews.resultView
 	if customizations then

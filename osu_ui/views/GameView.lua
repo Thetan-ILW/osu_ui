@@ -111,13 +111,14 @@ function GameView:update(dt)
 		return
 	end
 
+	love.graphics.origin()
 	self.view:update(dt)
 	self.screenContainer:setSize(love.graphics.getDimensions())
 	self.screenContainer:update(dt)
 end
 
 function GameView:resolutionUpdated()
-	--self.view:resolutionUpdated()
+	self.view:resolutionUpdated()
 end
 
 ---@param event table
@@ -126,6 +127,7 @@ function GameView:receive(event)
 		return
 	end
 
+	love.graphics.origin()
 	self.view:receive(event)
 	self.screenContainer:receive(event)
 end

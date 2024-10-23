@@ -1,100 +1,79 @@
 local UiElement = require("osu_ui.ui.UiElement")
-local HoverState = require("osu_ui.ui.HoverState")
 
 local ui = require("osu_ui.ui")
+local HoverState = require("osu_ui.ui.HoverState")
+
+---@alias ButtonParams { text: string, font: love.Font, imageLeft: love.Image, imageMiddle: love.Image, imageRight: love.Image, hoverSound: audio.Source }
 
 ---@class osu.ui.Button : osu.ui.UiElement
 ---@operator call: osu.ui.Button
 ---@field private label love.Text
----@field private color number[]
----@field private margin number
----@field private onChange function
----@field private totalW number
----@field private totalH number
 ---@field private middleImgScale number
 ---@field private heightScale number
 ---@field private imageLeft love.Image
 ---@field private imageMiddle love.Image
 ---@field private imageRight love.Image
----@field private hover boolean
----@field private hoverUpdateTime number
----@field private brightenShader love.Shader
----@field private hoverState osu.ui.HoverState
----@field private animation number
+---@field private hoverSound audio.Source?
+---@field private mouseDown boolean
+---@field private onClick function
 local Button = UiElement + {}
 
----@param assets osu.ui.OsuAssets
----@param params { text: string, font: love.Font, pixelWidth: number, pixelHeight: number, color: number[]?, xOffset: number, margin: number? }
----@param on_change function
-function Button:new(assets, params, on_change)
-	UiElement.new(self, params)
-	self.assets = assets
+function Button:load()
+	assert(self.imageLeft, "imageLeft was not provided")
+	assert(self.imageMiddle, "imageMiddle was not provided")
+	assert(self.imageRight, "imageRight was not provided")
 
-	local img = assets.images
-	self.imageLeft = img.buttonLeft
-	self.imageMiddle = img.buttonMiddle
-	self.imageRight = img.buttonRight
+	self.label = love.graphics.newText(self.font, self.text)
 
-	self.label = love.graphics.newText(params.font, params.text)
-	self.xOffset = params.xOffset or 0
-	self.margin = params.margin or 0
-	self.color = params.color or { 1, 1, 1, 1 }
+	self.totalW = self.totalW or 737
+	self.totalH = self.totalH or 65
 
-	self.heightScale = params.pixelHeight / self.imageMiddle:getHeight()
+	self.heightScale = self.totalH / self.imageMiddle:getHeight()
 	local borders_width = self.imageLeft:getWidth() * self.heightScale + self.imageRight:getWidth() * self.heightScale
-	self.middleImgScale = (params.pixelWidth - borders_width) / self.imageMiddle:getWidth()
+	self.middleImgScale = (self.totalW - borders_width) / self.imageMiddle:getWidth()
 
-	self.totalW = params.pixelWidth
-	self.totalH = params.pixelHeight + self.margin / 2
-
-	self.hover = false
-	self.hoverUpdateTime = -math.huge
-
-	self.brightenShader = assets.shaders.brighten
-	self.onChange = on_change
-
+	self.mouseDown = false
 	self.hoverState = HoverState("quadout", 0.2)
-	self.animation = 0
+	UiElement.load(self)
+end
+
+function Button:bindEvents()
+	self.parent:bindEvent(self, "mousePressed")
+	self.parent:bindEvent(self, "mouseReleased")
+end
+
+function Button:justHovered()
+	if self.hoverSound then
+		ui.playSound(self.hoverSound)
+	end
+end
+
+function Button:mousePressed()
+	self.mouseDown = true
+	return true
+end
+
+function Button:mouseReleased()
+	if self.mouseOver then
+		self.onClick()
+	end
+	self.mouseDown = false
+	return true
 end
 
 local gfx = love.graphics
-
-function Button:mouseInput(has_focus)
-	local just_hovered = false
-	self.hover, self.animation, just_hovered = self.hoverState:check(self.totalW, self.totalH)
-
-	if not has_focus then
-		return
-	end
-
-	if self.hover and ui.mousePressed(1) then
-		self.onChange()
-		self.changeTime = -math.huge
-	end
-
-	if just_hovered then
-		ui.playSound(self.assets.sounds.hoverOverRect)
-	end
-end
 
 function Button:draw()
 	local left = self.imageLeft
 	local middle = self.imageMiddle
 	local right = self.imageRight
-	local scale = self.scale
 
-	local prev_shader = gfx.getShader()
+	local amount = self.hoverState.progress * 0.3
+	local c = ui.lighten(self.color, amount)
 
-	gfx.setShader(self.brightenShader)
-
-	local a = self.animation * 0.3
-
-	self.brightenShader:send("amount", a)
-
-	gfx.setColor(self.color)
+	gfx.setColor(c[1], c[2], c[3], c[4] * self.alpha)
 
 	gfx.push()
-	gfx.translate(self.xOffset, self.margin / 4)
 	gfx.draw(left, 0, 0, 0, self.heightScale, self.heightScale)
 	gfx.translate(left:getWidth() * self.heightScale, 0)
 	gfx.draw(middle, 0, 0, 0, self.middleImgScale, self.heightScale)
@@ -102,10 +81,8 @@ function Button:draw()
 	gfx.draw(right, 0, 0, 0, self.heightScale, self.heightScale)
 	gfx.pop()
 
-	gfx.setShader(prev_shader)
-
 	gfx.push()
-	gfx.setColor(1, 1, 1, self.color[4])
+	gfx.setColor(1, 1, 1, self.color[4] * self.alpha)
 	ui.textFrameShadow(self.label, 0, 0, self.totalW, self.totalH, "center", "center")
 	gfx.pop()
 
