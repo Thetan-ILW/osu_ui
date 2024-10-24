@@ -2,6 +2,7 @@ local class = require("class")
 
 local FadeTransition = require("ui.views.FadeTransition")
 local ScreenContainer = require("osu_ui.ui.ScreenContainer")
+local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
 
 ---@class osu.ui.GameView
 ---@operator call: osu.ui.GameView
@@ -19,6 +20,11 @@ end
 
 function GameView:load(view)
 	self.screenContainer:load()
+	self.screenContainer:addChild("background", ParallaxBackground({
+		mode = "background_model",
+		backgroundModel = self.game.backgroundModel,
+		depth = 0
+	}))
 	self:forceSetView(view)
 end
 
@@ -31,24 +37,14 @@ function GameView:_setView(view)
 	view.prevView = self.view
 
 	local view_names = {
-		[self.ui.mainMenuView] = "mainMenuView",
 		[self.ui.selectView] = "selectView",
 		[self.ui.resultView] = "resultView",
-		[self.ui.playerStatsView] = "playerStatsView"
 	}
 
-	if self.ui.gucci then
-		view_names[self.ui.firstTimeSetupView] = "firstTimeSetupView"
-	end
-
-	local overlay = self.ui.screenOverlayView
 	self.ui:loadAssets(view_names[view])
 	self.view = view
 	self.view.assetModel = self.ui.assetModel
 	self.view.assets = self.ui.assets
-	self.view.notificationView = overlay.notificationView
-	self.view.popupView = overlay.popupView
-	self.view.cursor = overlay.cursor
 	self.view:load()
 	self.screenContainer:build()
 end

@@ -1,5 +1,7 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
+local actions = require("osu_ui.actions")
+
 ---@class osu.ui.Container : osu.ui.UiElement
 ---@field parent osu.ui.Container?
 ---@field children {[string]: osu.ui.UiElement}
@@ -38,9 +40,10 @@ function Container:addChild(id, child)
 	if self.children[id] then
 		error(("Children with the id %s already exist"):format(id))
 	end
-	self.children[id] = child
+	child.id = id
 	child.parent = self
 	child:load()
+	self.children[id] = child
 	return child
 end
 
@@ -110,7 +113,21 @@ function Container:forEachChild(f)
 	for _, child in pairs(self.children) do
 		f(child)
 	end
+	for _, container in ipairs(self.childContainers) do
+		container:forEachChild(f)
+	end
 end
+
+---@param f fun(child: osu.ui.UiElement)
+function Container:forEachChildGlobally(f)
+	if self.parent then
+		self.parent:forEachChildGlobally(f)
+		return
+	end
+
+	self:forEachChild(f)
+end
+
 
 local gfx = love.graphics
 
@@ -153,12 +170,10 @@ function Container:callbackFirstChild(event_name, event)
 		return false
 	end
 	for _, child in ipairs(self.eventListeners[event_name]) do
-		if child.mouseOver then
-			local handled = child[event_name](child, event)
-			assert(handled ~= nil, ("%s event did not return a `handled` boolean"):format(event_name))
-			if handled then
-				return true
-			end
+		local handled = child[event_name](child, event)
+		assert(handled ~= nil, ("%s event did not return a `handled` boolean"):format(event_name))
+		if handled then
+			return true
 		end
 	end
 	return false
@@ -190,6 +205,10 @@ local events = {
 		return self:callbackForEachChild("mouseReleased", event)
 	end,
 	keypressed = function(self, event)
+		local action = actions.getAction()
+		if action then
+			return self:callbackFirstChild(action .. "Action", event)
+		end
 		return self:callbackFirstChild("keyPresseed", event)
 	end,
 	keyreleased = function(self, event)

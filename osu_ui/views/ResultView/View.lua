@@ -120,7 +120,7 @@ function View:load()
 
 	area:addChild("score", ImageValueView({
 		x = score_x, y = score_y,
-		origin = { x = 0, y = 0.5 },
+		origin = { x = 0.5, y = 0.5 },
 		scale = 1.3,
 		files = score_font,
 		overlap = overlap,

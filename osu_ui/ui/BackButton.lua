@@ -44,9 +44,12 @@ function BackButton:justHovered()
 end
 
 function BackButton:mousePressed()
-	self.onClick()
-	ui.playSound(self.clickSound)
-	return true
+	if self.mouseOver then
+		self.onClick()
+		ui.playSound(self.clickSound)
+		return true
+	end
+	return false
 end
 
 local gfx = love.graphics

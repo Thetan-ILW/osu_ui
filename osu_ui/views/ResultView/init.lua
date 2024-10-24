@@ -1,12 +1,8 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 local thread = require("thread")
 
-local OsuLayout = require("osu_ui.views.OsuLayout")
 local DisplayInfo = require("osu_ui.views.ResultView.DisplayInfo")
 local View = require("osu_ui.views.ResultView.View")
-
-local GaussianBlurView = require("sphere.views.GaussianBlurView")
-local BackgroundView = require("sphere.views.BackgroundView")
 
 local InputMap = require("osu_ui.views.ResultView.InputMap")
 local actions = require("osu_ui.actions")
@@ -19,11 +15,7 @@ local flux = require("flux")
 ---@field scoreRevealTween table?
 local ResultView = ScreenView + {}
 
-local dim = 0
-local background_blur = 0
-
 local loading = false
-local canDraw = false
 ResultView.load = thread.coro(function(self)
 	if loading then
 		return
@@ -33,27 +25,22 @@ ResultView.load = thread.coro(function(self)
 
 	self.game.resultController:load()
 
-	self.inputMap = InputMap(self)
-
 	if self.prevView == self.ui.selectView then
 		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
 	end
 
+	self.inputMap = InputMap(self)
 	self.displayInfo = DisplayInfo(self)
-	self.gameView.screenContainer:addChild("view", View({ depth = 0, resultView = self }))
+	self.scoreReveal = 0
+	self.gameView.screenContainer:addChild("view", View({ resultView = self, depth = 0.1 }))
+	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
 
-	canDraw = true
 	loading = false
 
 	--love.mouse.setVisible(false)
-	self.cursor.alpha = 1
+
 	actions.enable()
-
-	self.scoreReveal = 0
-	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
 end)
-
-function ResultView:unload() end
 
 ---@param dt number
 function ResultView:update(dt)
@@ -73,19 +60,6 @@ end
 function ResultView:resolutionUpdated()
 	self.gameView.screenContainer:removeChild("view")
 	self.gameView.screenContainer:addChild("view", View({ depth = 0, resultView = self }))
-end
-
-function ResultView:draw()
-	if not canDraw then
-		return
-	end
-
-	OsuLayout:draw()
-	local w, h = OsuLayout:move("base")
-
-	GaussianBlurView:draw(background_blur)
-	BackgroundView:draw(w, h, dim, 0.01)
-	GaussianBlurView:draw(background_blur)
 end
 
 function ResultView:receive(event)
@@ -148,18 +122,12 @@ ResultView.play = thread.coro(function(self, mode)
 		return
 	end
 
-	self.game.rhythmModel.audioEngine:unload()
-
 	playing = true
 	local scoreEntry = self.game.selectModel.scoreItem
 	local isResult = self.game.resultController:replayNoteChartAsync(mode, scoreEntry)
 
 	if isResult then
 		return self.view:reload()
-	end
-
-	if self.assets.sounds.switchScreen then
-		self.assets.sounds.switchScreen:play()
 	end
 
 	self:changeScreen("gameplayView")

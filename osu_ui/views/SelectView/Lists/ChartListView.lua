@@ -4,17 +4,14 @@ local ui = require("osu_ui.ui")
 
 local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 
+---@alias ChartListViewParams { game: sphere.GameController, assets: osu.ui.OsuAssets }
+
 ---@class osu.ui.ChartListView : osu.ui.WindowListView
----@operator call: osu.ui.ChartListView
+---@overload fun(params: ChartListViewParams): osu.ui.ChartListView
 ---@field window osu.ui.WindowListChartItem[]
 local ChartListView = WindowListView + {}
 
----@param game sphere.GameController
----@param assets osu.ui.OsuAssets
-function ChartListView:new(game, assets)
-	WindowListView.new(self)
-	self.game = game
-	self.assets = assets
+function ChartListView:load()
 	self.config = self.game.configModel.configs.osu_ui
 	self.itemClass = ChartListItem
 
@@ -40,6 +37,13 @@ function ChartListView:new(game, assets)
 	self.hoverSound = snd.hoverMenu
 	self.selectSound = snd.selectChart
 	self:reloadItems()
+	WindowListView.load(self)
+end
+
+---@param has_focus boolean
+---@return boolean blocking_focus
+function ChartListView:setMouseFocus(has_focus)
+	return self.parent.mouseOver and has_focus
 end
 
 function ChartListView:getSelectedItemIndex()
@@ -126,7 +130,7 @@ function ChartListView:draw(w, h)
 	end
 
 	for i, item in ipairs(self.window) do
-		self:drawPanels(item, w, h)
+		self:drawPanels(item, self.parent.totalW, self.parent.totalH)
 	end
 end
 

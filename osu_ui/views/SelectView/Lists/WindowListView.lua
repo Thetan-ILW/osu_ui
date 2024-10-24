@@ -1,11 +1,10 @@
-local class = require("class")
+local UiElement = require("osu_ui.ui.UiElement")
+
 local flux = require("flux")
 local math_util = require("math_util")
 local actions = require("osu_ui.actions")
 local ui = require("osu_ui.ui")
-local Layout = require("osu_ui.views.OsuLayout")
 
-local HoverState = require("osu_ui.ui.HoverState")
 local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
 
 --[[
@@ -17,14 +16,13 @@ local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
 	The window thing can be done much easier, by moving all items in a window table when you scroll, but this method looks cooler
 ]]
 
----@class osu.ui.WindowListView
+---@class osu.ui.WindowListView : osu.ui.UiElement
 ---@operator call: osu.ui.WindowListView
 ---@field window osu.ui.WindowListItem[]
 ---@field itemClass osu.ui.WindowListItem?
 ---@field mouseAllowedArea { w: number, h: number, x: number, y: number }
----@field focus boolean
 ---@field state "idle" | "item_selected" | "locked"
-local WindowListView = class()
+local WindowListView = UiElement + {}
 
 function WindowListView:getSelectedItemIndex() end
 function WindowListView:getChildSelectedItemIndex() end
@@ -40,10 +38,6 @@ function WindowListView:replaceItem(window_index, visual_index) end
 function WindowListView:loadChildItems() end
 
 function WindowListView:justHoveredOver(item) end
-
-function WindowListView:new()
-	self.returnBackArea = HoverState("linear", 0)
-end
 
 ---@param f fun(ChartSetListView, table, ...)
 function WindowListView:iterOverWindow(f, ...)
@@ -214,10 +208,6 @@ function WindowListView:keyScroll(delta, target)
 end
 
 function WindowListView:processActions()
-	if not self.focus then
-		return
-	end
-
 	local ca = actions.consumeAction
 	local ad = actions.isActionDown
 	local gc = actions.getCount
@@ -244,29 +234,19 @@ function WindowListView:mouseClick(set)
 end
 
 function WindowListView:mouseScroll(y)
-	if not self.focus then
-		return
-	end
-
 	if self.windowSize == 0 then
 		return
 	end
 
-	local area = self.mouseAllowedArea
-	local w, h = Layout:move("base")
-	local has_focus = ui.isOver(w, area.h, area.x, area.y)
-
-	if has_focus then
-		self.scroll = self.scroll + y
-		self:animateScroll()
-	end
+	self.scroll = self.scroll + y
+	self:animateScroll()
 end
 
 function WindowListView:checkForMouseActions(item, x, y, panel_w, panel_h)
 	local area = self.mouseAllowedArea
-	local in_area = ui.isOver(ui.layoutW, area.h, area.x, area.y)
+	local in_area = ui.isOver(self.totalW, area.h, area.x, area.y)
 
-	if not in_area or not self.focus then
+	if not in_area then
 		return
 	end
 
@@ -293,15 +273,7 @@ function WindowListView:update(dt)
 	self:processActions()
 	self:loadNewSets()
 
-	if self.selectedVisualItemIndex ~= self.scroll then
-		local _, _, just_hovered = self.returnBackArea:check(502, 768)
-
-		if just_hovered then
-			self:followSelection()
-		end
-	end
-
-	if love.mouse.isDown(2) and self.focus then
+	if love.mouse.isDown(2) then
 		local set_items_count = self:getChildItemsCount() - 1
 		local item_count = self.maxScroll + set_items_count
 

@@ -10,6 +10,7 @@ local HoverState = require("osu_ui.ui.HoverState")
 
 ---@class osu.ui.UiElement
 ---@operator call: osu.ui.UiElement
+---@field id string,
 ---@field parent osu.ui.Container
 ---@field transform love.Transform
 ---@field x number
@@ -36,6 +37,11 @@ function UiElement:load()
 	self.scale = self.scale or 1
 	self.rotation = self.rotation or 0
 	self.depth = self.depth or 0
+
+	if self.color then
+		self.color[4] = self.color[4] or 1
+	end
+
 	self.color = self.color or { 1, 1, 1, 1 }
 	self.alpha = self.alpha or 1
 	self.totalW, self.totalH = self.totalW or 0, self.totalH or 0
@@ -105,6 +111,8 @@ function UiElement:setMouseFocus(has_focus)
 
 	return self.mouseOver and self.blockMouseFocus
 end
+
+function UiElement:loseFocus() end
 
 ---@param dt number
 function UiElement:update(dt) end

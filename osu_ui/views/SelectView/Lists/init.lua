@@ -1,13 +1,16 @@
-local class = require("class")
+local UiElement = require("osu_ui.ui.UiElement")
 
 local ChartSetListView = require("osu_ui.views.SelectView.Lists.ChartSetListView")
 local ChartListView = require("osu_ui.views.SelectView.Lists.ChartListView")
 local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
 
----@class osu.ui.SelectViewLists
----@operator call: osu.ui.SelectViewLists
+---@alias SelectViewListsParams { game: sphere.GameController, assets: osu.ui.OsuAssets }
+
+---@class osu.ui.SelectViewLists : osu.ui.UiElement
+---@overload fun(params: SelectViewListsParams): osu.ui.SelectViewLists
 ---@field showing "charts" | "locations" | "directories" | "collections"
-local Lists = class()
+---@field game sphere.GameController
+local Lists = UiElement + {}
 
 Lists.groups = {
 	"charts",
@@ -15,27 +18,26 @@ Lists.groups = {
 	"directories",
 }
 
----@param view osu.ui.SelectView
-function Lists:new(view)
-	self.view = view
-	self.game = view.game
-	self.assets = view.assets
-	self.focus = true
+function Lists:load()
+	self.selectModel = self.game.selectModel
 
 	local settings = self.game.configModel.configs.settings
 	local s = settings.select
 
 	if not s.collapse then
-		view.popupView:add("Grouping charts is enabled.", "purple")
+		--popupView:add("Grouping charts is enabled.", "purple")
 		s.collapse = true
 	end
 
-	self.selectModel = self.game.selectModel
 	self.chartsStateCounter = 1
 	self.showing = self.groups[1]
 	self.pullNoteChart = false
+	UiElement.load(self)
+end
 
-	view.game.selectController:load()
+function Lists:bindEvents()
+	self.parent:bindEvent(self, "wheelUp")
+	self.parent:bindEvent(self, "wheelDown")
 end
 
 ---@param mode "charts" | "locations" | "directories" | "collections"
@@ -55,7 +57,7 @@ function Lists:show(mode)
 end
 
 function Lists:showCollections()
-	local game = self.view.game
+	local game = self.game
 	local assets = self.assets
 
 	local config = self.game.configModel.configs.settings.select
@@ -70,7 +72,7 @@ function Lists:showCollections()
 
 	if config.locations_in_collections ~= loc_in_collections then
 		config.locations_in_collections = loc_in_collections
-		self.game.selectModel.collectionLibrary:load(loc_in_collections)
+		self.selectModel.collectionLibrary:load(loc_in_collections)
 	end
 
 	self.list = CollectionsListView(game, assets)
@@ -88,12 +90,12 @@ local sets = {
 function Lists:showCharts()
 	if self.pullNoteChart then
 		self.list = nil
-		self.game.selectModel:noDebouncePullNoteChartSet()
+		self.selectModel:noDebouncePullNoteChartSet()
 		self.pullNoteChart = false
 		return
 	end
 
-	local game = self.view.game
+	local game = self.game
 	local assets = self.assets
 
 	local configs = game.configModel.configs
@@ -120,7 +122,8 @@ function Lists:update(dt)
 	end
 
 	if self.list then
-		self.list.focus = self.focus
+		self.list.focus = self.mouseOver
+		self.list.totalW = self.parent.totalW
 		self.list:update(dt)
 
 		if self.list.state == "item_selected" then
@@ -141,15 +144,23 @@ function Lists:unlock()
 	end
 end
 
-function Lists:mouseScroll(delta)
+function Lists:wheelUp()
 	if self.list then
-		self.list:mouseScroll(delta)
+		self.list:mouseScroll(-1)
 	end
+	return true
 end
 
-function Lists:draw(w, h)
+function Lists:wheelDown()
 	if self.list then
-		self.list:draw(w, h)
+		self.list:mouseScroll(1)
+	end
+	return true
+end
+
+function Lists:draw()
+	if self.list then
+		self.list:draw(self.parent.totalW, self.parent.totalH)
 	end
 end
 

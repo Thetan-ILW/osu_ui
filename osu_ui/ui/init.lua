@@ -5,9 +5,6 @@ local ScrollBar = require("aqua.imgui.ScrollBar")
 
 local ui = {}
 
-ui.layoutW = 0
-ui.layoutH = 0
-
 local shadow = { 0.078, 0.078, 0.078, 0.64 }
 
 ui.inputMode = "keyboard"
@@ -23,9 +20,6 @@ ui.focus = just.focus
 ui.textInput = just.textinput
 ui.row = just.row
 ui.resetJust = just.reset
-
----@type string?
-ui.tooltip = nil
 
 local text_transform = love.math.newTransform()
 local text_scale = 1
@@ -168,6 +162,10 @@ local sound_play_time = {}
 
 ---@param sound audio.Source
 function ui.playSound(sound)
+	if not sound then
+		return
+	end
+
 	local prev_time = sound_play_time[sound] or 0
 	local current_time = love.timer.getTime()
 

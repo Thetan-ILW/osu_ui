@@ -55,7 +55,7 @@ function DisplayInfo:setDefaultChartView()
 end
 
 function DisplayInfo:setJudgementDefaults()
-	self.score = 0
+	self.score = 10000000
 	self.marvelous = 0
 	self.perfect = 0
 	self.great = 0

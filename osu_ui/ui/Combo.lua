@@ -4,62 +4,54 @@ local HoverState = require("osu_ui.ui.HoverState")
 local ui = require("osu_ui.ui")
 local flux = require("flux")
 
+---@alias ComboParams { label: string?, font: love.Font, hoverSound: audio.Source?, expandSound: audio.Source?, hoverColor: number[]?, borderColor: number[]?, onChange: (fun(value: any)), getValue: (fun(): any, any[]), format: (fun(value: any): string) }
+
 ---@class osu.ui.Combo : osu.ui.UiElement
----@operator call: osu.ui.Combo
----@field label love.Text?
+---@overload fun(params: ComboParams): osu.ui.Combo
+---@field text love.Text?
 ---@field font love.Font
+---@field label string?
+---@field hoverSound audio.Source?
+---@field expandSound audio.Source?
 ---@field labelColor number[]
 ---@field hoverColor number[]
 ---@field borderColor number[]
----@field private defaultValue any?
----@field private valueChanged boolean
----@field private totalW number
----@field private totalH number
----@field private hover boolean
----@field private hoverIndex integer
+---@field cellHeight number
+---@field minCellHeight number
 ---@field private onChange function
 ---@field private getValue fun(): any, table
 ---@field private format? fun(any): string
 ---@field private selected string
 ---@field private items any[]
----@field private icon love.Image
 ---@field private state "hidden" | "fade_in" | "open" | "fade_out"
 ---@field private visibility number
 ---@field private visibilityTween table?
----@field private headHoverState osu.ui.HoverState
----@field private headAnimation number
 local Combo = UiElement + {}
 
----@param assets osu.ui.OsuAssets
----@param params { label: string, font: love.Font, pixelWidth: number, pixelHeight: number, hoverColor: number[]?, borderColor: number[]?, defaultValue: any?, tip: string? }
----@param get_value function
----@param on_change function
----@param format function?
-function Combo:new(assets, params, get_value, on_change, format)
-	self.assets = assets
+local border_size = 2
 
-	if params.label then
-		self.label = love.graphics.newText(params.font, params.label)
+function Combo:load()
+	if self.label then
+		self.text = love.graphics.newText(self.font, self.label)
 	end
 
-	self.font = params.font
-	self.totalW = params.pixelWidth
-	self.totalH = params.pixelHeight
-	self.hoverColor = params.hoverColor or { 0.72, 0.06, 0.46, 1 }
-	self.borderColor = params.borderColor or { 0, 0, 0, 1 }
-	self.defaultValue = params.defaultValue
-	self.valueChanged = false
-	self.tip = params.tip
-	self.onChange = on_change
-	self.getValue = get_value
-	self.format = format
+	self.cellHeight = self.totalH
+
+	local x, w, h = self:getPosAndSize()
+	self.minCellHeight = h + border_size * 2
+	self.totalH = self.minCellHeight
+
+	self.hoverColor = self.hoverColor or { 0.72, 0.06, 0.46, 1 }
+	self.borderColor = self.borderColor or { 0, 0, 0, 1 }
 	self.selected = "! broken getValue() !"
-	self.icon = assets.images.dropdownArrow
 	self.state = "hidden"
 	self.visibility = 0
-	self.changeTime = -math.huge
 	self.headHoverState = HoverState("quadout", 0.12)
-	self.headAnimation = 0
+	UiElement.load(self)
+end
+
+function Combo:bindEvents()
+	self.parent:bindEvent(self, "mousePressed")
 end
 
 local gfx = love.graphics
@@ -71,8 +63,7 @@ function Combo:open()
 	end
 	self.visibilityTween = flux.to(self, 0.35, { visibility = 1 }):ease("cubicout")
 	self.state = "fade_in"
-	local sound = self.assets.sounds.selectExpand
-	ui.playSound(sound)
+	ui.playSound(self.expandSound)
 end
 
 function Combo:close()
@@ -86,6 +77,10 @@ end
 ---@param event? "open" | "close" | "toggle"
 function Combo:processState(event)
 	local state = self.state
+
+	if not event then
+		return
+	end
 
 	if event == "toggle" then
 		event = (state == "open" or state == "fade_in") and "close" or "open"
@@ -116,6 +111,10 @@ function Combo:processState(event)
 	end
 end
 
+function Combo:justHovered()
+	ui.playSound(self.hoverSound)
+end
+
 function Combo:getPosAndSize()
 	local x = 0
 
@@ -123,59 +122,61 @@ function Combo:getPosAndSize()
 		x = self.label:getWidth() * math.min(ui.getTextScale(), 1)
 	end
 
-	local w = self.totalW - x - 24
-	local h = math.floor(self.totalH / 1.5)
+	local w = self.totalW - x - (border_size * 2)
+	local h = math.floor(self.cellHeight / 1.5)
 
 	return x, w, h
 end
 
-function Combo:update(has_focus)
+function Combo:loseFocus()
+	if self.state == "open" or self.state == "fade_in" then
+		self:processState("close")
+	end
+end
+
+function Combo:mousePressed()
+	if self.mouseOver then
+		if self.state == "open" or self.state == "fade_in" then
+			if self.hoverIndex ~= 0 then
+				self.onChange(self.items[self.hoverIndex])
+			end
+			self:processState("close")
+			return true
+		end
+
+		self.parent:forEachChildGlobally(function(child)
+			child:loseFocus()
+		end)
+
+		self:processState("toggle")
+		return true
+	elseif not self.mouseOver and (self.state == "open" or self.state == "fade_in") then
+		self:processState("close")
+		return false
+	end
+	return false
+end
+
+function Combo:update()
 	self:processState()
 	local selected, items = self.getValue()
 	self.selected = self.format and self.format(selected) or tostring(selected)
 	self.items = items
 
-	local just_hovered = false
-	self.hover, self.headAnimation, just_hovered = self.headHoverState:check(self.totalW, self.totalH, 0, 0, has_focus)
-
-	if not has_focus then
-		return
-	end
-
-	if self.defaultValue ~= nil then
-		self.valueChanged = selected ~= self.defaultValue
-	end
-
 	self.hoverIndex = 0
+	local x, w, h = self:getPosAndSize()
 
 	if self.state ~= "hidden" then
-		local x, w, h = self:getPosAndSize()
 		for i, _ in ipairs(self.items) do
-			self.hoverIndex = ui.isOver(w, h, x, (self.totalH - h) + h * i) and i or self.hoverIndex
+			self.hoverIndex = ui.isOver(w, h, x, h * i + border_size * 2) and i or self.hoverIndex
 		end
+
+		self.totalH = math.max(self.minCellHeight, #self.items * (self.cellHeight * self.visibility) + border_size * 2)
+		self.hoverHeight = self.totalH
 	end
 
-	if self.state == "open" or self.state == "fade_in" then
-		if self.hoverIndex ~= 0 and ui.mousePressed(1) then
-			self.onChange(self.items[self.hoverIndex])
-			self.changeTime = love.timer.getTime()
-			ui.resetJust()
-			self:processState("close")
-		end
-	end
-
-	if self.hover then
-		ui.tooltip = self.tip
-	end
-
-	if self.hover and ui.mousePressed(1) then
-		self:processState("toggle")
-	elseif not self.hover and ui.mousePressed(1) then
-		self:processState("close")
-	end
-
-	if just_hovered then
-		ui.playSound(self.assets.sounds.hoverOverRect)
+	if self.mouseOver then
+		self.headHoverState:check(self.totalW, h, 0, 0)
 	end
 end
 
@@ -189,62 +190,54 @@ local mix = { 0, 0, 0, 1 }
 function Combo:draw()
 	gfx.setColor(1, 1, 1)
 	if self.label then
-		ui.textFrame(self.label, 0, 0, self.totalW, self.totalH, "left", "center")
+		ui.textFrame(self.text, 0, 0, self.totalW, self.totalH, "left", "center")
+	end
+
+	gfx.setFont(self.font)
+	if self.state ~= "hidden" then
+		self:drawBody()
 	end
 	self:drawHead()
 end
 
 function Combo:drawHead()
-	gfx.setFont(self.font)
 	gfx.push()
 
 	local x, w, h = self:getPosAndSize()
-	gfx.translate(x + 12, 0)
+	gfx.translate(x + border_size, 0)
 
-	local y = self.totalH / 2 - h / 2
-
-	gfx.setLineWidth(2)
+	gfx.setLineWidth(border_size)
 	gfx.setColor(self.borderColor)
-	gfx.rectangle("line", 0, y, w, h, 4)
+	gfx.rectangle("line", 0, border_size, w, h, 4)
 
 	local color = self.hoverColor
-	mix[1] = color[1] * self.headAnimation
-	mix[2] = color[2] * self.headAnimation
-	mix[3] = color[3] * self.headAnimation
+	mix[1] = color[1] * self.headHoverState.progress
+	mix[2] = color[2] * self.headHoverState.progress
+	mix[3] = color[3] * self.headHoverState.progress
 	gfx.setColor(mix)
-	gfx.rectangle("fill", 0, y, w, h, 4)
+	gfx.rectangle("fill", 0, border_size, w, h, 4)
 
-	gfx.setColor(1, 1, 1)
-	ui.frame(self.selected, 2, y, w, h, "left", "center")
-
-	y = self.totalH / 2 - self.icon:getHeight() / 2
-	gfx.translate(w - 25, y)
-	gfx.draw(self.icon)
-
+	gfx.setColor(1, 1, 1, self.alpha)
+	ui.frame("▼", -10, 3, self.totalW, h, "right", "center")
+	gfx.setColor(1, 1, 1, self.alpha)
+	ui.frame(self.selected, 2, border_size, w, h, "left", "center")
 	gfx.pop()
-
-	gfx.translate(0, self.totalH)
 end
 
 function Combo:drawBody()
-	gfx.setFont(self.font)
 	gfx.push()
 	local x, w, h = self:getPosAndSize()
-	gfx.translate(x + 12, (self.totalH - h) / 2 + 2)
+	gfx.translate(x + border_size, border_size * 2)
 
 	for i, v in ipairs(self.items) do
 		gfx.translate(0, h * self.visibility)
 		local color = self.hoverIndex == i and self.hoverColor or black
 		gfx.setColor(color[1], color[2], color[3], self.visibility)
 		gfx.rectangle("fill", 0, 0, w, h, 4)
-		gfx.setColor(0, 0, 0, self.visibility)
-		gfx.draw(self.icon, 8, h / 2, -math.pi / 2, 0.7, 0.7, self.icon:getWidth() / 2, self.icon:getHeight() / 2)
 		gfx.setColor(1, 1, 1, self.visibility)
 		ui.frame(self.format and self.format(v) or tostring(v), 15, 0, w, h, "left", "center")
 	end
 	gfx.pop()
-
-	self:drawHead()
 end
 
 return Combo

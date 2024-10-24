@@ -24,7 +24,7 @@ function GlobalEvents:changeVolume(delta)
 
 	v.master = math_util.clamp(math_util.round(v.master + (delta * 0.05), 0.05), 0, 1)
 
-	self.ui.screenOverlayView.notificationView:show(("Volume: %i%%"):format(v.master * 100), true)
+	--self.ui.screenOverlayView.notificationView:show(("Volume: %i%%"):format(v.master * 100), true)
 	self.ui.assetModel:updateVolume()
 end
 

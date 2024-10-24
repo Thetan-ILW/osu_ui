@@ -3,55 +3,35 @@ local ScreenView = require("osu_ui.views.ScreenView")
 local actions = require("osu_ui.actions")
 local ui = require("osu_ui.ui")
 
-local OsuLayout = require("osu_ui.views.OsuLayout")
-local ViewConfig = require("osu_ui.views.SelectView.ViewConfig")
-local GaussianBlurView = require("sphere.views.GaussianBlurView")
-local BackgroundView = require("sphere.views.BackgroundView")
-local UiLockView = require("osu_ui.views.UiLockView")
-local SettingsView = require("osu_ui.views.SettingsView")
-
-local ChartPreviewView = require("sphere.views.SelectView.ChartPreviewView")
-local Lists = require("osu_ui.views.SelectView.Lists")
-
 local InputMap = require("osu_ui.views.SelectView.InputMap")
+local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
+local View = require("osu_ui.views.SelectView.View")
 
 ---@class osu.ui.SelectView: osu.ui.ScreenView
 ---@operator call: osu.ui.SelectView
 ---@field prevChartViewId number
----@field selectModel sphere.SelectModel
----@field configs sphere.Configs
----@field viewConfigFocus boolean
 local SelectView = ScreenView + {}
 
-local ui_lock = false
-local dim = 0
-local blur = 0
+SelectView.scoreSources = {
+	"local",
+	"online"
+}
 
 function SelectView:load()
 	self.game.selectController:load()
-	self.chartPreviewView = ChartPreviewView(self.game, self.ui)
-	self.chartPreviewView:load()
-
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs
 
-	self.search = self.configs.select.filterString
-	self.lists = Lists(self)
+	self.selectedScoreSource = self.scoreSources[1]
 
+	self.screenshot = love.graphics.newImage("screenshot193.jpg")
 	self.inputMap = InputMap(self)
-
-	self.viewConfig = ViewConfig(self, self.assets)
-	self.settingsView = SettingsView(self.assets, self.game, self.ui)
-
-	self.uiLockViewConfig = UiLockView(self.game, self.assets)
-
-	BackgroundView.game = self.game
-
-	love.mouse.setVisible(false)
-	self.cursor.alpha = 1
-
+	self.displayInfo = DisplayInfo(self)
 	self:notechartChanged()
+	self:reloadView()
+
 	actions.enable()
+
 end
 
 function SelectView:beginUnload()
@@ -60,15 +40,12 @@ end
 
 function SelectView:unload()
 	self.game.selectController:unload()
-	self.chartPreviewView:unload()
 end
 
 ---@param dt number
 function SelectView:update(dt)
 	ScreenView.update(self, dt)
 	self.game.selectController:update()
-
-	ui_lock = self.game.cacheModel.isProcessing
 
 	local chartview_i = self.selectModel.chartview_index
 	local chartview_set_i = self.selectModel.chartview_set_index
@@ -78,31 +55,28 @@ function SelectView:update(dt)
 		self.prevChartViewSetIndex = chartview_set_i
 		self:notechartChanged()
 	end
+end
 
-	self.settingsView.modalActive = self.modal == nil
+local path_util = require("path_util")
+function SelectView:reloadView()
+	local view = love.filesystem.load(path_util.join(self.ui.mountPath, "osu_ui/views/SelectView/View.lua"))()
 
-	if self.changingScreen then
-		self.settingsView:processState("hide")
+	local sc = self.gameView.screenContainer
+
+	if sc:getChild("view") then
+		sc:removeChild("view")
 	end
 
-	self.settingsView:update()
+	local success, result = pcall(sc.addChild, sc, "view", view({ selectView = self, depth = 0.1 }))
+	if not success then
+		print(result)
+	end
 
-	self.viewConfigFocus = (self.modal == nil) and not self.settingsView:isFocused() and not self.changingScreen
-	self:updateSearch()
-
-	local graphics = self.configs.settings.graphics
-	dim = graphics.dim.select
-	blur = graphics.blur.select
-
-	self.assets:updateVolume(self.game.configModel)
-
-	self.lists:update(dt)
-	self.viewConfig:setFocus(self.viewConfigFocus)
-	self.chartPreviewView:update(dt)
+	self.gameView.screenContainer:build()
 end
 
 function SelectView:notechartChanged()
-	self.viewConfig:updateInfo(self, true)
+	self.displayInfo:load()
 end
 
 ---@param mode string
@@ -150,8 +124,6 @@ function SelectView:play()
 		return
 	end
 
-	self.lists:lock()
-
 	self.assets.sounds.menuHit:stop()
 	self.assets.sounds.menuHit:play()
 
@@ -162,7 +134,6 @@ function SelectView:edit()
 	if not self.game.selectModel:notechartExists() then
 		return
 	end
-
 	self:changeScreen("editorView")
 end
 
@@ -170,10 +141,6 @@ function SelectView:result()
 	if self.game.selectModel:isPlayed() then
 		self:changeScreen("resultView")
 	end
-end
-
-function SelectView:toggleSettings()
-	self.settingsView:processState("toggle")
 end
 
 function SelectView:changeTimeRate(delta)
@@ -199,51 +166,13 @@ function SelectView:changeTimeRate(delta)
 	end
 end
 
-function SelectView:select()
-	if self.lists.showing == "charts" then
-		self:play()
-		return
-	end
-
-	self.lists:show("charts")
-end
-
-function SelectView:updateSearch()
-	local vim_motions = actions.isVimMode()
-	local insert_mode = actions.isInsertMode()
-
-	local config = self.configs.select
-	local selectModel = self.game.selectModel
-
-	local changed = false
-	if (not vim_motions or insert_mode) and self.viewConfigFocus then
-		changed, self.search = actions.textInput(config.filterString)
-	end
-
-	if actions.isEnabled() then
-		if changed then
-			config.filterString = self.search
-			selectModel:debouncePullNoteChartSet()
-			return
-		end
-
-		local delete_all = actions.consumeAction("deleteLine")
-
-		if delete_all then
-			self.search = ""
-			config.filterString = ""
-			selectModel:debouncePullNoteChartSet()
-		end
-	end
-end
-
 local events = {
 	keypressed = function(self, event)
-		if self.inputMap:call("music") then
-			return
+		if event[2] == "r" then
+			self:reloadView()
 		end
 
-		if ui_lock then
+		if self.inputMap:call("music") then
 			return
 		end
 
@@ -261,11 +190,6 @@ local events = {
 
 		self.inputMap:call("select")
 	end,
-	wheelmoved = function(self, event)
-		if not actions.isModKeyDown() then
-			self.lists:mouseScroll(-event[2])
-		end
-	end,
 	directorydropped = function(self, event)
 		self:openModal("osu_ui.views.modals.LocationImport", event[1])
 	end
@@ -273,14 +197,11 @@ local events = {
 
 function SelectView:receive(event)
 	self.game.selectController:receive(event)
-	self.chartPreviewView:receive(event)
 
 	local f = events[event.name]
 	if f then
 		f(self, event)
 	end
-
-	self.settingsView:receive(event)
 end
 
 ---@param back_button_click boolean?
@@ -309,31 +230,10 @@ function SelectView:quit(back_button_click)
 end
 
 function SelectView:resolutionUpdated()
-	self.viewConfig:resolutionUpdated(self)
-	self.settingsView:resolutionUpdated()
-
-	if self.modal then
-		self.modal.viewConfig:resolutionUpdated()
-	end
+	self:reloadView()
 end
 
 function SelectView:draw()
-	local w, h = OsuLayout:move("base")
-
-	GaussianBlurView:draw(blur)
-	BackgroundView:draw(w, h, dim, 0.01)
-	GaussianBlurView:draw(blur)
-
-	if ui_lock then
-		self.uiLockViewConfig:draw()
-		return
-	end
-
-	self.viewConfig:draw(self)
-	self.settingsView:draw()
-
-	self:drawModal()
-	self.ui.screenOverlayView:draw()
 end
 
 return SelectView

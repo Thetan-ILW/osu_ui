@@ -8,13 +8,13 @@ local GlobalEvents = require("osu_ui.GlobalEvents")
 
 local GameView = require("osu_ui.views.GameView")
 local SelectView = require("osu_ui.views.SelectView")
-local GameplayView = require("osu_ui.views.GameplayView")
+--local GameplayView = require("osu_ui.views.GameplayView")
 local ResultView = require("osu_ui.views.ResultView")
-local MainMenuView = require("osu_ui.views.MainMenuView")
-local PlayerStatsView = require("osu_ui.views.PlayerStatsView")
-local EditorView = require("ui.views.EditorView")
+--local MainMenuView = require("osu_ui.views.MainMenuView")
+--local PlayerStatsView = require("osu_ui.views.PlayerStatsView")
+--local EditorView = require("ui.views.EditorView")
 local TestView = require("osu_ui.views.TestView")
-local ScreenOverlayView = require("osu_ui.views.ScreenOverlayView")
+--local ScreenOverlayView = require("osu_ui.views.ScreenOverlayView")
 
 local physfs = require("physfs")
 
@@ -29,19 +29,20 @@ local UserInterface = class()
 function UserInterface:new(game, mount_path)
 	game.persistence:openAndReadThemeConfig("osu_ui", mount_path)
 	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
+	self.mountPath = mount_path
 
 	self.game = game
 
 	self.gameView = GameView(self)
 	self.globalEvents = GlobalEvents(self)
-	self.mainMenuView = MainMenuView(game)
+	--self.mainMenuView = MainMenuView(game)
 	self.selectView = SelectView(game)
 	self.resultView = ResultView(game)
-	self.gameplayView = GameplayView(game)
-	self.playerStatsView = PlayerStatsView(game)
-	self.editorView = EditorView(game)
+	--self.gameplayView = GameplayView(game)
+	--self.playerStatsView = PlayerStatsView(game)
+	--self.editorView = EditorView(game)
 	self.testView = TestView()
-	self.screenOverlayView = ScreenOverlayView(game)
+	--self.screenOverlayView = ScreenOverlayView(game)
 
 	self.lastResolutionCheck = -math.huge
 	self.prevWindowResolution = 0
@@ -113,8 +114,8 @@ function UserInterface:getMods()
 	self.gucci = gucci_pkg and require("gucci_init") or nil
 
 	if self.gucci then
-		local FirstTimeSetupView = require("osu_ui.views.FirstTimeSetupView")
-		self.firstTimeSetupView = FirstTimeSetupView(self.game)
+		--local FirstTimeSetupView = require("osu_ui.views.FirstTimeSetupView")
+		--self.firstTimeSetupView = FirstTimeSetupView(self.game)
 	end
 end
 
@@ -143,11 +144,11 @@ function UserInterface:loadAssets(view_name)
 	assets:loadLocalization(asset_model:getLocalizationFileName(language))
 	assets:updateVolume(self.game.configModel)
 	self.assets = assets
-	self.screenOverlayView:load(assets)
 end
 
 function UserInterface:load()
 	self:getMods()
+	love.window.setMode(1366, 768)
 
 	local windows = jit.os == "Windows"
 	local osu = self.game.configModel.configs.osu_ui
@@ -160,10 +161,9 @@ function UserInterface:load()
 	end
 
 	self:loadAssets()
-	self.screenOverlayView:load(self.assets)
 
 	---@type osu.ui.ScreenView
-	local view = self.resultView
+	local view = self.selectView
 
 	if self.gucci then
 		if not osu.gucci.installed then
@@ -240,8 +240,8 @@ function UserInterface:update(dt)
 
 	ui.setTextScale(math.min(768 / wh, 1))
 
+	self.assets:updateVolume(self.game.configModel)
 	self.gameView:update(dt)
-	self.screenOverlayView:update(dt)
 end
 
 function UserInterface:draw()
@@ -251,7 +251,6 @@ end
 ---@param event table
 function UserInterface:receive(event)
 	self.globalEvents:receive(event)
-	self.screenOverlayView:receive(event)
 	self.gameView:receive(event)
 end
 
