@@ -190,7 +190,7 @@ l.textGroups = {
 		recent = "Recently played",
 		artist = "By Artist",
 		difficulty = "By Difficulty",
-		noGrouping = "No grouping",
+		noGrouping = "No Grouping",
 		--
 		group = "Group",
 		sort = "Sort",

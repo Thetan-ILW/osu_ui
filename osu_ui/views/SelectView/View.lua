@@ -6,6 +6,7 @@ local DynamicText = require("osu_ui.ui.DynamicText")
 local BackButton = require("osu_ui.ui.BackButton")
 local Label = require("osu_ui.ui.Label")
 local Combo = require("osu_ui.ui.Combo")
+local TabButton = require("osu_ui.ui.TabButton")
 
 ---@class osu.ui.SelectViewContainer : osu.ui.Container
 ---@operator call: osu.ui.SelectViewContainer
@@ -32,6 +33,10 @@ function View:load()
 	---@cast top osu.ui.Container
 	---@cast bottom osu.ui.Container
 
+	local tabs = top:addChild("tabContainer", Container({ depth = 0.5 }))
+	---@cast tabs osu.ui.Container
+
+	--[[
 	local screenshot = self:addChild("screenshot", Image({
 		image = select_view.screenshot,
 		depth = 1,
@@ -40,7 +45,7 @@ function View:load()
 		Image.update(self, dt)
 		local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
 		screenshot.alpha = mx / width
-	end
+	end]]
 
 	----------- TOP -----------
 
@@ -181,6 +186,68 @@ function View:load()
 		depth = 0.5,
 	}))
 
+	--- TABS ---
+	local tab_y = 54
+	local no_grouping = tabs:addChild("noGrouping", TabButton({
+		x = width - 15, y = tab_y,
+		origin = { x = 1, y = 0 },
+		image = img.tab,
+		label = text.noGrouping,
+		font = font.tabs,
+		depth = 0.5,
+		onClick = function ()
+			self:selectTab("noGrouping")
+		end
+	}))
+
+	local by_difficulty = tabs:addChild("byDifficulty", TabButton({
+		x = no_grouping.x - no_grouping.totalW + 25, y = tab_y,
+		origin = { x = 1, y = 0 },
+		image = img.tab,
+		label = text.byDifficulty,
+		font = font.tabs,
+		depth = 0.4,
+		onClick = function ()
+			self:selectTab("byDifficulty")
+		end
+	}))
+
+	local by_artist = tabs:addChild("byArtist", TabButton({
+		x = by_difficulty.x - by_difficulty.totalW + 25, y = tab_y,
+		origin = { x = 1, y = 0 },
+		image = img.tab,
+		label = text.byArtist,
+		font = font.tabs,
+		depth = 0.3,
+		onClick = function ()
+			self:selectTab("byArtist")
+		end
+	}))
+
+	local recently_played = tabs:addChild("recentlyPlayed", TabButton({
+		x = by_artist.x - by_artist.totalW + 25, y = tab_y,
+		origin = { x = 1, y = 0 },
+		image = img.tab,
+		label = text.recent,
+		font = font.tabs,
+		depth = 0.2,
+		onClick = function ()
+			self:selectTab("recentlyPlayed")
+		end
+	}))
+
+	tabs:addChild("collections", TabButton({
+		x = recently_played.x - recently_played.totalW + 25, y = tab_y,
+		origin = { x = 1, y = 0 },
+		image = img.tab,
+		label = text.collections,
+		font = font.tabs,
+		depth = 0.1,
+		onClick = function ()
+			self:selectTab("collections")
+		end
+	}))
+
 	----------- BOTTOM -----------
 
 	bottom:addChild("background", Image({
@@ -258,9 +325,60 @@ function View:load()
 		depth = 0.3,
 	}))
 
+	tabs:build()
 	top:build()
 	bottom:build()
 	self:build()
+end
+
+---@alias TabNames "noGrouping" | "byDifficulty" | "byArtist" | "recentlyPlayed" | "collections"
+---@param selected TabNames  
+function View:selectTab(selected)
+	local top_container = self.children.topContainer ---@cast top_container osu.ui.Container
+	local tab_container = top_container.children.tabContainer ---@cast tab_container osu.ui.Container
+	local c = tab_container.children
+
+	---@type {[TabNames]: { element: osu.ui.UiElement, depth: number, onClick: function}}
+	local tabs = {
+		noGrouping = {
+			element = c.noGrouping,
+			depth = 0.5,
+			onClick = function () end
+		},
+		byDifficulty = {
+			element = c.byDifficulty,
+			depth = 0.4,
+			onClick = function () end
+		},
+		byArtist = {
+			element = c.byArtist,
+			depth = 0.3,
+			onClick = function () end
+		},
+		recentlyPlayed = {
+			element = c.recentlyPlayed,
+			depth = 0.2,
+			onClick = function () end
+		},
+		collections = {
+			element = c.collections,
+			depth = 0.1,
+			onClick = function () end
+		}
+	}
+	---@cast tabs {[TabNames]: { element: osu.ui.TabButton, depth: number, onClick: function}}
+	assert(tabs[selected], "Tab " .. selected .. " does not exist")
+
+	for _, v in pairs(tabs) do
+		v.element.depth = v.depth
+		v.element.active = false
+	end
+
+	local s = tabs[selected]
+	s.element.active = true
+	s.element.depth = 1
+	s.onClick()
+	tab_container:build()
 end
 
 return View
