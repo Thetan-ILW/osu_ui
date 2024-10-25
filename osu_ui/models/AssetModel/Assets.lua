@@ -15,12 +15,16 @@ local path_util = require("path_util")
 ---@field defaultsFileList {[string]: string}
 ---@field images table<string, love.Image>
 ---@field sounds table<string, audio.Source?>
+---@field fonts {[string]: love.Font}
 ---@field shaders table<string, love.Shader>
 ---@field params table<string, number|string|boolean>
 ---@field errors string[]
+---@field screenHeight number
+---@field nativeHeight number
 local Assets = class()
 
 Assets.errors = {}
+Assets.fontFiles = {}
 
 ---@type string
 local source_directory = love.filesystem.getSource()
@@ -126,7 +130,7 @@ end
 ---@param file_name string
 ---@param file_list {[string]: string}
 ---@return love.Image?
-function Assets.loadImage(root, file_name, file_list)
+function Assets.newImage(root, file_name, file_list)
 	local path = Assets.findImage(file_name, file_list)
 
 	if path then
@@ -154,7 +158,7 @@ end
 ---@param use_sound_data boolean?
 ---@return audio.Source?
 --- Note: use_sound_data for loading audio from mounted directories (moddedgame/charts)
-function Assets.loadAudio(root, file_name, file_list, use_sound_data)
+function Assets.newAudio(root, file_name, file_list, use_sound_data)
 	local path = Assets.findAudio(file_name, file_list)
 
 	if not path then
@@ -228,8 +232,8 @@ function Assets.emptyAudio()
 end
 
 ---@param name string
-function Assets:loadDefaultImage(name)
-	local image = Assets.loadImage(self.defaultsDirectory, name, self.defaultsFileList)
+function Assets:newDefaultImage(name)
+	local image = Assets.newImage(self.defaultsDirectory, name, self.defaultsFileList)
 
 	if image then
 		return image
@@ -241,49 +245,79 @@ end
 
 ---@param name string
 ---@return love.Image
-function Assets:loadImageOrDefault(name)
-	local image = Assets.loadImage(self.directory, name, self.fileList)
+function Assets:loadImage(name)
+	if self.images[name] then
+		return self.images[name]
+	end
+
+	local image = Assets.newImage(self.directory, name, self.fileList)
 
 	if image then
+		self.images[name] = image
 		return image
 	end
 
-	return Assets.loadDefaultImage(self, name)
+	local default = Assets.newDefaultImage(self, name)
+	self.images[name] = default
+	return default
 end
 
 ---@param name string
 ---@return audio.Source
-function Assets:loadAudioOrDefault(name)
-	local sound = Assets.loadAudio(self.directory, name, self.fileList)
+function Assets:loadAudio(name)
+	if self.sounds[name] then
+		return self.sounds[name]
+	end
+
+	local sound = Assets.newAudio(self.directory, name, self.fileList)
 
 	if sound then
+		self.sounds[name] = sound
 		return sound
 	end
 
-	sound = Assets.loadAudio(self.defaultsDirectory, name, self.defaultsFileList, true)
+	sound = Assets.newAudio(self.defaultsDirectory, name, self.defaultsFileList, true)
 
 	if sound then
+		self.sounds[name] = sound
 		return sound
 	end
 
 	table.insert(self.errors, ("Audio not found %s"):format(name))
+	self.sounds[name] = self.emptyAudio()
 	return self.emptyAudio()
 end
 
----@param src {[string]: string}
----@param destination {[string]: love.Image}
-function Assets:populateImages(src, destination)
-	for k, file_name in pairs(src) do
-		destination[k] = self:loadImageOrDefault(file_name)
-	end
+---@return number
+function Assets:getTextDpiScale()
+	return math.ceil(self.screenHeight / self.nativeHeight)
 end
 
----@param src {[string]: string}
----@param destination {[string]: audio.Source}
-function Assets:populateSounds(src, destination)
-	for k, file_name in pairs(src) do
-		destination[k] = self:loadAudioOrDefault(file_name)
+---@param name string
+---@param size number
+---@return love.Font
+function Assets:loadFont(name, size)
+	if self.screenHeight < 1 then
+		error("wtf")
 	end
+
+	local formatted_name = ("%s_%i@%ix"):format(name, size, self:getTextDpiScale())
+
+	if self.fonts[formatted_name] then
+		return self.fonts[formatted_name]
+	end
+
+	local filename = self.fontFiles[name]
+
+	if not filename then
+		error(("No such font: %s"):format(filename))
+	end
+
+	local font = love.graphics.newFont(path_util.join(self.assetModel.mountPath, filename), size * self:getTextDpiScale())
+	font:setFilter("linear", "nearest")
+	self.fonts[formatted_name] = font
+
+	return font
 end
 
 ---@param config_model sphere.ConfigModel

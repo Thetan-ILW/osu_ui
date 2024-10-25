@@ -63,9 +63,9 @@ function GameplayView:load()
 	end
 
 	local root = note_skin.path:match("(.+/)") or ""
-	self.assets = OsuPauseAssets(self.ui.assetModel, root)
-	self.assets:load()
-	self.assets.shaders = self.ui.assets.shaders
+	self.pauseAssets = OsuPauseAssets(self.ui.assetModel, root)
+	self.pauseAssets:load()
+	self.pauseAssets.shaders = self.ui.assets.shaders
 	self.pauseScreen = PauseScreen(0.98, love.math.newTransform(0, 0))
 	self.pauseScreen:load(self)
 
@@ -181,6 +181,7 @@ function GameplayView:update(dt)
 			self.pauseScreen:show()
 		end
 		self.subscreen = "pause"
+		self.pauseAssets:updateVolume(self.game.configModel)
 		self.pauseScreen:update(dt)
 	end
 

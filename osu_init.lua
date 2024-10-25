@@ -4,6 +4,7 @@ local ui = require("osu_ui.ui")
 local actions = require("osu_ui.actions")
 local AssetModel = require("osu_ui.models.AssetModel")
 local OsuAssets = require("osu_ui.OsuAssets")
+local Localization = require("osu_ui.models.AssetModel.Localization")
 local GlobalEvents = require("osu_ui.GlobalEvents")
 
 local GameView = require("osu_ui.views.GameView")
@@ -17,6 +18,7 @@ local TestView = require("osu_ui.views.TestView")
 --local ScreenOverlayView = require("osu_ui.views.ScreenOverlayView")
 
 local physfs = require("physfs")
+local path_util = require("path_util")
 
 ---@class osu.ui.UserInterface
 ---@operator call: osu.ui.UserInterface
@@ -30,6 +32,8 @@ function UserInterface:new(game, mount_path)
 	game.persistence:openAndReadThemeConfig("osu_ui", mount_path)
 	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
 	self.mountPath = mount_path
+
+	self.localization = Localization(path_util.join(mount_path, "osu_ui/localization"), "en.txt")
 
 	self.game = game
 
@@ -130,25 +134,19 @@ function UserInterface:loadAssets(view_name)
 	---@type string
 	local skin_path = ("userdata/skins/%s"):format(osu.skin:trim())
 
-	local assets = asset_model:get("osu")
-
-	if not assets or (assets and assets.directory ~= skin_path) then
-		local default_localization = asset_model:getLocalizationFileName("English")
-		assets = OsuAssets(asset_model, skin_path)
-		assets:load(default_localization)
-		asset_model:store("osu", assets)
+	if not self.assets or (self.assets and self.assets.directory ~= skin_path) then
+		--local default_localization = asset_model:getLocalizationFileName("English")
+		self.assets = OsuAssets(asset_model, skin_path)
+		self.assets:load()
 	end
 
-	---@cast assets osu.ui.OsuAssets
-	assets:loadViewAssets(view_name)
-	assets:loadLocalization(asset_model:getLocalizationFileName(language))
-	assets:updateVolume(self.game.configModel)
-	self.assets = assets
+	self.assets:loadViewAssets(view_name)
+	self.assets:updateVolume(self.game.configModel)
 end
 
 function UserInterface:load()
 	self:getMods()
-	love.window.setMode(1366, 768)
+	--love.window.setMode(1366, 768)
 
 	local windows = jit.os == "Windows"
 	local osu = self.game.configModel.configs.osu_ui
@@ -161,6 +159,9 @@ function UserInterface:load()
 	end
 
 	self:loadAssets()
+	self.assets.screenHeight = love.graphics.getHeight()
+	self.localization:load()
+	self.localization:loadFile("en.txt")
 
 	---@type osu.ui.ScreenView
 	local view = self.selectView
@@ -215,7 +216,7 @@ end
 
 function UserInterface:resolutionUpdated()
 	if self.prevWindowResolution ~= 0 then
-		self.assets.localization:updateScale() ---TODO: Default fonts are not being updated. Fix this pls
+		--self.assets.localization:updateScale() ---TODO: Default fonts are not being updated. Fix this pls
 		self.gameView:resolutionUpdated()
 	end
 
@@ -238,10 +239,11 @@ function UserInterface:update(dt)
 		self.lastResolutionCheck = time
 	end
 
-	ui.setTextScale(math.min(768 / wh, 1))
-
+	self.assets.screenHeight = wh
 	self.assets:updateVolume(self.game.configModel)
+
 	self.gameView:update(dt)
+
 end
 
 function UserInterface:draw()

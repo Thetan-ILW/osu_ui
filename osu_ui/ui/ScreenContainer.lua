@@ -28,6 +28,11 @@ function ScreenContainer:setSize(w, h)
 	self.hoverWidth, self.hoverHeight = w, h
 end
 
+---@param v number
+function ScreenContainer:setTextScale(v)
+	self.textScale = v
+end
+
 local screen_ratio_half =  -16 / 9 / 2
 
 function ScreenContainer:updateNativeTransform()

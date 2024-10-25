@@ -24,7 +24,7 @@ function SelectView:load()
 
 	self.selectedScoreSource = self.scoreSources[1]
 
-	self.screenshot = love.graphics.newImage("screenshot193.jpg")
+	self.screenshot = love.graphics.newImage("screenshot196.jpg")
 	self.inputMap = InputMap(self)
 	self.displayInfo = DisplayInfo(self)
 	self:notechartChanged()

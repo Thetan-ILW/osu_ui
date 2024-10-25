@@ -8,6 +8,7 @@ local actions = require("osu_ui.actions")
 ---@field childrenOrder string[]
 ---@field childContainers osu.ui.Container[]
 ---@field eventListeners {[InputEvent]: osu.ui.UiElement}
+---@field textScale number
 ---@field automaticSizeCalc boolean
 local Container = UiElement + {}
 
@@ -18,9 +19,11 @@ function Container:load()
 	self.childrenOrder = {}
 	self.childContainers = {}
 	self.eventListeners = {}
+	self.textScale = 1
 
 	if self.parent then
 		self.parent:registerChildContainer(self)
+		self.textScale = self.parent.textScale
 	end
 
 	UiElement.load(self)

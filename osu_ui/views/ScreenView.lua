@@ -11,6 +11,7 @@ local delay = require("delay")
 ---@field modal osu.ui.Modal?
 ---@field assetModel osu.ui.AssetModel
 ---@field assets osu.ui.OsuAssets
+---@field localization Localization
 ---@field notificationView osu.ui.NotificationView
 ---@field popupView osu.ui.PopupView
 ---@field cursor osu.ui.CursorView

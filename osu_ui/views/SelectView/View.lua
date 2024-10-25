@@ -19,12 +19,8 @@ function View:load()
 	local select_view = self.selectView
 	local display_info = select_view.displayInfo
 	local assets = select_view.assets
-	local img = assets.images
-	local snd = assets.sounds
 
-	local all_fonts = assets.localization.fontGroups
-	local text, font = assets.localization:get("songSelect")
-	assert(text and font)
+	local text = select_view.localization.text
 
 	local width, height = self.parent.totalW, self.parent.totalH
 
@@ -39,31 +35,42 @@ function View:load()
 	--[[
 	local screenshot = self:addChild("screenshot", Image({
 		image = select_view.screenshot,
+		blockMouseFocus = false,
 		depth = 1,
 	}))
-	function screenshot:update(dt)
-		Image.update(self, dt)
-		local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
-		screenshot.alpha = mx / width
-	end]]
+
+	function self:wheelUp()
+		screenshot.alpha = math.min(1, screenshot.alpha + 0.1)
+		return true
+	end
+	function self:wheelDown()
+		screenshot.alpha = math.max(0, screenshot.alpha - 0.1)
+		return true
+	end
+
+	self:bindEvent(self, "wheelUp")
+	self:bindEvent(self, "wheelDown")
+	]]
 
 	----------- TOP -----------
 
+	local img = assets:loadImage("songselect-top")
 	top:addChild("background", Image({
-		image = img.panelTop,
+		image = img,
 		wrap = "clamp",
-		quad = love.graphics.newQuad(0, 0, width, img.panelTop:getHeight(), img.panelTop),
+		quad = love.graphics.newQuad(0, 0, width, img:getHeight(), img),
 	}))
 
 	top:addChild("statusIcon", Image({
-		x = 5, y = 5,
-		image = img.rankedIcon,
+		x = 19, y = 19,
+		origin = { x = 0.5, y = 0.5 },
+		image = assets:loadImage("selection-ranked"),
 		depth = 0.9
 	}))
 
 	top:addChild("chartName", DynamicText({
 		x = 38, y = -5,
-		font = font.chartName,
+		font = assets:loadFont("Regular", 25),
 		depth = 0.9,
 		value = function ()
 			return display_info.chartName
@@ -72,7 +79,7 @@ function View:load()
 
 	top:addChild("chartSource", DynamicText({
 		x = 40, y = 20,
-		font = font.chartedBy,
+		font = assets:loadFont("Regular", 16),
 		depth = 0.9,
 		value = function ()
 			return display_info.chartSource
@@ -81,7 +88,7 @@ function View:load()
 
 	top:addChild("chartInfoFirstRow", DynamicText({
 		x = 5, y = 39,
-		font = font.infoTop,
+		font = assets:loadFont("Bold", 16),
 		depth = 0.9,
 		value = function ()
 			return display_info.chartInfoFirstRow
@@ -90,7 +97,7 @@ function View:load()
 
 	top:addChild("chartInfoSecondRow", DynamicText({
 		x = 5, y = 59,
-		font = font.infoCenter,
+		font = assets:loadFont("Regular", 16),
 		depth = 0.9,
 		value = function ()
 			return display_info.chartInfoSecondRow
@@ -99,7 +106,7 @@ function View:load()
 
 	top:addChild("chartInfoThirdRow", DynamicText({
 		x = 4, y = 76,
-		font = font.infoBottom,
+		font = assets:loadFont("Regular", 11),
 		depth = 0.9,
 		value = function ()
 			return display_info.chartInfoThirdRow
@@ -110,12 +117,13 @@ function View:load()
 		x = 8, y = 117,
 		totalW = 308,
 		totalH = 34,
-		font = font.dropdown,
+		font = assets:loadFont("Regular", 18),
 		borderColor = { 0.08, 0.51, 0.7, 1 },
 		hoverColor = { 0.08, 0.51, 0.7, 1 },
+		items = select_view.scoreSources,
 		depth = 0.9,
 		getValue = function ()
-			return select_view.selectedScoreSource, select_view.scoreSources
+			return select_view.selectedScoreSource
 		end,
 		onChange = function (value)
 			select_view.selectedScoreSource = value
@@ -124,7 +132,7 @@ function View:load()
 
 	top:addChild("chartWebPage", ImageButton({
 		x = 330, y = 117,
-		idleImage = img.forum,
+		idleImage = assets:loadImage("rank-forum"),
 		depth = 0.5,
 		onClick = function ()
 			select_view.game.selectController:openWebNotechart()
@@ -137,12 +145,13 @@ function View:load()
 		origin = { x = 1, y = 0 },
 		totalW = 193,
 		totalH = 34,
-		font = font.dropdown,
+		font = assets:loadFont("Regular", 18),
 		borderColor = { 0.68, 0.82, 0.54, 1 },
 		hoverColor = { 0.68, 0.82, 0.54, 1 },
+		items = select_view.scoreSources,
 		depth = 0.9,
 		getValue = function ()
-			return select_view.selectedScoreSource, select_view.scoreSources
+			return select_view.selectedScoreSource
 		end,
 		onChange = function (value)
 			select_view.selectedScoreSource = value
@@ -152,9 +161,9 @@ function View:load()
 	local sort_text = top:addChild("sortText", Label({
 		x = sort_combo.x - sort_combo.totalW - 6, y = 24,
 		origin = { x = 1, y = 0 },
-		ax = "right",
-		text = text.sort,
-		font = font.groupSort,
+		alignX = "right",
+		text = text.SongSelection_Sort,
+		font = assets:loadFont("Light", 29),
 		color = { 0.68, 0.82, 0.54, 1 },
 		depth = 0.5,
 	}))
@@ -164,12 +173,13 @@ function View:load()
 		origin = { x = 1, y = 0 },
 		totalW = 193,
 		totalH = 34,
-		font = font.dropdown,
+		font = assets:loadFont("Regular", 18),
 		borderColor = { 0.57, 0.76, 0.9, 1 },
 		hoverColor = { 0.57, 0.76, 0.9, 1 },
+		items = select_view.scoreSources,
 		depth = 0.9,
 		getValue = function ()
-			return select_view.selectedScoreSource, select_view.scoreSources
+			return select_view.selectedScoreSource
 		end,
 		onChange = function (value)
 			select_view.selectedScoreSource = value
@@ -180,20 +190,21 @@ function View:load()
 		x = group_combo.x - group_combo.totalW - 6, y = 24,
 		origin = { x = 1, y = 0 },
 		ax = "right",
-		text = text.group,
-		font = font.groupSort,
+		text = text.SongSelection_Group,
+		font = assets:loadFont("Light", 29),
 		color = { 0.57, 0.76, 0.9, 1 },
 		depth = 0.5,
 	}))
 
 	--- TABS ---
+	local tab_img = assets:loadImage("selection-tab")
 	local tab_y = 54
 	local no_grouping = tabs:addChild("noGrouping", TabButton({
 		x = width - 15, y = tab_y,
 		origin = { x = 1, y = 0 },
-		image = img.tab,
-		label = text.noGrouping,
-		font = font.tabs,
+		image = tab_img,
+		text = text.SongSelection_NoGrouping,
+		font = assets:loadFont("Regular", 14),
 		depth = 0.5,
 		onClick = function ()
 			self:selectTab("noGrouping")
@@ -203,9 +214,9 @@ function View:load()
 	local by_difficulty = tabs:addChild("byDifficulty", TabButton({
 		x = no_grouping.x - no_grouping.totalW + 25, y = tab_y,
 		origin = { x = 1, y = 0 },
-		image = img.tab,
-		label = text.byDifficulty,
-		font = font.tabs,
+		image = tab_img,
+		text = text.SongSelection_ByDifficulty,
+		font = assets:loadFont("Regular", 14),
 		depth = 0.4,
 		onClick = function ()
 			self:selectTab("byDifficulty")
@@ -215,9 +226,9 @@ function View:load()
 	local by_artist = tabs:addChild("byArtist", TabButton({
 		x = by_difficulty.x - by_difficulty.totalW + 25, y = tab_y,
 		origin = { x = 1, y = 0 },
-		image = img.tab,
-		label = text.byArtist,
-		font = font.tabs,
+		image = tab_img,
+		text = text.SongSelection_ByArtist,
+		font = assets:loadFont("Regular", 14),
 		depth = 0.3,
 		onClick = function ()
 			self:selectTab("byArtist")
@@ -227,9 +238,9 @@ function View:load()
 	local recently_played = tabs:addChild("recentlyPlayed", TabButton({
 		x = by_artist.x - by_artist.totalW + 25, y = tab_y,
 		origin = { x = 1, y = 0 },
-		image = img.tab,
-		label = text.recent,
-		font = font.tabs,
+		image = tab_img,
+		text = text.SongSelection_RecentlyPlayed,
+		font = assets:loadFont("Regular", 14),
 		depth = 0.2,
 		onClick = function ()
 			self:selectTab("recentlyPlayed")
@@ -239,9 +250,9 @@ function View:load()
 	tabs:addChild("collections", TabButton({
 		x = recently_played.x - recently_played.totalW + 25, y = tab_y,
 		origin = { x = 1, y = 0 },
-		image = img.tab,
-		label = text.collections,
-		font = font.tabs,
+		image = tab_img,
+		text = text.SongSelection_Collections,
+		font = assets:loadFont("Regular", 14),
 		depth = 0.1,
 		onClick = function ()
 			self:selectTab("collections")
@@ -253,17 +264,15 @@ function View:load()
 	bottom:addChild("background", Image({
 		y = height,
 		origin = { x = 0, y = 1 },
-		image = img.panelBottom,
+		image = assets:loadImage("songselect-bottom"),
 		totalW = width
 	}))
 
 	bottom:addChild("backButton", BackButton({
 		y = height - 58,
-		font = all_fonts.misc.backButton,
+		assets = assets,
+		font = assets:loadFont("Regular", 20),
 		text = "back",
-		arrowImage = img.menuBackArrow,
-		clickSound = snd.menuBack,
-		hoverSound = snd.hoverOverRect,
 		hoverWidth = 93,
 		hoverHeight = 58,
 		depth = 0.9,
@@ -274,10 +283,10 @@ function View:load()
 
 	local selected_mode_index = 4
 	local small_icons = {
-		img.osuSmallIcon,
-		img.taikoSmallIcon,
-		img.fruitsSmallIcon,
-		img.maniaSmallIcon,
+		assets:loadImage("mode-osu-small"),
+		assets:loadImage("mode-taiko-small"),
+		assets:loadImage("mode-fruits-small"),
+		assets:loadImage("mode-mania-small"),
 	}
 
 	local mode_icon = bottom:addChild("modeSelectionIcon", Image({
@@ -292,8 +301,8 @@ function View:load()
 	bottom:addChild("modeSelection", ImageButton({
 		x = 224, y = height,
 		origin = { x = 0, y = 1 },
-		idleImage = img.modeButton,
-		hoverImage = img.modeButtonOver,
+		idleImage = assets:loadImage("selection-mode"),
+		hoverImage = assets:loadImage("selection-mode-over"),
 		depth = 0.3,
 		onClick = function ()
 			selected_mode_index = 1 + (selected_mode_index % #small_icons)
@@ -304,25 +313,33 @@ function View:load()
 	bottom:addChild("modsSelection", ImageButton({
 		x = 316, y = height,
 		origin = { x = 0, y = 1 },
-		idleImage = img.modsButton,
-		hoverImage = img.modsButtonOver,
+		idleImage = assets:loadImage("selection-mods"),
+		hoverImage = assets:loadImage("selection-mods-over"),
 		depth = 0.3,
 	}))
 
 	bottom:addChild("randomButton", ImageButton({
 		x = 393, y = height,
 		origin = { x = 0, y = 1 },
-		idleImage = img.randomButton,
-		hoverImage = img.randomButtonOver,
+		idleImage = assets:loadImage("selection-random"),
+		hoverImage = assets:loadImage("selection-random-over"),
 		depth = 0.3,
 	}))
 
 	bottom:addChild("beatmapOptionsButton", ImageButton({
 		x = 470, y = height,
 		origin = { x = 0, y = 1 },
-		idleImage = img.optionsButton,
-		hoverImage = img.optionsButtonOver,
+		idleImage = assets:loadImage("selection-options"),
+		hoverImage = assets:loadImage("selection-options-over"),
 		depth = 0.3,
+	}))
+
+	bottom:addChild("osuLogo", Image({
+		x = width - 40, y = height - 40,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.4,
+		image = assets:loadImage("menu-osu-logo"),
+		depth = 0.1
 	}))
 
 	tabs:build()

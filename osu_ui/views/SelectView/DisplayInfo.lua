@@ -10,8 +10,7 @@ local DisplayInfo = class()
 ---@param select_view osu.ui.SelectView
 function DisplayInfo:new(select_view)
 	self.game = select_view.game
-	local localization = select_view.assets.localization
-	local text = localization:get("songSelect")
+	local text = select_view.localization.text
 	assert(text)
 	self.text = text
 end
@@ -63,9 +62,9 @@ function DisplayInfo:setChartInfo()
 	local chart_format = chartview.format
 
 	if chart_format == "sm" then
-		self.chartSource = (text.from):format(chartview.set_dir)
+		self.chartSource = (text.SongSelection_BeatmapInfoCreator):format(chartview.set_dir)
 	else
-		self.chartSource = (text.mappedBy):format(chartview.creator)
+		self.chartSource = (text.SongSelection_BeatmapInfoPack):format(chartview.creator)
 	end
 
 	local note_count = chartview.notes_count or 0
@@ -103,9 +102,9 @@ function DisplayInfo:setChartInfo()
 	local od = tostring(getOD(chartview))
 	local hp = tostring(chartview.osu_hp or 8)
 
-	self.chartInfoFirstRow = text.chartInfoFirstRow:format(length, bpm, objects)
-	self.chartInfoSecondRow = text.chartInfoSecondRow:format(note_count_str, ln_count_str, "0")
-	self.chartInfoThirdRow = text.chartInfoThirdRow:format(columns_str, od, hp, difficulty)
+	self.chartInfoFirstRow = text.SongSelection_BeatmapInfo:format(length, bpm, objects)
+	self.chartInfoSecondRow = text.SongSelection_BeatmapInfo2:format(note_count_str, ln_count_str, "0")
+	self.chartInfoThirdRow = ("Keys: %s OD:%s HP:%i Star rate: %s"):format(columns_str, od, hp, difficulty)
 end
 
 return DisplayInfo

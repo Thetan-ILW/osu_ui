@@ -45,6 +45,7 @@ function GameView:_setView(view)
 	self.view = view
 	self.view.assetModel = self.ui.assetModel
 	self.view.assets = self.ui.assets
+	self.view.localization = self.ui.localization
 	self.view:load()
 	self.screenContainer:build()
 end
@@ -110,6 +111,7 @@ function GameView:update(dt)
 	love.graphics.origin()
 	self.view:update(dt)
 	self.screenContainer:setSize(love.graphics.getDimensions())
+	self.screenContainer:setTextScale(1 / self.ui.assets:getTextDpiScale())
 	self.screenContainer:update(dt)
 end
 

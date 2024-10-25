@@ -1,26 +1,38 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
+local Label = require("osu_ui.ui.Label")
+
 local ui = require("osu_ui.ui")
 
----@alias TabButtonParams { label: string, font: love.Font, image: love.Image, hoverSound: audio.Source?, clickSound: audio.Source? }
+---@alias TabButtonParams { text: string, font: love.Font, image: love.Image, hoverSound: audio.Source?, clickSound: audio.Source? }
 
 ---@class osu.ui.TabButton : osu.ui.UiElement
 ---@overload fun(params: TabButtonParams): osu.ui.TabButton
----@field private image love.Image
----@field private hoverSound audio.Source?
----@field private clickSound audio.Source?
----@field private label string
----@field private font love.Font
----@field private text love.Text
----@field private onClick function
----@field private hoverState osu.ui.HoverState
+---@field image love.Image
+---@field hoverSound audio.Source?
+---@field clickSound audio.Source?
+---@field label osu.ui.Label
+---@field text string
+---@field font love.Font
+---@field onClick function
+---@field hoverState osu.ui.HoverState
 ---@field active boolean
 local TabButton = UiElement + {}
 
 function TabButton:load()
-	self.text = love.graphics.newText(self.font, self.label)
 	self.totalW, self.totalH = self.image:getDimensions()
 	self.active = false
+
+	self.label = Label({
+		text = self.text,
+		font = self.font,
+		textScale = self.parent.textScale,
+		alignX = "center",
+		alignY = "center",
+		totalW = self.totalW,
+		totalH = self.totalH
+	})
+	self.label:load()
 	UiElement.load(self)
 end
 
@@ -56,12 +68,7 @@ function TabButton:draw()
 
 	local tc = self.active and text_active or text_inactive
 	gfx.setColor(tc[1], tc[2], tc[3], self.alpha)
-
-	if self.active then
-		ui.textFrame(self.text, 0, 0, 137, 21, "center", "center")
-	else
-		ui.textFrameShadow(self.text, 0, 0, 137, 21, "center", "center")
-	end
+	self.label:draw()
 end
 
 return TabButton

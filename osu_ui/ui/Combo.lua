@@ -1,16 +1,19 @@
 local UiElement = require("osu_ui.ui.UiElement")
 local HoverState = require("osu_ui.ui.HoverState")
+local DynamicText = require("osu_ui.ui.DynamicText")
+local Label = require("osu_ui.ui.Label")
 
 local ui = require("osu_ui.ui")
 local flux = require("flux")
 
----@alias ComboParams { label: string?, font: love.Font, hoverSound: audio.Source?, expandSound: audio.Source?, hoverColor: number[]?, borderColor: number[]?, onChange: (fun(value: any)), getValue: (fun(): any, any[]), format: (fun(value: any): string) }
+---@alias ComboParams { label: string?, font: love.Font, hoverColor: number[]?, borderColor: number[]?, items: any[], onChange: (fun(value: any)), getValue: (fun(): any), format: (fun(value: any): string) }
 
 ---@class osu.ui.Combo : osu.ui.UiElement
 ---@overload fun(params: ComboParams): osu.ui.Combo
----@field text love.Text?
+---@field items any[]
 ---@field font love.Font
----@field label string?
+---@field itemsText osu.ui.DynamicText[]
+---@field selectedText osu.ui.DynamicText
 ---@field hoverSound audio.Source?
 ---@field expandSound audio.Source?
 ---@field labelColor number[]
@@ -18,35 +21,57 @@ local flux = require("flux")
 ---@field borderColor number[]
 ---@field cellHeight number
 ---@field minCellHeight number
----@field private onChange function
----@field private getValue fun(): any, table
----@field private format? fun(any): string
----@field private selected string
----@field private items any[]
----@field private state "hidden" | "fade_in" | "open" | "fade_out"
----@field private visibility number
----@field private visibilityTween table?
+---@field onChange function
+---@field getValue fun(): any, table
+---@field format? fun(any): string
+---@field state "hidden" | "fade_in" | "open" | "fade_out"
+---@field visibility number
+---@field visibilityTween table?
 local Combo = UiElement + {}
+
+Combo.blockMouseFocus = true
 
 local border_size = 2
 
 function Combo:load()
-	if self.label then
-		self.text = love.graphics.newText(self.font, self.label)
-	end
-
+	assert(self.items, ("No items were provided to: %s"):format(self.id))
 	self.cellHeight = self.totalH
 
-	local x, w, h = self:getPosAndSize()
+	local _, _, h = self:getPosAndSize()
 	self.minCellHeight = h + border_size * 2
 	self.totalH = self.minCellHeight
 
 	self.hoverColor = self.hoverColor or { 0.72, 0.06, 0.46, 1 }
 	self.borderColor = self.borderColor or { 0, 0, 0, 1 }
-	self.selected = "! broken getValue() !"
 	self.state = "hidden"
 	self.visibility = 0
 	self.headHoverState = HoverState("quadout", 0.12)
+
+	self.selectedText = DynamicText({
+		alignY = "center",
+		heightLimit = self.totalH,
+		font = self.font,
+		textScale = self.parent.textScale,
+		value = self.getValue
+	})
+	self.selectedText:load()
+
+	self.itemsText = {}
+
+	for _, v in ipairs(self.items) do
+		local text = self.format and self.format(v) or tostring(v)
+		local item_text = Label({
+			x = 15,
+			text = text,
+			alignY = "center",
+			heightLimit = self.totalH,
+			font = self.font,
+			textScale = self.parent.textScale,
+		})
+		item_text:load()
+		table.insert(self.itemsText, item_text)
+	end
+
 	UiElement.load(self)
 end
 
@@ -118,9 +143,10 @@ end
 function Combo:getPosAndSize()
 	local x = 0
 
+	--[[
 	if self.label then
-		x = self.label:getWidth() * math.min(ui.getTextScale(), 1)
-	end
+		x = self.label:getWidth() * self.parent.textScale
+	end]]
 
 	local w = self.totalW - x - (border_size * 2)
 	local h = math.floor(self.cellHeight / 1.5)
@@ -157,26 +183,32 @@ function Combo:mousePressed()
 	return false
 end
 
+function Combo:setMouseFocus(has_focus)
+	UiElement.setMouseFocus(self, has_focus)
+	if has_focus then
+		local x, w, h = self:getPosAndSize()
+		self.headHoverState:check(self.totalW, h, 0, 0)
+	end
+end
+
 function Combo:update()
 	self:processState()
-	local selected, items = self.getValue()
-	self.selected = self.format and self.format(selected) or tostring(selected)
-	self.items = items
+
+	self.selectedText:update()
 
 	self.hoverIndex = 0
 	local x, w, h = self:getPosAndSize()
 
 	if self.state ~= "hidden" then
-		for i, _ in ipairs(self.items) do
+		for i, v in ipairs(self.itemsText) do
 			self.hoverIndex = ui.isOver(w, h, x, h * i + border_size * 2) and i or self.hoverIndex
+			gfx.push()
+			v:update()
+			gfx.pop()
 		end
 
-		self.totalH = math.max(self.minCellHeight, #self.items * (self.cellHeight * self.visibility) + border_size * 2)
+		self.totalH = math.max(self.minCellHeight, #self.itemsText * (self.cellHeight * self.visibility) + border_size * 2)
 		self.hoverHeight = self.totalH
-	end
-
-	if self.mouseOver then
-		self.headHoverState:check(self.totalW, h, 0, 0)
 	end
 end
 
@@ -188,12 +220,6 @@ local black = { 0, 0, 0, 1 }
 local mix = { 0, 0, 0, 1 }
 
 function Combo:draw()
-	gfx.setColor(1, 1, 1)
-	if self.label then
-		ui.textFrame(self.text, 0, 0, self.totalW, self.totalH, "left", "center")
-	end
-
-	gfx.setFont(self.font)
 	if self.state ~= "hidden" then
 		self:drawBody()
 	end
@@ -217,10 +243,10 @@ function Combo:drawHead()
 	gfx.setColor(mix)
 	gfx.rectangle("fill", 0, border_size, w, h, 4)
 
+	--gfx.setColor(1, 1, 1, self.alpha)
+	--ui.frame("▼", -10, 3, self.totalW, h, "right", "center")
 	gfx.setColor(1, 1, 1, self.alpha)
-	ui.frame("▼", -10, 3, self.totalW, h, "right", "center")
-	gfx.setColor(1, 1, 1, self.alpha)
-	ui.frame(self.selected, 2, border_size, w, h, "left", "center")
+	self.selectedText:draw()
 	gfx.pop()
 end
 
@@ -229,13 +255,16 @@ function Combo:drawBody()
 	local x, w, h = self:getPosAndSize()
 	gfx.translate(x + border_size, border_size * 2)
 
-	for i, v in ipairs(self.items) do
+	for i, v in ipairs(self.itemsText) do
 		gfx.translate(0, h * self.visibility)
 		local color = self.hoverIndex == i and self.hoverColor or black
 		gfx.setColor(color[1], color[2], color[3], self.visibility)
 		gfx.rectangle("fill", 0, 0, w, h, 4)
 		gfx.setColor(1, 1, 1, self.visibility)
-		ui.frame(self.format and self.format(v) or tostring(v), 15, 0, w, h, "left", "center")
+		gfx.push()
+		gfx.applyTransform(v.transform)
+		v:draw()
+		gfx.pop()
 	end
 	gfx.pop()
 end

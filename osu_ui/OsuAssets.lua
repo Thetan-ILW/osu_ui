@@ -1,5 +1,4 @@
 local Assets = require("osu_ui.models.AssetModel.Assets")
-local Localization = require("osu_ui.models.AssetModel.Localization")
 
 local path_util = require("path_util")
 
@@ -13,13 +12,18 @@ local utf8validate = require("utf8validate")
 ---@field imageFonts table<string, table<string, string>>
 ---@field animations {[string]: love.Image[]}
 ---@field sounds table<string, audio.Source>
----@field shaders table<string, love.Shader>
 ---@field params table<string, number|string|boolean|number[]>
----@field localization osu.ui.Localization
 ---@field selectViewConfig function?
 ---@field resultViewConfig function?
 ---@field backButtonType "none" | "image" | "animation"
 local OsuAssets = Assets + {}
+
+OsuAssets.nativeHeight = 768
+OsuAssets.fontFiles = {
+	["Regular"] = "osu_ui/assets/ui_font/Aller/Aller_Rg.ttf",
+	["Light"] = "osu_ui/assets/ui_font/Aller/Aller_Lt.ttf",
+	["Bold"] = "osu_ui/assets/ui_font/Aller/Aller_Bd.ttf",
+}
 
 local characters = {
 	"0",
@@ -42,192 +46,6 @@ local char_alias = {
 	comma = ",",
 	dot = ".",
 	percent = "%",
-}
-
-local images = {
-	firstTimeSetupView = {
-		welcomeImage = "gucci-welcome",
-		welcomeBackground = "gucci-welcome-background"
-	},
-	global = {
-		osuLogo = "menu-osu-logo",
-		cursor = "cursor",
-		cursorMiddle = "cursormiddle",
-		cursorTrail = "cursortrail",
-		uiLock = "ui-lock",
-		buttonLeft = "button-left",
-		buttonMiddle = "button-middle",
-		buttonRight = "button-right",
-		dropdownArrow = "dropdown-arrow",
-		menuBackArrow = "menu-back-arrow",
-
-		checkboxOff = "menu-checkbox-off",
-		checkboxOn = "menu-checkbox-on",
-		optionChanged = "menu-option-changed",
-
-		generalTab = "menu-general-tab",
-		graphicsTab = "menu-graphics-tab",
-		gameplayTab = "menu-gameplay-tab",
-		audioTab = "menu-audio-tab",
-		skinTab = "menu-skin-tab",
-		inputTab = "menu-input-tab",
-		maintenanceTab = "menu-maintenance-tab",
-
-		noSkinPreview = "no-skin-preview",
-		inputsArrow = "inputs-arrow",
-
-		overlayOnline = "overlay-online",
-		overlayChat = "overlay-show",
-		onlineRanking = "ranking-online",
-
-		maniaIcon = "mode-mania",
-	},
-	mainMenuView = {
-		welcomeText = "welcome_text",
-		background = "menu-background",
-		copyright = "menu-copyright",
-		nowPlaying = "menu-np",
-		musicPause = "menu-pause-music",
-		musicToStart = "menu-to-music-start",
-		musicPlay = "menu-play-music",
-		musicBackwards = "menu-music-backwards",
-		musicForwards = "menu-music-forwards",
-		musicInfo = "menu-music-info",
-		musicList = "menu-music-list",
-		directButton = "menu-osudirect",
-		directButtonOver = "menu-osudirect-over",
-		menuPlayButton = "menu-button-play",
-		menuPlayButtonHover = "menu-button-play-over",
-		menuEditButton = "menu-button-edit",
-		menuEditButtonHover = "menu-button-edit-over",
-		menuOptionsButton = "menu-button-options",
-		menuOptionsButtonHover = "menu-button-options-over",
-		menuExitButton = "menu-button-exit",
-		menuExitButtonHover = "menu-button-exit-over",
-		menuSoloButton = "menu-button-freeplay",
-		menuSoloButtonHover = "menu-button-freeplay-over",
-		menuMultiButton = "menu-button-multiplayer",
-		menuMultiButtonHover = "menu-button-multiplayer-over",
-		menuBackButton = "menu-button-back",
-		menuBackButtonHover = "menu-button-back-over",
-		supporter = "menu-subscriber",
-	},
-	selectView = {
-		panelTop = "songselect-top",
-
-		panelBottom = "songselect-bottom",
-		rankedIcon = "selection-ranked",
-		danIcon = "selection-dan",
-
-		menuBackDefault = "menu-back",
-		modeButton = "selection-mode",
-		modsButton = "selection-mods",
-		randomButton = "selection-random",
-		optionsButton = "selection-options",
-
-		modeButtonOver = "selection-mode-over",
-		modsButtonOver = "selection-mods-over",
-		randomButtonOver = "selection-random-over",
-		optionsButtonOver = "selection-options-over",
-
-		tab = "selection-tab",
-		forum = "rank-forum",
-		noScores = "selection-norecords",
-
-		listButtonBackground = "menu-button-background",
-		star = "star",
-		osuSmallIcon = "mode-osu-small",
-		taikoSmallIcon = "mode-taiko-small",
-		fruitsSmallIcon = "mode-fruits-small",
-		maniaSmallIcon = "mode-mania-small",
-		maniaSmallIconForCharts = "mode-mania-small-for-charts",
-
-		smallGradeD = "ranking-D-small",
-		smallGradeC = "ranking-C-small",
-		smallGradeB = "ranking-B-small",
-		smallGradeA = "ranking-A-small",
-		smallGradeS = "ranking-S-small",
-		smallGradeX = "ranking-X-small",
-		recentScore = "recent-score",
-	},
-	resultView = {
-		title = "ranking-title",
-		panel = "ranking-panel",
-		graph = "ranking-graph",
-		maxCombo = "ranking-maxcombo",
-		accuracy = "ranking-accuracy",
-		replay = "pause-replay",
-		retry = "pause-retry",
-
-		judgePerfect = "mania-hit300",
-		judgeGreat = "mania-hit200",
-		judgeGood = "mania-hit100",
-		judgeBad = "mania-hit50",
-		judgeMiss = "mania-hit0",
-
-		gradeSS = "ranking-X",
-		gradeS = "ranking-S",
-		gradeA = "ranking-A",
-		gradeB = "ranking-B",
-		gradeC = "ranking-C",
-		gradeD = "ranking-D",
-		backgroundOverlay = "ranking-background-overlay",
-
-		noLongNote = "selection-mod-nolongnote",
-		mirror = "selection-mod-mirror",
-		random = "selection-mod-random",
-		doubleTime = "selection-mod-doubletime",
-		halfTime = "selection-mod-halftime",
-		autoPlay = "selection-mod-autoplay",
-		automap4 = "selection-mod-key4",
-		automap5 = "selection-mod-key5",
-		automap6 = "selection-mod-key6",
-		automap7 = "selection-mod-key7",
-		automap8 = "selection-mod-key8",
-		automap9 = "selection-mod-key9",
-		automap10 = "selection-mod-key10",
-		fln3 = "selection-mod-fln3",
-		scorev2 = "selection-mod-scorev2",
-		j4 = "selection-mod-j4",
-		j7 = "selection-mod-j7",
-	},
-	playerStatsView = {
-		activityRectangle = "activity-rectangle",
-		activityBackground = "profile-activity",
-		danClearsBackground = "profile-dan-clears",
-		danClearsOverlay = "profile-dan-clears-overlay",
-		profilePanelBottom = "profile-bottom",
-		profileSelect = "profile-select",
-		profileSelectOver = "profile-select-over",
-		profileDisplayOptions = "profile-display-options",
-		profileDisplayOptionsOver = "profile-display-options-over",
-		profileSsrPanel = "profile-ssr-panel",
-		profileModePanel = "profile-mode-panel"
-	}
-}
-
-local sounds = {
-	welcome = "welcome",
-	welcomePiano = "welcome_piano",
-	goodbye = "seeya",
-	selectChart = "select-difficulty",
-	selectGroup = "select-expand",
-	hoverOverRect = "click-short",
-	hoverMenu = "menuclick",
-	clickShortConfirm = "click-short-confirm",
-
-	applause = "applause",
-	menuBack = "menuback",
-	menuHit = "menuhit",
-	menuPlayClick = "menu-play-click",
-	menuEditClick = "menu-edit-click",
-	menuFreeplayClick = "menu-freeplay-click",
-	menuMultiplayerClick = "menu-multiplayer-click",
-
-	checkOn = "check-on",
-	checkOff = "check-off",
-	sliderBar = "sliderbar",
-	selectExpand = "select-expand",
 }
 
 ---@param prefix string
@@ -311,8 +129,7 @@ function OsuAssets:new(asset_model, skin_path)
 	self:setPaths(skin_path, "osu_ui/assets")
 end
 
----@param default_localization string
-function OsuAssets:load(default_localization)
+function OsuAssets:load()
 	self:setFileList()
 
 	local content = love.filesystem.read(path_util.join(self.directory, self.fileList["skin.ini"]))
@@ -327,8 +144,6 @@ function OsuAssets:load(default_localization)
 	end
 
 	skin_ini = OsuNoteSkin:parseSkinIni(content)
-
-	self:loadLocalization(default_localization)
 
 	self.params = {
 		songSelectActiveText = strToColor(skin_ini.Colours.SongSelectActiveText),
@@ -345,34 +160,11 @@ function OsuAssets:load(default_localization)
 
 	self.images = {}
 	self.sounds = {}
+	self.fonts = {}
 	self.imageFonts = {}
 	self.animations = {}
 	self.customViews = {}
 	self.loadedViews = {}
-
-	self:populateImages(images.global, self.images)
-	self:populateSounds(sounds, self.sounds)
-
-	self.images.avatar = self:loadAvatar()
-
-	self.shaders = {
-		brighten = love.graphics.newShader([[
-		extern Image tex;
-		extern float amount;
-		vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
-		{
-		    vec4 texturecolor = Texel(tex, texture_coords);
-		    return vec4(texturecolor.rgb + amount, texturecolor.a) * color;
-		}
-	]]),
-		gray = love.graphics.newShader([[
-		vec4 effect(vec4 color, Image tex, vec2 texture_coords, vec2 screen_coords)
-		{
-		    vec4 texturecolor = Texel(tex, texture_coords);
-		    return vec4(0.8, 0.8, 0.8, texturecolor.a);
-		}
-	]])
-	}
 end
 
 local custom_views = {
@@ -404,7 +196,6 @@ function OsuAssets:loadViewAssets(view_name)
 		return
 	end
 
-	self:populateImages(images[view_name], self.images)
 	self.loadedViews[view_name] = true
 
 	local f = self[view_name]
@@ -415,8 +206,8 @@ end
 
 ---@private
 function OsuAssets:selectView()
-	self.images.panelTop:setWrap("clamp")
-	self:loadMenuBack()
+	--self.images.panelTop:setWrap("clamp")
+	--self:loadMenuBack()
 end
 
 ---@private

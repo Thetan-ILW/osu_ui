@@ -1,8 +1,6 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
-local ui = require("osu_ui.ui")
-
----@alias LabelParams { text: string, font: love.Font, color: Color?, widthLimit: number?, heightLimit: number?, ax?: AlignX, ay?: AlignY, onClick: function }
+---@alias LabelParams { text: string, font: love.Font, color: Color?, alignX?: AlignX, alignY?: AlignY, textScale: number?, onClick: function }
 
 ---@class osu.ui.Label : osu.ui.UiElement
 ---@overload fun(params: LabelParams): osu.ui.Label
@@ -10,9 +8,10 @@ local ui = require("osu_ui.ui")
 ---@field font love.Font
 ---@field widthLimit number
 ---@field heightLimit number
+---@field posX number
+---@field poxY number
 ---@field label love.Text
 ---@field align AlignX
----@field hoverSound audio.Source?
 ---@field onClick function?
 local Label = UiElement + {}
 
@@ -20,41 +19,44 @@ local Label = UiElement + {}
 function Label:load()
 	self.label = love.graphics.newText(self.font, self.text)
 	self.color = self.color or { 1, 1, 1, 1 }
-	self.ax = self.ax or "left"
-	self.ay = self.ay or "top"
+	self.alignX = self.alignX or "left"
+	self.alignY = self.alignY or "top"
 
-	self.totalW = self.widthLimit or self.label:getWidth() * math.min(ui.getTextScale(), 1)
-	self.totalH = self.label:getHeight() * math.min(ui.getTextScale(), 1)
+	local text_scale = self.textScale or self.parent.textScale
+	local tw, th = self.label:getDimensions()
+	tw, th = tw * text_scale, th * text_scale
+	self.totalW = self.totalW or tw
+	self.totalH = self.totalH or th
+	self.textScale = text_scale
 
-	if self.widthLimit then
-		self.totalW = self.widthLimit
+	local x = 0
+	local y = 0
+	local w = self.totalW
+	local h = self.totalH
+
+	if self.alignX == "center" then
+		x = w / 2 - tw / 2
+	elseif self.alignX == "right" then
+		x = w - tw
 	end
-	if self.heightLimit then
-		self.totalH = self.heightLimit
+
+	if self.alignY == "center" then
+		y = h / 2 - th / 2
+	elseif self.alignY == "bottom" then
+		y = h - th
 	end
+
+	self.posX, self.posY = x, y
 
 	UiElement.load(self)
 end
 
 local gfx = love.graphics
 
-function Label:justHovered()
-	if self.hoverSound then
-		ui.playSound(self.hoverSound)
-	end
-end
-
-function Label:update()
-	if self.mouseOver and ui.mousePressed(1) then
-		if self.onClick then
-			self.onClick()
-		end
-	end
-end
-
 function Label:draw()
-	ui.textFrame(self.label, 0, 0, self.totalW, self.totalH, self.ax, self.ay)
-	gfx.translate(0, self.totalH)
+	gfx.translate(self.posX, self.posY)
+	gfx.scale(self.textScale)
+	gfx.draw(self.label)
 end
 
 return Label
