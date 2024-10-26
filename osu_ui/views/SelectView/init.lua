@@ -1,5 +1,6 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
+local table_util = require("table_util")
 local actions = require("osu_ui.actions")
 local ui = require("osu_ui.ui")
 
@@ -12,17 +13,19 @@ local View = require("osu_ui.views.SelectView.View")
 ---@field prevChartViewId number
 local SelectView = ScreenView + {}
 
-SelectView.scoreSources = {
-	"local",
-	"online"
+SelectView.groups = {
+	"charts",
+	"locations",
+	"directories",
 }
 
 function SelectView:load()
 	self.game.selectController:load()
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs
+	local osu = self.configs.osu_ui
 
-	self.selectedScoreSource = self.scoreSources[1]
+	self.selectedGroup = self.groups[1]
 
 	self.screenshot = love.graphics.newImage("screenshot196.jpg")
 	self.inputMap = InputMap(self)
@@ -31,7 +34,6 @@ function SelectView:load()
 	self:reloadView()
 
 	actions.enable()
-
 end
 
 function SelectView:beginUnload()
@@ -233,7 +235,69 @@ function SelectView:resolutionUpdated()
 	self:reloadView()
 end
 
-function SelectView:draw()
+
+---@return string
+function SelectView:getScoreSource()
+	return self.configs.osu_ui.songSelect.scoreSource
+end
+---@return string[]
+function SelectView:getScoreSources()
+	local profile_sources = self.ui.playerProfile.scoreSources
+	self.scoreSources = { "local" }
+	if profile_sources then
+		for i, v in ipairs(profile_sources) do
+			table.insert(self.scoreSources, v)
+		end
+	end
+	table.insert(self.scoreSources, "online")
+	return self.scoreSources
+end
+---@param index integer
+function SelectView:setScoreSource(index)
+	local score_source = self.scoreSources[index]
+	self.configs.osu_ui.songSelect.scoreSource = score_source
+	if score_source == "online" then
+		self.configs.select.scoreSourceName = "online"
+		return
+	end
+	self.configs.select.scoreSourceName = "local"
+	self.game.selectModel:pullScore()
+	--- TODO: Reload the score list
+end
+
+---@return string
+function SelectView:getSortFunction()
+	return self.configs.select.sortFunction
+end
+---@return string[]
+function SelectView:getSortFunctionNames()
+	local new = {}
+	for _, v in ipairs(self.game.selectModel.sortModel.names) do
+		table.insert(new, v)
+	end
+	table.remove(new, 1)
+	table.remove(new, #new - 1)
+	return new
+end
+---@param index integer
+function SelectView:setSortFunction(index)
+	local name = self:getSortFunctionNames()[index]
+	if name then
+		self.game.selectModel:setSortFunction(name)
+	end
+end
+
+---@return string
+function SelectView:getGroup()
+	return self.selectedGroup
+end
+---@return string[]
+function SelectView:getGroups()
+	return self.groups
+end
+---@param index integer
+function SelectView:setGroup(index)
+	self.selectedGroup = self.groups[index]
 end
 
 return SelectView

@@ -146,7 +146,7 @@ end
 
 function UserInterface:load()
 	self:getMods()
-	--love.window.setMode(1366, 768)
+	love.window.setMode(1366, 768)
 
 	local windows = jit.os == "Windows"
 	local osu = self.game.configModel.configs.osu_ui

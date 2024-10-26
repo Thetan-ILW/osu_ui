@@ -32,13 +32,12 @@ function View:load()
 	local tabs = top:addChild("tabContainer", Container({ depth = 0.5 }))
 	---@cast tabs osu.ui.Container
 
-	--[[
 	local screenshot = self:addChild("screenshot", Image({
 		image = select_view.screenshot,
 		blockMouseFocus = false,
+		alpha = 0,
 		depth = 1,
 	}))
-
 	function self:wheelUp()
 		screenshot.alpha = math.min(1, screenshot.alpha + 0.1)
 		return true
@@ -47,10 +46,8 @@ function View:load()
 		screenshot.alpha = math.max(0, screenshot.alpha - 0.1)
 		return true
 	end
-
 	self:bindEvent(self, "wheelUp")
 	self:bindEvent(self, "wheelDown")
-	]]
 
 	----------- TOP -----------
 
@@ -113,6 +110,15 @@ function View:load()
 		end
 	}))
 
+	local ranking_options = {
+		["local"] = text.SongSelection_Rank_Local,
+		online = text.SongSelection_Rank_Top,
+		osuv1 = "osu!mania V1",
+		osuv2 = "osu!mania V2",
+		etterna = "Etterna J4",
+		quaver = "Quaver"
+	}
+	local score_sources = select_view:getScoreSources()
 	top:addChild("scoreSource", Combo({
 		x = 8, y = 117,
 		totalW = 308,
@@ -120,14 +126,18 @@ function View:load()
 		font = assets:loadFont("Regular", 18),
 		borderColor = { 0.08, 0.51, 0.7, 1 },
 		hoverColor = { 0.08, 0.51, 0.7, 1 },
-		items = select_view.scoreSources,
+		items = score_sources,
+		assets = assets,
 		depth = 0.9,
 		getValue = function ()
-			return select_view.selectedScoreSource
+			return select_view:getScoreSource()
 		end,
-		onChange = function (value)
-			select_view.selectedScoreSource = value
+		onChange = function (index)
+			select_view:setScoreSource(index)
 		end,
+		format = function (value)
+			return ranking_options[value] or ""
+		end
 	}))
 
 	top:addChild("chartWebPage", ImageButton({
@@ -140,6 +150,22 @@ function View:load()
 		end
 	}))
 
+	local sort_group_format = {
+		charts = text.SongSelection_ByBeatmaps,
+		locations = text.SongSelection_ByGames,
+		directories = text.SongSelection_ByFolders,
+		id = text.byId,
+		title = text.SongSelection_ByTitle,
+		artist = text.SongSelection_ByArtist,
+		difficulty = text.SongSelection_ByDifficulty,
+		level = text.SongSelection_ByLevel,
+		duration = text.SongSelection_ByLength,
+		bpm = text.SongSelection_ByBPM,
+		modtime = text.SongSelection_ByDateAdded,
+		["set modtime"] = text.bySetModTime,
+		["last played"] = text.SongSelection_ByRecentlyPlayed,
+	}
+
 	local sort_combo = top:addChild("sortCombo", Combo({
 		x = width - 16, y = 28,
 		origin = { x = 1, y = 0 },
@@ -148,14 +174,18 @@ function View:load()
 		font = assets:loadFont("Regular", 18),
 		borderColor = { 0.68, 0.82, 0.54, 1 },
 		hoverColor = { 0.68, 0.82, 0.54, 1 },
-		items = select_view.scoreSources,
+		items = select_view:getSortFunctionNames(),
+		assets = assets,
 		depth = 0.9,
 		getValue = function ()
-			return select_view.selectedScoreSource
+			return select_view:getSortFunction()
 		end,
-		onChange = function (value)
-			select_view.selectedScoreSource = value
+		onChange = function (index)
+			select_view:setSortFunction(index)
 		end,
+		format = function (value)
+			return sort_group_format[value] or value
+		end
 	}))
 
 	local sort_text = top:addChild("sortText", Label({
@@ -176,14 +206,18 @@ function View:load()
 		font = assets:loadFont("Regular", 18),
 		borderColor = { 0.57, 0.76, 0.9, 1 },
 		hoverColor = { 0.57, 0.76, 0.9, 1 },
-		items = select_view.scoreSources,
+		items = select_view:getGroups(),
+		assets = assets,
 		depth = 0.9,
 		getValue = function ()
-			return select_view.selectedScoreSource
+			return select_view:getGroup()
 		end,
-		onChange = function (value)
-			select_view.selectedScoreSource = value
+		onChange = function (index)
+			select_view:setGroup(index)
 		end,
+		format = function (value)
+			return sort_group_format[value] or value
+		end
 	}))
 
 	top:addChild("groupText", Label({
@@ -199,12 +233,13 @@ function View:load()
 	--- TABS ---
 	local tab_img = assets:loadImage("selection-tab")
 	local tab_y = 54
+	local tab_font = assets:loadFont("Regular", 13)
 	local no_grouping = tabs:addChild("noGrouping", TabButton({
 		x = width - 15, y = tab_y,
 		origin = { x = 1, y = 0 },
 		image = tab_img,
 		text = text.SongSelection_NoGrouping,
-		font = assets:loadFont("Regular", 14),
+		font = tab_font,
 		depth = 0.5,
 		onClick = function ()
 			self:selectTab("noGrouping")
@@ -216,7 +251,7 @@ function View:load()
 		origin = { x = 1, y = 0 },
 		image = tab_img,
 		text = text.SongSelection_ByDifficulty,
-		font = assets:loadFont("Regular", 14),
+		font = tab_font,
 		depth = 0.4,
 		onClick = function ()
 			self:selectTab("byDifficulty")
@@ -228,7 +263,7 @@ function View:load()
 		origin = { x = 1, y = 0 },
 		image = tab_img,
 		text = text.SongSelection_ByArtist,
-		font = assets:loadFont("Regular", 14),
+		font = tab_font,
 		depth = 0.3,
 		onClick = function ()
 			self:selectTab("byArtist")
@@ -240,7 +275,7 @@ function View:load()
 		origin = { x = 1, y = 0 },
 		image = tab_img,
 		text = text.SongSelection_RecentlyPlayed,
-		font = assets:loadFont("Regular", 14),
+		font = tab_font,
 		depth = 0.2,
 		onClick = function ()
 			self:selectTab("recentlyPlayed")
@@ -252,7 +287,7 @@ function View:load()
 		origin = { x = 1, y = 0 },
 		image = tab_img,
 		text = text.SongSelection_Collections,
-		font = assets:loadFont("Regular", 14),
+		font = tab_font,
 		depth = 0.1,
 		onClick = function ()
 			self:selectTab("collections")

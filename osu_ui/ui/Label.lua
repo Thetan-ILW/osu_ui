@@ -60,14 +60,15 @@ function Label:draw()
 	gfx.scale(self.textScale)
 
 	if self.shadow then
-		gfx.setColor(0.078, 0.078, 0.078, 0.64)
+		gfx.setColor(0.078, 0.078, 0.078, 0.64 * self.alpha)
 		gfx.draw(self.label, -shadow_offset, -shadow_offset)
 		gfx.draw(self.label, shadow_offset, -shadow_offset)
 		gfx.draw(self.label, -shadow_offset, shadow_offset)
 		gfx.draw(self.label, shadow_offset, shadow_offset)
 	end
 
-	gfx.setColor(self.color)
+	local c = self.color
+	gfx.setColor(c[1], c[2], c[3], self.alpha)
 	gfx.draw(self.label)
 end
 

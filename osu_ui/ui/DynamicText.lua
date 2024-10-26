@@ -41,7 +41,7 @@ function DynamicText:update()
 	self.hoverWidth, self.hoverHeight = w, h
 
 	if self.alignY == "center" then
-		self.textY = (h - self.totalH) / 2
+		self.textY = self.totalH / 2 - h / 2
 	elseif self.alignY == "bottom" then
 		self.textY = h - self.totalH
 	end

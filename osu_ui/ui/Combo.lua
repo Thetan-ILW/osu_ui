@@ -6,14 +6,17 @@ local Label = require("osu_ui.ui.Label")
 local ui = require("osu_ui.ui")
 local flux = require("flux")
 
----@alias ComboParams { label: string?, font: love.Font, hoverColor: number[]?, borderColor: number[]?, items: any[], onChange: (fun(value: any)), getValue: (fun(): any), format: (fun(value: any): string) }
+---@alias ComboParams { assets: osu.ui.OsuAssets, label: string?, font: love.Font, hoverColor: number[]?, borderColor: number[]?, items: any[], onChange: (fun(index: integer)), getValue: (fun(): any), format: (fun(value: any): string) }
 
 ---@class osu.ui.Combo : osu.ui.UiElement
 ---@overload fun(params: ComboParams): osu.ui.Combo
+---@field assets osu.ui.OsuAssets
 ---@field items any[]
 ---@field font love.Font
 ---@field itemsText osu.ui.DynamicText[]
 ---@field selectedText osu.ui.DynamicText
+---@field iconDown love.Text
+---@field iconRight love.Text
 ---@field hoverSound audio.Source?
 ---@field expandSound audio.Source?
 ---@field labelColor number[]
@@ -21,7 +24,7 @@ local flux = require("flux")
 ---@field borderColor number[]
 ---@field cellHeight number
 ---@field minCellHeight number
----@field onChange function
+---@field onChange fun(index: integer)
 ---@field getValue fun(): any, table
 ---@field format? fun(any): string
 ---@field state "hidden" | "fade_in" | "open" | "fade_out"
@@ -34,7 +37,8 @@ Combo.blockMouseFocus = true
 local border_size = 2
 
 function Combo:load()
-	assert(self.items, ("No items were provided to: %s"):format(self.id))
+	assert(self.assets, ("OsuAssets not provided: %s"):format(self.id))
+	assert(self.items, ("No items provided to: %s"):format(self.id))
 	self.cellHeight = self.totalH
 
 	local _, _, h = self:getPosAndSize()
@@ -49,12 +53,18 @@ function Combo:load()
 
 	self.selectedText = DynamicText({
 		alignY = "center",
-		heightLimit = self.totalH,
+		heightLimit = self.minCellHeight,
 		font = self.font,
 		textScale = self.parent.textScale,
-		value = self.getValue
+		value = function ()
+			local value = self.getValue()
+			return self.format and self.format(value) or value
+		end
 	})
 	self.selectedText:load()
+
+	self.iconDown = self.assets:awesomeIcon("", 18)
+	self.iconRight = self.assets:awesomeIcon("", 15)
 
 	self.itemsText = {}
 
@@ -102,10 +112,6 @@ end
 ---@param event? "open" | "close" | "toggle"
 function Combo:processState(event)
 	local state = self.state
-
-	if not event then
-		return
-	end
 
 	if event == "toggle" then
 		event = (state == "open" or state == "fade_in") and "close" or "open"
@@ -164,7 +170,7 @@ function Combo:mousePressed()
 	if self.mouseOver then
 		if self.state == "open" or self.state == "fade_in" then
 			if self.hoverIndex ~= 0 then
-				self.onChange(self.items[self.hoverIndex])
+				self.onChange(self.hoverIndex)
 			end
 			self:processState("close")
 			return true
@@ -184,16 +190,18 @@ function Combo:mousePressed()
 end
 
 function Combo:setMouseFocus(has_focus)
-	UiElement.setMouseFocus(self, has_focus)
+	local blocking_focus = UiElement.setMouseFocus(self, has_focus)
 	if has_focus then
 		local x, w, h = self:getPosAndSize()
 		self.headHoverState:check(self.totalW, h, 0, 0)
 	end
+	return blocking_focus
 end
 
 function Combo:update()
 	self:processState()
 
+	self.selectedText.alpha = self.alpha
 	self.selectedText:update()
 
 	self.hoverIndex = 0
@@ -207,7 +215,7 @@ function Combo:update()
 			gfx.pop()
 		end
 
-		self.totalH = math.max(self.minCellHeight, #self.itemsText * (self.cellHeight * self.visibility) + border_size * 2)
+		self.totalH = math.max(self.minCellHeight, self.minCellHeight + #self.itemsText * (h * self.visibility))
 		self.hoverHeight = self.totalH
 	end
 end
@@ -217,6 +225,7 @@ function Combo:isFocused()
 end
 
 local black = { 0, 0, 0, 1 }
+local white = { 1, 1, 1, 1 }
 local mix = { 0, 0, 0, 1 }
 
 function Combo:draw()
@@ -243,9 +252,11 @@ function Combo:drawHead()
 	gfx.setColor(mix)
 	gfx.rectangle("fill", 0, border_size, w, h, 4)
 
-	--gfx.setColor(1, 1, 1, self.alpha)
-	--ui.frame("▼", -10, 3, self.totalW, h, "right", "center")
+	local text_scale = self.parent.textScale
 	gfx.setColor(1, 1, 1, self.alpha)
+	gfx.draw(self.iconDown, self.totalW - border_size - (self.iconDown:getWidth() * text_scale) - 8, 3, 0, text_scale, text_scale)
+	gfx.setColor(1, 1, 1, self.alpha)
+	gfx.translate(border_size, 3)
 	self.selectedText:draw()
 	gfx.pop()
 end
@@ -256,13 +267,21 @@ function Combo:drawBody()
 	gfx.translate(x + border_size, border_size * 2)
 
 	for i, v in ipairs(self.itemsText) do
+		local hover = self.hoverIndex == i
+		local panel_color = hover and self.hoverColor or black
+		local icon_color = hover and white or black
+		local a = self.visibility * self.alpha
+
+		gfx.setColor(panel_color[1], panel_color[2], panel_color[3], a)
 		gfx.translate(0, h * self.visibility)
-		local color = self.hoverIndex == i and self.hoverColor or black
-		gfx.setColor(color[1], color[2], color[3], self.visibility)
 		gfx.rectangle("fill", 0, 0, w, h, 4)
-		gfx.setColor(1, 1, 1, self.visibility)
+
+		gfx.setColor(icon_color[1], icon_color[2], icon_color[3], a)
+		gfx.draw(self.iconRight, 2, 4)
+
 		gfx.push()
 		gfx.applyTransform(v.transform)
+		v.alpha = a
 		v:draw()
 		gfx.pop()
 	end
