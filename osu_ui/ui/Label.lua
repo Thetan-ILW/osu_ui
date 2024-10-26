@@ -1,13 +1,12 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
----@alias LabelParams { text: string, font: love.Font, color: Color?, alignX?: AlignX, alignY?: AlignY, textScale: number?, onClick: function }
+---@alias LabelParams { text: string, font: love.Font, color: Color?, alignX?: AlignX, alignY?: AlignY, shadow: boolean?, textScale: number?, onClick: function }
 
 ---@class osu.ui.Label : osu.ui.UiElement
 ---@overload fun(params: LabelParams): osu.ui.Label
 ---@field text string
 ---@field font love.Font
----@field widthLimit number
----@field heightLimit number
+---@field shadow boolean
 ---@field posX number
 ---@field poxY number
 ---@field label love.Text
@@ -21,6 +20,7 @@ function Label:load()
 	self.color = self.color or { 1, 1, 1, 1 }
 	self.alignX = self.alignX or "left"
 	self.alignY = self.alignY or "top"
+	self.shadow = self.shadow or false
 
 	local text_scale = self.textScale or self.parent.textScale
 	local tw, th = self.label:getDimensions()
@@ -53,9 +53,21 @@ end
 
 local gfx = love.graphics
 
+local shadow_offset = 0.6
+
 function Label:draw()
 	gfx.translate(self.posX, self.posY)
 	gfx.scale(self.textScale)
+
+	if self.shadow then
+		gfx.setColor(0.078, 0.078, 0.078, 0.64)
+		gfx.draw(self.label, -shadow_offset, -shadow_offset)
+		gfx.draw(self.label, shadow_offset, -shadow_offset)
+		gfx.draw(self.label, -shadow_offset, shadow_offset)
+		gfx.draw(self.label, shadow_offset, shadow_offset)
+	end
+
+	gfx.setColor(self.color)
 	gfx.draw(self.label)
 end
 

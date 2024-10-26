@@ -11,7 +11,7 @@ local ui = require("osu_ui.ui")
 ---@field private assets osu.ui.OsuAssets
 ---@field private text string
 ---@field private label osu.ui.Label
----@field private arrowImage love.Image
+---@field private icon love.Text
 ---@field private clickSound audio.Source
 ---@field private hoverSound audio.Source
 ---@field private canvas love.Canvas
@@ -23,7 +23,7 @@ local inactive_color = { 238 / 255, 51 / 255, 153 / 255 }
 local active_color = { 187 / 255, 17 / 255, 119 / 255 }
 
 function BackButton:load()
-	self.arrowImage = self.assets:loadImage("menu-back-arrow")
+	self.icon = self.assets:awesomeIcon("", 20)
 	self.layerImage = self.assets:loadImage("back-button-layer")
 	self.clickSound = self.assets:loadAudio("menuback")
 	self.hoverSound = self.assets:loadAudio("menuclick")
@@ -37,6 +37,7 @@ function BackButton:load()
 		totalH = self.totalH,
 		text = self.text,
 		textScale  = self.parent.textScale,
+		shadow = true,
 		font = self.assets:loadFont("Regular", 20)
 	})
 	self.label:load()
@@ -91,8 +92,9 @@ function BackButton:draw()
 
 	gfx.setColor(1, 1, 1, self.alpha)
 
-	local iw, ih = self.arrowImage:getDimensions()
-	gfx.draw(self.arrowImage, 12 * progress + 14, self.totalH / 2, 0, 1, 1, iw / 2, ih / 2)
+	local iw, ih = self.icon:getDimensions()
+	local s = self.parent.textScale
+	gfx.draw(self.icon, 12 * progress + 14, self.totalH / 2, 0, s, s, iw / 2, ih / 2)
 end
 
 return BackButton

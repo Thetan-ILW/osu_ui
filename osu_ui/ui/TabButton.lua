@@ -53,21 +53,25 @@ function TabButton:mousePressed()
 	return false
 end
 
-local gfx = love.graphics
-
 local inactive = { 0.86, 0.08, 0.23 }
 local active = { 1, 1, 1 }
 
 local text_inactive = { 1, 1, 1 }
 local text_active = { 0, 0, 0 }
 
+function TabButton:update()
+	self.label.shadow = not self.active
+	self.label.color = self.active and text_active or text_inactive
+	self.label.alpha = self.alpha
+end
+
+local gfx = love.graphics
+
 function TabButton:draw()
 	local c = self.active and active or inactive
 	gfx.setColor(c[1], c[2], c[3], self.alpha)
 	gfx.draw(self.image)
 
-	local tc = self.active and text_active or text_inactive
-	gfx.setColor(tc[1], tc[2], tc[3], self.alpha)
 	self.label:draw()
 end
 

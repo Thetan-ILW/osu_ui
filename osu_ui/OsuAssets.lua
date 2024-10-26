@@ -23,6 +23,7 @@ OsuAssets.fontFiles = {
 	["Regular"] = "osu_ui/assets/ui_font/Aller/Aller_Rg.ttf",
 	["Light"] = "osu_ui/assets/ui_font/Aller/Aller_Lt.ttf",
 	["Bold"] = "osu_ui/assets/ui_font/Aller/Aller_Bd.ttf",
+	["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf"
 }
 
 local characters = {
@@ -227,16 +228,11 @@ function OsuAssets:resultView()
 	end
 end
 
----@param filepath string
-function OsuAssets:loadLocalization(filepath)
-	if not self.localization then
-		self.localization = Localization(self.assetModel, filepath, 768)
-		return
-	end
-
-	if self.localization.currentFilePath ~= filepath then
-		self.localization:loadFile(filepath)
-	end
+---@param icon string
+---@param size number
+---@return love.Text
+function OsuAssets:awesomeIcon(icon, size)
+	return love.graphics.newText(self:loadFont("Awesome", size), icon)
 end
 
 return OsuAssets
