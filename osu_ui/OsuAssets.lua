@@ -74,15 +74,22 @@ end
 
 ---@return love.Image
 function OsuAssets:loadAvatar()
+	if self.images["__avatar__"] then
+		return self.images["__avatar__"]
+	end
+
 	local file_list = {}
 	self.populateFileList(file_list, "userdata", "", 5)
 
 	local avatar = self.findImage("avatar", file_list)
 
 	if avatar then
-		return love.graphics.newImage(path_util.join("userdata", avatar))
+		local img = love.graphics.newImage(path_util.join("userdata", avatar))
+		self.images["__avatar__"] = img
+		return img
 	end
 
+	self.images["__avatar__"] = self.emptyImage()
 	return self.emptyImage()
 end
 

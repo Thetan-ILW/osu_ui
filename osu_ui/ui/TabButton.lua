@@ -56,8 +56,8 @@ end
 local inactive = { 0.86, 0.08, 0.23 }
 local active = { 1, 1, 1 }
 
-local text_inactive = { 1, 1, 1 }
-local text_active = { 0, 0, 0 }
+local text_inactive = { 1, 1, 1, 1 }
+local text_active = { 0, 0, 0, 1 }
 
 function TabButton:update()
 	self.label.shadow = not self.active

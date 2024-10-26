@@ -7,6 +7,7 @@ local BackButton = require("osu_ui.ui.BackButton")
 local Label = require("osu_ui.ui.Label")
 local Combo = require("osu_ui.ui.Combo")
 local TabButton = require("osu_ui.ui.TabButton")
+local PlayerInfoView = require("osu_ui.views.PlayerInfoView")
 
 ---@class osu.ui.SelectViewContainer : osu.ui.Container
 ---@operator call: osu.ui.SelectViewContainer
@@ -35,7 +36,7 @@ function View:load()
 	local screenshot = self:addChild("screenshot", Image({
 		image = select_view.screenshot,
 		blockMouseFocus = false,
-		alpha = 0,
+		alpha = 0.7,
 		depth = 1,
 	}))
 	function self:wheelUp()
@@ -367,6 +368,24 @@ function View:load()
 		idleImage = assets:loadImage("selection-options"),
 		hoverImage = assets:loadImage("selection-options-over"),
 		depth = 0.3,
+	}))
+
+	local info = select_view:getProfileInfo()
+	bottom:addChild("playerInfo", PlayerInfoView({
+		x = 624, y = height + 4,
+		origin = { x = 0, y = 1 },
+		username = info.username,
+		firstRow = info.firstRow,
+		secondRow = info.secondRow,
+		level = info.level,
+		levelProgress = info.levelPercent,
+		rank = info.rank,
+		assets = assets,
+		depth = 0.3,
+		onClick = function ()
+
+		end
+
 	}))
 
 	bottom:addChild("osuLogo", Image({

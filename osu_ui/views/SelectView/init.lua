@@ -27,7 +27,7 @@ function SelectView:load()
 
 	self.selectedGroup = self.groups[1]
 
-	self.screenshot = love.graphics.newImage("screenshot196.jpg")
+	self.screenshot = love.graphics.newImage("screenshot198.jpg")
 	self.inputMap = InputMap(self)
 	self.displayInfo = DisplayInfo(self)
 	self:notechartChanged()
@@ -298,6 +298,35 @@ end
 ---@param index integer
 function SelectView:setGroup(index)
 	self.selectedGroup = self.groups[index]
+end
+
+function SelectView:getProfileInfo()
+	local profile = self.ui.playerProfile
+
+	local username = self.configs.online.user.name or "Guest"
+	local pp = profile.pp
+	local accuracy = profile.accuracy
+	local level = profile.osuLevel
+	local level_percent = profile.osuLevelPercent
+	local rank = profile.rank
+
+	local chartview = self.game.selectModel.chartview
+	if chartview then
+		local regular, ln = profile:getDanClears(chartview.chartdiff_inputmode)
+		if regular ~= "-" or ln ~= "-" then
+			username = ("%s [%s/%s]"):format(username, regular, ln)
+		end
+	end
+
+	return {
+		username = username,
+		firstRow = ("Performance: %ipp"):format(pp),
+		secondRow = ("Accuracy: %0.02f%%"):format(accuracy * 100),
+		level = level,
+		levelPercent = level_percent,
+		rank = rank
+	}
+
 end
 
 return SelectView

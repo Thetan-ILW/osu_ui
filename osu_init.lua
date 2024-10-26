@@ -73,7 +73,7 @@ function UserInterface:getMods()
 			getScore = function ()
 				return nil
 			end,
-			getDanClears = function ()
+			getDanClears = function (_self, mode)
 				return "-", "-"
 			end,
 			isDanIsCleared = function ()

@@ -68,7 +68,7 @@ function Label:draw()
 	end
 
 	local c = self.color
-	gfx.setColor(c[1], c[2], c[3], self.alpha)
+	gfx.setColor(c[1], c[2], c[3], c[4] * self.alpha)
 	gfx.draw(self.label)
 end
 
