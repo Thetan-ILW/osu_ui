@@ -1,6 +1,6 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
----@alias DynamicTextParams { font: love.Font, value: (fun(): string), alignX: AlignX?, alignY: AlignY?, widthLimit: number?, heightLimit: number?, textScale: number? }
+---@alias DynamicTextParams { font: love.Font, value: (fun(): string), alignX: AlignX?, alignY: AlignY?, widthLimit: number?, heightLimit: number?, textScale: number?, shadow: boolean}
 
 ---@class osu.ui.DynamicText : osu.ui.UiElement
 ---@overload fun(params: DynamicTextParams): osu.ui.DynamicText
@@ -13,6 +13,7 @@ local UiElement = require("osu_ui.ui.UiElement")
 ---@field heightLimit number?
 ---@field textScale number
 ---@field textY number
+---@field shadow boolean
 local DynamicText = UiElement + {}
 
 function DynamicText:load()
@@ -47,13 +48,25 @@ function DynamicText:update()
 	end
 end
 
+local gfx = love.graphics
+
 function DynamicText:draw()
 	local text = self.text
 	local font = self.font
 	local w = self.totalW / self.textScale
-	love.graphics.setFont(font)
-	love.graphics.scale(self.textScale)
-	love.graphics.printf(text, 0, self.textY, w, self.alignX, 0)
+	gfx.setFont(font)
+	gfx.scale(self.textScale)
+
+	if self.shadow then
+		gfx.setColor(0.078, 0.078, 0.078, 0.64 * self.alpha)
+		gfx.printf(text, -1, self.textY, w, self.alignX, 0)
+		gfx.printf(text, 1, self.textY, w, self.alignX, 0)
+		gfx.printf(text, 0, self.textY + 1, w, self.alignX, 0)
+	end
+
+	local c = self.color
+	gfx.setColor(c[1], c[2], c[3], c[4] * self.alpha)
+	gfx.printf(text, 0, self.textY, w, self.alignX, 0)
 end
 
 return DynamicText

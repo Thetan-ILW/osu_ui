@@ -155,6 +155,10 @@ function ScrollAreaContainer:tryDrag(dt)
 	self.scrollPosition = math_util.clamp(y, 0, self.scrollLimit) * 0.5 + y * (1 - 0.5)
 end
 
+function ScrollAreaContainer:applyTransform()
+	self.transform = love.math.newTransform(self.x, self.y - self.scrollPosition, self.rotation, self.scale, self.scale, self:getOrigin())
+end
+
 ---@param dt number
 function ScrollAreaContainer:update(dt)
 	Container.update(self, dt)
@@ -163,41 +167,46 @@ function ScrollAreaContainer:update(dt)
 
 	local clamped_position = math_util.clamp(self.scrollPosition, 0, self.scrollLimit)
         if (math.abs(self.scrollVelocity) <= velocity_cutoff and clamped_position == self.scrollVelocity) then
-		self.y = -self.scrollPosition
 		self:applyTransform()
 		return
 	end
 
 	local scroll_velocity_this_frame = self:updateScrollVelocity(dt)
 	self.scrollPosition = self.scrollPosition + scroll_velocity_this_frame * (dt * 1000)
-	self.y = -self.scrollPosition
 	self:applyTransform()
-
 end
 
 function ScrollAreaContainer:wheelUp()
-	if self.scrollVelocity > 0 then
-		self.scrollVelocity = 0
+	if self.mouseOver then
+		if self.scrollVelocity > 0 then
+			self.scrollVelocity = 0
+		end
+		self:scrollToPosition(-scroll_distance + self.scrollPosition, 0)
+		return true
 	end
-	self:scrollToPosition(-scroll_distance + self.scrollPosition, 0)
-	return true
+	return false
 end
 
 function ScrollAreaContainer:wheelDown()
-	if self.scrollVelocity < 0 then
-		self.scrollVelocity = 0
+	if self.mouseOver then
+		if self.scrollVelocity > 0 then
+			self.scrollVelocity = 0
+		end
+		self:scrollToPosition(scroll_distance + self.scrollPosition, 0)
+		return true
 	end
-	self:scrollToPosition(scroll_distance + self.scrollPosition, 0)
-	return true
+	return false
 end
 
 function ScrollAreaContainer:mousePressed()
-	self.isDragging = true
-        self.accumulatedTimeSinceLastMovement = 0;
-	self.lastMouseY = 0
-	self.dragOriginY = love.mouse.getY()
-	local clamped_position = math_util.clamp(self.scrollPosition, 0, self.scrollLimit)
-	self.dragScrollOriginY = self.scrollPosition + (self.scrollPosition - clamped_position)
+	if self.mouseOver then
+		self.isDragging = true
+		self.accumulatedTimeSinceLastMovement = 0;
+		self.lastMouseY = 0
+		self.dragOriginY = love.mouse.getY()
+		local clamped_position = math_util.clamp(self.scrollPosition, 0, self.scrollLimit)
+		self.dragScrollOriginY = self.scrollPosition + (self.scrollPosition - clamped_position)
+	end
 	return false
 end
 

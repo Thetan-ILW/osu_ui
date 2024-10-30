@@ -1,6 +1,5 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
-local table_util = require("table_util")
 local actions = require("osu_ui.actions")
 local ui = require("osu_ui.ui")
 
@@ -23,15 +22,14 @@ function SelectView:load()
 	self.game.selectController:load()
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs
-	local osu = self.configs.osu_ui
 
 	self.selectedGroup = self.groups[1]
 
-	self.screenshot = love.graphics.newImage("screenshot198.jpg")
+	--self.screenshot = love.graphics.newImage("screenshot205.png")
 	self.inputMap = InputMap(self)
 	self.displayInfo = DisplayInfo(self)
-	self:notechartChanged()
 	self:reloadView()
+	self:notechartChanged()
 
 	actions.enable()
 end
@@ -74,11 +72,16 @@ function SelectView:reloadView()
 		print(result)
 	end
 
+	self.view = sc:getChild("view")
+
 	self.gameView.screenContainer:build()
 end
 
 function SelectView:notechartChanged()
 	self.displayInfo:load()
+end
+
+function SelectView:loadScores()
 end
 
 ---@param mode string
@@ -235,7 +238,6 @@ function SelectView:resolutionUpdated()
 	self:reloadView()
 end
 
-
 ---@return string
 function SelectView:getScoreSource()
 	return self.configs.osu_ui.songSelect.scoreSource
@@ -258,11 +260,11 @@ function SelectView:setScoreSource(index)
 	self.configs.osu_ui.songSelect.scoreSource = score_source
 	if score_source == "online" then
 		self.configs.select.scoreSourceName = "online"
+		self.game.selectModel:pullScore()
 		return
 	end
 	self.configs.select.scoreSourceName = "local"
 	self.game.selectModel:pullScore()
-	--- TODO: Reload the score list
 end
 
 ---@return string

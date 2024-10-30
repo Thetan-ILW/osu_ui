@@ -21,5 +21,5 @@ SongSelection_RankedStatus=Ranked Status
 SongSelection_RecentlyPlayed=Recently Played
 SongSelection_Group=Group
 SongSelection_Sort=Sort
-SongSelection_Rank_Local=Local Ranking
+SongSelection_Rank_Local=Normalscore
 SongSelection_Rank_Top=Global Ranking

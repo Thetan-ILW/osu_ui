@@ -161,7 +161,7 @@ function Container:draw()
 		gfx.pop()
 		gfx.push()
 		gfx.applyTransform(child.transform)
-		child:debugDraw()
+		--child:debugDraw()
 		gfx.pop()
 	end
 end
@@ -174,7 +174,7 @@ function Container:callbackFirstChild(event_name, event)
 	end
 	for _, child in ipairs(self.eventListeners[event_name]) do
 		local handled = child[event_name](child, event)
-		assert(handled ~= nil, ("%s event did not return a `handled` boolean"):format(event_name))
+		assert(handled ~= nil, ("%s %s event did not return a `handled` boolean"):format(child.id, event_name))
 		if handled then
 			return true
 		end

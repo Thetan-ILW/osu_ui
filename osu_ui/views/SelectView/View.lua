@@ -8,6 +8,7 @@ local Label = require("osu_ui.ui.Label")
 local Combo = require("osu_ui.ui.Combo")
 local TabButton = require("osu_ui.ui.TabButton")
 local PlayerInfoView = require("osu_ui.views.PlayerInfoView")
+local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
 
 ---@class osu.ui.SelectViewContainer : osu.ui.Container
 ---@operator call: osu.ui.SelectViewContainer
@@ -33,6 +34,7 @@ function View:load()
 	local tabs = top:addChild("tabContainer", Container({ depth = 0.5 }))
 	---@cast tabs osu.ui.Container
 
+	--[[
 	local screenshot = self:addChild("screenshot", Image({
 		image = select_view.screenshot,
 		blockMouseFocus = false,
@@ -49,6 +51,7 @@ function View:load()
 	end
 	self:bindEvent(self, "wheelUp")
 	self:bindEvent(self, "wheelDown")
+	]]
 
 	----------- TOP -----------
 
@@ -389,13 +392,24 @@ function View:load()
 	}))
 
 	bottom:addChild("osuLogo", Image({
-		x = width - 40, y = height - 40,
+		x = width - 65, y = height - 50,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.4,
 		image = assets:loadImage("menu-osu-logo"),
 		depth = 0.1
 	}))
 
+	local score_list = self:addChild("scoreList", ScoreListView({
+		x = 5, y = 145,
+		width = 385,
+		height = 430,
+		assets = assets,
+		game = select_view.game,
+		playerProfile = select_view.ui.playerProfile
+	}))
+	---@cast score_list osu.ui.ScoreListView
+
+	score_list:build()
 	tabs:build()
 	top:build()
 	bottom:build()

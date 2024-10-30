@@ -120,6 +120,8 @@ function PlayerInfoView:mousePressed()
 		self.onClick()
 		return true
 	end
+
+	return false
 end
 
 local gfx = love.graphics

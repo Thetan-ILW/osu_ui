@@ -7,7 +7,7 @@ local Etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
 local Lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
 local Quaver = require("sphere.models.RhythmModel.ScoreEngine.QuaverScoring")
 
-local Scoring = require("osu_ui.views.ResultView.Scoring")
+local Scoring = require("osu_ui.Scoring")
 
 ---@class osu.ui.ResultDisplayInfo
 ---@operator call: osu.ui.ResultDisplayInfo
