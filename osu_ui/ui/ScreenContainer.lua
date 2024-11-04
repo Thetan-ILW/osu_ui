@@ -55,7 +55,7 @@ function ScreenContainer:update(dt)
 	gfx.applyTransform(self.nativeTransform)
 	gfx.translate(love.graphics.inverseTransformPoint(self.transform:transformPoint(0, 0)))
 
-	Container.update(self, dt)
+	Container.update(self, dt, true)
 	gfx.pop()
 end
 

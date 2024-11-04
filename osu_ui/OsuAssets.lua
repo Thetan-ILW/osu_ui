@@ -124,10 +124,10 @@ end
 
 local function strToColor(str)
 	if not str then
-		return { 1, 1, 1 }
+		return { 1, 1, 1, 1 }
 	end
 	local colors = string.split(str, ",")
-	return { tonumber(colors[1]) / 255, tonumber(colors[2]) / 255, tonumber(colors[3]) / 255 }
+	return { tonumber(colors[1]) / 255, tonumber(colors[2]) / 255, tonumber(colors[3]) / 255, 1 }
 end
 
 ---@param asset_model osu.ui.AssetModel

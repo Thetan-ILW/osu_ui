@@ -115,7 +115,8 @@ end
 function UiElement:loseFocus() end
 
 ---@param dt number
-function UiElement:update(dt) end
+---@param mouse_focus boolean
+function UiElement:update(dt, mouse_focus) end
 function UiElement:draw() end
 
 local gfx = love.graphics

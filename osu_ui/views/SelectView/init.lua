@@ -25,7 +25,7 @@ function SelectView:load()
 
 	self.selectedGroup = self.groups[1]
 
-	--self.screenshot = love.graphics.newImage("screenshot205.png")
+	self.screenshot = love.graphics.newImage("screenshot206.png")
 	self.inputMap = InputMap(self)
 	self.displayInfo = DisplayInfo(self)
 	self:reloadView()

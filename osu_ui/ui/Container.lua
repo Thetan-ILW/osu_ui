@@ -131,21 +131,24 @@ function Container:forEachChildGlobally(f)
 	self:forEachChild(f)
 end
 
-
 local gfx = love.graphics
 
 ---@param dt number
-function Container:update(dt)
-	local mouse_focus = self.mouseOver
-
+---@param mouse_focus boolean
+function Container:update(dt, mouse_focus)
 	for _, id in ipairs(self.childrenOrder) do
 		local child = self.children[id]
 		gfx.push()
 		gfx.applyTransform(child.transform)
 		mouse_focus = not child:setMouseFocus(mouse_focus)
-		child:update(dt)
+		local c = child:update(dt, mouse_focus)
+		if c ~= nil then
+			mouse_focus = c
+		end
 		gfx.pop()
 	end
+
+	return mouse_focus
 end
 
 function Container:draw()
@@ -161,7 +164,7 @@ function Container:draw()
 		gfx.pop()
 		gfx.push()
 		gfx.applyTransform(child.transform)
-		--child:debugDraw()
+		child:debugDraw()
 		gfx.pop()
 	end
 end

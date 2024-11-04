@@ -9,6 +9,10 @@ local Combo = require("osu_ui.ui.Combo")
 local TabButton = require("osu_ui.ui.TabButton")
 local PlayerInfoView = require("osu_ui.views.PlayerInfoView")
 local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
+local ScrollBar = require("osu_ui.ui.ScrollBar")
+local Rectangle = require("osu_ui.ui.Rectangle")
+local ListContainer = require("osu_ui.views.SelectView.Lists.ListContainer")
+local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
 
 ---@class osu.ui.SelectViewContainer : osu.ui.Container
 ---@operator call: osu.ui.SelectViewContainer
@@ -27,20 +31,21 @@ function View:load()
 	local width, height = self.parent.totalW, self.parent.totalH
 
 	local top = self:addChild("topContainer", Container({ totalW = width, totalH = height, depth = 0.5 }))
-	local bottom = self:addChild("bottomContainer", Container({ depth = 0.6 }))
+	local bottom = self:addChild("bottomContainer", Container({ totalW = width, totalH = height, depth = 0.6  }))
+	local center = self:addChild("centerContainer", Container({ totalW = width, totalH = height, depth = 0 }))
 	---@cast top osu.ui.Container
 	---@cast bottom osu.ui.Container
+	---@cast center osu.ui.Container
 
 	local tabs = top:addChild("tabContainer", Container({ depth = 0.5 }))
 	---@cast tabs osu.ui.Container
 
-	--[[
-	local screenshot = self:addChild("screenshot", Image({
+	--[[local screenshot = self:addChild("screenshot", Image({
 		image = select_view.screenshot,
 		blockMouseFocus = false,
 		alpha = 0.7,
 		depth = 1,
-	}))
+	}))--[[
 	function self:wheelUp()
 		screenshot.alpha = math.min(1, screenshot.alpha + 0.1)
 		return true
@@ -50,8 +55,7 @@ function View:load()
 		return true
 	end
 	self:bindEvent(self, "wheelUp")
-	self:bindEvent(self, "wheelDown")
-	]]
+	self:bindEvent(self, "wheelDown")]]
 
 	----------- TOP -----------
 
@@ -60,6 +64,7 @@ function View:load()
 		image = img,
 		wrap = "clamp",
 		quad = love.graphics.newQuad(0, 0, width, img:getHeight(), img),
+		blockMouseFocus = false,
 	}))
 
 	top:addChild("statusIcon", Image({
@@ -304,7 +309,8 @@ function View:load()
 		y = height,
 		origin = { x = 0, y = 1 },
 		image = assets:loadImage("songselect-bottom"),
-		totalW = width
+		totalW = width,
+		blockMouseFocus = false
 	}))
 
 	bottom:addChild("backButton", BackButton({
@@ -385,10 +391,7 @@ function View:load()
 		rank = info.rank,
 		assets = assets,
 		depth = 0.3,
-		onClick = function ()
-
-		end
-
+		onClick = function () end
 	}))
 
 	bottom:addChild("osuLogo", Image({
@@ -399,20 +402,85 @@ function View:load()
 		depth = 0.1
 	}))
 
-	local score_list = self:addChild("scoreList", ScoreListView({
+	local score_list = center:addChild("scoreList", ScoreListView({
 		x = 5, y = 145,
-		width = 385,
-		height = 430,
+		totalW = 385,
+		totalH = 430,
 		assets = assets,
 		game = select_view.game,
-		playerProfile = select_view.ui.playerProfile
+		playerProfile = select_view.ui.playerProfile,
+		depth = 0.1
 	}))
 	---@cast score_list osu.ui.ScoreListView
 
+	top:addChild("mouseBlock", Rectangle({
+		totalW = width,
+		totalH = 82,
+		alpha = 0,
+		depth = 0
+	}))
+
+	bottom:addChild("mouseBlock", Rectangle({
+		y = height,
+		origin = { x = 0, y = 1 },
+		totalW = width,
+		totalH = 90,
+		alpha = 0,
+		depth = 0
+	}))
+
+	--[[
+	center:addChild("searchBackground", Rectangle({
+		x = width,
+		y = 82,
+		origin = { x = 1, y = 0 },
+		totalW = 364,
+		totalH = 35,
+		color = { 0, 0, 0, 0.5 },
+		blockMouseFocus = false,
+		depth = 0.1,
+	}))]]
+
+	local root = CollectionsListView({
+		game = select_view.game,
+		assets = assets,
+		depth = 1,
+	})
+
+	local list = center:addChild("list", ListContainer({
+		x = width, y = height / 2,
+		origin = { x = 1, y = 0 },
+		width = 600,
+		root = root,
+		game = select_view.game,
+		assets = assets,
+		depth = 0,
+	}))
+	---@cast list osu.ui.ScrollAreaContainer
+
+	center:addChild("scrollBarBackground", Rectangle({
+		x = width - 5, y = 117,
+		totalW = 5,
+		totalH = 560,
+		color = { 0, 0, 0, 0.5 },
+		blockMouseFocus = false,
+		depth = 0.09,
+	}))
+
+	center:addChild("scrollBar", ScrollBar({
+		x = width - 5, startY = 117,
+		totalW = 5,
+		container = list,
+		windowHeight = 560,
+		blockMouseFocus = false,
+		depth = 0.1,
+	}))
+
 	score_list:build()
 	tabs:build()
-	top:build()
-	bottom:build()
+	center:build()
+	--top:build()
+	--bottom:build()
 	self:build()
 end
 

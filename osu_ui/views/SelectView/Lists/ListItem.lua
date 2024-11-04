@@ -1,7 +1,11 @@
-local class = require("class")
+local UiElement = require("osu_ui.ui.UiElement")
 local math_util = require("math_util")
 
----@class osu.ui.WindowListItem
+---@alias ListItemParams { background: love.Image, titleFont: love.Font, infoFont: love.Font }
+
+---@class osu.ui.WindowListItem : osu.ui.UiElement
+---@overload fun(params: ListItemParams): osu.ui.WindowListView
+---@field parent osu.ui.WindowListView
 ---@field x number
 ---@field y number
 ---@field visualIndex number
@@ -10,10 +14,15 @@ local math_util = require("math_util")
 ---@field selectedT number
 ---@field colorT number
 ---@field slideX number
-local ListItem = class()
-
-ListItem.panelW = 1000
-ListItem.panelH = 90
+---@field background love.Image
+---@field titleFont love.Font
+---@field infoFont love.Font
+---@field title string
+---@field secondRow string
+---@field thirdRow string
+---@field color number[]
+---@field list osu.ui.WindowListView
+local ListItem = UiElement + {}
 
 local function color(r, g, b, a)
 	return { r / 255, g / 255, b / 255, a / 255 }
@@ -30,8 +39,9 @@ local slide_anim_speed = 1.3
 local slide_delta_limit = 8
 local select_anim_speed = 3
 local slide_power = 5
+local hover_distance = 20
 
-function ListItem:replaceWith(item)
+function ListItem:load()
 	self.x = 0
 	self.y = 0
 	self.mouseOver = false
@@ -40,6 +50,55 @@ function ListItem:replaceWith(item)
 	self.selectedT = 0
 	self.slideX = 55
 	self.flashColorT = 0
+	self.title = ""
+	self.secondRow = ""
+	self.thirdRow = ""
+	self.totalW = 640
+	self.totalH = 90
+	self.color = { self.inactivePanel[1], self.inactivePanel[2], self.inactivePanel[3], 1 }
+	UiElement.load(self)
+end
+
+function ListItem:bindEvents()
+	self.parent:bindEvent(self, "mousePressed")
+	self.parent:bindEvent(self, "mouseReleased")
+end
+
+function ListItem:mousePressed(event)
+	if not self.mouseOver or event[3] ~= 1 then
+		return false
+	end
+	self.mouseDown = true
+	self.lastMouseY = love.mouse.getY()
+	return true
+end
+
+function ListItem:mouseReleased(event)
+	if event[3] ~= 1 then
+		return false
+	end
+
+	if self.mouseDown then
+		if math.abs(self.lastMouseY - love.mouse.getY()) < 4 then
+			self.parent:select(self)
+			self.mouseDown = false
+		end
+	end
+
+	return true
+end
+
+function ListItem:replaceWith(item)
+	self.hoverT = 0
+	self.colorT = 0
+	self.selectedT = 0
+	self.slideX = 55
+	self.flashColorT = 0
+end
+
+function ListItem:isVisible()
+	local sp = self.list.parent.scrollPosition - self.list.y
+	return sp > self.y - 400 and sp < self.y + 500
 end
 
 ---@param dt number
@@ -79,11 +138,11 @@ end
 ---@return number
 function ListItem:applySelect(is_selected, dt)
 	local selected_t =
-		math_util.clamp(self.selectedT + (is_selected and dt * select_anim_speed or -dt * select_anim_speed), 0, 1)
+		math_util.clamp(self.selectedT + (is_selected and dt * select_anim_speed * 3 or -dt * select_anim_speed), 0, 1)
 
 	self.selectedT = selected_t
 
-	return 1 - math.pow(1 - math.min(1, selected_t), 3)
+	return math.pow(1 - math.min(1, selected_t), 3)
 end
 
 ---@param increase boolean
@@ -100,6 +159,42 @@ end
 function ListItem.getUnwrap(start_time)
 	local unwrap = math.min(1, love.timer.getTime() - start_time)
 	return 1 - math.pow(1 - math.min(1, unwrap), 4)
+end
+
+function ListItem:update(dt)
+	local vi = self.visualIndex
+	local wrap_p = 0
+
+	if self.list.parentList then
+		wrap_p = self.list.parentList.wrapProgress
+		self.alpha = wrap_p
+	end
+
+	self.y = (vi - 1) * (self.totalH * wrap_p)
+	if vi > self.list:getSelectedItemIndex() then
+		self.y = self.y + self.list.holeSize
+	end
+
+	local hover = self:applyHover(dt)
+	local slide = self:applySlide(vi, self.list:getVisualIndex() + self.list.windowSize / 2, dt)
+	local selected = self:applySelect(vi == self.list:getSelectedItemIndex(), dt)
+	self:applyColor(false, dt)
+	self:applyFlash(dt)
+
+	local x = -hover * hover_distance + hover_distance + slide
+	self.x = x + selected * 80
+
+	self:applyTransform()
+end
+
+function ListItem:justHovered()
+	self.flashColorT = 1
+end
+
+function ListItem:draw()
+	love.graphics.draw(self.background, 0, self.totalH / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
+	love.graphics.setColor(1, 1, 1, self.alpha)
+	love.graphics.print(self.id, 20, 20)
 end
 
 function ListItem.mixColors(a, b, t)

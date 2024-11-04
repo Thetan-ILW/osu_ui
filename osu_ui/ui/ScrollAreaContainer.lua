@@ -2,7 +2,7 @@ local Container = require("osu_ui.ui.Container")
 
 local math_util = require("math_util")
 
----@alias ScrollAreaContainerParams { width: number, height: number, scrollLimit: number }
+---@alias ScrollAreaContainerParams { scrollLimit: number }
 
 ---@class osu.ui.ScrollAreaContainer : osu.ui.Container
 ---@overload fun(params: ScrollAreaContainerParams): osu.ui.ScrollAreaContainer
@@ -20,9 +20,6 @@ local throwing_scroll_decay = 0.996
 local frame_aim_time = 1000 / 60
 
 function ScrollAreaContainer:load()
-	self.totalW = self.width
-	self.totalH = self.height
-
 	self.isDragging = false
 	self.scrollLimit = self.scrollLimit or 0
 	self.scrollPosition = 0
@@ -130,7 +127,7 @@ function ScrollAreaContainer:tryDrag(dt)
 	self.scrollDeceleration = self.scrollVelocity == 0 and 0.5 or -math.max(0.5, throwing_scroll_decay - 0.002 / math.abs(self.scrollVelocity))
 
 	love.graphics.push()
-	love.graphics.replaceTransform(love.math.newTransform(0, 0, self.rotation, self.scale, self.scale, self:getOrigin()))
+	love.graphics.replaceTransform(love.math.newTransform(0, 0, self.rotation, self.scale, self.scale))
 	local _, new_mouse_y = love.graphics.inverseTransformPoint(love.mouse.getPosition())
 	local _, drag_origin = love.graphics.inverseTransformPoint(0, self.dragOriginY)
 	local _, drag_scroll_origin = love.graphics.inverseTransformPoint(0, self.dragScrollOriginY)
@@ -160,20 +157,22 @@ function ScrollAreaContainer:applyTransform()
 end
 
 ---@param dt number
-function ScrollAreaContainer:update(dt)
-	Container.update(self, dt)
+function ScrollAreaContainer:update(dt, mouse_focus)
+	local new_mouse_focus = Container.update(self, dt, mouse_focus)
 
 	self:tryDrag(dt)
 
 	local clamped_position = math_util.clamp(self.scrollPosition, 0, self.scrollLimit)
         if (math.abs(self.scrollVelocity) <= velocity_cutoff and clamped_position == self.scrollVelocity) then
 		self:applyTransform()
-		return
+		return new_mouse_focus
 	end
 
 	local scroll_velocity_this_frame = self:updateScrollVelocity(dt)
 	self.scrollPosition = self.scrollPosition + scroll_velocity_this_frame * (dt * 1000)
 	self:applyTransform()
+
+	return new_mouse_focus
 end
 
 function ScrollAreaContainer:wheelUp()
@@ -198,7 +197,11 @@ function ScrollAreaContainer:wheelDown()
 	return false
 end
 
-function ScrollAreaContainer:mousePressed()
+function ScrollAreaContainer:mousePressed(event)
+	if event[3] == 2 then
+		return false
+	end
+
 	if self.mouseOver then
 		self.isDragging = true
 		self.accumulatedTimeSinceLastMovement = 0;
@@ -210,7 +213,11 @@ function ScrollAreaContainer:mousePressed()
 	return false
 end
 
-function ScrollAreaContainer:mouseReleased()
+function ScrollAreaContainer:mouseReleased(event)
+	if event[3] == 2 then
+		return false
+	end
+
 	if self.isDragging then
 		self.scrollVelocity = self.scrollVelocity * (math.pow(0.95, math.max(0, self.accumulatedTimeSinceLastMovement - 66)))
 		self.accumulatedTimeSinceLastMovement = 0;
