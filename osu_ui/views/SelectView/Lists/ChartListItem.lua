@@ -63,15 +63,16 @@ function ChartItem:drawChartPanel(panel_color, text_color)
 	gfx.translate(20 + preview_icon_w, 5)
 	gfx.draw(self.maniaIcon)
 
+	local ts = self.list.textScale
 	gfx.translate(40, -4)
 	gfx.setFont(self.titleFont)
-	gfx.print(self.title)
+	gfx.print(self.title, 0, 0, 0, ts, ts)
 
 	gfx.setFont(self.infoFont)
 	gfx.translate(0, 22)
-	gfx.print(self.secondRow)
+	gfx.print(self.secondRow, 0, 0, 0, ts, ts)
 	gfx.translate(0, 18)
-	gfx.print(self.thirdRow)
+	gfx.print(self.thirdRow, 0, 0, 0, ts, ts)
 	gfx.pop()
 
 	local star = self.star

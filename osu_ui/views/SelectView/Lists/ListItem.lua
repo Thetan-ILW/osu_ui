@@ -167,17 +167,19 @@ function ListItem:update(dt)
 
 	if self.list.parentList then
 		wrap_p = self.list.parentList.wrapProgress
+		vi = vi * wrap_p
+		dt = dt / wrap_p
 		self.alpha = wrap_p
 	end
 
-	self.y = (vi - 1) * (self.totalH * wrap_p)
+	self.y = (vi - 1) * (self.totalH * wrap_p) - ((1 - wrap_p) * self.totalH)
 	if vi > self.list:getSelectedItemIndex() then
 		self.y = self.y + self.list.holeSize
 	end
 
 	local hover = self:applyHover(dt)
 	local slide = self:applySlide(vi, self.list:getVisualIndex() + self.list.windowSize / 2, dt)
-	local selected = self:applySelect(vi == self.list:getSelectedItemIndex(), dt)
+	local selected = self:applySelect(self.visualIndex == self.list:getSelectedItemIndex(), dt)
 	self:applyColor(false, dt)
 	self:applyFlash(dt)
 

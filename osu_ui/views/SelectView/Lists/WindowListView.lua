@@ -198,7 +198,6 @@ function WindowListView:update(dt, mouse_focus)
 
 	self.totalH = self.holeSize + self.itemCount * self.panelHeight
 
-	self:processActions()
 	self:loadNewItems()
 
 	return new_mouse_focus

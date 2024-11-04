@@ -164,7 +164,7 @@ function Container:draw()
 		gfx.pop()
 		gfx.push()
 		gfx.applyTransform(child.transform)
-		child:debugDraw()
+		--child:debugDraw()
 		gfx.pop()
 	end
 end

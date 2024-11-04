@@ -46,6 +46,8 @@ function DynamicText:update()
 	elseif self.alignY == "bottom" then
 		self.textY = h - self.totalH
 	end
+
+	self:applyTransform()
 end
 
 local gfx = love.graphics

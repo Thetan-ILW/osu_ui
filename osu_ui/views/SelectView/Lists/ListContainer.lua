@@ -17,13 +17,18 @@ end
 function GroupsContainer:update(dt, mouse_focus)
 	local new_mouse_focus = ScrollAreaContainer.update(self, dt, mouse_focus)
 
-	local h = self.root.y + self.root.totalH
-	self.totalH = h
-	self.hoverHeight = h
-	self.scrollLimit = h
+	local max_h = 0
+	for k, v in pairs(self.children) do
+		max_h = math.max(max_h, v.y + v.totalH)
+	end
+	self.totalH = max_h
+	self.hoverHeight = max_h
+	self.scrollLimit = max_h
 
 	if love.mouse.isDown(2) then
-		local y = math.min(math.max(0, love.mouse.getY() - 117) / 560, 1)
+		local scale = 768 / love.graphics.getHeight()
+		local my = love.mouse.getY() * scale
+		local y = math.min(math.max(0, my - 117) / 560, 1)
 		self:scrollToPosition(self.scrollLimit * y)
 	end
 

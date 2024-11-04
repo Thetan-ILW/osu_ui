@@ -81,9 +81,6 @@ function SelectView:notechartChanged()
 	self.displayInfo:load()
 end
 
-function SelectView:loadScores()
-end
-
 ---@param mode string
 ---@param binds table
 local function shouldBindKeys(mode, binds)
@@ -125,7 +122,6 @@ function SelectView:play()
 	if shouldBindKeys(mode, binds) then
 		self:openModal("osu_ui.views.modals.Inputs")
 		self.popupView:add("You need to bind keys first.", "purple")
-		self.lists:unlock()
 		return
 	end
 

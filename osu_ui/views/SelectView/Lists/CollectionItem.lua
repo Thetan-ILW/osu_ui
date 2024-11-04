@@ -83,7 +83,9 @@ function CollectionItem:draw()
 	local font = self.titleFont
 	gfx.setFont(font)
 	gfx.setColor(text_color)
-	gfx.translate(30, self.totalH / 2 - font:getHeight() / 2)
+	local text_scale = self.list.textScale
+	gfx.translate(30, self.totalH / 2 - (font:getHeight() * text_scale) / 2)
+	gfx.scale(text_scale)
 	gfx.print(self.name)
 end
 

@@ -45,7 +45,7 @@ function View:load()
 		blockMouseFocus = false,
 		alpha = 0.7,
 		depth = 1,
-	}))--[[
+	}))
 	function self:wheelUp()
 		screenshot.alpha = math.min(1, screenshot.alpha + 0.1)
 		return true
@@ -239,6 +239,18 @@ function View:load()
 		depth = 0.5,
 	}))
 
+	local collection_library = select_view.game.selectModel.collectionLibrary
+	top:addChild("selectedCollectionName", DynamicText({
+		x = width - 15, y = 0,
+		origin = { x = 1, y = 0 },
+		font = assets:loadFont("Light", 23),
+		color = { 1, 1, 1, 0.5 },
+		depth = 0.9,
+		value = function ()
+			return collection_library.tree.items[collection_library.root_tree.selected].name
+		end
+	}))
+
 	--- TABS ---
 	local tab_img = assets:loadImage("selection-tab")
 	local tab_y = 54
@@ -429,7 +441,6 @@ function View:load()
 		depth = 0
 	}))
 
-	--[[
 	center:addChild("searchBackground", Rectangle({
 		x = width,
 		y = 82,
@@ -439,7 +450,7 @@ function View:load()
 		color = { 0, 0, 0, 0.5 },
 		blockMouseFocus = false,
 		depth = 0.1,
-	}))]]
+	}))
 
 	local root = CollectionsListView({
 		game = select_view.game,
@@ -479,8 +490,8 @@ function View:load()
 	score_list:build()
 	tabs:build()
 	center:build()
-	--top:build()
-	--bottom:build()
+	top:build()
+	bottom:build()
 	self:build()
 end
 
