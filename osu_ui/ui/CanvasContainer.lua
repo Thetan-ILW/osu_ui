@@ -1,10 +1,11 @@
 local Container = require("osu_ui.ui.Container")
 
----@alias CanvasContainerParams { totalW: number?, totalH: number? }
+---@alias CanvasContainerParams { totalW: number?, totalH: number?, shader: love.Shader? }
 
 ---@class osu.ui.CanvasContainer : osu.ui.Container
 ---@overload fun(params: CanvasContainerParams): osu.ui.CanvasContainer
 ---@field canvas love.Canvas
+---@field shader love.Shader
 local CanvasContainer = Container + {}
 
 function CanvasContainer:load()
@@ -28,18 +29,32 @@ function CanvasContainer:draw()
 		child:draw()
 		gfx.pop()
 
-		gfx.push()
-		gfx.applyTransform(child.transform)
-		child:debugDraw()
-		gfx.pop()
+		--gfx.push()
+		--gfx.applyTransform(child.transform)
+		--child:debugDraw()
+		--gfx.pop()
 	end
 
 	local a = self.alpha
 	gfx.setCanvas(prev_canvas)
 	gfx.setBlendMode("alpha", "premultiplied")
+
+	local wh = gfx.getHeight()
+	local _, iwh = gfx.inverseTransformPoint(0, wh)
+
+	local prev_shader = gfx.getShader()
+	if self.shader then
+		gfx.setShader(self.shader)
+	end
+
 	gfx.setColor(a, a, a, a)
+	gfx.push()
+	gfx.scale(iwh / wh)
 	gfx.draw(self.canvas)
+	gfx.pop()
 	gfx.setBlendMode("alpha")
+
+	gfx.setShader(prev_shader)
 end
 
 return CanvasContainer

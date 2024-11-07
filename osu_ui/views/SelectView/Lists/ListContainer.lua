@@ -18,7 +18,7 @@ function GroupsContainer:update(dt, mouse_focus)
 	local new_mouse_focus = ScrollAreaContainer.update(self, dt, mouse_focus)
 
 	local max_h = 0
-	for k, v in pairs(self.children) do
+	for _, v in pairs(self.children) do
 		max_h = math.max(max_h, v.y + v.totalH)
 	end
 	self.totalH = max_h

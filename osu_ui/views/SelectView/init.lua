@@ -24,6 +24,7 @@ function SelectView:load()
 	self.configs = self.game.configModel.configs
 
 	self.selectedGroup = self.groups[1]
+	self.notechartChangeTime = love.timer.getTime()
 
 	self.screenshot = love.graphics.newImage("screenshot206.png")
 	self.inputMap = InputMap(self)
@@ -79,6 +80,7 @@ end
 
 function SelectView:notechartChanged()
 	self.displayInfo:load()
+	self.notechartChangeTime = love.timer.getTime()
 end
 
 ---@param mode string

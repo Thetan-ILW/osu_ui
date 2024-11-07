@@ -109,15 +109,6 @@ function ui.scrollBar(list, w, h)
 	end
 end
 
----@param time number
----@param interval number
----@return number
-function ui.easeOutCubic(time, interval)
-	local t = math.min(love.timer.getTime() - time, interval)
-	local progress = t / interval
-	return math_util.clamp(1 - math.pow(1 - progress, 3), 0, 1)
-end
-
 function ui.lighten(c, amount)
 	return {
 		math.min(1, c[1] * (1 + amount)),

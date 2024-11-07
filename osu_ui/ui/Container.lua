@@ -162,10 +162,10 @@ function Container:draw()
 			child:draw()
 		end
 		gfx.pop()
-		gfx.push()
-		gfx.applyTransform(child.transform)
+		--gfx.push()
+		--gfx.applyTransform(child.transform)
 		--child:debugDraw()
-		gfx.pop()
+		--gfx.pop()
 	end
 end
 

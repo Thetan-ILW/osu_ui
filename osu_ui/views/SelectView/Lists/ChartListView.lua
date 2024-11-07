@@ -64,6 +64,11 @@ end
 
 function ChartListView:update(dt, mouse_focus)
 	local new_mouse_focus = WindowListView.update(self, dt, mouse_focus)
+
+	if self.parentList then
+		self.totalH = self.itemCount * self.panelHeight * self.parentList.wrapProgress
+	end
+
 	if self.particles then
 		self.particles:setPosition(self.totalW, self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2)
 		self.particles:update(dt)
@@ -73,7 +78,7 @@ end
 
 function ChartListView:draw()
 	WindowListView.draw(self)
-	if self.particles and self.parentList.wrapProgress ~= 0 then
+	if self.particles and self.parentList and self.parentList.wrapProgress ~= 0 then
 		love.graphics.setColor(1, 1, 1, self.parentList.wrapProgress)
 		love.graphics.draw(self.particles)
 	end

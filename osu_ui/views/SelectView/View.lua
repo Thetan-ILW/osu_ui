@@ -1,4 +1,7 @@
+local CanvasContainer = require("osu_ui.ui.CanvasContainer")
 local Container = require("osu_ui.ui.Container")
+
+local easing = require("osu_ui.ui.easing")
 
 local Image = require("osu_ui.ui.Image")
 local ImageButton = require("osu_ui.ui.ImageButton")
@@ -14,13 +17,17 @@ local Rectangle = require("osu_ui.ui.Rectangle")
 local ListContainer = require("osu_ui.views.SelectView.Lists.ListContainer")
 local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
 
----@class osu.ui.SelectViewContainer : osu.ui.Container
+---@class osu.ui.SelectViewContainer : osu.ui.CanvasContainer
 ---@operator call: osu.ui.SelectViewContainer
 ---@field selectView osu.ui.SelectView
-local View = Container + {}
+local View = CanvasContainer + {}
 
 function View:load()
-	Container.load(self)
+	self.totalW, self.totalH = love.graphics.getDimensions()
+
+	local shaders = require("osu_ui.ui.shaders")
+	self.shader = shaders.lighten
+	CanvasContainer.load(self)
 
 	local select_view = self.selectView
 	local display_info = select_view.displayInfo
@@ -29,7 +36,6 @@ function View:load()
 	local text = select_view.localization.text
 
 	local width, height = self.parent.totalW, self.parent.totalH
-
 	local top = self:addChild("topContainer", Container({ totalW = width, totalH = height, depth = 0.5 }))
 	local bottom = self:addChild("bottomContainer", Container({ totalW = width, totalH = height, depth = 0.6  }))
 	local center = self:addChild("centerContainer", Container({ totalW = width, totalH = height, depth = 0 }))
@@ -67,14 +73,18 @@ function View:load()
 		blockMouseFocus = false,
 	}))
 
-	top:addChild("statusIcon", Image({
+	local st_icon = top:addChild("statusIcon", Image({
 		x = 19, y = 19,
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage("selection-ranked"),
 		depth = 0.9
 	}))
+	function st_icon:update(dt, mouse_focus)
+		st_icon.color[4] = easing.linear(select_view.notechartChangeTime, 0.2)
+		return Image.update(st_icon, dt, mouse_focus)
+	end
 
-	top:addChild("chartName", DynamicText({
+	local chart_name = top:addChild("chartName", DynamicText({
 		x = 38, y = -5,
 		font = assets:loadFont("Regular", 25),
 		depth = 0.9,
@@ -82,8 +92,13 @@ function View:load()
 			return display_info.chartName
 		end
 	}))
+	---@cast chart_name osu.ui.DynamicText
+	function chart_name:update()
+		chart_name.color[4] = easing.linear(select_view.notechartChangeTime, 0.2)
+		DynamicText.update(chart_name)
+	end
 
-	top:addChild("chartSource", DynamicText({
+	local chart_source = top:addChild("chartSource", DynamicText({
 		x = 40, y = 20,
 		font = assets:loadFont("Regular", 16),
 		depth = 0.9,
@@ -91,8 +106,13 @@ function View:load()
 			return display_info.chartSource
 		end
 	}))
+	---@cast chart_source osu.ui.DynamicText
+	function chart_source:update()
+		chart_source.color[4] = easing.linear(select_view.notechartChangeTime, 0.25)
+		DynamicText.update(chart_source)
+	end
 
-	top:addChild("chartInfoFirstRow", DynamicText({
+	local first_row = top:addChild("chartInfoFirstRow", DynamicText({
 		x = 5, y = 39,
 		font = assets:loadFont("Bold", 16),
 		depth = 0.9,
@@ -100,8 +120,13 @@ function View:load()
 			return display_info.chartInfoFirstRow
 		end
 	}))
+	---@cast first_row osu.ui.DynamicText
+	function first_row:update()
+		first_row.color[4] = easing.linear(select_view.notechartChangeTime, 0.3)
+		DynamicText.update(first_row)
+	end
 
-	top:addChild("chartInfoSecondRow", DynamicText({
+	local second_row = top:addChild("chartInfoSecondRow", DynamicText({
 		x = 5, y = 59,
 		font = assets:loadFont("Regular", 16),
 		depth = 0.9,
@@ -109,8 +134,13 @@ function View:load()
 			return display_info.chartInfoSecondRow
 		end
 	}))
+	---@cast second_row osu.ui.DynamicText
+	function second_row:update()
+		second_row.color[4] = easing.linear(select_view.notechartChangeTime, 0.4)
+		DynamicText.update(second_row)
+	end
 
-	top:addChild("chartInfoThirdRow", DynamicText({
+	local third_row = top:addChild("chartInfoThirdRow", DynamicText({
 		x = 4, y = 76,
 		font = assets:loadFont("Regular", 11),
 		depth = 0.9,
@@ -118,6 +148,11 @@ function View:load()
 			return display_info.chartInfoThirdRow
 		end
 	}))
+	---@cast third_row osu.ui.DynamicText
+	function third_row:update()
+		third_row.color[4] = easing.linear(select_view.notechartChangeTime, 0.5)
+		DynamicText.update(third_row)
+	end
 
 	local ranking_options = {
 		["local"] = text.SongSelection_Rank_Local,
@@ -493,6 +528,11 @@ function View:load()
 	top:build()
 	bottom:build()
 	self:build()
+end
+
+function View:update(dt, mouse_focus)
+	self.shader:send("amount", 0.05 * (1 - easing.linear(self.selectView.notechartChangeTime, 0.5)))
+	return CanvasContainer.update(self, dt, mouse_focus)
 end
 
 ---@alias TabNames "noGrouping" | "byDifficulty" | "byArtist" | "recentlyPlayed" | "collections"

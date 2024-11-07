@@ -20,6 +20,8 @@ function CollectionsListView:load()
 		list = self
 	}
 
+	self.holeSize = 0
+	self.wrapProgress = 0
 	WindowListView.load(self)
 	self.state = "loading"
 	self.loadingCircle = self.assets:loadImage("loading")
