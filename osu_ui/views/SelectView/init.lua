@@ -82,6 +82,9 @@ end
 function SelectView:notechartChanged()
 	self.displayInfo:load()
 	self.notechartChangeTime = love.timer.getTime()
+
+	local ntf = self.gameView.screenContainer:getChild("notification")
+	ntf:show("lololo")
 end
 
 ---@param mode string
