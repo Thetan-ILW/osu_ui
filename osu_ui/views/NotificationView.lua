@@ -14,13 +14,9 @@ local NotificationView = UiElement + {}
 function NotificationView:load()
 	UiElement.load(self)
 	self.animation = 0
-	self.font = self.assets:loadFont("Regular", 24)
-end
-
-function NotificationView:createMessage(message)
 	self.label = Label({
-		text = message,
-		font = self.font,
+		text = "",
+		font = self.assets:loadFont("Regular", 24),
 		totalW = self.parent.totalW,
 		totalH = self.parent.totalH,
 		alignX = "center",
@@ -28,6 +24,9 @@ function NotificationView:createMessage(message)
 		textScale = self.parent.textScale
 	})
 	self.label:load()
+end
+
+function NotificationView:createTween()
 	self.tween = flux.to(self, 0.6, { animation = 1 }):ease("elasticout"):oncomplete(function()
 		self.tween = flux.to(self, 0.3, { animation = 0 }):ease("quadout"):delay(1):oncomplete(function()
 			self.tween = nil
@@ -42,13 +41,15 @@ function NotificationView:show(message, dont_stop_tween)
 	if self.tween and not dont_stop_tween then
 		self.tween:stop()
 		self.tween = flux.to(self, 0.1, { animation = 0 }):ease("cubicout"):oncomplete(function()
-			self:createMessage(message)
+			self:createTween()
+			self.label:replaceText(message)
 		end)
 	else
 		if self.tween then
 			self.tween:stop()
 		end
-		self:createMessage(message)
+		self:createTween()
+		self.label:replaceText(message)
 	end
 end
 

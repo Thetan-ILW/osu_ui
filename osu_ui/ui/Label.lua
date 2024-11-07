@@ -21,7 +21,12 @@ function Label:load()
 	self.alignX = self.alignX or "left"
 	self.alignY = self.alignY or "top"
 	self.shadow = self.shadow or false
+	self:updateSizeAndPos()
 
+	UiElement.load(self)
+end
+
+function Label:updateSizeAndPos()
 	local text_scale = self.textScale or self.parent.textScale
 	local tw, th = self.label:getDimensions()
 	tw, th = tw * text_scale, th * text_scale
@@ -47,8 +52,12 @@ function Label:load()
 	end
 
 	self.posX, self.posY = x, y
+end
 
-	UiElement.load(self)
+function Label:replaceText(text)
+	self.text = text
+	self.label:set(text)
+	self:updateSizeAndPos()
 end
 
 local gfx = love.graphics
