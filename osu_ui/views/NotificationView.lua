@@ -7,23 +7,28 @@ local Label = require("osu_ui.ui.Label")
 
 ---@class osu.ui.NotificationView : osu.ui.UiElement
 ---@operator call: osu.ui.NotificationView
----@field font love.Font
 ---@field assets osu.ui.OsuAssets
 local NotificationView = UiElement + {}
 
 function NotificationView:load()
-	UiElement.load(self)
+	self.totalW = self.totalW or self.parent.totalW
+	self.totalH = self.totalH or 48
+	self.origin = self.origin or { x = 0, y = 0.5 }
+	self.y = self.parent.totalH / 2
+
 	self.animation = 0
 	self.label = Label({
 		text = "",
 		font = self.assets:loadFont("Regular", 24),
-		totalW = self.parent.totalW,
-		totalH = self.parent.totalH,
+		totalW = self.totalW,
+		totalH = self.totalH,
 		alignX = "center",
 		alignY = "center",
 		textScale = self.parent.textScale
 	})
 	self.label:load()
+
+	UiElement.load(self)
 end
 
 function NotificationView:createTween()
@@ -65,17 +70,11 @@ function NotificationView:draw()
 		return
 	end
 
-	gfx.push()
-
-	local w, h = self.parent.totalW, self.parent.totalH
-	local rh = 48 * animation
-	local y = h / 2 - rh / 2
+	local rh = self.totalH * animation
 	gfx.setColor(0, 0, 0, math.min(0.7 * animation, 0.7))
-	gfx.rectangle("fill", 0, y, w, rh)
-
+	gfx.rectangle("fill", 0, self.totalH / 2 - rh / 2, self.totalW, rh)
 	self.label.alpha = animation * self.alpha
 	self.label:draw()
-	gfx.pop()
 end
 
 return NotificationView

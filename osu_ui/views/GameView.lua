@@ -30,11 +30,13 @@ function GameView:load(view)
 	self.screenContainer:addChild("cursor", CursorView({
 		assets = self.ui.assets,
 		osuConfig = self.game.configModel.configs.osu_ui,
+		blockMouseFocus = false,
 		depth = 0.98
 	}))
-	self.screenContainer:addChild("notification", NotificationView({
+	self.screenContainer:addChild("notifications", NotificationView({
 		assets = self.ui.assets,
-		depth = 0.97
+		blockMouseFocus = false,
+		depth = 0.97,
 	}))
 
 	self:forceSetView(view)
@@ -55,6 +57,7 @@ function GameView:_setView(view)
 
 	self.ui:loadAssets(view_names[view])
 	self.view = view
+	self.view.gameView = self
 	self.view.assetModel = self.ui.assetModel
 	self.view.assets = self.ui.assets
 	self.view.localization = self.ui.localization
