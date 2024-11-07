@@ -19,6 +19,7 @@ SelectView.groups = {
 }
 
 function SelectView:load()
+	love.mouse.setVisible(false)
 	self.game.selectController:load()
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs

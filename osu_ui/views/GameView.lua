@@ -1,5 +1,6 @@
 local class = require("class")
 
+local CursorView = require("osu_ui.views.CursorView")
 local FadeTransition = require("ui.views.FadeTransition")
 local ScreenContainer = require("osu_ui.ui.ScreenContainer")
 local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
@@ -25,6 +26,12 @@ function GameView:load(view)
 		backgroundModel = self.game.backgroundModel,
 		depth = 0
 	}))
+	self.screenContainer:addChild("cursor", CursorView({
+		assets = self.ui.assets,
+		osuConfig = self.game.configModel.configs.osu_ui,
+		depth = 1
+	}))
+
 	self:forceSetView(view)
 end
 
