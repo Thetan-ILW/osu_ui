@@ -24,6 +24,7 @@ local View = CanvasContainer + {}
 
 function View:load()
 	self.totalW, self.totalH = love.graphics.getDimensions()
+	self.stencil = true
 
 	local shaders = require("osu_ui.ui.shaders")
 	self.shader = shaders.lighten

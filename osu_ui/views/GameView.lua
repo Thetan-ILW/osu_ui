@@ -52,12 +52,12 @@ function GameView:_setView(view)
 
 	local view_names = {
 		[self.ui.selectView] = "selectView",
+		[self.ui.gameplayView] = "gameplayView",
 		[self.ui.resultView] = "resultView",
 	}
 
 	self.ui:loadAssets(view_names[view])
 	self.view = view
-	self.view.gameView = self
 	self.view.assetModel = self.ui.assetModel
 	self.view.assets = self.ui.assets
 	self.view.localization = self.ui.localization

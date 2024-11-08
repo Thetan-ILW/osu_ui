@@ -82,9 +82,6 @@ end
 function SelectView:notechartChanged()
 	self.displayInfo:load()
 	self.notechartChangeTime = love.timer.getTime()
-
-	local ntf = self.gameView.screenContainer:getChild("notifications")
-	ntf:show("lol")
 end
 
 ---@param mode string
@@ -130,9 +127,6 @@ function SelectView:play()
 		self.popupView:add("You need to bind keys first.", "purple")
 		return
 	end
-
-	self.assets.sounds.menuHit:stop()
-	self.assets.sounds.menuHit:play()
 
 	self:changeScreen("gameplayView")
 end

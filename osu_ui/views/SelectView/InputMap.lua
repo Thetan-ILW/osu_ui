@@ -41,7 +41,7 @@ function SelectInputMap:createBindings(sv)
 			sv:changeTimeRate(1)
 		end,
 		["play"] = function()
-			sv:select()
+			sv:play()
 		end,
 		["openEditor"] = function()
 			sv:edit()

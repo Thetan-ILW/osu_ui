@@ -26,22 +26,19 @@ function View:load()
 	local img = assets.images
 	local snd = assets.sounds
 
-	local all_fonts = assets.localization.fontGroups
-	local text, font = assets.localization:get("result")
-	assert(text and font)
+	local text = result_view.localization.text
 
 	local width, height = self.parent.totalW, self.parent.totalH
-	local newTransform = love.math.newTransform
 
 	local area = self:addChild("scrollArea", ScrollAreaContainer({
 		scrollLimit = 768,
-		width = width,
-		height = height * 2
+		totalW = width,
+		totalH = height * 2
 	}))
 	---@cast area osu.ui.ScrollAreaContainer
 
 	self:addChild("scrollBar", ScrollBar({
-		x = width - 13, y = 99,
+		x = width - 13, startY = 99,
 		totalW = 10,
 		container = area,
 		windowHeight = 768 - 96 - 6,
@@ -61,35 +58,35 @@ function View:load()
 	self:addChild("chartName", Label( {
 		x = 5,
 		text = display_info.chartName,
-		font = font.title,
+		font = assets:loadFont("Light", 30),
 		depth = 1,
 	}))
 
 	self:addChild("chartSource", Label({
 		x = 5, y = 33,
 		text = display_info.chartSource,
-		font = font.creator,
+		font = assets:loadFont("Regular", 22),
 		depth = 1,
 	}))
 
 	self:addChild("playInfo", Label({
 		x = 5, y = 54,
 		text = display_info.playInfo,
-		font = font.playInfo,
+		font = assets:loadFont("Regular", 22),
 		depth = 1,
 	}))
 
 	self:addChild("titleImage", Image({
 		x = width - 32,
 		origin = { x = 1, y = 0 },
-		image = img.title,
+		image = assets:loadImage("ranking-title"),
 		depth = 0.98,
 	}))
 
 	---- PANEL ----
 	area:addChild("statsPanel", Image({
 		y = 102,
-		image = img.panel,
+		image = assets:loadImage("ranking-panel"),
 		depth = 0.5,
 	}))
 
@@ -136,7 +133,7 @@ function View:load()
 		x = img_x2, y = row1,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.5,
-		image = img.judgeMarvelous,
+		image = assets:loadImage("mania-hit300g-0"),
 		depth = 0.54,
 	}))
 
@@ -158,9 +155,8 @@ function View:load()
 		x = img_x1, y = row1,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.5,
-		image = img.judgePerfect,
+		image = assets:loadImage("mania-hit300"),
 		depth = 0.54,
-		transform = newTransform(img_x1, row1)
 	}))
 
 	area:addChild("perfectCount", ImageValueView({
@@ -182,7 +178,7 @@ function View:load()
 			x = img_x1, y = row2,
 			origin = { x = 0.5, y = 0.5 },
 			scale = 0.5,
-			image = img.judgeGreat,
+			image = assets:loadImage("mania-hit200"),
 			depth = 0.54,
 		}))
 
@@ -206,7 +202,7 @@ function View:load()
 			x = img_x2, y = row2,
 			origin = { x = 0.5, y = 0.5 },
 			scale = 0.5,
-			image = img.judgeGood,
+			image = assets:loadImage("mania-hit100"),
 			depth = 0.54,
 		}))
 
@@ -230,7 +226,7 @@ function View:load()
 			x = img_x1, y = row3,
 			origin = { x = 0.5, y = 0.5 },
 			scale = 0.5,
-			image = img.judgeBad,
+			image = assets:loadImage("mania-hit50"),
 			depth = 0.54,
 		}))
 
@@ -252,7 +248,7 @@ function View:load()
 		x = img_x2, y = row3,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.5,
-		image = img.judgeMiss,
+		image = assets:loadImage("mania-hit0"),
 		depth = 0.54,
 	}))
 
@@ -299,12 +295,12 @@ function View:load()
 		end
 	}))
 
-	area:addChild("comboText", Image({ x = 8, y = 480, image = img.maxCombo, depth = 0.54 }))
-	area:addChild("accuracyText", Image({ x = 291, y = 480, image = img.accuracy, depth = 0.54 }))
+	area:addChild("comboText", Image({ x = 8, y = 480, image = assets:loadImage("ranking-maxcombo"), depth = 0.54 }))
+	area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), depth = 0.54 }))
 
 	---- GRAPH ----
 	local score_system = result_view.game.rhythmModel.scoreEngine.scoreSystem
-	area:addChild("graph", Image({ x = 256, y = 608, image = img.graph, depth = 0.5 }))
+	area:addChild("graph", Image({ x = 256, y = 608, image = assets:loadImage("ranking-graph"), depth = 0.5 }))
 
 	if score_system.sequence then
 		area:addChild("hpGraph", HpGraph({
@@ -321,25 +317,25 @@ function View:load()
 	local overlay = area:addChild("backgroundOverlay", Image({
 		x = width - 200, y = 320,
 		origin = { x = 0.5, y = 0.5 },
-		image = img.backgroundOverlay,
+		image = assets:loadImage("ranking-background-overlay"),
 		depth = 0,
 	}))
-	function overlay:update(dt)
-		Image.update(overlay, dt)
+	function overlay:update(dt, mouse_focus)
 		overlay.rotation = (overlay.rotation + love.timer.getDelta() * 0.5) % (math.pi * 2)
 		overlay:applyTransform()
+		return Image.update(overlay, dt, mouse_focus)
 	end
 
 	local grade = area:addChild("grade", Image({
 		x = width - 192, y = 320,
 		origin = { x = 0.5, y = 0.5 },
-		image = img["grade" .. display_info.grade],
+		image = assets:loadImage(("ranking-%s"):format(display_info.grade)),
 		depth = 0.5,
 	}))
-	function grade:update(dt)
-		Image.update(self, dt)
+	function grade:update(dt, mouse_focus)
 		grade.scale = 1 + (1 - result_view.scoreReveal) * 0.2
 		grade:applyTransform()
+		return Image.update(grade, dt, mouse_focus)
 	end
 
 	---- BUTTONS ----
@@ -348,8 +344,7 @@ function View:load()
 		origin = { x = 1, y = 0.5 },
 		hoverWidth = 380,
 		hoverHeight = 95,
-		idleImage = img.retry,
-		clickSound = assets.sounds.menuHit,
+		idleImage = assets:loadImage("pause-retry"),
 		alpha = 0.5,
 		depth = 0.6,
 		onClick = function()
@@ -362,8 +357,7 @@ function View:load()
 		origin = { x = 1, y = 0.5 },
 		hoverWidth = 380,
 		hoverHeight = 95,
-		idleImage = img.replay,
-		clickSound = assets.sounds.menuHit,
+		idleImage = assets:loadImage("pause-replay"),
 		alpha = 0.5,
 		depth = 0.6,
 		onClick = function ()
@@ -375,7 +369,7 @@ function View:load()
 	self:addChild("showChat", ImageButton({
 		x = width - 3, y = height + 1,
 		origin = { x = 1, y = 1 },
-		idleImage = img.overlayChat,
+		idleImage = assets:loadImage("overlay-show"),
 		depth = 0.4,
 		onClick = function ()
 			result_view.notificationView:show("Not implemented")
@@ -385,7 +379,7 @@ function View:load()
 	self:addChild("onlineUsers", ImageButton({
 		x = width - 99, y = height + 1,
 		origin = { x = 1, y = 1 },
-		idleImage = img.overlayOnline,
+		idleImage = assets:loadImage("overlay-online"),
 		alpha = 0.5,
 		depth = 0.4,
 		onClick = function ()
@@ -396,33 +390,31 @@ function View:load()
 	local online_ranking = area:addChild("onlineRanking", Button({
 		x = width / 2 - 160, y = height - 41.6,
 		text = "▼ Online Ranking ▼",
-		font = font.onlineRanking,
+		font = assets:loadFont("Regular", 32),
 		totalW = 320,
 		totalH = 48,
 		color = { 0.46, 0.09, 0.8, 1 },
-		imageLeft = img.buttonLeft,
-		imageMiddle = img.buttonMiddle,
-		imageRight = img.buttonRight,
+		imageLeft = assets:loadImage("button-left"),
+		imageMiddle = assets:loadImage("button-middle"),
+		imageRight = assets:loadImage("button-right"),
 		depth = 0.95,
 		onClick = function ()
 			area:scrollToPosition(768, 0)
 		end
 	}))
 	---@cast online_ranking osu.ui.Button
-	function online_ranking:update(dt)
-		Button.update(self, dt)
+	function online_ranking:update(dt, mouse_focus)
 		local position = area.scrollPosition
 		local alpha = 1 - math_util.clamp((position / area.totalH * 16), 0, 1)
-		self.color[4] = alpha
+		self.alpha = alpha
+		return Button.update(self, dt, mouse_focus)
 	end
 
 	area:addChild("backButton", BackButton({
 		y = height - 58,
-		font = all_fonts.misc.backButton,
+		assets = assets,
+		font = assets:loadFont("Regular", 20),
 		text = "back",
-		arrowImage = img.menuBackArrow,
-		clickSound = snd.menuBack,
-		hoverSound = snd.hoverOverRect,
 		hoverWidth = 93,
 		hoverHeight = 58,
 		depth = 1,

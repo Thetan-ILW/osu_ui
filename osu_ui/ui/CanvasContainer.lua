@@ -6,11 +6,13 @@ local Container = require("osu_ui.ui.Container")
 ---@overload fun(params: CanvasContainerParams): osu.ui.CanvasContainer
 ---@field canvas love.Canvas
 ---@field shader love.Shader
+---@field stencil boolean?
 local CanvasContainer = Container + {}
 
 function CanvasContainer:load()
 	self.automaticSizeCalc = false
 	self.canvas = love.graphics.newCanvas(self.totalW, self.totalH)
+	self.stencil = self.stencil or false
 	Container.load(self)
 end
 
@@ -18,7 +20,7 @@ local gfx = love.graphics
 
 function CanvasContainer:draw()
 	local prev_canvas = gfx.getCanvas()
-	gfx.setCanvas(self.canvas)
+	gfx.setCanvas({ self.canvas, stencil = self.stencil })
 	gfx.clear()
 	gfx.setBlendMode("alpha", "alphamultiply")
 
@@ -26,6 +28,7 @@ function CanvasContainer:draw()
 		local child = self.children[self.childrenOrder[i]]
 		gfx.push()
 		gfx.applyTransform(child.transform)
+		gfx.setColor(child.color)
 		child:draw()
 		gfx.pop()
 

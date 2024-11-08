@@ -1,10 +1,9 @@
-local Background = require("ui.views.GameplayView.Background")
 local ScreenView = require("osu_ui.views.ScreenView")
 local SequenceView = require("sphere.views.SequenceView")
-local RectangleProgressView = require("sphere.views.GameplayView.RectangleProgressView")
 
 local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
 
+local Playfield = require("osu_ui.views.GameplayView.Playfield")
 local PauseScreen = require("osu_ui.views.GameplayView.PauseScreen")
 
 local just = require("just")
@@ -13,23 +12,6 @@ local actions = require("osu_ui.actions")
 ---@class osu.ui.GameplayView: osu.ui.ScreenView
 ---@operator call: osu.ui.GameplayView
 local GameplayView = ScreenView + {}
-
-local native_res_w = 0
-local native_res_h = 0
-local native_res_x = 0
-local native_res_y = 0
-local base_get_dimensions = love.graphics.getDimensions
-local base_get_width = love.graphics.getWidth
-local base_get_height = love.graphics.getHeight
-local new_get_dimensions = function ()
-	return native_res_w, native_res_h
-end
-local new_get_width = function ()
-	return native_res_w
-end
-local new_get_height = function ()
-	return native_res_h
-end
 
 ---@param game sphere.GameController
 function GameplayView:new(game)
@@ -53,31 +35,35 @@ function GameplayView:load()
 	sequence_view:setSequenceConfig(note_skin.playField)
 	sequence_view:load()
 
-	local osu = self.game.configModel.configs.osu_ui
-	self.renderAtNativeResolution = osu.gameplay.nativeRes
-
-	if self.renderAtNativeResolution then
-		native_res_w, native_res_h = osu.gameplay.nativeResSize.width, osu.gameplay.nativeResSize.height
-		native_res_x, native_res_y = osu.gameplay.nativeResX, osu.gameplay.nativeResY
-		self.gameplayCanvas = love.graphics.newCanvas(native_res_w, native_res_h)
-	end
-
 	local root = note_skin.path:match("(.+/)") or ""
 	self.pauseAssets = OsuPauseAssets(self.ui.assetModel, root)
 	self.pauseAssets:load()
 	self.pauseAssets.shaders = self.ui.assets.shaders
-	self.pauseScreen = PauseScreen(0.98, love.math.newTransform(0, 0))
-	self.pauseScreen:load(self)
 
-	self.pauseProgressBar =  RectangleProgressView({
-		x = 0, y = 0, w = 1920, h = 20,
-		color = {1, 1, 1, 1},
-		transform = {0, 0, 0, {1 / 1920, 0}, {0, 1 / 1080}, 0, 0, 0, 0},
-		direction = "left-right",
-		mode = "+",
-		getCurrent = function() return self.game.pauseModel.progress end,
+	self.pauseScreen = PauseScreen({
+		assets = self.pauseAssets,
+		gameplayController = self.game.gameplayController,
+		gameplayView = self,
+		alpha = 0,
+		depth = 0.2,
+	})
+	self.playfield = Playfield({
+		configModel = self.game.configModel,
+		sequenceView = self.sequenceView,
+		depth = 0.1
 	})
 
+	local sc = self.gameView.screenContainer
+	if sc:getChild("pause") then
+		sc:removeChild("pause")
+	end
+	if sc:getChild("view") then
+		sc:removeChild("view")
+	end
+	sc:addChild("pause", self.pauseScreen)
+	sc:addChild("view", self.playfield)
+	sc:build()
+	self.cursor = sc:getChild("cursor")
 	self.cursor.alpha = 0
 end
 
@@ -85,6 +71,8 @@ function GameplayView:unload()
 	self.game.gameplayController:unload()
 	self.game.rhythmModel.observable:remove(self.sequenceView)
 	self.sequenceView:unload()
+	self.cursor.alpha = 1
+	self.gameView.screenContainer:removeChild("pause")
 end
 
 function GameplayView:retry()
@@ -92,81 +80,6 @@ function GameplayView:retry()
 	self.sequenceView:unload()
 	self.sequenceView:load()
 	self.cursor.alpha = 0
-end
-
-function GameplayView:resolutionUpdated()
-	self.pauseScreen = PauseScreen()
-	self.pauseScreen:load(self)
-end
-
-local gfx = love.graphics
-
-function GameplayView:drawNativeResolution()
-	gfx.push()
-
-	local prev_canvas = gfx.getCanvas()
-
-	gfx.setCanvas(self.gameplayCanvas)
-	gfx.clear()
-
-	gfx.getDimensions = new_get_dimensions
-	gfx.getWidth = new_get_width
-	gfx.getHeight = new_get_height
-	Background(self)
-	self.sequenceView:draw()
-	gfx.getDimensions = base_get_dimensions
-	gfx.getWidth = base_get_width
-	gfx.getHeight = base_get_height
-
-	gfx.setCanvas(prev_canvas)
-	gfx.origin()
-	gfx.translate((gfx.getWidth() - native_res_w) * native_res_x, (gfx.getHeight() - native_res_h) * native_res_y)
-	gfx.setColor(1, 1, 1)
-	gfx.draw(self.gameplayCanvas)
-	gfx.pop()
-
-	if self.subscreen == "pause" then
-		self.pauseScreen:draw()
-	end
-end
-
-function GameplayView:drawFull()
-	gfx.push()
-	Background(self)
-	self.sequenceView:draw()
-	gfx.pop()
-
-	if self.subscreen == "pause" then
-		self.pauseScreen:draw()
-	end
-end
-
-function GameplayView:draw()
-	self:keypressed()
-	self:keyreleased()
-
-	if self.renderAtNativeResolution then
-		self:drawNativeResolution()
-	else
-		self:drawFull()
-	end
-
-	self.pauseProgressBar:draw()
-	self.ui.screenOverlayView:draw()
-
-	local state = self.game.pauseModel.state
-	local multiplayerModel = self.game.multiplayerModel
-	local isPlaying = multiplayerModel.room and multiplayerModel.isPlaying
-	if
-		not love.window.hasFocus()
-		and state ~= "pause"
-		and not self.game.rhythmModel.logicEngine.autoplay
-		and not isPlaying
-		and self.game.rhythmModel.inputManager.mode ~= "internal"
-	then
-		self.game.gameplayController:pause()
-		--self.pauseScreen:show()
-	end
 end
 
 ---@param dt number
@@ -182,7 +95,6 @@ function GameplayView:update(dt)
 		end
 		self.subscreen = "pause"
 		self.pauseAssets:updateVolume(self.game.configModel)
-		self.pauseScreen:update(dt)
 	end
 
 	if self.game.pauseModel.needRetry then
@@ -211,7 +123,22 @@ function GameplayView:update(dt)
 		self:quit()
 	end
 
+	local isPlaying = multiplayerModel.room and multiplayerModel.isPlaying
+	if
+		not love.window.hasFocus()
+		and state ~= "pause"
+		and not self.game.rhythmModel.logicEngine.autoplay
+		and not isPlaying
+		and self.game.rhythmModel.inputManager.mode ~= "internal"
+	then
+		self.game.gameplayController:pause()
+		--self.pauseScreen:show()
+	end
+
 	self.sequenceView:update(dt)
+	self:keypressed()
+	self:keyreleased()
+
 end
 
 ---@param event table

@@ -16,7 +16,6 @@ local DisplayInfo = class()
 ---@param result_view osu.ui.ResultView
 function DisplayInfo:new(result_view)
 	local game = result_view.game
-	local localization = result_view.assets.localization
 
 	self.game = game
 	self.resultView = result_view
@@ -27,9 +26,7 @@ function DisplayInfo:new(result_view)
 	self.playContext = game.playContext
 	self.scoreItem = game.selectModel.scoreItem
 
-	local text = localization:get("result")
-	assert(text)
-	self.text = text
+	self.text = result_view.localization.text
 
 	if self.chartview then
 		self:getDifficulty()
@@ -127,16 +124,16 @@ function DisplayInfo:getChartInfo()
 	local time = os.date("%d/%m/%Y %H:%M:%S.", score_item.time)
 	local set_dir = chartview.set_dir
 	local creator = chartview.creator
-	local username = self.configs.online.user.name or text.guest
+	local username = self.configs.online.user.name or text.UserProfile_Guest
 
-	local second_row = text.chartFrom:format(set_dir)
+	local second_row = text.SongSelection_BeatmapInfoCreator:format(set_dir)
 
 	if chartview.format ~= "sm" then
-		second_row = text.chartBy:format(creator)
+		second_row = text.SongSelection_BeatmapInfoCreator:format(creator)
 	end
 
 	self.chartSource = second_row
-	self.playInfo = text.playedBy:format(username, time)
+	self.playInfo = text.RankingDialog_PlayedBy:format(username, time)
 end
 
 local scoring = {

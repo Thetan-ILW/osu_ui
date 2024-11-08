@@ -1,12 +1,16 @@
-local ui = require("osu_ui.ui")
 local flux = require("flux")
 
-local Container = require("osu_ui.ui.Container")
 local CanvasContainer = require("osu_ui.ui.CanvasContainer")
 local ImageButton = require("osu_ui.ui.ImageButton")
+local Rectangle = require("osu_ui.ui.Rectangle")
 
----@class osu.ui.PauseViewContainer : osu.ui.CanvasContainer
----@operator call: osu.ui.PauseViewContainer
+---@alias PauseViewParams { assets: osu.ui.OsuAssets, gameplayView: osu.ui.GameplayView, gameplayController: sphere.GameplayController }
+
+---@class osu.ui.PauseView : osu.ui.CanvasContainer
+---@overload fun(PauseViewParams): osu.ui.PauseView
+---@field assets osu.ui.OsuAssets 
+---@field gameplayController sphere.GameplayController
+---@field gameplayView osu.ui.GameplayView
 local View = CanvasContainer + {}
 
 function View:show()
@@ -14,7 +18,6 @@ function View:show()
 		self.tween:stop()
 	end
 	self.tween = flux.to(self, 0.22, { alpha = 1 }):ease("quadout")
-	self.assets.sounds.loop:play()
 end
 
 function View:hide()
@@ -22,63 +25,60 @@ function View:hide()
 		self.tween:stop()
 	end
 	self.tween = flux.to(self, 0.22, { alpha = 0 }):ease("quadout")
-	self.assets.sounds.loop:stop()
 end
 
----@param gameplay_view osu.ui.GameplayView
-function View:load(gameplay_view)
-	local assets = gameplay_view.assets
-	local img = assets.images
-	local snd = assets.sounds
-	self.assets = assets
+function View:load()
+	CanvasContainer.load(self)
 
-	local gameplay_controller = gameplay_view.game.gameplayController
+	local width, height = self.parent.totalW, self.parent.totalH
+	local gameplay_controller = self.gameplayController
+	local gameplay_view = self.gameplayView
+	local assets = self.assets
 
 	local bw, bh = 380, 95
-	self:addChild("continueButton", ImageButton(assets, {
-		idleImage = img.continue,
-		ox = 0.5,
-		oy = 0.5,
-		hoverArea = { w = bw, h = bh },
-		clickSound = snd.continueClick,
+	self:addChild("continueButton", ImageButton({
+		x = width / 2, y = 224,
+		origin = { x = 0.5, y = 0.5 },
+		assets = assets,
+		idleImage = assets:loadImage("pause-continue"),
 		depth = 1,
-		transform = love.math.newTransform(ui.layoutW / 2, 224)
-	}, function()
-		gameplay_controller:changePlayState("play")
-		self:hide()
-	end))
+		onClick = function ()
+			gameplay_controller:changePlayState("play")
+			self:hide()
+		end
+	}))
 
-	self:addChild("retryButton", ImageButton(assets, {
-		idleImage = img.retry,
-		ox = 0.5,
-		oy = 0.5,
-		hoverArea = { w = bw, h = bh },
-		clickSound = assets.sounds.retryClick,
+	self:addChild("retryButton", ImageButton({
+		x = width / 2, y = 400,
+		origin = { x = 0.5, y = 0.5 },
+		assets = assets,
+		idleImage = assets:loadImage("pause-retry"),
 		depth = 1,
-		transform = love.math.newTransform(ui.layoutW / 2, 400)
-	}, function()
-		gameplay_controller:changePlayState("retry")
-		self:hide()
-	end))
+		onClick = function ()
+			gameplay_controller:changePlayState("retry")
+			self:hide()
+		end
+	}))
 
-	self:addChild("backButton", ImageButton(assets, {
-		idleImage = img.back,
-		ox = 0.5,
-		oy = 0.5,
-		hoverArea = { w = bw, h = bh },
-		clickSound = assets.sounds.retryClick,
+	self:addChild("backButton", ImageButton({
+		x = width / 2, y = 576,
+		origin = { x = 0.5, y = 0.5 },
+		assets = assets,
+		idleImage = assets:loadImage("pause-back"),
 		depth = 1,
-		transform = love.math.newTransform(ui.layoutW / 2, 576)
-	}, function()
-		gameplay_view:quit()
-	end))
+		onClick = function ()
+			gameplay_view:quit()
+		end
+	}))
 
-	self:addChild("tint", Container.drawFunction(function ()
-		love.graphics.setColor(0.1, 0.1, 1, 0.1)
-		love.graphics.rectangle("fill", 0, 0, ui.layoutW, ui.layoutH)
-	end, 0))
+	self:addChild("tint", Rectangle({
+		totalW = width,
+		totalH = height,
+		color = { 0.1, 0.1, 1, 0.1 },
+		depth = 0,
+	}))
 
-	self:sortChildren()
+	self:build()
 end
 
 return View

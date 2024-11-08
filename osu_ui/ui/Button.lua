@@ -2,12 +2,13 @@ local UiElement = require("osu_ui.ui.UiElement")
 
 local ui = require("osu_ui.ui")
 local HoverState = require("osu_ui.ui.HoverState")
+local Label = require("osu_ui.ui.Label")
 
 ---@alias ButtonParams { text: string, font: love.Font, imageLeft: love.Image, imageMiddle: love.Image, imageRight: love.Image, hoverSound: audio.Source }
 
 ---@class osu.ui.Button : osu.ui.UiElement
 ---@operator call: osu.ui.Button
----@field private label love.Text
+---@field private label osu.ui.Label
 ---@field private middleImgScale number
 ---@field private heightScale number
 ---@field private imageLeft love.Image
@@ -23,10 +24,20 @@ function Button:load()
 	assert(self.imageMiddle, "imageMiddle was not provided")
 	assert(self.imageRight, "imageRight was not provided")
 
-	self.label = love.graphics.newText(self.font, self.text)
-
 	self.totalW = self.totalW or 737
 	self.totalH = self.totalH or 65
+
+	self.label = Label({
+		totalW = self.totalW,
+		totalH = self.totalH,
+		text = self.text,
+		font = self.font,
+		shadow = true,
+		alignX = "center",
+		alignY = "center",
+		textScale = self.parent.textScale
+	})
+	self.label:load()
 
 	self.heightScale = self.totalH / self.imageMiddle:getHeight()
 	local borders_width = self.imageLeft:getWidth() * self.heightScale + self.imageRight:getWidth() * self.heightScale
@@ -82,11 +93,9 @@ function Button:draw()
 	gfx.pop()
 
 	gfx.push()
-	gfx.setColor(1, 1, 1, self.color[4] * self.alpha)
-	ui.textFrameShadow(self.label, 0, 0, self.totalW, self.totalH, "center", "center")
+	self.label.alpha = self.alpha
+	self.label:draw()
 	gfx.pop()
-
-	ui.next(0, self.totalH)
 end
 
 return Button

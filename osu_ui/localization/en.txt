@@ -1,4 +1,5 @@
 General_Back=Back
+UserProfile_Guest=Guest
 SongSelection_BeatmapInfoCreator=Mapped by %s
 SongSelection_BeatmapInfoPack=From %s
 SongSelection_BeatmapInfo=Length: %s BPM: %i Objects: %i
@@ -23,3 +24,4 @@ SongSelection_Group=Group
 SongSelection_Sort=Sort
 SongSelection_Rank_Local=Normalscore
 SongSelection_Rank_Top=Global Ranking
+RankingDialog_PlayedBy=Played by %s %s

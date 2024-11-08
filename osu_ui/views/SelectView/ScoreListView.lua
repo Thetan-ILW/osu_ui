@@ -76,6 +76,7 @@ function ScoreListView:addProfileScore(score_index, score, source)
 	end
 
 	self:addChild(tostring(score_index), ScoreEntryView({
+		id = score.id,
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
 		assets = self.assets,
@@ -120,6 +121,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 	end
 
 	self:addChild(tostring(score_index), ScoreEntryView({
+		id = score.id,
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
 		assets = self.assets,
@@ -138,9 +140,9 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 	return true
 end
 
-function ScoreListView:update(dt)
-	ScrollAreaContainer.update(self, dt)
+function ScoreListView:update(dt, mouse_focus)
 	self:loadScores()
+	return ScrollAreaContainer.update(self, dt, mouse_focus)
 end
 
 function ScoreListView:loadScores()
@@ -151,6 +153,7 @@ function ScoreListView:loadScores()
 	self.scores = self.game.selectModel.scoreLibrary.items
 	self.children = {}
 	self.childrenOrder = {}
+	self.scrollPosition = 0
 
 	local source = self.game.configModel.configs.osu_ui.songSelect.scoreSource
 
@@ -183,9 +186,15 @@ function ScoreListView:loadScores()
 	end
 
 	local h = self.panelHeight
-	self.scrollLimit = math.max(0, (self.scoreCount * h) - (h * 9) - 6)
+	self.scrollLimit = math.max(0, (self.scoreCount * h) - (h * 9) - 6) + self.panelHeight / 2
+	self.totalH = self.panelHeight * 8
 
 	self:build()
+end
+
+function ScoreListView:openScore(id)
+	self.game.selectModel:scrollScore(nil, id)
+	self.game.ui.selectView:result()
 end
 
 local gfx = love.graphics
@@ -204,7 +213,7 @@ function ScoreListView:draw()
 	local first = math_util.clamp(math.floor(self.scrollPosition / self.panelHeight), 0, self.scoreCount)
 
 	gfx.stencil(function ()
-		gfx.rectangle("fill", 0, self.scrollPosition - 64, 500, self.panelHeight * 8 + 34)
+		gfx.rectangle("fill", 0, self.scrollPosition - 64, 500, self.panelHeight * 8 + 30)
 	end, "replace", 1)
 
 	gfx.setStencilTest("greater", 0)

@@ -32,12 +32,17 @@ ResultView.load = thread.coro(function(self)
 	self.inputMap = InputMap(self)
 	self.displayInfo = DisplayInfo(self)
 	self.scoreReveal = 0
-	self.gameView.screenContainer:addChild("view", View({ resultView = self, depth = 0.1 }))
+
+	local sc = self.gameView.screenContainer
+	if sc:getChild("view") then
+		sc:removeChild("view")
+	end
+	sc:addChild("view", View({ resultView = self, depth = 0.1 }))
+	sc:build()
+
 	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
 
 	loading = false
-
-	--love.mouse.setVisible(false)
 
 	actions.enable()
 end)
@@ -50,9 +55,6 @@ function ResultView:update(dt)
 
 	local configs = self.game.configModel.configs
 	local graphics = configs.settings.graphics
-
-	dim = graphics.dim.result
-	background_blur = graphics.blur.result
 
 	self.assets:updateVolume(self.game.configModel)
 end

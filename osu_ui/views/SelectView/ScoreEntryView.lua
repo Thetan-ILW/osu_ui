@@ -7,7 +7,7 @@ local Image = require("osu_ui.ui.Image")
 local Label = require("osu_ui.ui.Label")
 local DynamicText = require("osu_ui.ui.DynamicText")
 
----@alias ScoreViewParams { assets: osu.ui.OsuAssets, gradeImageName: string, username: string?, rank: number, score: string, accuracy: string, mods: string, improvement: string, tooltip: string, slideInDelay: number, recentScoreIcon: love.Text, time: number }
+---@alias ScoreViewParams { id: integer, assets: osu.ui.OsuAssets, gradeImageName: string, username: string?, rank: number, score: string, accuracy: string, mods: string, improvement: string, tooltip: string, slideInDelay: number, recentScoreIcon: love.Text, time: number }
 
 ---@class osu.ui.ScoreEntryView : osu.ui.UiElement
 ---@overload fun(params: ScoreViewParams): osu.ui.ScoreEntryView
@@ -153,7 +153,7 @@ end
 function ScoreEntryView:mouseReleased()
 	if self.mouseDown and self.mouseOver then
 		if math.abs(self.lastMouseY - love.mouse.getY()) < 4 then
-			print("click")
+			self.parent:openScore(self.id)
 		end
 	end
 	self.mouseDown = false
@@ -194,9 +194,7 @@ function ScoreEntryView:updateTimeSinceScore()
 	self.timeSince = formatTime(time)
 end
 
-function ScoreEntryView:update(dt)
-	UiElement.update(self, dt)
-
+function ScoreEntryView:update(dt, mouse_focus)
 	local ap = self.slideInAlphaProgress
 	self.usernameLabel.alpha = ap
 	self.scoreLabel.alpha = ap
@@ -210,6 +208,8 @@ function ScoreEntryView:update(dt)
 	self:applyTransform()
 	self:updateTimeSinceScore()
 	self.timeSinceScore:update()
+
+	return UiElement.update(self, dt, mouse_focus)
 end
 
 function ScoreEntryView:applyTransform()
@@ -250,7 +250,9 @@ function ScoreEntryView:draw()
 
 	gfx.push()
 	gfx.translate(96, 9)
+	gfx.push()
 	self.usernameLabel:draw()
+	gfx.pop()
 	gfx.translate(0, 24)
 	self.scoreLabel:draw()
 	gfx.pop()
@@ -277,11 +279,14 @@ function ScoreEntryView:draw()
 	if self.timeSince then
 		gfx.translate(390, 18)
 		gfx.setColor(0.078, 0.078, 0.078, 0.64 * ap)
+		gfx.push()
+		gfx.scale(self.parent.textScale)
 		gfx.draw(self.recentScoreIcon, -1, 0)
 		gfx.draw(self.recentScoreIcon, 1, 0)
 		gfx.draw(self.recentScoreIcon, 0, 1)
 		gfx.setColor(1, 1, 1, ap)
 		gfx.draw(self.recentScoreIcon)
+		gfx.pop()
 		gfx.translate(26, 3)
 
 		gfx.setColor(0.078, 0.078, 0.078, 0.64 * ap)
