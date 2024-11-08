@@ -50,6 +50,7 @@ function UiElement:load()
 	self.hoverHeight = self.hoverHeight or self.totalH
 	self.mouseOver = false
 	self.blockMouseFocus = self.blockMouseFocus == nil and true or self.blockMouseFocus
+	self.transform = love.math.newTransform()
 	self:applyTransform()
 end
 
@@ -65,7 +66,7 @@ function UiElement:getOrigin()
 end
 
 function UiElement:applyTransform()
-	self.transform = love.math.newTransform(self.x, self.y, self.rotation, self.scale, self.scale, self:getOrigin())
+	self.transform:setTransformation(self.x, self.y, self.rotation, self.scale, self.scale, self:getOrigin())
 end
 
 ---@return number

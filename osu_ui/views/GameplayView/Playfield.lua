@@ -29,12 +29,15 @@ function Playfield:load()
 	local osu = self.configModel.configs.osu_ui
 	self.renderAtNativeResolution = osu.gameplay.nativeRes
 
+	self.draw = self.drawFull
+
 	if self.renderAtNativeResolution then
 		native_res_w, native_res_h = osu.gameplay.nativeResSize.width, osu.gameplay.nativeResSize.height
 		native_res_x, native_res_y = osu.gameplay.nativeResX, osu.gameplay.nativeResY
 		self.totalW  = native_res_w
 		self.totalH = native_res_h
 		self.canvas = love.graphics.newCanvas(self.totalW, self.totalH)
+		self.draw = self.drawNative
 	end
 
 	UiElement.load(self)
@@ -49,33 +52,32 @@ end
 
 local gfx = love.graphics
 
-function Playfield:draw()
-	if self.renderAtNativeResolution then
-		local prev_canvas = gfx.getCanvas()
-		gfx.setCanvas(self.canvas)
-		gfx.clear()
-		gfx.setBlendMode("alpha", "alphamultiply")
+function Playfield:drawNative()
+	local prev_canvas = gfx.getCanvas()
+	gfx.setCanvas(self.canvas)
+	gfx.clear()
+	gfx.setBlendMode("alpha", "alphamultiply")
 
-		gfx.push()
-		gfx.getDimensions = new_get_dimensions
-		gfx.getWidth = new_get_width
-		gfx.getHeight = new_get_height
-		self.sequenceView:draw()
-		gfx.getDimensions = base_get_dimensions
-		gfx.getWidth = base_get_width
-		gfx.getHeight = base_get_height
-		gfx.pop()
+	gfx.push()
+	gfx.getDimensions = new_get_dimensions
+	gfx.getWidth = new_get_width
+	gfx.getHeight = new_get_height
+	self.sequenceView:draw()
+	gfx.getDimensions = base_get_dimensions
+	gfx.getWidth = base_get_width
+	gfx.getHeight = base_get_height
+	gfx.pop()
 
-		gfx.setCanvas(prev_canvas)
-		gfx.setColor(1, 1, 1)
-		local wh = gfx.getHeight()
-		local _, iwh = gfx.inverseTransformPoint(0, wh)
-		gfx.scale(iwh / self.totalH)
-		gfx.draw(self.canvas)
-	else
-		self.sequenceView:draw()
-	end
+	gfx.setCanvas(prev_canvas)
+	gfx.setColor(1, 1, 1)
+	local wh = gfx.getHeight()
+	local _, iwh = gfx.inverseTransformPoint(0, wh)
+	gfx.scale(iwh / self.totalH)
+	gfx.draw(self.canvas)
 end
 
+function Playfield:drawFull()
+	self.sequenceView:draw()
+end
 
 return Playfield
