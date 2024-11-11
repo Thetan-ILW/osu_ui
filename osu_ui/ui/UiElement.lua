@@ -28,6 +28,7 @@ local HoverState = require("osu_ui.ui.HoverState")
 ---@field hoverHeight number
 ---@field mouseOver boolean
 ---@field blockMouseFocus boolean
+---@field tabs {[string]: boolean}
 local UiElement = class()
 
 function UiElement:load()
@@ -51,6 +52,7 @@ function UiElement:load()
 	self.mouseOver = false
 	self.blockMouseFocus = self.blockMouseFocus == nil and true or self.blockMouseFocus
 	self.transform = love.math.newTransform()
+	self.tags = {}
 	self:applyTransform()
 end
 
@@ -114,6 +116,19 @@ function UiElement:setMouseFocus(has_focus)
 end
 
 function UiElement:loseFocus() end
+
+---@param tags string[]
+function UiElement:addTags(tags)
+	for i, v in ipairs(tags) do
+		self.tags[v] = true
+	end
+end
+
+---@param tag string
+---@return boolean
+function UiElement:hasTag(tag)
+	return self.tags[tag] ~= nil
+end
 
 ---@param dt number
 ---@param mouse_focus boolean

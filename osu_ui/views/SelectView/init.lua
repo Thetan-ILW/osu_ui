@@ -63,20 +63,20 @@ local path_util = require("path_util")
 function SelectView:reloadView()
 	local view = love.filesystem.load(path_util.join(self.ui.mountPath, "osu_ui/views/SelectView/View.lua"))()
 
-	local sc = self.gameView.screenContainer
+	local viewport = self.gameView.viewport
 
-	if sc:getChild("view") then
-		sc:removeChild("view")
+	if viewport:getChild("view") then
+		viewport:removeChild("view")
 	end
 
-	local success, result = pcall(sc.addChild, sc, "view", view({ selectView = self, depth = 0.1 }))
+	local success, result = pcall(viewport.addChild, viewport, "view", view({ selectView = self, depth = 0.1 }))
 	if not success then
 		print(result)
 	end
 
-	self.view = sc:getChild("view")
+	self.view = viewport:getChild("view")
 
-	self.gameView.screenContainer:build()
+	self.gameView.viewport:build()
 end
 
 function SelectView:notechartChanged()
@@ -228,10 +228,6 @@ function SelectView:quit(back_button_click)
 	end
 
 	self:changeScreen("mainMenuView")
-end
-
-function SelectView:resolutionUpdated()
-	self:reloadView()
 end
 
 ---@return string

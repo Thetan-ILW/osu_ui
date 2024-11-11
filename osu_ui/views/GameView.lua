@@ -3,8 +3,10 @@ local class = require("class")
 local CursorView = require("osu_ui.views.CursorView")
 local NotificationView = require("osu_ui.views.NotificationView")
 local FadeTransition = require("ui.views.FadeTransition")
-local ScreenContainer = require("osu_ui.ui.ScreenContainer")
+local Viewport = require("osu_ui.ui.Viewport")
 local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
+
+local Options = require("osu_ui.views.Options")
 
 ---@class osu.ui.GameView
 ---@operator call: osu.ui.GameView
@@ -17,26 +19,29 @@ function GameView:new(game_ui)
 	self.game = game_ui.game
 	self.ui = game_ui
 	self.fadeTransition = FadeTransition()
-	self.screenContainer = ScreenContainer({ nativeHeight = 768 })
+	self.viewport = Viewport({ nativeHeight = 768 })
 end
 
 function GameView:load(view)
-	self.screenContainer:load()
-	self.screenContainer:addChild("background", ParallaxBackground({
+	self.viewport:load()
+	self.viewport:addChild("background", ParallaxBackground({
 		mode = "background_model",
 		backgroundModel = self.game.backgroundModel,
 		depth = 0
 	}))
-	self.screenContainer:addChild("cursor", CursorView({
+	self.viewport:addChild("cursor", CursorView({
 		assets = self.ui.assets,
 		osuConfig = self.game.configModel.configs.osu_ui,
 		blockMouseFocus = false,
 		depth = 0.98
 	}))
-	self.screenContainer:addChild("notifications", NotificationView({
+	self.viewport:addChild("notifications", NotificationView({
 		assets = self.ui.assets,
 		blockMouseFocus = false,
 		depth = 0.97,
+	}))
+	self.viewport:addChild("options", Options({
+		depth = 0.2,
 	}))
 
 	self:forceSetView(view)
@@ -62,7 +67,7 @@ function GameView:_setView(view)
 	self.view.assets = self.ui.assets
 	self.view.localization = self.ui.localization
 	self.view:load()
-	self.screenContainer:build()
+	self.viewport:build()
 end
 
 ---@param view osu.ui.ScreenView
@@ -125,13 +130,17 @@ function GameView:update(dt)
 
 	love.graphics.origin()
 	self.view:update(dt)
-	self.screenContainer:setSize(love.graphics.getDimensions())
-	self.screenContainer:setTextScale(1 / self.ui.assets:getTextDpiScale())
-	self.screenContainer:update(dt)
+	self.viewport:setSize(love.graphics.getDimensions())
+	self.viewport:setTextScale(1 / self.ui.assets:getTextDpiScale())
+	self.viewport:update(dt)
 end
 
 function GameView:resolutionUpdated()
-	self.view:resolutionUpdated()
+	self.viewport:forEachChild(function(child)
+		if child:hasTag("allowReload") then
+			child:load()
+		end
+	end)
 end
 
 ---@param event table
@@ -142,7 +151,7 @@ function GameView:receive(event)
 
 	love.graphics.origin()
 	self.view:receive(event)
-	self.screenContainer:receive(event)
+	self.viewport:receive(event)
 end
 function GameView:draw()
 	if not self.view then
@@ -150,7 +159,7 @@ function GameView:draw()
 	end
 
 	self.fadeTransition:drawBefore()
-	self.screenContainer:draw()
+	self.viewport:draw()
 	self.fadeTransition:drawAfter()
 end
 

@@ -29,6 +29,7 @@ function View:load()
 	local shaders = require("osu_ui.ui.shaders")
 	self.shader = shaders.lighten
 	CanvasContainer.load(self)
+	self:addTags({ "allowReload" })
 
 	local select_view = self.selectView
 	local display_info = select_view.displayInfo

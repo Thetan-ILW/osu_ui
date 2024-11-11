@@ -138,7 +138,6 @@ function GameplayView:update(dt)
 	self.sequenceView:update(dt)
 	self:keypressed()
 	self:keyreleased()
-
 end
 
 ---@param event table

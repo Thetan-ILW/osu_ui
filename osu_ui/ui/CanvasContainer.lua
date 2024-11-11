@@ -53,11 +53,15 @@ function CanvasContainer:draw()
 	gfx.setColor(a, a, a, a)
 	gfx.push()
 	gfx.scale(iwh / wh)
-	gfx.draw(self.canvas)
+	self:drawCanvas()
 	gfx.pop()
 	gfx.setBlendMode("alpha")
 
 	gfx.setShader(prev_shader)
+end
+
+function CanvasContainer:drawCanvas()
+	gfx.draw(self.canvas)
 end
 
 return CanvasContainer

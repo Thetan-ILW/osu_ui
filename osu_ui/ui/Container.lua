@@ -27,6 +27,7 @@ function Container:load()
 	end
 
 	UiElement.load(self)
+	self:addTags({ "container" })
 end
 
 function Container:unload()
@@ -68,6 +69,16 @@ function Container:removeChildContainer(child)
 			return
 		end
 	end
+end
+
+---@return osu.ui.Viewport
+function Container:getViewport()
+	if self:hasTag("viewport") then
+		---@cast self osu.ui.Viewport
+		return self
+	end
+	assert(self.parent, ("%s does not have a parent, can't get viewport"):format(self.id or "NO_ID"))
+	return self.parent:getViewport()
 end
 
 ---@param child osu.ui.UiElement
