@@ -41,6 +41,7 @@ function GameView:load(view)
 		depth = 0.97,
 	}))
 	self.viewport:addChild("options", Options({
+		assets = self.ui.assets,
 		depth = 0.2,
 	}))
 

@@ -22,6 +22,10 @@ local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsLi
 ---@field selectView osu.ui.SelectView
 local View = CanvasContainer + {}
 
+function View:textInput(event)
+	return true
+end
+
 function View:load()
 	self.totalW, self.totalH = love.graphics.getDimensions()
 	self.stencil = true
@@ -30,6 +34,7 @@ function View:load()
 	self.shader = shaders.lighten
 	CanvasContainer.load(self)
 	self:addTags({ "allowReload" })
+	self:bindEvent(self, "textInput")
 
 	local select_view = self.selectView
 	local display_info = select_view.displayInfo

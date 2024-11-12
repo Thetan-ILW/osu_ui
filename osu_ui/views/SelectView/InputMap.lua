@@ -21,7 +21,8 @@ function SelectInputMap:createBindings(sv)
 			sv:openModal("osu_ui.views.modals.Filters")
 		end,
 		["showSettings"] = function()
-			sv:toggleSettings()
+			local options = sv.gameView.viewport:getChild("options")
+			options:toggle()
 		end,
 	}
 

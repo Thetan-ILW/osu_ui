@@ -6,7 +6,7 @@ local HoverState = require("osu_ui.ui.HoverState")
 ---@alias AlignX "left" | "center" | "right"
 ---@alias AlignY "top" | "center" | "bottom"
 ---@alias ProtoOrigin { x: number, y: number }
----@alias InputEvent "mousePressed" | "mouseReleased" | "keyPresseed" | "keyReleased" | "wheelUp" | "wheelDown"
+---@alias InputEvent "mousePressed" | "mouseReleased" | "keyPressed" | "keyReleased" | "wheelUp" | "wheelDown" | "textInput"
 
 ---@class osu.ui.UiElement
 ---@operator call: osu.ui.UiElement
@@ -104,7 +104,7 @@ function UiElement:setMouseFocus(has_focus)
 		return true
 	end
 
-	local hw, hh = self.hoverWidth, self.hoverHeight
+	local hw, hh = self.totalW, self.totalH
 	local mouse_over, just_hovered = self.hoverState:check(hw, hh, 0, 0)
 	self.mouseOver = mouse_over
 

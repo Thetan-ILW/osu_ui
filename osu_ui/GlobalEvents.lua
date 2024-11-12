@@ -37,9 +37,6 @@ function GlobalEvents:keypressed(event)
 	end
 
 	actions.keyPressed(event)
-	if event[2] == "backspace" then
-		actions.textInputEvent("backspace")
-	end
 end
 
 local events = {
@@ -55,9 +52,6 @@ local events = {
 	end,
 	inputchanged = function(self, event)
 		actions.inputChanged(event)
-	end,
-	textinput = function(self, event)
-		actions.textInputEvent(event[1])
 	end,
 	focus = function()
 		actions.resetInputs()

@@ -173,12 +173,10 @@ function Container:draw()
 			child:draw()
 		end
 		gfx.pop()
-		--[[
 		gfx.push()
 		gfx.applyTransform(child.transform)
 		child:debugDraw()
 		gfx.pop()
-		]]
 	end
 end
 
@@ -228,10 +226,13 @@ local events = {
 		if action then
 			return self:callbackFirstChild(action .. "Action", event)
 		end
-		return self:callbackFirstChild("keyPresseed", event)
+		return self:callbackFirstChild("keyPressed", event)
 	end,
 	keyreleased = function(self, event)
 		return self:callbackForEachChild("keyReleased", event)
+	end,
+	textinput = function (self, event)
+		return self:callbackFirstChild("textInput", event)
 	end
 }
 
