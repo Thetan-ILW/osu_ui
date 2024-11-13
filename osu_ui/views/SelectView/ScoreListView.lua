@@ -186,8 +186,7 @@ function ScoreListView:loadScores()
 	end
 
 	local h = self.panelHeight
-	self.scrollLimit = math.max(0, (self.scoreCount * h) - (h * 9) - 6) + self.panelHeight / 2
-	self.totalH = self.panelHeight * 8
+	self.scrollLimit = math.max(0, (self.scoreCount - 8) * h)
 
 	self:build()
 end
@@ -213,11 +212,12 @@ function ScoreListView:draw()
 	local first = math_util.clamp(math.floor(self.scrollPosition / self.panelHeight), 0, self.scoreCount)
 
 	gfx.stencil(function ()
-		gfx.rectangle("fill", 0, self.scrollPosition - 64, 500, self.panelHeight * 8 + 30)
+		gfx.rectangle("fill", 0, -64, self.totalW, self.totalH + 64)
 	end, "replace", 1)
 
 	gfx.setStencilTest("greater", 0)
 
+	gfx.translate(0, -self.scrollPosition)
 	for i = first + 1, self.scoreCount do
 		local child = self.children[self.childrenOrder[i]]
 		if child.y > self.scrollPosition + self.panelHeight * 8 then

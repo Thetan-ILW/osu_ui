@@ -64,7 +64,7 @@ function WindowListView:loadItems(list_item_class, item_params)
 
 	-- scroll can be negative and greater than item count
 	-- and we need to make sure it's not greater than (self.itemCount - self.windowSize + 1) cuz otherwise self.last would be not where we want
-	local index_clamped = math_util.clamp(selected_index - self.windowSize / 2, 1, self.itemCount - self.windowSize + 1)
+	local index_clamped = math_util.clamp(selected_index - math.floor(self.windowSize / 2), 1, self.itemCount - self.windowSize + 1)
 
 	-- Represents range
 	self.first = 1 + (index_clamped - 1) % self.windowSize
@@ -188,19 +188,31 @@ function WindowListView:processActions()
 	end
 end
 
+function WindowListView:translateToCenter()
+	love.graphics.translate(0, 768 / 2 - self.panelHeight / 2)
+end
+
 ---@param dt number
 function WindowListView:update(dt, mouse_focus)
 	if self.windowSize == 0 then
 		return
 	end
 
+	love.graphics.push()
+	self:translateToCenter()
 	local new_mouse_focus = Container.update(self, dt, mouse_focus)
+	love.graphics.pop()
 
 	self.totalH = self.holeSize + self.itemCount * self.panelHeight
 
 	self:loadNewItems()
 
 	return new_mouse_focus
+end
+
+function WindowListView:draw()
+	self:translateToCenter()
+	Container.draw(self)
 end
 
 return WindowListView

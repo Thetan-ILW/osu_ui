@@ -45,10 +45,15 @@ function Options:update(dt, mouse_focus)
 end
 
 function Options:searchUpdated()
+	local label = self.children.searchLabel
 	local fmt = self.searchFormat
-	self.children.searchLabel:replaceText(
-		self.search == "" and fmt:format(self.text.SongSelection_TypeToBegin) or fmt:format(self.search)
-	)
+	if self.search == "" then
+		label:replaceText(fmt:format(self.text.SongSelection_TypeToBegin))
+		label.alpha = 0.85
+	else
+		label:replaceText(fmt:format(self.search))
+		label.alpha = 1
+	end
 end
 
 function Options:textInput(event)
@@ -111,8 +116,8 @@ function Options:load()
 		x = self.tabsContrainerWidth,
 		totalW = self.panelWidth,
 		totalH = height,
-		scrollLimit = 200,
-		depth = 0.5
+		scrollLimit = height,
+		depth = 0.1
 	}))
 	---@cast panel osu.ui.ScrollAreaContainer
 
@@ -124,7 +129,7 @@ function Options:load()
 		y = 60,
 		totalW = panel.totalW,
 		alignX = "center",
-		text = "Options",
+		text = self.text.Options_Options,
 		font = assets:loadFont("Light", 28),
 	}))
 
@@ -132,7 +137,7 @@ function Options:load()
 		y = 100,
 		totalW = panel.totalW,
 		alignX = "center",
-		text = "Change the way gucci!mania behaves",
+		text = self.text.Options_HeaderBlurb,
 		font = assets:loadFont("Light", 19),
 		color = { 0.83, 0.38, 0.47, 1 },
 	}))
@@ -142,6 +147,8 @@ function Options:load()
 		totalW = self.panelWidth,
 		totalH = 200,
 		color = { 0, 0, 0, 0.5 },
+		blockMouseFocus = false,
+		depth = 0.59
 	}))
 	function header_background:update(dt, mouse_focus)
 		header_background.alpha = math_util.clamp(panel.scrollPosition / 110, 0, 1)
@@ -164,7 +171,9 @@ function Options:load()
 		alignX = "center",
 		text = self.searchFormat:format(self.text.SongSelection_TypeToBegin),
 		font = search_font,
-		depth = 0.1
+		alpha = 0.85,
+		blockMouseFocus = false,
+		depth = 0.6
 	}))
 	function search:update(dt, mouse_focus)
 		if panel.scrollPosition < 140 then

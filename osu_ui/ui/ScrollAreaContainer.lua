@@ -6,8 +6,6 @@ local math_util = require("math_util")
 
 ---@class osu.ui.ScrollAreaContainer : osu.ui.Container
 ---@overload fun(params: ScrollAreaContainerParams): osu.ui.ScrollAreaContainer
----@field width number
----@field height number
 ---@field scrollLimit number
 local ScrollAreaContainer = Container + {}
 
@@ -152,27 +150,29 @@ function ScrollAreaContainer:tryDrag(dt)
 	self.scrollPosition = math_util.clamp(y, 0, self.scrollLimit) * 0.5 + y * (1 - 0.5)
 end
 
-function ScrollAreaContainer:applyTransform()
-	self.transform = love.math.newTransform(self.x, self.y - self.scrollPosition, self.rotation, self.scale, self.scale, self:getOrigin())
-end
-
 ---@param dt number
 function ScrollAreaContainer:update(dt, mouse_focus)
+	love.graphics.push()
+	love.graphics.translate(0, -self.scrollPosition)
 	local new_mouse_focus = Container.update(self, dt, mouse_focus)
+	love.graphics.pop()
 
 	self:tryDrag(dt)
 
 	local clamped_position = math_util.clamp(self.scrollPosition, 0, self.scrollLimit)
         if (math.abs(self.scrollVelocity) <= velocity_cutoff and clamped_position == self.scrollVelocity) then
-		self:applyTransform()
 		return new_mouse_focus
 	end
 
 	local scroll_velocity_this_frame = self:updateScrollVelocity(dt)
 	self.scrollPosition = self.scrollPosition + scroll_velocity_this_frame * (dt * 1000)
-	self:applyTransform()
 
 	return new_mouse_focus
+end
+
+function ScrollAreaContainer:draw()
+	love.graphics.translate(0, -self.scrollPosition)
+	Container.draw(self)
 end
 
 function ScrollAreaContainer:wheelUp()

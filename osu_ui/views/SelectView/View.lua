@@ -501,9 +501,10 @@ function View:load()
 	})
 
 	local list = center:addChild("list", ListContainer({
-		x = width, y = height / 2,
+		x = width,
 		origin = { x = 1, y = 0 },
-		width = 600,
+		totalW = 600,
+		totalH = height,
 		root = root,
 		game = select_view.game,
 		assets = assets,
