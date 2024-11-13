@@ -148,15 +148,8 @@ end
 
 function Combo:getPosAndSize()
 	local x = 0
-
-	--[[
-	if self.label then
-		x = self.label:getWidth() * self.parent.textScale
-	end]]
-
 	local w = self.totalW - x - (border_size * 2)
 	local h = math.floor(self.cellHeight / 1.5)
-
 	return x, w, h
 end
 

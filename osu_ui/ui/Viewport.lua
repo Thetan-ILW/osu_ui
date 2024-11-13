@@ -14,6 +14,7 @@ function Viewport:load()
 	self.nativeTransform = love.math.newTransform()
 	self.nativeScreenHeight = self.nativeScreenHeight or 768
 	self.automaticSizeCalc = false
+	self.handleClicks = true
 	local ww, wh = love.graphics.getDimensions()
 	self.screenW = self.screenW or ww
 	self.screenH = self.screenH or wh

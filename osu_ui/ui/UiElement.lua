@@ -6,7 +6,7 @@ local HoverState = require("osu_ui.ui.HoverState")
 ---@alias AlignX "left" | "center" | "right"
 ---@alias AlignY "top" | "center" | "bottom"
 ---@alias ProtoOrigin { x: number, y: number }
----@alias InputEvent "mousePressed" | "mouseReleased" | "keyPressed" | "keyReleased" | "wheelUp" | "wheelDown" | "textInput"
+---@alias InputEvent "mousePressed" | "mouseReleased" | "keyPressed" | "keyReleased" | "wheelUp" | "wheelDown" | "textInput" | "mouseClick"
 
 ---@class osu.ui.UiElement
 ---@operator call: osu.ui.UiElement

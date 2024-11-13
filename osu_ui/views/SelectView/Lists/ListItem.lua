@@ -60,31 +60,14 @@ function ListItem:load()
 end
 
 function ListItem:bindEvents()
-	self.parent:bindEvent(self, "mousePressed")
-	self.parent:bindEvent(self, "mouseReleased")
+	self.parent:bindEvent(self, "mouseClick")
 end
 
-function ListItem:mousePressed(event)
-	if not self.mouseOver or event[3] ~= 1 then
+function ListItem:mouseClick(event)
+	if not self.mouseOver or event.key ~= 1 then
 		return false
 	end
-	self.mouseDown = true
-	self.lastMouseY = love.mouse.getY()
-	return true
-end
-
-function ListItem:mouseReleased(event)
-	if event[3] ~= 1 then
-		return false
-	end
-
-	if self.mouseDown then
-		if math.abs(self.lastMouseY - love.mouse.getY()) < 4 then
-			self.parent:select(self)
-			self.mouseDown = false
-		end
-	end
-
+	self.parent:select(self)
 	return true
 end
 

@@ -28,14 +28,13 @@ function CanvasContainer:draw()
 		local child = self.children[self.childrenOrder[i]]
 		gfx.push()
 		gfx.applyTransform(child.transform)
-		gfx.setColor(child.color)
-		child:draw()
+		self:drawChild(child)
 		gfx.pop()
 
-		--gfx.push()
-		--gfx.applyTransform(child.transform)
-		--child:debugDraw()
-		--gfx.pop()
+		gfx.push()
+		gfx.applyTransform(child.transform)
+		child:debugDraw()
+		gfx.pop()
 	end
 
 	local a = self.alpha

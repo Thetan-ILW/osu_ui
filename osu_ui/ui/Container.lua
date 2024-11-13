@@ -21,6 +21,12 @@ function Container:load()
 	self.eventListeners = {}
 	self.textScale = 1
 
+	self.handleClicks = self.handleClicks or false
+	self.mouseKeyDown = 0
+	self.mouseTotalMovement = 0
+	self.mouseLastX = 0
+	self.mouseLastY = 0
+
 	if self.parent then
 		self.parent:registerChildContainer(self)
 		self.textScale = self.parent.textScale
@@ -147,6 +153,17 @@ local gfx = love.graphics
 ---@param dt number
 ---@param mouse_focus boolean
 function Container:update(dt, mouse_focus)
+	if self.handleClicks and self.mouseOver ~= 0 then
+		local mx, my = love.mouse.getPosition()
+		local nx, ny = math.abs(mx - self.mouseLastX), math.abs(my - self.mouseLastY)
+		self.mouseTotalMovement = self.mouseTotalMovement + (math.sqrt(nx*nx + ny*ny))
+		self.mouseLastX, self.mouseLastY = mx, my
+	end
+
+	if self.alpha == 0 then
+		return
+	end
+
 	for _, id in ipairs(self.childrenOrder) do
 		local child = self.children[id]
 		gfx.push()
@@ -162,16 +179,21 @@ function Container:update(dt, mouse_focus)
 	return mouse_focus
 end
 
+---@param child osu.ui.UiElement
+function Container:drawChild(child)
+	if child.alpha > 0 then
+		local c = child.color
+		gfx.setColor(c[1], c[2], c[3], c[4] * child.alpha)
+		child:draw()
+	end
+end
+
 function Container:draw()
 	for i = #self.childrenOrder, 1, -1 do
 		local child = self.children[self.childrenOrder[i]]
 		gfx.push()
 		gfx.applyTransform(child.transform)
-		if child.alpha > 0 then
-			local c = child.color
-			gfx.setColor(c[1], c[2], c[3], c[4] * child.alpha)
-			child:draw()
-		end
+		self:drawChild(child)
 		gfx.pop()
 		gfx.push()
 		gfx.applyTransform(child.transform)
@@ -216,10 +238,26 @@ local events = {
 		end
 	end,
 	mousepressed = function(self, event)
-		return self:callbackFirstChild("mousePressed", event)
+		if self.handleClicks then
+			self.mouseKeyDown = event[3]
+			self.mouseLastX, self.mouseLastY = love.mouse.getPosition()
+			self.mouseTotalMovement = 0
+		end
+		local handled = self:callbackFirstChild("mousePressed", event)
+		if handled then
+			self:getViewport().mouseKeyDown = 0
+		end
+		return handled
 	end,
 	mousereleased = function(self, event)
-		return self:callbackForEachChild("mouseReleased", event)
+		local handled = self:callbackForEachChild("mouseReleased", event)
+		if self.handleClicks then
+			if self.mouseTotalMovement < 6 and self.mouseKeyDown == event[3] then
+				self:receive({ name = "mouseClick", key = event[3] })
+			end
+			self.mouseKeyDown = 0
+		end
+		return handled
 	end,
 	keypressed = function(self, event)
 		local action = actions.getAction()
@@ -233,6 +271,9 @@ local events = {
 	end,
 	textinput = function (self, event)
 		return self:callbackFirstChild("textInput", event)
+	end,
+	mouseClick = function (self, event)
+		return self:callbackFirstChild("mouseClick", event)
 	end
 }
 

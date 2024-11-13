@@ -24,4 +24,5 @@ SongSelection_Group=Group
 SongSelection_Sort=Sort
 SongSelection_Rank_Local=Normalscore
 SongSelection_Rank_Top=Global Ranking
+SongSelection_TypeToBegin=Type to search!
 RankingDialog_PlayedBy=Played by %s %s

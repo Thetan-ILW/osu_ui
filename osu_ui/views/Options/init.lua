@@ -1,21 +1,24 @@
 local CanvasContainer = require("osu_ui.ui.CanvasContainer")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 
-local utf8 = require("utf8")
+local math_util = require("math_util")
 local flux = require("flux")
 local Rectangle = require("osu_ui.ui.Rectangle")
 local Label = require("osu_ui.ui.Label")
+local TextBox = require("osu_ui.ui.TextBox")
 
----@alias OptionsParams { assets: osu.ui.OsuAssets }
+---@alias OptionsParams { assets: osu.ui.OsuAssets, localization: Localization }
 
 ---@class osu.ui.OptionsView : osu.ui.CanvasContainer
 ---@overload fun(params: OptionsParams): osu.ui.OptionsView
 ---@field assets osu.ui.OsuAssets
+---@field localization Localization
 ---@field fadeTween table?
 local Options = CanvasContainer + {}
 
 Options.panelWidth = 438
 Options.tabsContrainerWidth = 64
+Options.searchFormat = " %s"
 
 function Options:fade(target_value)
 	if self.fadeTween then
@@ -42,11 +45,10 @@ function Options:update(dt, mouse_focus)
 end
 
 function Options:searchUpdated()
-	local text = self.search
-	if self.search == "" then
-		text = " Type To Search"
-	end
-	self.children.searchLabel:replaceText(text)
+	local fmt = self.searchFormat
+	self.children.searchLabel:replaceText(
+		self.search == "" and fmt:format(self.text.SongSelection_TypeToBegin) or fmt:format(self.search)
+	)
 end
 
 function Options:textInput(event)
@@ -58,11 +60,6 @@ function Options:textInput(event)
 	return true
 end
 
-local function text_split(text, index)
-	local _index = utf8.offset(text, index) or 1
-	return text:sub(1, _index - 1), text:sub(_index)
-end
-
 function Options:keyPressed(event)
 	if self.alpha < 0.1 then
 		return false
@@ -71,14 +68,7 @@ function Options:keyPressed(event)
 		return false
 	end
 
-	local index = utf8.len(self.search) + 1
-	local _
-	local left, right = text_split(self.search, index)
-
-	left, _ = text_split(left, utf8.len(left))
-	index = math.max(1, index - 1)
-
-	self.search = left .. right
+	self.search = TextBox.removeChar(self.search)
 	self:searchUpdated()
 	return true
 end
@@ -94,11 +84,13 @@ function Options:load()
 	self.state = "closed"
 	self.alpha = 0
 	self.search = ""
+	self.text = self.localization.text
+	self.stencil = true
 
 	CanvasContainer.load(self)
 	self:addTags({ "allowReload" })
-	self:bindEvent(self, "textInput")
-	self:bindEvent(self, "keyPressed")
+
+	local options = self
 
 	self:addChild("tabsBackground", Rectangle({
 		totalW = self.tabsContrainerWidth,
@@ -124,6 +116,10 @@ function Options:load()
 	}))
 	---@cast panel osu.ui.ScrollAreaContainer
 
+	function panel:bindEvent(child, event)
+		options:bindEvent(child, event)
+	end
+
 	panel:addChild("optionsLabel", Label({
 		y = 60,
 		totalW = panel.totalW,
@@ -148,6 +144,7 @@ function Options:load()
 		color = { 0, 0, 0, 0.5 },
 	}))
 	function header_background:update(dt, mouse_focus)
+		header_background.alpha = math_util.clamp(panel.scrollPosition / 110, 0, 1)
 		if panel.scrollPosition < 0 then
 			header_background.y = 0
 			header_background.totalH = 200 + math.abs(panel.scrollPosition)
@@ -165,7 +162,7 @@ function Options:load()
 		x = self.tabsContrainerWidth, y = 160,
 		totalW = panel.totalW,
 		alignX = "center",
-		text = " Type To Search",
+		text = self.searchFormat:format(self.text.SongSelection_TypeToBegin),
 		font = search_font,
 		depth = 0.1
 	}))
@@ -177,8 +174,18 @@ function Options:load()
 		return Label.update(self, dt, mouse_focus)
 	end
 
+	panel:addChild("textbox", TextBox({
+		x = 32, y = 200,
+		assets = assets,
+		labelText = "Textbox",
+		totalW = 380,
+	}))
+
 	panel:build()
 	self:build()
+
+	self:bindEvent(self, "textInput")
+	self:bindEvent(self, "keyPressed")
 end
 
 return Options

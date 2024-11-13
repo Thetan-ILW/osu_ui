@@ -14,13 +14,14 @@ local UiElement = require("osu_ui.ui.UiElement")
 ---@field onClick function?
 local Label = UiElement + {}
 
----@param assets osu.ui.OsuAssets
 function Label:load()
 	self.label = love.graphics.newText(self.font, self.text)
 	self.color = self.color or { 1, 1, 1, 1 }
 	self.alignX = self.alignX or "left"
 	self.alignY = self.alignY or "top"
 	self.shadow = self.shadow or false
+	self.initialWidth = self.totalW
+	self.initialHeight = self.totalH
 	self:updateSizeAndPos()
 
 	UiElement.load(self)
@@ -30,8 +31,8 @@ function Label:updateSizeAndPos()
 	local text_scale = self.textScale or self.parent.textScale
 	local tw, th = self.label:getDimensions()
 	tw, th = tw * text_scale, th * text_scale
-	self.totalW = self.totalW or tw
-	self.totalH = self.totalH or th
+	self.totalW = self.initialWidth or tw
+	self.totalH = self.initialHeight or th
 	self.textScale = text_scale
 
 	local x = 0
