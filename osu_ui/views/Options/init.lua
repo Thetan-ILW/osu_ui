@@ -7,6 +7,8 @@ local Rectangle = require("osu_ui.ui.Rectangle")
 local Label = require("osu_ui.ui.Label")
 local TextBox = require("osu_ui.ui.TextBox")
 
+local Section = require("osu_ui.views.Options.Section")
+
 ---@alias OptionsParams { assets: osu.ui.OsuAssets, localization: Localization }
 
 ---@class osu.ui.OptionsView : osu.ui.CanvasContainer
@@ -34,7 +36,7 @@ end
 
 function Options:drawCanvas()
 	local scale = self.viewportScale
-	love.graphics.setScissor(0, 0, math.max(self.tabsContrainerWidth * scale, self.totalW), self.totalH)
+	love.graphics.setScissor(0, 0, math.max(self.tabsContrainerWidth * scale, self.totalW * scale), self.totalH)
 	love.graphics.draw(self.canvas)
 	love.graphics.setScissor()
 end
@@ -183,18 +185,60 @@ function Options:load()
 		return Label.update(self, dt, mouse_focus)
 	end
 
-	panel:addChild("textbox", TextBox({
-		x = 32, y = 200,
-		assets = assets,
-		labelText = "Textbox",
-		totalW = 380,
+	self.koolRectangle = panel:addChild("koolRectagle", Rectangle({
+		totalW = self.panelWidth,
+		totalH = 37,
+		color = { 0, 0, 0, 0.5 }
 	}))
+
+	self.panel = panel
+	self.sectionsStartY = 270
+	self.sectionsHeight = 0
+
+	self:addSection("General", function(section)
+		section:group("SIGN IN", function(group)
+			group:textBox({ label = "Username" })
+			group:textBox({ label = "Password" })
+			group:textBox({ label = "Ur mom" })
+		end)
+	end)
 
 	panel:build()
 	self:build()
 
 	self:bindEvent(self, "textInput")
 	self:bindEvent(self, "keyPressed")
+end
+
+function Options:hoverOver(y, height)
+	if self.koolRectangleTween then
+		self.koolRectangleTween:stop()
+	end
+	self.koolRectangleTween = flux.to(self.koolRectangle, 0.6, { y = y, totalH = height }):ease("elasticout"):onupdate(function ()
+		self.koolRectangle:applyTransform()
+	end)
+end
+
+---@param name string
+---@param build_function fun(section: osu.ui.OptionsSection)
+function Options:addSection(name, build_function)
+	local section = self.panel:addChild(name, Section({
+		y = self.sectionsHeight + self.sectionsStartY,
+		options = self,
+		assets = self.assets,
+		name = name,
+		searchText = self.search,
+		buildFunction = build_function,
+		depth = 0.1
+	}))
+	---@cast section osu.ui.OptionsSection
+
+	if section.isEmpty then
+		self:removeChild(name)
+		return
+	end
+
+	self.sectionsHeight = self.sectionsHeight + section:getHeight()
 end
 
 return Options

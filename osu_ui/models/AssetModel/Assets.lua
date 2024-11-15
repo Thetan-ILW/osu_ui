@@ -93,6 +93,9 @@ end
 ---@param file_list {[string]: string}
 ---@return string?
 function Assets.findImage(name, file_list)
+	if not file_list then
+		print(debug.traceback())
+	end
 	for _, format in ipairs(image_extensions) do
 		local double = file_list[(name .. "@2x" .. format):lower()]
 		if double then

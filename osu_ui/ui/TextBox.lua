@@ -36,7 +36,7 @@ end
 function TextBox:load()
 	self.totalH = self.totalH or 66
 	self.focus = false
-	self.input = ""
+	self.input = self.input or ""
 	self.label = Label({
 		text = self.labelText,
 		font = self.assets:loadFont("Regular", 17),
@@ -125,7 +125,7 @@ function TextBox:draw()
 	end, "replace", 1)
 
 	local diff = w - self.inputLabel:getWidth()
-	local x = diff < 0 and diff or 0
+	local x = diff < 0 and diff - 2 or 2
 	gfx.translate(x, field_y)
 	gfx.setStencilTest("greater", 0)
 	self.inputLabel:draw()

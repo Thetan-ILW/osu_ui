@@ -242,7 +242,6 @@ function UserInterface:update(dt)
 	self.assets:updateVolume(self.game.configModel)
 
 	self.gameView:update(dt)
-
 end
 
 function UserInterface:draw()

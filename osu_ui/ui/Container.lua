@@ -195,10 +195,12 @@ function Container:draw()
 		gfx.applyTransform(child.transform)
 		self:drawChild(child)
 		gfx.pop()
+		--[[
 		gfx.push()
 		gfx.applyTransform(child.transform)
 		child:debugDraw()
 		gfx.pop()
+		]]
 	end
 end
 

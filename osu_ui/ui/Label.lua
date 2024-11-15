@@ -53,11 +53,18 @@ function Label:updateSizeAndPos()
 	end
 
 	self.posX, self.posY = x, y
+
 end
 
 function Label:replaceText(text)
-	self.text = text
-	self.label:set(text)
+	if self.initialWidth then
+		local _, wrapped_text = self.font:getWrap(text, self.initialWidth)
+		self.text = table.concat(wrapped_text, "\n")
+	else
+		self.text = text
+	end
+
+	self.label:set(self.text)
 	self:updateSizeAndPos()
 end
 
