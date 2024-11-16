@@ -20,7 +20,7 @@ local Options = CanvasContainer + {}
 
 Options.panelWidth = 438
 Options.tabsContrainerWidth = 64
-Options.searchFormat = " %s"
+Options.searchFormat = { { 1, 1, 1, 1 }, " ", { 1, 1, 1, 0.65 }, ""}
 
 function Options:fade(target_value)
 	if self.fadeTween then
@@ -43,19 +43,28 @@ end
 
 function Options:update(dt, mouse_focus)
 	self.totalW = (self.panelWidth + self.tabsContrainerWidth) * self.alpha
+
+	local p = self.hoverState.progress
+	self.koolRectangle.color[4] = p
+	if p == 0 then
+		self.koolRectangle.y = -1
+	end
+
 	return CanvasContainer.update(self, dt, mouse_focus)
 end
 
 function Options:searchUpdated()
 	local label = self.children.searchLabel
-	local fmt = self.searchFormat
+
 	if self.search == "" then
-		label:replaceText(fmt:format(self.text.SongSelection_TypeToBegin))
-		label.alpha = 0.85
+		self.searchFormat[4] = self.text.SongSelection_TypeToBegin
+		self.searchFormat[3] = { 1, 1, 1, 0.7 }
 	else
-		label:replaceText(fmt:format(self.search))
-		label.alpha = 1
+		self.searchFormat[4] = self.search
+		self.searchFormat[3] = { 1, 1, 1, 1 }
 	end
+
+	label:replaceText(self.searchFormat)
 end
 
 function Options:textInput(event)
@@ -90,12 +99,15 @@ function Options:load()
 	self.totalH = viewport.screenH * self.viewportScale
 	self.state = "closed"
 	self.alpha = 0
-	self.search = ""
 	self.text = self.localization.text
+	self.searchFormat[4] = self.text.SongSelection_TypeToBegin
+	self.search = ""
 	self.stencil = true
 
 	CanvasContainer.load(self)
 	self:addTags({ "allowReload" })
+	self.hoverState.tweenDuration = 0.5
+	self.hoverState.ease = "quadout"
 
 	local options = self
 
@@ -171,9 +183,9 @@ function Options:load()
 		x = self.tabsContrainerWidth, y = 160,
 		totalW = panel.totalW,
 		alignX = "center",
-		text = self.searchFormat:format(self.text.SongSelection_TypeToBegin),
+		text = self.searchFormat,
 		font = search_font,
-		alpha = 0.85,
+		alpha = 1,
 		blockMouseFocus = false,
 		depth = 0.6
 	}))
@@ -185,7 +197,8 @@ function Options:load()
 		return Label.update(self, dt, mouse_focus)
 	end
 
-	self.koolRectangle = panel:addChild("koolRectagle", Rectangle({
+	self.koolRectangle = panel:addChild("koolRectangle", Rectangle({
+		y = -1,
 		totalW = self.panelWidth,
 		totalH = 37,
 		color = { 0, 0, 0, 0.5 }
@@ -211,11 +224,18 @@ function Options:load()
 end
 
 function Options:hoverOver(y, height)
-	if self.koolRectangleTween then
-		self.koolRectangleTween:stop()
+	local r = self.koolRectangle
+	local rt = self.koolRectangleTween
+	if rt then
+		rt:stop()
 	end
-	self.koolRectangleTween = flux.to(self.koolRectangle, 0.6, { y = y, totalH = height }):ease("elasticout"):onupdate(function ()
-		self.koolRectangle:applyTransform()
+
+	if r.y == -1 then
+		r.y = y
+	end
+
+	self.koolRectangleTween = flux.to(r, 0.6, { y = y, totalH = height }):ease("elasticout"):onupdate(function ()
+		r:applyTransform()
 	end)
 end
 

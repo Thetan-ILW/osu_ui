@@ -1,10 +1,10 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
----@alias LabelParams { text: string, font: love.Font, color: Color?, alignX?: AlignX, alignY?: AlignY, shadow: boolean?, textScale: number?, onClick: function }
+---@alias LabelParams { text: string | table, font: love.Font, color: Color?, alignX?: AlignX, alignY?: AlignY, shadow: boolean?, textScale: number?, onClick: function }
 
 ---@class osu.ui.Label : osu.ui.UiElement
 ---@overload fun(params: LabelParams): osu.ui.Label
----@field text string
+---@field text string | table
 ---@field font love.Font
 ---@field shadow boolean
 ---@field posX number
@@ -56,6 +56,7 @@ function Label:updateSizeAndPos()
 
 end
 
+---@param text string | table
 function Label:replaceText(text)
 	if self.initialWidth then
 		local _, wrapped_text = self.font:getWrap(text, self.initialWidth)
@@ -64,7 +65,12 @@ function Label:replaceText(text)
 		self.text = text
 	end
 
-	self.label:set(self.text)
+	if type(text) == "table" then
+		self.label:setf(text, math.huge, "left")
+	else
+		self.label:set(self.text)
+	end
+
 	self:updateSizeAndPos()
 end
 

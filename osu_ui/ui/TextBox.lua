@@ -69,6 +69,10 @@ function TextBox:mouseClick(event)
 		return false
 	end
 
+	self.parent:forEachChildGlobally(function(child)
+		child:loseFocus()
+	end)
+
 	self.focus = true
 	return true
 end
