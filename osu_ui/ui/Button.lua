@@ -60,16 +60,20 @@ function Button:justHovered()
 end
 
 function Button:mousePressed()
-	self.mouseDown = true
-	return true
+	if self.mouseOver then
+		self.mouseDown = true
+		return true
+	end
+	return false
 end
 
 function Button:mouseReleased()
 	if self.mouseOver then
 		self.onClick()
+		self.mouseDown = false
+		return true
 	end
-	self.mouseDown = false
-	return true
+	return false
 end
 
 local gfx = love.graphics

@@ -41,6 +41,7 @@ function GameView:load(view)
 		depth = 0.97,
 	}))
 	self.viewport:addChild("options", Options({
+		game = self.game,
 		assets = self.ui.assets,
 		localization = self.ui.localization,
 		depth = 0.2,

@@ -1,6 +1,7 @@
 local Container = require("osu_ui.ui.Container")
 
 local TextBox = require("osu_ui.ui.TextBox")
+local Button = require("osu_ui.ui.Button")
 local Rectangle = require("osu_ui.ui.Rectangle")
 local Label = require("osu_ui.ui.Label")
 
@@ -18,9 +19,11 @@ function Group:bindEvent(child, event)
 end
 
 function Group:load()
+	self.game = self.parent.options.game
 	self.automaticSizeCalc = false
 	self.isEmpty = false
 	self.indent = 12
+	self.buttonColor = { 0.05, 0.52, 0.65, 1 }
 
 	Container.load(self)
 
@@ -71,6 +74,99 @@ function Group:textBox(params)
 	self.totalH = self.totalH + text_box:getHeight()
 	self.textBoxes = self.textBoxes + 1
 	return text_box
+end
+
+---@param color Color
+function Group:setButtonColor(color)
+	self.buttonColor = color
+end
+
+---@param params { label: string, onClick: function }  
+---@return osu.ui.Button?
+function Group:button(params)
+	if self.searchText ~= "" and not params.label:find(self.searchText) then
+		return
+	end
+
+	local assets = self.assets
+	self.buttons = self.buttons or 1
+
+	local container = self:addChild("button_container" .. self.buttons, Container({
+		x = self.indent - 5, y = self.totalH,
+		totalW = 388,
+		totalH = 45,
+		automaticSizeCalc = false,
+	}))
+	---@cast container osu.ui.Container
+
+	function container.justHovered()
+		Container.justHovered(container)
+		self.parent:hoverOver(container.y + self.y, container:getHeight())
+	end
+
+	local button = container:addChild("button" .. self.buttons, Button({
+		y = container.totalH / 2 - 34 / 2,
+		totalW = 388,
+		totalH = 34,
+		text = params.label,
+		font = assets:loadFont("Regular", 16),
+		imageLeft = assets:loadImage("button-left"),
+		imageMiddle = assets:loadImage("button-middle"),
+		imageRight = assets:loadImage("button-right"),
+		color = self.buttonColor,
+		onClick = params.onClick
+	}))
+	---@cast button osu.ui.Button
+	container:build()
+	self.totalH = self.totalH + container:getHeight()
+	self.buttons = self.buttons + 1
+	return button
+end
+
+---@param params { label: string, totalH: number?, alignX: AlignX?, onClick: function }
+---@return osu.ui.Label?
+function Group:label(params)
+	if self.searchText ~= "" and not params.label:find(self.searchText) then
+		return
+	end
+
+	self.labels = self.labels or 1
+	local container = self:addChild("label_container" .. self.labels, Container({
+		x = self.indent, y = self.totalH,
+		totalW = 388,
+		totalH = params.totalH,
+		automaticSizeCalc = params.totalH == nil,
+		bindEvents = function(this)
+			self:bindEvent(this, "mouseClick")
+		end,
+		mouseClick = function(this)
+			if this.mouseOver then
+				params.onClick()
+				return true
+			end
+			return false
+		end
+	}))
+	---@cast container osu.ui.Container
+
+	function container.justHovered()
+		Container.justHovered(container)
+		self.parent:hoverOver(container.y + self.y, container:getHeight())
+	end
+
+	local label = container:addChild("label" .. self.labels, Label({
+		text = params.label,
+		font = self.assets:loadFont("Regular", 16),
+		alignX = params.alignX,
+		alignY = "center",
+		totalW = self.totalW,
+		totalH = params.totalH
+	}))
+	---@cast label osu.ui.Label
+	container:build()
+	self.totalH = self.totalH + container:getHeight()
+	self.labels = self.labels + 1
+	return label
 end
 
 return Group

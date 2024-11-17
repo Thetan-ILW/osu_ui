@@ -9,10 +9,11 @@ local TextBox = require("osu_ui.ui.TextBox")
 
 local Section = require("osu_ui.views.Options.Section")
 
----@alias OptionsParams { assets: osu.ui.OsuAssets, localization: Localization }
+---@alias OptionsParams { assets: osu.ui.OsuAssets, localization: Localization, game: sphere.GameController }
 
 ---@class osu.ui.OptionsView : osu.ui.CanvasContainer
 ---@overload fun(params: OptionsParams): osu.ui.OptionsView
+---@field game sphere.GameController
 ---@field assets osu.ui.OsuAssets
 ---@field localization Localization
 ---@field fadeTween table?
@@ -210,9 +211,32 @@ function Options:load()
 
 	self:addSection("General", function(section)
 		section:group("SIGN IN", function(group)
-			group:textBox({ label = "Username" })
-			group:textBox({ label = "Password" })
-			group:textBox({ label = "Ur mom" })
+			local active = next(self.game.configModel.configs.online.session)
+			if active then
+				local username = self.game.configModel.configs.online.user.name
+				group:label({
+					totalH = 100,
+					label = ("You are logged in as %s"):format(username or "?"),
+					onClick = function ()
+						self.game.onlineModel.authManager:logout()
+					end
+				} )
+			else
+				local email_tb = group:textBox({ label = "Email" })
+				local password_tb = group:textBox({ label = "Password" })
+				if email_tb and password_tb then
+					group:button({ label = "Sign In",
+						onClick = function ()
+							group.game.onlineModel.authManager:login(email_tb.input, password_tb.input)
+						end
+					})
+					group:button({ label = "Create an account",
+						onClick = function ()
+							love.system.openURL("https://soundsphere.xyz/register")
+						end
+					})
+				end
+			end
 		end)
 	end)
 
