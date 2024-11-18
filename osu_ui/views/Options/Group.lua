@@ -4,6 +4,7 @@ local TextBox = require("osu_ui.ui.TextBox")
 local Button = require("osu_ui.ui.Button")
 local Rectangle = require("osu_ui.ui.Rectangle")
 local Label = require("osu_ui.ui.Label")
+local Combo = require("osu_ui.ui.Combo")
 
 ---@class osu.ui.OptionsGroup : osu.ui.Container
 ---@field section osu.ui.OptionsSection
@@ -75,12 +76,12 @@ function Group:textBox(params)
 		totalW = 380,
 		assets = self.assets,
 		labelText = params.label,
-		input = params.value
+		input = params.value,
+		justHovered = function(text_box)
+			TextBox.justHovered(text_box)
+			self.section:hoverOver(text_box.y + self.y, text_box:getHeight())
+		end
 	}))
-	function text_box.justHovered()
-		TextBox.justHovered(text_box)
-		self.section:hoverOver(text_box.y + self.y, text_box:getHeight())
-	end
 
 	---@cast text_box osu.ui.TextBox
 	self.totalH = self.totalH + text_box:getHeight()
@@ -108,13 +109,12 @@ function Group:button(params)
 		totalW = 388,
 		totalH = 45,
 		automaticSizeCalc = false,
+		justHovered = function(container)
+			Container.justHovered(container)
+			self.section:hoverOver(container.y + self.y, container:getHeight())
+		end
 	}))
 	---@cast container osu.ui.Container
-
-	function container.justHovered()
-		Container.justHovered(container)
-		self.section:hoverOver(container.y + self.y, container:getHeight())
-	end
 
 	local button = container:addChild("button" .. self.buttons, Button({
 		y = container.totalH / 2 - 34 / 2,
@@ -152,21 +152,22 @@ function Group:label(params)
 			self:bindEvent(this, "mouseClick")
 		end,
 		mouseClick = function(this)
-			if this.mouseOver then
-				params.onClick()
-				return true
+			if params.onClick then
+				if this.mouseOver then
+					params.onClick()
+					return true
+				end
 			end
 			return false
+		end,
+		justHovered = function(container)
+			Container.justHovered(container)
+			self.section:hoverOver(container.y + self.y, container:getHeight())
 		end
 	}))
 	---@cast container osu.ui.Container
 
-	function container.justHovered()
-		Container.justHovered(container)
-		self.section:hoverOver(container.y + self.y, container:getHeight())
-	end
-
-	local label = container:addChild("label" .. self.labels, Label({
+	local label = container:addChild("label", Label({
 		text = params.label,
 		font = self.assets:loadFont("Regular", 16),
 		alignX = params.alignX,
@@ -179,6 +180,65 @@ function Group:label(params)
 	self.totalH = self.totalH + container:getHeight()
 	self.labels = self.labels + 1
 	return label
+end
+
+---@param params { label: string, items: any[], getValue: (fun(): any), onChange: fun(index: integer), format: (fun(any): string)? }
+---@return osu.ui.Combo?
+function Group:combo(params)
+	if not self:canAdd(params.label) then
+		return
+	end
+
+	local found_something = false
+	for _, v in ipairs(params.items) do
+		if self:canAdd(params.format(v)) then
+			found_something = true
+			break
+		end
+	end
+
+	if not found_something then
+		return
+	end
+
+	self.combos = self.combos or 1
+	local container = self:addChild("combo_container" .. self.combos, Container({
+		x = self.indent, y = self:getCurrentY(),
+		totalW = 388,
+		totalH = 37,
+		justHovered = function(container)
+			Container.justHovered(container)
+			self.section:hoverOver(container.y + self.y, container:getHeight())
+		end
+	}))
+	---@cast container osu.ui.Container
+
+	local label = container:addChild("label", Label({
+		text = params.label,
+		font = self.assets:loadFont("Regular", 16),
+		alignY = "center",
+		totalH = container.totalH
+	}))
+
+	local x = label:getWidth() + 10
+
+	local combo = container:addChild("combo", Combo({
+		x = x, y = 5,
+		totalW = container.totalW - x,
+		totalH = container.totalH,
+		font = self.assets:loadFont("Regular", 16),
+		assets = self.assets,
+		items = params.items,
+		getValue = params.getValue,
+		onChange = params.onChange,
+		format = params.format
+	}))
+	---@cast combo osu.ui.Combo
+
+	container:build()
+	self.totalH = self.totalH + container:getHeight()
+	self.combos = self.combos + 1
+	return combo
 end
 
 return Group

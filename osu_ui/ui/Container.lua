@@ -12,6 +12,8 @@ local actions = require("osu_ui.actions")
 ---@field automaticSizeCalc boolean
 local Container = UiElement + {}
 
+Container.debug = false
+
 function Container:load()
 	self.blockMouseFocus = self.blockMouseFocus or false
 	self.automaticSizeCalc = self.automaticSizeCalc or true
@@ -200,10 +202,13 @@ function Container:draw()
 		gfx.applyTransform(child.transform)
 		self:drawChild(child)
 		gfx.pop()
-		gfx.push()
-		gfx.applyTransform(child.transform)
-		child:debugDraw()
-		gfx.pop()
+
+		if Container.debug then
+			gfx.push()
+			gfx.applyTransform(child.transform)
+			child:debugDraw()
+			gfx.pop()
+		end
 	end
 end
 

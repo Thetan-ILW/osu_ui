@@ -6,7 +6,7 @@ local Label = require("osu_ui.ui.Label")
 local ui = require("osu_ui.ui")
 local flux = require("flux")
 
----@alias ComboParams { assets: osu.ui.OsuAssets, label: string?, font: love.Font, hoverColor: number[]?, borderColor: number[]?, items: any[], onChange: (fun(index: integer)), getValue: (fun(): any), format: (fun(value: any): string) }
+---@alias ComboParams { assets: osu.ui.OsuAssets, font: love.Font, hoverColor: number[]?, borderColor: number[]?, items: any[], onChange: (fun(index: integer)), getValue: (fun(): any), format: (fun(value: any): string) }
 
 ---@class osu.ui.Combo : osu.ui.UiElement
 ---@overload fun(params: ComboParams): osu.ui.Combo
@@ -19,7 +19,6 @@ local flux = require("flux")
 ---@field iconRight love.Text
 ---@field hoverSound audio.Source?
 ---@field expandSound audio.Source?
----@field labelColor number[]
 ---@field hoverColor number[]
 ---@field borderColor number[]
 ---@field cellHeight number
@@ -86,7 +85,7 @@ function Combo:load()
 end
 
 function Combo:bindEvents()
-	self.parent:bindEvent(self, "mousePressed")
+	self.parent:bindEvent(self, "mouseClick")
 end
 
 local gfx = love.graphics
@@ -159,7 +158,7 @@ function Combo:loseFocus()
 	end
 end
 
-function Combo:mousePressed()
+function Combo:mouseClick()
 	if self.mouseOver then
 		if self.state == "open" or self.state == "fade_in" then
 			if self.hoverIndex ~= 0 then

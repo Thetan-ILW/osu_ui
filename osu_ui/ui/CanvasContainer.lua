@@ -31,10 +31,12 @@ function CanvasContainer:draw()
 		self:drawChild(child)
 		gfx.pop()
 
-		gfx.push()
-		gfx.applyTransform(child.transform)
-		child:debugDraw()
-		gfx.pop()
+		if Container.debug then
+			gfx.push()
+			gfx.applyTransform(child.transform)
+			child:debugDraw()
+			gfx.pop()
+		end
 	end
 
 	local a = self.alpha
