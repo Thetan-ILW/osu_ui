@@ -266,6 +266,10 @@ function Options:load()
 	self:build()
 end
 
+function Options:getScrollPosition()
+	return self.panel.scrollPosition
+end
+
 function Options:hoverOver(y, height)
 	local r = self.koolRectangle
 	local rt = self.koolRectangleTween

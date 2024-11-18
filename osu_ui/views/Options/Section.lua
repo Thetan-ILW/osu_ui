@@ -51,6 +51,34 @@ function Section:load()
 	self:build()
 end
 
+function Section:update(dt, mouse_focus)
+	local range = self.options.totalH
+	local scroll = math.max(0, self.options:getScrollPosition())
+
+	local y_start = self.y + self.parent.y
+	local y_end = y_start + self.totalH
+
+	local in_view = scroll > y_start - range and scroll < y_end
+
+	self.alpha = in_view and 1 or 0
+
+	if not in_view then
+		if scroll > y_end then
+			for _, group in pairs(self.groups.children) do
+				---@cast group osu.ui.OptionsGroup
+				if group:hasOpenCombos() then
+					self.alpha = 1
+					break
+				end
+			end
+		end
+	end
+
+	if self.alpha ~= 0 then
+		Container.update(self, dt, mouse_focus)
+	end
+end
+
 function Section:hoverOver(y, height)
 	self.options:hoverOver(y + self.y + self.startY, height)
 end

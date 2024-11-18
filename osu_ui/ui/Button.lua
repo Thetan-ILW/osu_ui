@@ -43,14 +43,12 @@ function Button:load()
 	local borders_width = self.imageLeft:getWidth() * self.heightScale + self.imageRight:getWidth() * self.heightScale
 	self.middleImgScale = (self.totalW - borders_width) / self.imageMiddle:getWidth()
 
-	self.mouseDown = false
 	self.hoverState = HoverState("quadout", 0.2)
 	UiElement.load(self)
 end
 
 function Button:bindEvents()
-	self.parent:bindEvent(self, "mousePressed")
-	self.parent:bindEvent(self, "mouseReleased")
+	self.parent:bindEvent(self, "mouseClick")
 end
 
 function Button:justHovered()
@@ -59,18 +57,9 @@ function Button:justHovered()
 	end
 end
 
-function Button:mousePressed()
-	if self.mouseOver then
-		self.mouseDown = true
-		return true
-	end
-	return false
-end
-
-function Button:mouseReleased()
+function Button:mouseClick()
 	if self.mouseOver then
 		self.onClick()
-		self.mouseDown = false
 		return true
 	end
 	return false

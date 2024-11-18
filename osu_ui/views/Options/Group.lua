@@ -26,6 +26,8 @@ function Group:load()
 	self.indent = 12
 	self.buttonColor = { 0.05, 0.52, 0.65, 1 }
 
+	self.comboObjects = {}
+
 	Container.load(self)
 
 	self.totalH = 0
@@ -54,15 +56,28 @@ function Group:load()
 	self:build()
 end
 
+---@return boolean
+function Group:hasOpenCombos()
+	for i, child in ipairs(self.comboObjects) do
+		if child.state ~= "hidden" then
+			return true
+		end
+	end
+	return false
+end
+
+---@return number
 function Group:getCurrentY()
 	return self.startY + self.totalH
 end
 
+---@param text string
+---@return boolean
 function Group:canAdd(text)
 	if self.search == "" then
 		return true
 	end
-	return text:lower():find(self.search:lower())
+	return text:lower():find(self.search:lower()) ~= nil
 end
 
 ---@param params { label: string, value: string?, password: boolean? }
@@ -234,13 +249,14 @@ function Group:combo(params)
 		items = params.items,
 		getValue = params.getValue,
 		onChange = params.onChange,
-		format = params.format
+		format = params.format,
 	}))
 	---@cast combo osu.ui.Combo
 
 	container:build()
 	self.totalH = self.totalH + container:getHeight()
 	self.combos = self.combos + 1
+	table.insert(self.comboObjects, combo)
 	return combo
 end
 
