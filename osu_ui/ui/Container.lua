@@ -12,11 +12,11 @@ local actions = require("osu_ui.actions")
 ---@field automaticSizeCalc boolean
 local Container = UiElement + {}
 
-Container.debug = true
+Container.debug = false
 
 function Container:load()
 	self.blockMouseFocus = self.blockMouseFocus or false
-	self.automaticSizeCalc = self.automaticSizeCalc == nil and true or false
+	self.automaticSizeCalc = self.automaticSizeCalc == nil and true or self.automaticSizeCalc
 	self.children = {}
 	self.childrenOrder = {}
 	self.childContainers = {}

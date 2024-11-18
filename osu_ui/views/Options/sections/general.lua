@@ -4,7 +4,7 @@ local wait_for_logout = false
 ---@param group osu.ui.OptionsGroup
 local function login(group)
 	local email_tb = group:textBox({ label = "Email" })
-	local password_tb = group:textBox({ label = "Password" })
+	local password_tb = group:textBox({ label = "Password", password = true })
 	if email_tb and password_tb then
 		group:button({ label = "Sign In", color = { 0.05, 0.52, 0.65, 1 },
 			onClick = function ()

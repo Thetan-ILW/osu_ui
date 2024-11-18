@@ -250,7 +250,7 @@ function Options:load()
 	}))
 
 	self.panel = panel
-	self.sectionSpacing = 24
+	self.sectionSpacing = 0
 	self.tree = self:buildTree()
 	self.panel:addChild("tree", self.tree, true)
 	self.panel:build()
@@ -328,7 +328,7 @@ function Options:buildTree()
 end
 
 function Options:recalcPositions()
-	local y = 0
+	local height = 0
 
 	for _, v in ipairs(self.sectionsOrder) do
 		local section_params = self.sections[v]
@@ -336,12 +336,14 @@ function Options:recalcPositions()
 		local section = self.tree:getChild(name)
 		---@cast section osu.ui.OptionsSection
 		if section then
-			section:recalcPositions()
-			section.y = y
+			section.y = height
 			section:applyTransform()
-			y = y + section:getHeight()
+			section:recalcPositions()
+			height = height + section:getHeight()
 		end
 	end
+
+	self.tree.totalH = height
 end
 
 return Options

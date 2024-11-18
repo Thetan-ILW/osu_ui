@@ -3,13 +3,13 @@ local UiElement = require("osu_ui.ui.UiElement")
 local utf8 = require("utf8")
 local Label = require("osu_ui.ui.Label")
 
----@alias TextBoxParams { assets: osu.ui.OsuAssets, labelText: string }
+---@alias TextBoxParams { assets: osu.ui.OsuAssets, labelText: string, password: boolean? }
 
 ---@class osu.ui.TextBox : osu.ui.UiElement
 ---@overload fun(params: TextBoxParams): osu.ui.TextBox
 ---@field assets osu.ui.OsuAssets
 ---@field focus boolean
----@field password boolean
+---@field password boolean?
 ---@field cursorPosition number
 ---@field labelText string
 ---@field label osu.ui.Label
@@ -31,6 +31,10 @@ function TextBox.removeChar(text)
 	index = math.max(1, index - 1)
 
 	return left .. right
+end
+
+function TextBox.censor(text)
+	return string.rep("*", text:len())
 end
 
 function TextBox:load()
@@ -86,7 +90,8 @@ function TextBox:keyPressed(event)
 		return false
 	end
 	self.input = self.removeChar(self.input)
-	self.inputLabel:replaceText(self.input)
+	self.inputLabel:replaceText(self.password and self.censor(self.input) or self.input)
+
 	return true
 end
 
@@ -95,7 +100,7 @@ function TextBox:textInput(event)
 		return false
 	end
 	self.input = self.input .. event[1]
-	self.inputLabel:replaceText(self.input)
+	self.inputLabel:replaceText(self.password and self.censor(self.input) or self.input)
 	return true
 end
 

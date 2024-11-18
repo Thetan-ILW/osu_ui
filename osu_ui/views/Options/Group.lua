@@ -37,9 +37,11 @@ function Group:load()
 		return
 	end
 
+	self.totalH = self.totalH + self.startY
+
 	self:addChild("rectangle", Rectangle({
 		totalW = 5,
-		totalH = self.totalH + self.startY,
+		totalH = self.totalH,
 		color = { 1, 1, 1, 0.2 }
 	}))
 
@@ -63,7 +65,7 @@ function Group:canAdd(text)
 	return text:lower():find(self.search:lower())
 end
 
----@param params { label: string, value: string? }
+---@param params { label: string, value: string?, password: boolean? }
 ---@return osu.ui.TextBox?
 function Group:textBox(params)
 	if not self:canAdd(params.label) then
@@ -77,6 +79,7 @@ function Group:textBox(params)
 		assets = self.assets,
 		labelText = params.label,
 		input = params.value,
+		password = params.password,
 		justHovered = function(text_box)
 			TextBox.justHovered(text_box)
 			self.section:hoverOver(text_box.y + self.y, text_box:getHeight())
