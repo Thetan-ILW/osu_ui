@@ -256,20 +256,20 @@ end
 function Combo:drawBody()
 	gfx.push()
 	local x, w, h = self:getPosAndSize()
+	local ts = self.parent.textScale
 	gfx.translate(x + border_size, border_size * 2)
 
 	for i, v in ipairs(self.itemsText) do
 		local hover = self.hoverIndex == i
 		local panel_color = hover and self.hoverColor or black
-		local icon_color = hover and white or black
 		local a = self.visibility * self.alpha
 
 		gfx.setColor(panel_color[1], panel_color[2], panel_color[3], a)
 		gfx.translate(0, h * self.visibility)
 		gfx.rectangle("fill", 0, 0, w, h, 4)
 
-		gfx.setColor(icon_color[1], icon_color[2], icon_color[3], a)
-		gfx.draw(self.iconRight, 2, 4)
+		gfx.setColor(0, 0, 0, a)
+		gfx.draw(self.iconRight, 2, 4, 0, ts, ts)
 
 		gfx.push()
 		gfx.applyTransform(v.transform)

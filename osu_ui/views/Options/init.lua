@@ -44,7 +44,7 @@ end
 
 function Options:drawCanvas()
 	local scale = self.viewportScale
-	love.graphics.setScissor(0, 0, math.max(self.tabsContrainerWidth * scale, self.totalW * scale), self.totalH)
+	love.graphics.setScissor(0, 0, math.max(self.tabsContrainerWidth * scale, self.totalW * scale), self.totalH * scale)
 	love.graphics.draw(self.canvas)
 	love.graphics.setScissor()
 end

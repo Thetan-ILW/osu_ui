@@ -19,6 +19,8 @@ ScoreListView.panelSpacing = 53
 ScoreListView.panelSlideInDelay = 0.08
 
 function ScoreListView:load()
+	self.automaticSizeCalc = false
+
 	ScrollAreaContainer.load(self)
 	self.recentScoreIcon = self.assets:awesomeIcon("", 24)
 	self.noScoresImage = self.assets:loadImage("selection-norecords")

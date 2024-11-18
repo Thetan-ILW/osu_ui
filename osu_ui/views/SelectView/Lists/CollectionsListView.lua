@@ -51,6 +51,10 @@ function CollectionsListView:update(dt, mouse_focus)
 	return new_mouse_focus
 end
 
+function CollectionsListView:getChildItemCount()
+	return #self.childList:getItems()
+end
+
 function CollectionsListView:collectionLoaded()
 	if self.parent:getChild("charts") then
 		self.parent:removeChild("charts")
@@ -67,7 +71,7 @@ function CollectionsListView:collectionLoaded()
 	self.wrapProgress = 0
 	self.state = "opening"
 	self:stopWrapTween()
-	local size = self.items[self:getSelectedItemIndex()].count * self.panelHeight
+	local size = self:getChildItemCount() * self.panelHeight
 	self.wrapTween = flux.to(self, 0.4, { holeSize = size, wrapProgress = 1 }):ease("cubicout")
 end
 
@@ -83,12 +87,15 @@ function CollectionsListView:selectItem(child)
 		if self.state == "opening" or self.state == "open" then
 			self.state = "closing"
 			self:stopWrapTween()
-			self.holeSize = (self.windowSize / 2) * self.panelHeight
+			local h = (self.windowSize / 2) * self.panelHeight
+			if self.holeSize > h then
+				self.holeSize = h
+			end
 			self.wrapTween = flux.to(self, 0.3, { holeSize = 0, wrapProgress = 0 }):ease("cubicout")
 		elseif self.state == "closing" or self.state == "closed" then
 			self.state = "opening"
 			self:stopWrapTween()
-			local size = self.items[self:getSelectedItemIndex()].count * self.panelHeight
+			local size = self:getChildItemCount() * self.panelHeight
 			self.wrapTween = flux.to(self, 0.4, { holeSize = size, wrapProgress = 1 }):ease("cubicout")
 		end
 		return
