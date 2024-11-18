@@ -1,3 +1,6 @@
+local wait_for_login = false
+local wait_for_logout = false
+
 ---@param group osu.ui.OptionsGroup
 local function login(group)
 	local email_tb = group:textBox({ label = "Email" })
@@ -6,6 +9,7 @@ local function login(group)
 		group:button({ label = "Sign In", color = { 0.05, 0.52, 0.65, 1 },
 			onClick = function ()
 				group.game.onlineModel.authManager:login(email_tb.input, password_tb.input)
+				wait_for_login = true
 			end
 		})
 		group:button({ label = "Create an account", color = { 0.05, 0.52, 0.65, 1 },
@@ -24,6 +28,7 @@ local function loggedIn(group)
 		label = ("You are logged in as %s"):format(username or "?"),
 		onClick = function ()
 			group.game.onlineModel.authManager:logout()
+			wait_for_logout = true
 		end
 	} )
 end
@@ -32,10 +37,39 @@ end
 return function(section)
 	section:group("SIGN IN", function(group)
 		local active = next(group.game.configModel.configs.online.session)
+
+		local base_update = group.update
+		function group:update(dt, mouse_focus)
+			if wait_for_login then
+				local logged_in = next(group.game.configModel.configs.online.session)
+				if logged_in then
+					local username = group.game.configModel.configs.online.user.name
+					if username then
+						wait_for_login = false
+						group:load()
+						section.options:recalcPositions()
+					end
+				end
+			end
+			if wait_for_logout then
+				local logged_in = next(group.game.configModel.configs.online.session)
+				if not logged_in then
+					wait_for_logout = false
+					group:load()
+					section.options:recalcPositions()
+				end
+			end
+			return base_update(group, dt, mouse_focus)
+		end
+
 		if active then
 			loggedIn(group)
 		else
 			login(group)
 		end
+	end)
+
+	section:group("UPDATES", function(group)
+		group:textBox({ label = "hallo" })
 	end)
 end

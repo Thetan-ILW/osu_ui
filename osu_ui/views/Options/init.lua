@@ -1,5 +1,6 @@
 local CanvasContainer = require("osu_ui.ui.CanvasContainer")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
+local Container = require("osu_ui.ui.Container")
 
 local math_util = require("math_util")
 local flux = require("flux")
@@ -10,6 +11,7 @@ local TextBox = require("osu_ui.ui.TextBox")
 local Section = require("osu_ui.views.Options.Section")
 
 ---@alias OptionsParams { assets: osu.ui.OsuAssets, localization: Localization, game: sphere.GameController }
+---@alias SectionParams { name: string, icon: love.Text, buildFunction: fun(section: osu.ui.OptionsSection) }
 
 ---@class osu.ui.OptionsView : osu.ui.CanvasContainer
 ---@overload fun(params: OptionsParams): osu.ui.OptionsView
@@ -17,11 +19,16 @@ local Section = require("osu_ui.views.Options.Section")
 ---@field assets osu.ui.OsuAssets
 ---@field localization Localization
 ---@field fadeTween table?
+---@field sections {[string]: SectionParams}
+---@field section string[]
 local Options = CanvasContainer + {}
 
 Options.panelWidth = 438
 Options.tabsContrainerWidth = 64
 Options.searchFormat = { { 1, 1, 1, 1 }, " ", { 1, 1, 1, 0.65 }, ""}
+
+Options.sections = {}
+Options.sectionsOrder = {}
 
 function Options:fade(target_value)
 	if self.fadeTween then
@@ -55,7 +62,23 @@ function Options:update(dt, mouse_focus)
 end
 
 function Options:searchUpdated()
+	local new_tree = self:buildTree()
+
+	if #new_tree.childrenOrder == 0 then
+		self.search = TextBox.removeChar(self.search)
+		return
+	end
+
+	if self.panel:getChild("tree") then
+		self.panel:removeChild("tree")
+	end
+
+	self.tree = new_tree
+	self.panel:addChild("tree", new_tree, true)
+	self.panel:build()
+
 	local label = self.children.searchLabel
+	---@cast label osu.ui.Label
 
 	if self.search == "" then
 		self.searchFormat[4] = self.text.SongSelection_TypeToBegin
@@ -72,8 +95,10 @@ function Options:textInput(event)
 	if self.alpha < 0.1 then
 		return false
 	end
+
 	self.search = self.search .. event[1]
 	self:searchUpdated()
+
 	return true
 end
 
@@ -87,7 +112,21 @@ function Options:keyPressed(event)
 
 	self.search = TextBox.removeChar(self.search)
 	self:searchUpdated()
+
 	return true
+end
+
+function Options:newSection(name, icon, build_function)
+	if Options.sections[name] then
+		return
+	end
+
+	Options.sections[name] = {
+		name = name,
+		icon = self.assets:awesomeIcon(icon, 36),
+		buildFunction = build_function
+	}
+	table.insert(Options.sectionsOrder, name)
 end
 
 function Options:load()
@@ -105,12 +144,21 @@ function Options:load()
 	self.search = ""
 	self.stencil = true
 
+	self:newSection(
+		self.text.Options_General:upper(),
+		"",
+		require("osu_ui.views.Options.sections.general")
+	)
+	self:newSection(
+		self.text.Options_Gameplay:upper(),
+		"",
+		require("osu_ui.views.Options.sections.gameplay")
+	)
+
 	CanvasContainer.load(self)
 	self:addTags({ "allowReload" })
 	self.hoverState.tweenDuration = 0.5
 	self.hoverState.ease = "quadout"
-
-	local options = self
 
 	self:addChild("tabsBackground", Rectangle({
 		totalW = self.tabsContrainerWidth,
@@ -135,10 +183,6 @@ function Options:load()
 		depth = 0.1
 	}))
 	---@cast panel osu.ui.ScrollAreaContainer
-
-	function panel:bindEvent(child, event)
-		options:bindEvent(child, event)
-	end
 
 	panel:addChild("optionsLabel", Label({
 		y = 60,
@@ -199,52 +243,27 @@ function Options:load()
 	end
 
 	self.koolRectangle = panel:addChild("koolRectangle", Rectangle({
-		y = -1,
+		y = -9999,
 		totalW = self.panelWidth,
 		totalH = 37,
 		color = { 0, 0, 0, 0.5 }
 	}))
 
 	self.panel = panel
-	self.sectionsStartY = 270
-	self.sectionsHeight = 0
+	self.sectionSpacing = 24
+	self.tree = self:buildTree()
+	self.panel:addChild("tree", self.tree, true)
+	self.panel:build()
 
-	self:addSection("General", function(section)
-		section:group("SIGN IN", function(group)
-			local active = next(self.game.configModel.configs.online.session)
-			if active then
-				local username = self.game.configModel.configs.online.user.name
-				group:label({
-					totalH = 100,
-					label = ("You are logged in as %s"):format(username or "?"),
-					onClick = function ()
-						self.game.onlineModel.authManager:logout()
-					end
-				} )
-			else
-				local email_tb = group:textBox({ label = "Email" })
-				local password_tb = group:textBox({ label = "Password" })
-				if email_tb and password_tb then
-					group:button({ label = "Sign In",
-						onClick = function ()
-							group.game.onlineModel.authManager:login(email_tb.input, password_tb.input)
-						end
-					})
-					group:button({ label = "Create an account",
-						onClick = function ()
-							love.system.openURL("https://soundsphere.xyz/register")
-						end
-					})
-				end
-			end
-		end)
-	end)
+	self:addChild("optionEvents", Container({
+		bindEvents = function(this)
+			this:bindEvent(self, "textInput")
+			this:bindEvent(self, "keyPressed")
+		end,
+		depth = 0
+	})) -- cuz they should be called last
 
-	panel:build()
 	self:build()
-
-	self:bindEvent(self, "textInput")
-	self:bindEvent(self, "keyPressed")
 end
 
 function Options:hoverOver(y, height)
@@ -254,35 +273,75 @@ function Options:hoverOver(y, height)
 		rt:stop()
 	end
 
-	if r.y == -1 then
-		r.y = y
+	local target = self.tree.y + y
+
+	if r.y < 0 then
+		r.y = target
+		r.totalH = height
 	end
 
-	self.koolRectangleTween = flux.to(r, 0.6, { y = y, totalH = height }):ease("elasticout"):onupdate(function ()
+	self.koolRectangleTween = flux.to(r, 0.6, { y = target, totalH = height }):ease("elasticout"):onupdate(function ()
 		r:applyTransform()
 	end)
 end
 
----@param name string
----@param build_function fun(section: osu.ui.OptionsSection)
-function Options:addSection(name, build_function)
-	local section = self.panel:addChild(name, Section({
-		y = self.sectionsHeight + self.sectionsStartY,
-		options = self,
-		assets = self.assets,
-		name = name,
-		searchText = self.search,
-		buildFunction = build_function,
-		depth = 0.1
+---@return osu.ui.Container
+function Options:buildTree()
+	local container = self.panel:addChild("temporaryTree", Container({
+		y = 270,
+		totalW = self.panel.totalW,
+		depth = 0.5,
 	}))
-	---@cast section osu.ui.OptionsSection
+	---@cast container osu.ui.Container
 
-	if section.isEmpty then
-		self:removeChild(name)
-		return
+	local y = 0
+	local depth = 1
+	for i, v in ipairs(self.sectionsOrder) do
+		local section_params = self.sections[v]
+		local name = section_params.name
+		local icon = section_params.icon
+		local build = section_params.buildFunction
+
+		local section = container:addChild(name, Section({
+			totalW = self.panelWidth,
+			options = self,
+			assets = self.assets,
+			name = name,
+			icon = icon,
+			buildFunction = build,
+			depth = depth - i * 0.000001,
+		}))
+		---@cast section osu.ui.OptionsSection
+		if section.isEmpty then
+			container:removeChild(name)
+		else
+			section.y = y
+			section:applyTransform()
+			y = y + section:getHeight() + self.sectionSpacing
+		end
 	end
 
-	self.sectionsHeight = self.sectionsHeight + section:getHeight()
+	container:build()
+	self.panel:removeChild("temporaryTree")
+
+	return container
+end
+
+function Options:recalcPositions()
+	local y = 0
+
+	for _, v in ipairs(self.sectionsOrder) do
+		local section_params = self.sections[v]
+		local name = section_params.name
+		local section = self.tree:getChild(name)
+		---@cast section osu.ui.OptionsSection
+		if section then
+			section:recalcPositions()
+			section.y = y
+			section:applyTransform()
+			y = y + section:getHeight()
+		end
+	end
 end
 
 return Options

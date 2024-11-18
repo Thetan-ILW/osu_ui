@@ -7,7 +7,7 @@ local actions = require("osu_ui.actions")
 ---@field children {[string]: osu.ui.UiElement}
 ---@field childrenOrder string[]
 ---@field childContainers osu.ui.Container[]
----@field eventListeners {[InputEvent]: osu.ui.UiElement}
+---@field eventListeners {[InputEvent]: osu.ui.UiElement[]}
 ---@field textScale number
 ---@field automaticSizeCalc boolean
 local Container = UiElement + {}
@@ -28,7 +28,6 @@ function Container:load()
 	self.mouseLastY = 0
 
 	if self.parent then
-		self.parent:registerChildContainer(self)
 		self.textScale = self.parent.textScale
 	end
 
@@ -36,45 +35,45 @@ function Container:load()
 	self:addTags({ "container" })
 end
 
-function Container:unload()
-	if self.parent then
-		self.parent:removeChildContainer(self)
-	end
-end
-
 ---@param id string
 ---@param child osu.ui.UiElement
+---@param do_not_load boolean?
 ---@return osu.ui.UiElement
-function Container:addChild(id, child)
+function Container:addChild(id, child, do_not_load)
 	assert(self.children, debug.traceback("Wrong usage of Container class. load() it first. Maybe you forgot to call a base load()?"))
 	if self.children[id] then
 		error(("Children with the id %s already exist"):format(id))
 	end
 	child.id = id
 	child.parent = self
-	child:load()
+
+	if not do_not_load then
+		child:load()
+	end
+
+	if child:hasTag("container") then
+		---@cast child osu.ui.Container
+		table.insert(self.childContainers, child)
+	end
+
 	self.children[id] = child
 	return child
 end
 
 ---@param id string
 function Container:removeChild(id)
-	self.children[id]:unload()
-	self.children[id] = nil
-end
+	local child = self.children[id]
 
----@param child osu.ui.Container
-function Container:registerChildContainer(child)
-	table.insert(self.childContainers, child)
-end
-
-function Container:removeChildContainer(child)
-	for i, v in ipairs(self.childContainers) do
-		if v == child then
-			table.remove(self.childContainers, i)
-			return
+	if child:hasTag("container") then
+		for i, v in ipairs(self.childContainers) do
+			if v == child then
+				table.remove(self.childContainers, i)
+				break
+			end
 		end
 	end
+
+	self.children[id] = nil
 end
 
 ---@return osu.ui.Viewport
@@ -99,6 +98,11 @@ function Container:build()
 	---@type { id: number, child:  osu.ui.UiElement }[]
 	local sorted = {}
 
+	if self.automaticSizeCalc then
+		self.totalW = 0
+		self.totalH = 0
+	end
+
 	for id, child in pairs(self.children) do
 		table.insert(sorted, { id = id, child = child })
 		if self.automaticSizeCalc then
@@ -111,6 +115,7 @@ function Container:build()
 		return a.child.depth > b.child.depth
 	end)
 
+	self.eventListeners = {}
 	self.childrenOrder = {}
 	for _, v in ipairs(sorted) do
 		table.insert(self.childrenOrder, v.id)
@@ -195,12 +200,10 @@ function Container:draw()
 		gfx.applyTransform(child.transform)
 		self:drawChild(child)
 		gfx.pop()
-		--[[
 		gfx.push()
 		gfx.applyTransform(child.transform)
 		child:debugDraw()
 		gfx.pop()
-		]]
 	end
 end
 

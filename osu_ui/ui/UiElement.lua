@@ -56,8 +56,6 @@ function UiElement:load()
 	self:applyTransform()
 end
 
-function UiElement:unload() end
-
 --- Called when building (function build()) a container, UiElements with the greatest depth are bound first.
 function UiElement:bindEvents() end
 

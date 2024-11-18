@@ -6,20 +6,20 @@ local Rectangle = require("osu_ui.ui.Rectangle")
 local Label = require("osu_ui.ui.Label")
 
 ---@class osu.ui.OptionsGroup : osu.ui.Container
----@field parent osu.ui.OptionsSection
+---@field section osu.ui.OptionsSection
 ---@field assets osu.ui.OsuAssets
 ---@field isEmpty boolean
----@field searchText string
+---@field search string
 ---@field name string
 ---@field buildFunction fun(group: osu.ui.OptionsGroup)
 local Group = Container + {}
 
-function Group:bindEvent(child, event)
-	self.parent:bindEvent(child, event)
-end
-
 function Group:load()
-	self.game = self.parent.options.game
+	local options = self.section.options
+
+	self.game = options.game
+	self.search = options.search
+	self.assets = options.assets
 	self.automaticSizeCalc = false
 	self.isEmpty = false
 	self.indent = 12
@@ -27,7 +27,8 @@ function Group:load()
 
 	Container.load(self)
 
-	self.totalH = 25
+	self.totalH = 0
+	self.startY = 25
 	self:buildFunction()
 
 	if self.totalH == 0 then
@@ -37,7 +38,7 @@ function Group:load()
 
 	self:addChild("rectangle", Rectangle({
 		totalW = 5,
-		totalH = self.totalH,
+		totalH = self.totalH + self.startY,
 		color = { 1, 1, 1, 0.2 }
 	}))
 
@@ -50,16 +51,27 @@ function Group:load()
 	self:build()
 end
 
+function Group:getCurrentY()
+	return self.startY + self.totalH
+end
+
+function Group:canAdd(text)
+	if self.search == "" then
+		return true
+	end
+	return text:lower():find(self.search:lower())
+end
+
 ---@param params { label: string, value: string? }
 ---@return osu.ui.TextBox?
 function Group:textBox(params)
-	if self.searchText ~= "" and not params.label:find(self.searchText) then
+	if not self:canAdd(params.label) then
 		return
 	end
 
 	self.textBoxes = self.textBoxes or 1
 	local text_box = self:addChild("textBox" .. self.textBoxes, TextBox({
-		x = self.indent, y = self.totalH,
+		x = self.indent, y = self:getCurrentY(),
 		totalW = 380,
 		assets = self.assets,
 		labelText = params.label,
@@ -67,7 +79,7 @@ function Group:textBox(params)
 	}))
 	function text_box.justHovered()
 		TextBox.justHovered(text_box)
-		self.parent:hoverOver(text_box.y + self.y, text_box:getHeight())
+		self.section:hoverOver(text_box.y + self.y, text_box:getHeight())
 	end
 
 	---@cast text_box osu.ui.TextBox
@@ -84,7 +96,7 @@ end
 ---@param params { label: string, onClick: function }  
 ---@return osu.ui.Button?
 function Group:button(params)
-	if self.searchText ~= "" and not params.label:find(self.searchText) then
+	if not self:canAdd(params.label) then
 		return
 	end
 
@@ -92,7 +104,7 @@ function Group:button(params)
 	self.buttons = self.buttons or 1
 
 	local container = self:addChild("button_container" .. self.buttons, Container({
-		x = self.indent - 5, y = self.totalH,
+		x = self.indent - 5, y = self:getCurrentY(),
 		totalW = 388,
 		totalH = 45,
 		automaticSizeCalc = false,
@@ -101,7 +113,7 @@ function Group:button(params)
 
 	function container.justHovered()
 		Container.justHovered(container)
-		self.parent:hoverOver(container.y + self.y, container:getHeight())
+		self.section:hoverOver(container.y + self.y, container:getHeight())
 	end
 
 	local button = container:addChild("button" .. self.buttons, Button({
@@ -126,13 +138,13 @@ end
 ---@param params { label: string, totalH: number?, alignX: AlignX?, onClick: function }
 ---@return osu.ui.Label?
 function Group:label(params)
-	if self.searchText ~= "" and not params.label:find(self.searchText) then
+	if not self:canAdd(params.label) then
 		return
 	end
 
 	self.labels = self.labels or 1
 	local container = self:addChild("label_container" .. self.labels, Container({
-		x = self.indent, y = self.totalH,
+		x = self.indent, y = self:getCurrentY(),
 		totalW = 388,
 		totalH = params.totalH,
 		automaticSizeCalc = params.totalH == nil,
@@ -151,7 +163,7 @@ function Group:label(params)
 
 	function container.justHovered()
 		Container.justHovered(container)
-		self.parent:hoverOver(container.y + self.y, container:getHeight())
+		self.section:hoverOver(container.y + self.y, container:getHeight())
 	end
 
 	local label = container:addChild("label" .. self.labels, Label({
@@ -159,7 +171,7 @@ function Group:label(params)
 		font = self.assets:loadFont("Regular", 16),
 		alignX = params.alignX,
 		alignY = "center",
-		totalW = self.totalW,
+		totalW = container.totalW,
 		totalH = params.totalH
 	}))
 	---@cast label osu.ui.Label

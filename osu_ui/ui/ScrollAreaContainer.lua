@@ -29,6 +29,8 @@ function ScrollAreaContainer:load()
 	self.dragScrollOriginY = 0
         self.accumulatedTimeSinceLastMovement = 0
 	Container.load(self)
+
+	self.viewport = self:getViewport()
 end
 
 function ScrollAreaContainer:bindEvents()
@@ -146,7 +148,7 @@ function ScrollAreaContainer:tryDrag(dt)
 	end
 
 	self.lastMouseY = new_mouse_y
-	local y = drag_scroll_origin + (drag_origin - new_mouse_y)
+	local y = drag_scroll_origin + ((drag_origin - new_mouse_y) / self.viewport:getScale())
 	self.scrollPosition = math_util.clamp(y, 0, self.scrollLimit) * 0.5 + y * (1 - 0.5)
 end
 
