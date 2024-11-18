@@ -25,7 +25,7 @@ ResultView.load = thread.coro(function(self)
 
 	self.game.resultController:load()
 
-	if self.prevView == self.ui.selectView then
+	if self.previousViewName == "select" then
 		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
 	end
 
@@ -33,12 +33,18 @@ ResultView.load = thread.coro(function(self)
 	self.displayInfo = DisplayInfo(self)
 	self.scoreReveal = 0
 
-	local sc = self.gameView.screenContainer
-	if sc:getChild("view") then
-		sc:removeChild("view")
+	local viewport = self.gameView.viewport
+
+	if not viewport:getChild("resultView") then
+		viewport:addChild("resultView", View({ resultView = self, depth = 0.07 }))
+		viewport:build()
 	end
-	sc:addChild("view", View({ resultView = self, depth = 0.1 }))
-	sc:build()
+
+	local view = viewport:getChild("resultView")
+	local cursor = viewport:getChild("cursor")
+	view.alpha = 0
+	flux.to(view, 0.5, { alpha = 1 }):ease("quadout")
+	flux.to(cursor, 0.5, { alpha = 1 }):ease("quadout")
 
 	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
 
@@ -87,12 +93,9 @@ function ResultView:submitScore()
 end
 
 function ResultView:quit()
-	self.game.rhythmModel.audioEngine:unload()
+	local view = self.gameView.viewport:getChild("resultView")
 
-	if self.assets.sounds.menuBack then
-		self.assets.sounds.menuBack:play()
-	end
-
+	flux.to(view, 0.4, { alpha = 0 }):ease("quadout")
 	self:changeScreen("selectView")
 end
 

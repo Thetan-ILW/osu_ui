@@ -53,23 +53,6 @@ function View:load()
 	local tabs = top:addChild("tabContainer", Container({ depth = 0.5 }))
 	---@cast tabs osu.ui.Container
 
-	--[[local screenshot = self:addChild("screenshot", Image({
-		image = select_view.screenshot,
-		blockMouseFocus = false,
-		alpha = 0.7,
-		depth = 1,
-	}))
-	function self:wheelUp()
-		screenshot.alpha = math.min(1, screenshot.alpha + 0.1)
-		return true
-	end
-	function self:wheelDown()
-		screenshot.alpha = math.max(0, screenshot.alpha - 0.1)
-		return true
-	end
-	self:bindEvent(self, "wheelUp")
-	self:bindEvent(self, "wheelDown")]]
-
 	----------- TOP -----------
 
 	local img = assets:loadImage("songselect-top")
@@ -467,6 +450,12 @@ function View:load()
 	}))
 	---@cast score_list osu.ui.ScoreListView
 
+	function score_list.update(container, dt, mouse_focus)
+		score_list.x = (1 - self.alpha) * -450
+		score_list:applyTransform()
+		return ScoreListView.update(container, dt, mouse_focus)
+	end
+
 	top:addChild("mouseBlock", Rectangle({
 		totalW = width,
 		totalH = 82,
@@ -483,7 +472,7 @@ function View:load()
 		depth = 0
 	}))
 
-	center:addChild("searchBackground", Rectangle({
+	top:addChild("searchBackground", Rectangle({
 		x = width,
 		y = 82,
 		origin = { x = 1, y = 0 },
@@ -510,7 +499,13 @@ function View:load()
 		assets = assets,
 		depth = 0,
 	}))
-	---@cast list osu.ui.ScrollAreaContainer
+	---@cast list osu.ui.ListContainer
+
+	function list.update(container, dt, mouse_focus)
+		container.x = width + ((1 - self.alpha) * 640)
+		container:applyTransform()
+		return ListContainer.update(container, dt, mouse_focus)
+	end
 
 	center:addChild("scrollBarBackground", Rectangle({
 		x = width - 5, y = 117,
@@ -530,6 +525,18 @@ function View:load()
 		depth = 0.1,
 	}))
 
+	function top.update(container, dt, mouse_focus)
+		container.y = (1 - self.alpha) * -160
+		container:applyTransform()
+		Container.update(container, dt, mouse_focus)
+	end
+
+	function bottom.update(container, dt, mouse_focus)
+		container.y = (1 - self.alpha) * 160
+		container:applyTransform()
+		Container.update(container, dt, mouse_focus)
+	end
+
 	score_list:build()
 	tabs:build()
 	center:build()
@@ -540,6 +547,7 @@ end
 
 function View:update(dt, mouse_focus)
 	self.shader:send("amount", 0.05 * (1 - easing.linear(self.selectView.notechartChangeTime, 0.5)))
+	self:applyTransform()
 	return CanvasContainer.update(self, dt, mouse_focus)
 end
 

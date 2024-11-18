@@ -2,6 +2,7 @@ local ScreenView = require("osu_ui.views.ScreenView")
 
 local actions = require("osu_ui.actions")
 local ui = require("osu_ui.ui")
+local flux = require("flux")
 
 local InputMap = require("osu_ui.views.SelectView.InputMap")
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
@@ -12,6 +13,8 @@ local View = require("osu_ui.views.SelectView.View")
 ---@field prevChartViewId number
 local SelectView = ScreenView + {}
 
+SelectView.name = "select"
+
 SelectView.groups = {
 	"charts",
 	"locations",
@@ -20,18 +23,30 @@ SelectView.groups = {
 
 function SelectView:load()
 	love.mouse.setVisible(false)
-	self.game.selectController:load()
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs
 
 	self.selectedGroup = self.groups[1]
 	self.notechartChangeTime = love.timer.getTime()
+	self.chartLoadProgress = 0
 
-	self.screenshot = love.graphics.newImage("screenshot206.png")
 	self.inputMap = InputMap(self)
 	self.displayInfo = DisplayInfo(self)
-	self:reloadView()
 	self:notechartChanged()
+
+	local viewport = self.gameView.viewport
+
+	if not viewport:getChild("selectView") then
+		self.game.selectController:load()
+		viewport:addChild("selectView", View({ selectView = self, depth = 0.1 }))
+		viewport:build()
+	end
+
+	local view = viewport:getChild("selectView")
+	local cursor = viewport:getChild("cursor")
+	view.alpha = 0
+	flux.to(view, 0.7, { alpha = 1 }):ease("cubicout")
+	flux.to(cursor, 0.7, { alpha = 1 }):ease("cubicout")
 
 	actions.enable()
 end
@@ -57,26 +72,6 @@ function SelectView:update(dt)
 		self.prevChartViewSetIndex = chartview_set_i
 		self:notechartChanged()
 	end
-end
-
-local path_util = require("path_util")
-function SelectView:reloadView()
-	local view = love.filesystem.load(path_util.join(self.ui.mountPath, "osu_ui/views/SelectView/View.lua"))()
-
-	local viewport = self.gameView.viewport
-
-	if viewport:getChild("view") then
-		viewport:removeChild("view")
-	end
-
-	local success, result = pcall(viewport.addChild, viewport, "view", view({ selectView = self, depth = 0.1 }))
-	if not success then
-		print(result)
-	end
-
-	self.view = viewport:getChild("view")
-
-	self.gameView.viewport:build()
 end
 
 function SelectView:notechartChanged()
@@ -128,7 +123,14 @@ function SelectView:play()
 		return
 	end
 
-	self:changeScreen("gameplayView")
+	local view = self.gameView.viewport:getChild("selectView")
+	assert(view)
+	flux.to(view, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		self:changeScreen("gameplayView")
+	end)
+
+	local cursor = self.gameView.viewport:getChild("cursor")
+	flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
 end
 
 function SelectView:edit()
@@ -140,7 +142,10 @@ end
 
 function SelectView:result()
 	if self.game.selectModel:isPlayed() then
-		self:changeScreen("resultView")
+		local view = self.gameView.viewport:getChild("selectView")
+		flux.to(view, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+			self:changeScreen("resultView")
+		end)
 	end
 end
 

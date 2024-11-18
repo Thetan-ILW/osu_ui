@@ -5,13 +5,17 @@ local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
 
 local Playfield = require("osu_ui.views.GameplayView.Playfield")
 local PauseScreen = require("osu_ui.views.GameplayView.PauseScreen")
+local CanvasContainer = require("osu_ui.ui.CanvasContainer")
 
+local flux = require("flux")
 local just = require("just")
 local actions = require("osu_ui.actions")
 
 ---@class osu.ui.GameplayView: osu.ui.ScreenView
 ---@operator call: osu.ui.GameplayView
 local GameplayView = ScreenView + {}
+
+GameplayView.name = "gameplay"
 
 ---@param game sphere.GameController
 function GameplayView:new(game)
@@ -40,30 +44,39 @@ function GameplayView:load()
 	self.pauseAssets:load()
 	self.pauseAssets.shaders = self.ui.assets.shaders
 
-	self.pauseScreen = PauseScreen({
-		assets = self.pauseAssets,
-		gameplayController = self.game.gameplayController,
-		gameplayView = self,
-		alpha = 0,
-		depth = 0.2,
-	})
-	self.playfield = Playfield({
-		configModel = self.game.configModel,
-		sequenceView = self.sequenceView,
-		depth = 0.1
-	})
+	local viewport = self.gameView.viewport
 
-	local sc = self.gameView.screenContainer
-	if sc:getChild("pause") then
-		sc:removeChild("pause")
+	if not viewport:getChild("gameplayView") then
+		local view = viewport:addChild("gameplayView", CanvasContainer({
+			totalW = viewport.totalW,
+			totalH = viewport.totalH,
+			depth = 0.05,
+		}))
+		---@cast view osu.ui.CanvasContainer
+
+		view:addChild("view", Playfield({
+			configModel = self.game.configModel,
+			sequenceView = self.sequenceView,
+			depth = 0.1
+		}))
+
+		self.pauseScreen = view:addChild("pause", PauseScreen({
+			assets = self.pauseAssets,
+			gameplayController = self.game.gameplayController,
+			gameplayView = self,
+			alpha = 0,
+			depth = 0.2,
+		}))
+
+		view:build()
+		viewport:build()
 	end
-	if sc:getChild("view") then
-		sc:removeChild("view")
-	end
-	sc:addChild("pause", self.pauseScreen)
-	sc:addChild("view", self.playfield)
-	sc:build()
-	self.cursor = sc:getChild("cursor")
+
+	local view = viewport:getChild("gameplayView")
+	view.alpha = 0
+	flux.to(view, 0.5, { alpha = 1 }):ease("quadout")
+
+	self.cursor = viewport:getChild("cursor")
 	self.cursor.alpha = 0
 end
 
@@ -72,7 +85,6 @@ function GameplayView:unload()
 	self.game.rhythmModel.observable:remove(self.sequenceView)
 	self.sequenceView:unload()
 	self.cursor.alpha = 1
-	self.gameView.screenContainer:removeChild("pause")
 end
 
 function GameplayView:retry()
@@ -147,6 +159,10 @@ function GameplayView:receive(event)
 end
 
 function GameplayView:quit()
+	local view = self.gameView.viewport:getChild("gameplayView")
+
+	flux.to(view, 0.4, { alpha = 0 }):ease("quadout")
+
 	if self.game.gameplayController:hasResult() then
 		self:changeScreen("resultView")
 	elseif self.game.multiplayerModel.room then

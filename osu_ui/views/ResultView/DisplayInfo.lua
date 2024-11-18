@@ -28,7 +28,7 @@ function DisplayInfo:new(result_view)
 
 	self.text = result_view.localization.text
 
-	if self.chartview then
+	if self.chartview and self.chartdiff then
 		self:getDifficulty()
 		self:getChartInfo()
 	else

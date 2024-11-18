@@ -12,7 +12,7 @@ local actions = require("osu_ui.actions")
 ---@field automaticSizeCalc boolean
 local Container = UiElement + {}
 
-Container.debug = true
+Container.debug = false
 
 function Container:load()
 	self.blockMouseFocus = self.blockMouseFocus or false
@@ -176,10 +176,17 @@ function Container:update(dt, mouse_focus)
 		gfx.push()
 		gfx.applyTransform(child.transform)
 		mouse_focus = not child:setMouseFocus(mouse_focus)
-		local c = child:update(dt, mouse_focus)
-		if c ~= nil then
-			mouse_focus = c
+
+		if child:hasTag("container") then
+			---@cast child osu.ui.Container
+			local c = child:update(dt, mouse_focus)
+			if c ~= nil then
+				mouse_focus = c
+			end
+		else
+			child:update(dt)
 		end
+
 		gfx.pop()
 	end
 

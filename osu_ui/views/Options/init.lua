@@ -209,7 +209,7 @@ function Options:load()
 		blockMouseFocus = false,
 		depth = 0.59
 	}))
-	function header_background:update(dt, mouse_focus)
+	function header_background:update(dt)
 		header_background.alpha = math_util.clamp(panel.scrollPosition / 110, 0, 1)
 		if panel.scrollPosition < 0 then
 			header_background.y = 0
@@ -218,7 +218,7 @@ function Options:load()
 			header_background.y = -panel.scrollPosition
 		end
 		self:applyTransform()
-		return Rectangle.update(header_background, dt, mouse_focus)
+		Rectangle.update(header_background, dt)
 	end
 
 	local search_font = assets:loadFont("Regular", 25)
@@ -234,12 +234,12 @@ function Options:load()
 		blockMouseFocus = false,
 		depth = 0.6
 	}))
-	function search:update(dt, mouse_focus)
+	function search:update(dt)
 		if panel.scrollPosition < 140 then
 			search.y = -panel.scrollPosition + 160
 		end
 		self:applyTransform()
-		return Label.update(self, dt, mouse_focus)
+		Label.update(self, dt)
 	end
 
 	self.koolRectangle = panel:addChild("koolRectangle", Rectangle({

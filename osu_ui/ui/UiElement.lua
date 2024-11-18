@@ -129,8 +129,7 @@ function UiElement:hasTag(tag)
 end
 
 ---@param dt number
----@param mouse_focus boolean
-function UiElement:update(dt, mouse_focus) end
+function UiElement:update(dt) end
 function UiElement:draw() end
 
 local gfx = love.graphics

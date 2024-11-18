@@ -7,7 +7,7 @@ local delay = require("delay")
 ---@operator call: osu.ui.ScreenView
 ---@field ui osu.ui.UserInterface
 ---@field gameView osu.ui.GameView
----@field prevView osu.ui.ScreenView
+---@field previousViewName string
 ---@field modal osu.ui.Modal?
 ---@field assetModel osu.ui.AssetModel
 ---@field assets osu.ui.OsuAssets

@@ -47,16 +47,16 @@ function GameView:load(view)
 		depth = 0.2,
 	}))
 
-	self:forceSetView(view)
+	self:setView(view)
 end
 
 ---@param view osu.ui.ScreenView
-function GameView:_setView(view)
+function GameView:setView(view)
+	local prev_view_name = ""
 	if self.view then
+		prev_view_name = self.view.name
 		self.view:unload()
 	end
-
-	view.prevView = self.view
 
 	local view_names = {
 		[self.ui.selectView] = "selectView",
@@ -65,50 +65,15 @@ function GameView:_setView(view)
 	}
 
 	self.ui:loadAssets(view_names[view])
+
+	view.ui = self.ui
+	view.gameView = self
+	view.assetModel = self.ui.assetModel
+	view.assets = self.ui.assets
+	view.localization = self.ui.localization
+	view.previousViewName = prev_view_name
+	view:load()
 	self.view = view
-	self.view.assetModel = self.ui.assetModel
-	self.view.assets = self.ui.assets
-	self.view.localization = self.ui.localization
-	self.view:load()
-	self.viewport:build()
-end
-
----@param view osu.ui.ScreenView
-function GameView:setView(view)
-	view.ui = self.ui
-	view.gameView = self
-
-	self.fadeTransition:transit(function()
-		if self.view then
-			self.view.changingScreen = true
-		end
-
-		self.fadeTransition:transitAsync(1, 0)
-		view.changingScreen = false
-		self:_setView(view)
-		self.fadeTransition:transitAsync(0, 1)
-	end)
-end
-
----@param view osu.ui.ScreenView
-function GameView:forceSetView(view)
-	view.ui = self.ui
-	view.gameView = self
-
-	if self.fadeTransition.coroutine then
-		self.fadeTransition.coroutine = nil
-	end
-
-	if self.view then
-		self.view.changingScreen = true
-	end
-
-	view.changingScreen = false
-	self:_setView(view)
-
-	self.fadeTransition:transit(function()
-		self.fadeTransition:transitAsync(0, 1)
-	end)
 end
 
 function GameView:reloadView()
@@ -161,9 +126,7 @@ function GameView:draw()
 		return
 	end
 
-	self.fadeTransition:drawBefore()
 	self.viewport:draw()
-	self.fadeTransition:drawAfter()
 end
 
 return GameView

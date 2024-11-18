@@ -1,4 +1,4 @@
-local Container = require("osu_ui.ui.Container")
+local CanvasContainer = require("osu_ui.ui.CanvasContainer")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 
 local math_util = require("math_util")
@@ -16,10 +16,10 @@ local ScrollBar = require("osu_ui.ui.ScrollBar")
 ---@class osu.ui.ResultViewContainer : osu.ui.Container
 ---@operator call: osu.ui.ResultViewContainer
 ---@field resultView osu.ui.ResultView
-local View = Container + {}
+local View = CanvasContainer + {}
 
 function View:load()
-	Container.load(self)
+	CanvasContainer.load(self)
 	local result_view = self.resultView
 	local display_info = result_view.displayInfo
 	local assets = result_view.assets
@@ -320,10 +320,10 @@ function View:load()
 		image = assets:loadImage("ranking-background-overlay"),
 		depth = 0,
 	}))
-	function overlay:update(dt, mouse_focus)
+	function overlay:update(dt)
 		overlay.rotation = (overlay.rotation + love.timer.getDelta() * 0.5) % (math.pi * 2)
 		overlay:applyTransform()
-		return Image.update(overlay, dt, mouse_focus)
+		Image.update(overlay, dt)
 	end
 
 	local grade = area:addChild("grade", Image({
@@ -332,10 +332,10 @@ function View:load()
 		image = assets:loadImage(("ranking-%s"):format(display_info.grade)),
 		depth = 0.5,
 	}))
-	function grade:update(dt, mouse_focus)
+	function grade:update(dt)
 		grade.scale = 1 + (1 - result_view.scoreReveal) * 0.2
 		grade:applyTransform()
-		return Image.update(grade, dt, mouse_focus)
+		Image.update(grade, dt)
 	end
 
 	---- BUTTONS ----
@@ -403,11 +403,11 @@ function View:load()
 		end
 	}))
 	---@cast online_ranking osu.ui.Button
-	function online_ranking:update(dt, mouse_focus)
+	function online_ranking:update(dt)
 		local position = area.scrollPosition
 		local alpha = 1 - math_util.clamp((position / area.totalH * 16), 0, 1)
 		self.alpha = alpha
-		return Button.update(self, dt, mouse_focus)
+		return Button.update(self, dt)
 	end
 
 	area:addChild("backButton", BackButton({
