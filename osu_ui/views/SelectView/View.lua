@@ -27,7 +27,8 @@ function View:textInput(event)
 end
 
 function View:load()
-	self.totalW, self.totalH = love.graphics.getDimensions()
+	local viewport = self.parent:getViewport()
+	self.totalW, self.totalH = viewport.screenW, viewport.screenH
 	self.stencil = true
 
 	local shaders = require("osu_ui.ui.shaders")
@@ -69,9 +70,9 @@ function View:load()
 		image = assets:loadImage("selection-ranked"),
 		depth = 0.9
 	}))
-	function st_icon:update(dt, mouse_focus)
+	function st_icon:update(dt)
 		st_icon.color[4] = easing.linear(select_view.notechartChangeTime, 0.2)
-		return Image.update(st_icon, dt, mouse_focus)
+		Image.update(st_icon, dt)
 	end
 
 	local chart_name = top:addChild("chartName", DynamicText({
@@ -82,6 +83,7 @@ function View:load()
 			return display_info.chartName
 		end
 	}))
+
 	---@cast chart_name osu.ui.DynamicText
 	function chart_name:update()
 		chart_name.color[4] = easing.linear(select_view.notechartChangeTime, 0.2)

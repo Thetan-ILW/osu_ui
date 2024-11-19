@@ -42,9 +42,11 @@ ResultView.load = thread.coro(function(self)
 
 	local view = viewport:getChild("resultView")
 	local cursor = viewport:getChild("cursor")
+	local background = viewport:getChild("background")
 	view.alpha = 0
 	flux.to(view, 0.5, { alpha = 1 }):ease("quadout")
 	flux.to(cursor, 0.5, { alpha = 1 }):ease("quadout")
+	flux.to(background, 0.5, { dim = 0.3, parallax = 0.01 }):ease("quadout")
 
 	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
 
@@ -63,11 +65,6 @@ function ResultView:update(dt)
 	local graphics = configs.settings.graphics
 
 	self.assets:updateVolume(self.game.configModel)
-end
-
-function ResultView:resolutionUpdated()
-	self.gameView.screenContainer:removeChild("view")
-	self.gameView.screenContainer:addChild("view", View({ depth = 0, resultView = self }))
 end
 
 function ResultView:receive(event)

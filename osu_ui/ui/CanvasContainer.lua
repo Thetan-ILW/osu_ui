@@ -11,6 +11,8 @@ local CanvasContainer = Container + {}
 
 function CanvasContainer:load()
 	self.automaticSizeCalc = false
+
+	assert(self.totalW, self.totalH, "Provide width and height to the CanvasContainer")
 	self.canvas = love.graphics.newCanvas(self.totalW, self.totalH)
 	self.stencil = self.stencil or false
 	Container.load(self)

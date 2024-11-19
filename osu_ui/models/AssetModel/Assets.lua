@@ -25,6 +25,7 @@ local Assets = class()
 
 Assets.errors = {}
 Assets.fontFiles = {}
+Assets.fontFilesFallbacks = {}
 
 ---@type string
 local source_directory = love.filesystem.getSource()
@@ -316,7 +317,13 @@ function Assets:loadFont(name, size)
 		error(("No such font: %s"):format(filename))
 	end
 
-	local font = love.graphics.newFont(path_util.join(self.assetModel.mountPath, filename), size * self:getTextDpiScale())
+	local s = size * self:getTextDpiScale()
+	local font = love.graphics.newFont(path_util.join(self.assetModel.mountPath, filename), s)
+
+	if self.fontFilesFallbacks[name] then
+		font:setFallbacks(love.graphics.newFont(path_util.join(self.assetModel.mountPath, self.fontFilesFallbacks[name]), s))
+	end
+
 	font:setFilter("linear", "nearest")
 	self.fonts[formatted_name] = font
 

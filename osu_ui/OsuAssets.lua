@@ -26,6 +26,12 @@ OsuAssets.fontFiles = {
 	["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf"
 }
 
+OsuAssets.fontFilesFallbacks = {
+	["Regular"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Regular.ttf",
+	["Light"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Light.ttf",
+	["Bold"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Bold.ttf",
+}
+
 local characters = {
 	"0",
 	"1",

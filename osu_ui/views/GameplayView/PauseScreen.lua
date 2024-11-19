@@ -28,9 +28,11 @@ function View:hide()
 end
 
 function View:load()
+	local viewport = self.parent:getViewport()
+	self.totalW, self.totalH = viewport.screenW, viewport.screenH
 	CanvasContainer.load(self)
 
-	local width, height = self.parent.totalW, self.parent.totalH
+	local width, height = self.totalW, self.totalH
 	local gameplay_controller = self.gameplayController
 	local gameplay_view = self.gameplayView
 	local assets = self.assets

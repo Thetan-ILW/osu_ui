@@ -7,6 +7,7 @@ local flux = require("flux")
 local InputMap = require("osu_ui.views.SelectView.InputMap")
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 local View = require("osu_ui.views.SelectView.View")
+local ChartInfoShowcase = require("osu_ui.views.SelectView.ChartInfoShowcase")
 
 ---@class osu.ui.SelectView: osu.ui.ScreenView
 ---@operator call: osu.ui.SelectView
@@ -23,30 +24,37 @@ SelectView.groups = {
 
 function SelectView:load()
 	love.mouse.setVisible(false)
+	self.game.selectController:load()
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs
 
 	self.selectedGroup = self.groups[1]
 	self.notechartChangeTime = love.timer.getTime()
-	self.chartLoadProgress = 0
 
 	self.inputMap = InputMap(self)
-	self.displayInfo = DisplayInfo(self)
-	self:notechartChanged()
 
 	local viewport = self.gameView.viewport
 
 	if not viewport:getChild("selectView") then
-		self.game.selectController:load()
+		self.displayInfo = DisplayInfo(self)
+		self:notechartChanged()
+
 		viewport:addChild("selectView", View({ selectView = self, depth = 0.1 }))
+		viewport:addChild("chartInfoShowcase", ChartInfoShowcase({
+			assets = self.assets,
+			depth = 0.7,
+			alpha = 0,
+		}))
 		viewport:build()
 	end
 
 	local view = viewport:getChild("selectView")
 	local cursor = viewport:getChild("cursor")
+	local background = viewport:getChild("background")
 	view.alpha = 0
 	flux.to(view, 0.7, { alpha = 1 }):ease("cubicout")
 	flux.to(cursor, 0.7, { alpha = 1 }):ease("cubicout")
+	flux.to(background, 0.5, { dim = 0.3, parallax = 0.01 }):ease("quadout")
 
 	actions.enable()
 end
@@ -123,14 +131,31 @@ function SelectView:play()
 		return
 	end
 
-	local view = self.gameView.viewport:getChild("selectView")
-	assert(view)
+	local viewport = self.gameView.viewport
+
+
+	viewport:build()
+
+	local view = viewport:getChild("selectView")
+	local cursor = viewport:getChild("cursor")
+	local background = viewport:getChild("background")
+	local showcase = viewport:getChild("chartInfoShowcase")
+	---@cast showcase osu.ui.ChartInfoShowcase
+
+	showcase:show(
+		self.displayInfo.chartName,
+		("Length: %s Difficulty: %s"):format(self.displayInfo.length, self.displayInfo.difficulty),
+		self.game.backgroundModel.images[1]
+	)
+
 	flux.to(view, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
 		self:changeScreen("gameplayView")
 	end)
 
-	local cursor = self.gameView.viewport:getChild("cursor")
 	flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
+	flux.to(background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
+	flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
+	flux.to(showcase, 0.45, { alpha = 1 }):ease("quadout")
 end
 
 function SelectView:edit()
@@ -142,10 +167,15 @@ end
 
 function SelectView:result()
 	if self.game.selectModel:isPlayed() then
-		local view = self.gameView.viewport:getChild("selectView")
+		local viewport = self.gameView.viewport
+		local view = viewport:getChild("selectView")
+		local cursor = viewport:getChild("cursor")
+		local background = viewport:getChild("background")
 		flux.to(view, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
 			self:changeScreen("resultView")
 		end)
+		flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
+		flux.to(background, 0.5, { parallax = 0 }):ease("quadout")
 	end
 end
 

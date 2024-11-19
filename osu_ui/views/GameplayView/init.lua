@@ -48,8 +48,8 @@ function GameplayView:load()
 
 	if not viewport:getChild("gameplayView") then
 		local view = viewport:addChild("gameplayView", CanvasContainer({
-			totalW = viewport.totalW,
-			totalH = viewport.totalH,
+			totalW = viewport.screenW,
+			totalH = viewport.screenH,
 			depth = 0.05,
 		}))
 		---@cast view osu.ui.CanvasContainer
@@ -73,25 +73,24 @@ function GameplayView:load()
 	end
 
 	local view = viewport:getChild("gameplayView")
+	local background = viewport:getChild("background")
+	local showcase = viewport:getChild("chartInfoShowcase")
 	view.alpha = 0
 	flux.to(view, 0.5, { alpha = 1 }):ease("quadout")
-
-	self.cursor = viewport:getChild("cursor")
-	self.cursor.alpha = 0
+	flux.to(background, 0.5, { dim = 0.8 }):ease("quadout")
+	flux.to(showcase, 0.3, { alpha = 0 }):delay(1):ease("quadout")
 end
 
 function GameplayView:unload()
 	self.game.gameplayController:unload()
 	self.game.rhythmModel.observable:remove(self.sequenceView)
 	self.sequenceView:unload()
-	self.cursor.alpha = 1
 end
 
 function GameplayView:retry()
 	self.game.gameplayController:retry()
 	self.sequenceView:unload()
 	self.sequenceView:load()
-	self.cursor.alpha = 0
 end
 
 ---@param dt number
@@ -160,16 +159,22 @@ end
 
 function GameplayView:quit()
 	local view = self.gameView.viewport:getChild("gameplayView")
-
-	flux.to(view, 0.4, { alpha = 0 }):ease("quadout")
+	local background = self.gameView.viewport:getChild("background")
 
 	if self.game.gameplayController:hasResult() then
-		self:changeScreen("resultView")
+		flux.to(view, 0.25, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+			self:changeScreen("resultView")
+		end)
+		flux.to(background, 0.25, { dim = 0.8, parallax = 0.01 }):ease("quadout")
 	elseif self.game.multiplayerModel.room then
+		flux.to(view, 0.25, { alpha = 0 }):ease("quadout")
 		self:changeScreen("multiplayerView")
 	else
+		flux.to(view, 0.25, { alpha = 0 }):ease("quadout")
 		self:changeScreen("selectView")
 	end
+
+
 end
 
 function GameplayView:keypressed()

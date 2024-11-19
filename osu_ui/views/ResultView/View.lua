@@ -13,20 +13,19 @@ local Image = require("osu_ui.ui.Image")
 local Label = require("osu_ui.ui.Label")
 local ScrollBar = require("osu_ui.ui.ScrollBar")
 
----@class osu.ui.ResultViewContainer : osu.ui.Container
+---@class osu.ui.ResultViewContainer : osu.ui.CanvasContainer
 ---@operator call: osu.ui.ResultViewContainer
 ---@field resultView osu.ui.ResultView
 local View = CanvasContainer + {}
 
 function View:load()
+	local viewport = self.parent:getViewport()
+	self.totalW, self.totalH = viewport.screenW, viewport.screenH
+
 	CanvasContainer.load(self)
 	local result_view = self.resultView
 	local display_info = result_view.displayInfo
 	local assets = result_view.assets
-	local img = assets.images
-	local snd = assets.sounds
-
-	local text = result_view.localization.text
 
 	local width, height = self.parent.totalW, self.parent.totalH
 

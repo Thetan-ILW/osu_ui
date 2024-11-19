@@ -297,6 +297,10 @@ local events = {
 ---@param event table
 ---@return boolean handled
 function Container:receive(event)
+	if self.alpha == 0 then
+		return false
+	end
+
 	local f = events[event.name]
 	if f then
 		local handled = f(self, event)

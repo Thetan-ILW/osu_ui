@@ -52,6 +52,8 @@ function DisplayInfo:setChartInfoDefaults()
 	self.chartInfoFirstRow = "-"
 	self.chartInfoSecondRow = "-"
 	self.chartInfoThirdRow = "-"
+	self.length = "??:??"
+	self.difficulty = "??*"
 end
 
 function DisplayInfo:setChartInfo()
@@ -71,7 +73,7 @@ function DisplayInfo:setChartInfo()
 	local ln_count = chartview.long_notes_count or 0
 	local rate = self.playContext.rate
 
-	local length = time_util.format((chartview.duration or 0) / rate)
+	self.length = time_util.format((chartview.duration or 0) / rate)
 	local bpm = ("%i"):format((chartview.tempo or 0) * rate)
 	local objects = tostring(note_count + ln_count)
 	local note_count_str = tostring(note_count or 0)
@@ -102,7 +104,8 @@ function DisplayInfo:setChartInfo()
 	local od = tostring(getOD(chartview))
 	local hp = tostring(chartview.osu_hp or 8)
 
-	self.chartInfoFirstRow = text.SongSelection_BeatmapInfo:format(length, bpm, objects)
+	self.difficulty = difficulty
+	self.chartInfoFirstRow = text.SongSelection_BeatmapInfo:format(self.length, bpm, objects)
 	self.chartInfoSecondRow = text.SongSelection_BeatmapInfo2:format(note_count_str, ln_count_str, "0")
 	self.chartInfoThirdRow = ("Keys: %s OD:%s HP:%i Star rate: %s"):format(columns_str, od, hp, difficulty)
 end

@@ -17,6 +17,7 @@ local ParallaxBackground = UiElement + {}
 function ParallaxBackground:load()
 	self.parallax = self.parallax or 0.01
 	self.dim = self.dim or 0
+	self.blur = 0
 
 	if self.mode == "background_model" then
 		assert(self.backgroundModel, "backgroundModel was not provided")
@@ -29,25 +30,11 @@ function ParallaxBackground:drawImage(image)
 	local w, h = self.parent.totalW, self.parent.totalH
 	local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
 	local parallax = self.parallax
-
-	local x = -math_util.map(mx, 0, w, parallax, 0) * w
-	local y = -math_util.map(my, 0, h, parallax, 0) * h
-	local iw = (1 + 2 * parallax) * w
-	local ih = (1 + 2 * parallax) * h
-	local dw = image:getWidth()
-	local dh = image:getHeight()
-
-	local s = 1
-	local s1 = w / h <= dw / dh
-	local s2 = w / h >= dw / dh
-
-	if s1 then
-		s = h / dh
-	elseif s2 then
-		s = w / dw
-	end
-
-	love.graphics.draw(image, x + (iw - dw * s) / 2, y + (ih - dh * s) / 2, 0, s)
+	local iw, ih = image:getDimensions()
+	local px = (w / 2 - mx) * parallax
+	local py = (h / 2 - my) * parallax
+	local scale = (w + w * parallax) / iw
+	love.graphics.draw(image, w / 2 - px, h / 2 - py, 0, scale, scale, iw / 2, ih / 2)
 end
 
 function ParallaxBackground:draw()
@@ -69,19 +56,17 @@ function ParallaxBackground:draw()
 	local r, g, b = dim, dim, dim
 
 	for i = 1, 3 do
-		if not images[i] then
-			return
-		end
+		if images[i] then
+			if i == 1 then
+				love.graphics.setColor(r, g, b, 1)
+			elseif i == 2 then
+				love.graphics.setColor(r, g, b, alpha)
+			elseif i == 3 then
+				love.graphics.setColor(r, g, b, 0)
+			end
 
-		if i == 1 then
-			love.graphics.setColor(r, g, b, 1)
-		elseif i == 2 then
-			love.graphics.setColor(r, g, b, alpha)
-		elseif i == 3 then
-			love.graphics.setColor(r, g, b, 0)
+			self:drawImage(images[i])
 		end
-
-		self:drawImage(images[i])
 	end
 end
 
