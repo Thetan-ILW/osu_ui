@@ -1,6 +1,5 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
-local utf8 = require("utf8")
 local Label = require("osu_ui.ui.Label")
 
 ---@alias TextBoxParams { assets: osu.ui.OsuAssets, labelText: string, password: boolean? }
@@ -16,22 +15,6 @@ local Label = require("osu_ui.ui.Label")
 ---@field input string
 ---@field inputLabel osu.ui.Label
 local TextBox = UiElement + {}
-
-local function text_split(text, index)
-	local _index = utf8.offset(text, index) or 1
-	return text:sub(1, _index - 1), text:sub(_index)
-end
-
-function TextBox.removeChar(text)
-	local index = utf8.len(text) + 1
-	local _
-	local left, right = text_split(text, index)
-
-	left, _ = text_split(left, utf8.len(left))
-	index = math.max(1, index - 1)
-
-	return left .. right
-end
 
 function TextBox.censor(text)
 	return string.rep("*", text:len())

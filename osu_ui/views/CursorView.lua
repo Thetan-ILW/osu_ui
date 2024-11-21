@@ -1,15 +1,15 @@
-local UiElement = require("osu_ui.ui.UiElement")
+local Component = require("ui.Component")
 
 ---@alias CursorViewParams { assets: osu.ui.OsuAssets, osuConfig: osu.ui.OsuConfig }
 
----@class osu.ui.CursorView : osu.ui.UiElement
+---@class osu.ui.CursorView : ui.Component
 ---@overload fun(CursorViewParams): osu.ui.CursorView
 ---@field assets osu.ui.OsuAssets
 ---@field osuConfig osu.ui.OsuConfig
 ---@field cursorImage love.Image
 ---@field cursorMiddleImage love.Image
 ---@field cursorTrailImage love.Image
-local CursorView = UiElement + {}
+local CursorView = Component + {}
 
 function CursorView:load()
 	self.alpha = 1
@@ -21,9 +21,6 @@ function CursorView:load()
 
 	self.lastX, self.lastY = love.mouse.getPosition()
 	self:updateSpriteBatch()
-
-	self.blockMouseFocus = false
-	UiElement.load(self)
 end
 
 function CursorView:updateSpriteBatch()

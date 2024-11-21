@@ -24,8 +24,6 @@ local path_util = require("path_util")
 local Assets = class()
 
 Assets.errors = {}
-Assets.fontFiles = {}
-Assets.fontFilesFallbacks = {}
 
 ---@type string
 local source_directory = love.filesystem.getSource()
@@ -290,44 +288,6 @@ function Assets:loadAudio(name)
 	table.insert(self.errors, ("Audio not found %s"):format(name))
 	self.sounds[name] = self.emptyAudio()
 	return self.emptyAudio()
-end
-
----@return number
-function Assets:getTextDpiScale()
-	return math.ceil(self.screenHeight / self.nativeHeight)
-end
-
----@param name string
----@param size number
----@return love.Font
-function Assets:loadFont(name, size)
-	if self.screenHeight < 1 then
-		error("wtf")
-	end
-
-	local formatted_name = ("%s_%i@%ix"):format(name, size, self:getTextDpiScale())
-
-	if self.fonts[formatted_name] then
-		return self.fonts[formatted_name]
-	end
-
-	local filename = self.fontFiles[name]
-
-	if not filename then
-		error(("No such font: %s"):format(filename))
-	end
-
-	local s = size * self:getTextDpiScale()
-	local font = love.graphics.newFont(path_util.join(self.assetModel.mountPath, filename), s)
-
-	if self.fontFilesFallbacks[name] then
-		font:setFallbacks(love.graphics.newFont(path_util.join(self.assetModel.mountPath, self.fontFilesFallbacks[name]), s))
-	end
-
-	font:setFilter("linear", "nearest")
-	self.fonts[formatted_name] = font
-
-	return font
 end
 
 ---@param config_model sphere.ConfigModel

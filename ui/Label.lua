@@ -1,44 +1,49 @@
-local UiElement = require("osu_ui.ui.UiElement")
+local Component = require("ui.Component")
 
----@alias LabelParams { text: string | table, font: love.Font, color: Color?, alignX?: AlignX, alignY?: AlignY, shadow: boolean?, textScale: number?, onClick: function }
+---@alias ui.LabelParams { text: string | table, font: ui.Font, color: Color?, alignX?: AlignX, alignY?: AlignY, shadow: boolean? }
 
----@class osu.ui.Label_old : osu.ui.UiElement
----@overload fun(params: LabelParams): osu.ui.Label_old
+---@class ui.Label : ui.Component
+---@overload fun(params: LabelParams): ui.Label
 ---@field text string | table
----@field font love.Font
+---@field font ui.Font
 ---@field shadow boolean
 ---@field posX number
 ---@field poxY number
 ---@field label love.Text
 ---@field align AlignX
----@field onClick function?
-local Label = UiElement + {}
+local Label = Component + {}
+
+---@param params table?
+function Label:new(params)
+	if params then
+		self.initialWidth = params.width
+		self.initialHeight = params.height
+	end
+	Component.new(self, params)
+end
 
 function Label:load()
-	self.label = love.graphics.newText(self.font, self.text)
+	self:assert(self.font, "No font was provided")
+	self.label = love.graphics.newText(self.font.instance, self.text)
 	self.color = self.color or { 1, 1, 1, 1 }
 	self.alignX = self.alignX or "left"
 	self.alignY = self.alignY or "top"
 	self.shadow = self.shadow or false
-	self.initialWidth = self.totalW
-	self.initialHeight = self.totalH
 	self:updateSizeAndPos()
-
-	UiElement.load(self)
 end
 
 function Label:updateSizeAndPos()
-	local text_scale = self.textScale or self.parent.textScale
+	local text_scale = 1 / self.font.dpiScale
 	local tw, th = self.label:getDimensions()
 	tw, th = tw * text_scale, th * text_scale
-	self.totalW = self.initialWidth or tw
-	self.totalH = self.initialHeight or th
+	self.width = self.initialWidth or tw
+	self.height = self.initialHeight or th
 	self.textScale = text_scale
 
 	local x = 0
 	local y = 0
-	local w = self.totalW
-	local h = self.totalH
+	local w = self.width
+	local h = self.height
 
 	if self.alignX == "center" then
 		x = w / 2 - tw / 2
@@ -59,7 +64,7 @@ end
 ---@param text string | table
 function Label:replaceText(text)
 	if self.initialWidth then
-		local _, wrapped_text = self.font:getWrap(text, self.initialWidth)
+		local _, wrapped_text = self.font.instance:getWrap(text, self.initialWidth)
 		self.text = table.concat(wrapped_text, "\n")
 	else
 		self.text = text
@@ -80,7 +85,7 @@ local shadow_offset = 0.6
 
 function Label:draw()
 	gfx.translate(self.posX, self.posY)
-	gfx.scale(self.textScale)
+	gfx.scale(1 / self.font.dpiScale)
 
 	if self.shadow then
 		gfx.setColor(0.078, 0.078, 0.078, 0.64 * self.alpha)

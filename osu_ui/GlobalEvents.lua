@@ -1,6 +1,5 @@
 local class = require("class")
 
-local actions = require("osu_ui.actions")
 local math_util = require("math_util")
 
 ---@class osu.ui.GlobalEvents
@@ -35,8 +34,6 @@ function GlobalEvents:keypressed(event)
 	if key == "f12" and not event[3] then
 		self.game.app.screenshotModel:capture(false)
 	end
-
-	actions.keyPressed(event)
 end
 
 local events = {
@@ -45,16 +42,9 @@ local events = {
 			self:changeVolume(event[2])
 			return
 		end
-		actions.wheelMoved(event[2])
 	end,
 	keypressed = function(self, event)
 		self:keypressed(event)
-	end,
-	inputchanged = function(self, event)
-		actions.inputChanged(event)
-	end,
-	focus = function()
-		actions.resetInputs()
 	end,
 }
 

@@ -1,7 +1,6 @@
 local Container = require("osu_ui.ui.Container")
 
 local math_util = require("math_util")
-local actions = require("osu_ui.actions")
 
 ---@class osu.ui.WindowListView : osu.ui.Container
 ---@operator call: osu.ui.WindowListView

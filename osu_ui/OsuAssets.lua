@@ -18,20 +18,6 @@ local utf8validate = require("utf8validate")
 ---@field backButtonType "none" | "image" | "animation"
 local OsuAssets = Assets + {}
 
-OsuAssets.nativeHeight = 768
-OsuAssets.fontFiles = {
-	["Regular"] = "osu_ui/assets/ui_font/Aller/Aller_Rg.ttf",
-	["Light"] = "osu_ui/assets/ui_font/Aller/Aller_Lt.ttf",
-	["Bold"] = "osu_ui/assets/ui_font/Aller/Aller_Bd.ttf",
-	["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf"
-}
-
-OsuAssets.fontFilesFallbacks = {
-	["Regular"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Regular.ttf",
-	["Light"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Light.ttf",
-	["Bold"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Bold.ttf",
-}
-
 local characters = {
 	"0",
 	"1",
@@ -174,7 +160,6 @@ function OsuAssets:load()
 
 	self.images = {}
 	self.sounds = {}
-	self.fonts = {}
 	self.imageFonts = {}
 	self.animations = {}
 	self.customViews = {}

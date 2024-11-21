@@ -9,7 +9,6 @@ local CanvasContainer = require("osu_ui.ui.CanvasContainer")
 
 local flux = require("flux")
 local just = require("just")
-local actions = require("osu_ui.actions")
 
 ---@class osu.ui.GameplayView: osu.ui.ScreenView
 ---@operator call: osu.ui.GameplayView

@@ -7,7 +7,7 @@ local View = require("osu_ui.views.TestView.View")
 local TestView = ScreenView + {}
 
 function TestView:load()
-	self.gameView.screenContainer:addChild("view", View({ assets = self.assets }))
+	self.gameView.scene:addChild("testView", View({ assets = self.assets, z = 0.1 }))
 end
 
 function TestView:update(dt)
@@ -17,9 +17,11 @@ function TestView:draw()
 end
 
 function TestView:receive(event)
-	if event.name == "mousepressed" then
-		self.gameView.screenContainer:removeChild("view")
-		self.gameView.screenContainer:addChild("view", View({ depth = 0, assets = self.assets }))
+	if event.name == "keypressed" then
+		if love.keyboard.isDown("lctrl") and event[2] == "o" then
+			local options = self.gameView.scene:getChild("options")
+			options:toggle()
+		end
 	end
 end
 

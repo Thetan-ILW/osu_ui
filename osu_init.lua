@@ -1,11 +1,9 @@
 local class = require("class")
 
 local ui = require("osu_ui.ui")
-local actions = require("osu_ui.actions")
 local AssetModel = require("osu_ui.models.AssetModel")
 local OsuAssets = require("osu_ui.OsuAssets")
 local Localization = require("osu_ui.models.AssetModel.Localization")
-local GlobalEvents = require("osu_ui.GlobalEvents")
 
 local GameView = require("osu_ui.views.GameView")
 local SelectView = require("osu_ui.views.SelectView")
@@ -38,7 +36,6 @@ function UserInterface:new(game, mount_path)
 	self.game = game
 
 	self.gameView = GameView(self)
-	self.globalEvents = GlobalEvents(self)
 	--self.mainMenuView = MainMenuView(game)
 	self.selectView = SelectView(game)
 	self.resultView = ResultView(game)
@@ -70,28 +67,28 @@ function UserInterface:getMods()
 			osuLevel = 0,
 			osuLevelPercent = 0,
 			rank = 69,
-			getScore = function ()
+			getScore = function()
 				return nil
 			end,
-			getDanClears = function (_self, mode)
+			getDanClears = function(_self, mode)
 				return "-", "-"
 			end,
-			isDanIsCleared = function ()
+			isDanIsCleared = function()
 				return false, false
 			end,
-			getActivity = function ()
+			getActivity = function()
 				return nil
 			end,
-			getAvailableDans = function ()
+			getAvailableDans = function()
 				return nil
 			end,
-			getDanTable = function (_self, mode, type)
+			getDanTable = function(_self, mode, type)
 				return nil
 			end,
-			getOverallStats = function ()
+			getOverallStats = function()
 				return nil
 			end,
-			getModeStats = function ()
+			getModeStats = function()
 				return nil
 			end
 		}
@@ -101,10 +98,10 @@ function UserInterface:getMods()
 
 	local minacalc_pkg = package_manager:getPackage("msd_calculator")
 	local etterna_msd = minacalc_pkg and require("minacalc.etterna_msd") or {
-		getMsdFromData = function ()
+		getMsdFromData = function()
 			return nil
 		end,
-		simplifySsr = function ()
+		simplifySsr = function()
 			return "minacalc not installed"
 		end
 	}
@@ -158,12 +155,11 @@ function UserInterface:load()
 	end
 
 	self:loadAssets()
-	self.assets.screenHeight = love.graphics.getHeight()
 	self.localization:load()
 	self.localization:loadFile("en.txt")
 
 	---@type osu.ui.ScreenView
-	local view = self.selectView
+	local view = self.testView
 
 	if self.gucci then
 		if not osu.gucci.installed then
@@ -178,7 +174,9 @@ function UserInterface:load()
 					self.otherGamesPaths = other_games
 					view = self.firstTimeSetupView
 				else
-					self.screenOverlayView.popupView:add("There are no other rhythm games installed on your PC. You should add songs manually. Join our Discord if you need help.", "purple")
+					self.screenOverlayView.popupView:add(
+						"There are no other rhythm games installed on your PC. You should add songs manually. Join our Discord if you need help.",
+						"purple")
 					self.gucci.setDefaultSettings(self.game.configModel.configs)
 					osu.gucci.installed = true
 				end
@@ -190,7 +188,6 @@ function UserInterface:load()
 	end
 
 	self.gameView:load(view)
-	actions.updateActions(self.game.persistence.configModel.configs.osu_ui)
 end
 
 local osu_skins_mounted = false
@@ -213,34 +210,9 @@ function UserInterface:unload()
 	self.gameView:unload()
 end
 
-function UserInterface:resolutionUpdated()
-	if self.prevWindowResolution ~= 0 then
-		--self.assets.localization:updateScale() ---TODO: Default fonts are not being updated. Fix this pls
-		self.gameView:resolutionUpdated()
-	end
-
-	local ww, wh = love.graphics.getDimensions()
-	local resolution = ww * wh
-	self.prevWindowResolution = resolution
-end
-
 ---@param dt number
 function UserInterface:update(dt)
-	local time = love.timer.getTime()
-	local ww, wh = love.graphics.getDimensions()
-	local resolution = ww * wh
-
-	if time > self.lastResolutionCheck + 0.5 then
-		if self.prevWindowResolution ~= resolution then
-			self:resolutionUpdated()
-		end
-
-		self.lastResolutionCheck = time
-	end
-
-	self.assets.screenHeight = wh
 	self.assets:updateVolume(self.game.configModel)
-
 	self.gameView:update(dt)
 end
 
@@ -250,7 +222,7 @@ end
 
 ---@param event table
 function UserInterface:receive(event)
-	self.globalEvents:receive(event)
+	--self.globalEvents:receive(event)
 	self.gameView:receive(event)
 end
 

@@ -1,18 +1,16 @@
-local UiElement = require("osu_ui.ui.UiElement")
-
-local math_util = require("math_util")
+local Component = require("ui.Component")
 
 ---@alias ParallaxBackgroundMode "single_image" | "background_model"
 ---@alias ParallaxBackgroundParams { mode: ParallaxBackgroundMode, parallax: number?, dim: number?, image: love.Image?, backgroundModel: sphere.BackgroundModel }
 
----@class osu.ui.ParallaxBackground : osu.ui.UiElement
+---@class osu.ui.ParallaxBackground : ui.Component
 ---@overload fun(params: ParallaxBackgroundParams): osu.ui.ParallaxBackground
 ---@field parallax number
 ---@field dim number
 ---@field image love.Image?
 ---@field backgroundModel sphere.BackgroundModel?
 ---@field mode ParallaxBackgroundMode
-local ParallaxBackground = UiElement + {}
+local ParallaxBackground = Component + {}
 
 function ParallaxBackground:load()
 	self.parallax = self.parallax or 0.01
@@ -22,18 +20,16 @@ function ParallaxBackground:load()
 	if self.mode == "background_model" then
 		assert(self.backgroundModel, "backgroundModel was not provided")
 	end
-
-	UiElement.load(self)
 end
 
 function ParallaxBackground:drawImage(image)
-	local w, h = self.parent.totalW, self.parent.totalH
+	local w, h = self.parent.width, self.parent.height
 	local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
 	local parallax = self.parallax
 	local iw, ih = image:getDimensions()
 	local px = (w / 2 - mx) * parallax
 	local py = (h / 2 - my) * parallax
-	local scale = (w + w * parallax) / iw
+	local scale = math.max((w + w * parallax) / iw, (h + h * parallax) / ih)
 	love.graphics.draw(image, w / 2 - px, h / 2 - py, 0, scale, scale, iw / 2, ih / 2)
 end
 

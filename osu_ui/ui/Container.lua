@@ -1,7 +1,5 @@
 local UiElement = require("osu_ui.ui.UiElement")
 
-local actions = require("osu_ui.actions")
-
 ---@class osu.ui.Container : osu.ui.UiElement
 ---@field parent osu.ui.Container?
 ---@field children {[string]: osu.ui.UiElement}

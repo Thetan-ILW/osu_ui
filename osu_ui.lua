@@ -34,7 +34,7 @@ local t = {
 		--nativeResSize is defined in the gameplay settings!!!
 	},
 	uiVolume = 0.4,
-	vimMotions = false,
+	--[[vimMotions = false,
 	keybinds = {
 		quit = "escape",
 		increaseVolume = { mod = { "alt", "up" } },
@@ -112,7 +112,7 @@ local t = {
 		down10 = { mod = { "ctrl", "d" } },
 		toStart = { op = { "g", "g" } },
 		toEnd = { mod = { "shift", "g" } },
-	},
+	},]]
 	gucci = {
 		installed = false,
 		osuSkinsPath = "",

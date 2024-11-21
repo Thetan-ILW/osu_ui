@@ -4,8 +4,6 @@ local thread = require("thread")
 local DisplayInfo = require("osu_ui.views.ResultView.DisplayInfo")
 local View = require("osu_ui.views.ResultView.View")
 
-local InputMap = require("osu_ui.views.ResultView.InputMap")
-local actions = require("osu_ui.actions")
 local flux = require("flux")
 
 ---@class osu.ui.ResultView: osu.ui.ScreenView
@@ -29,7 +27,6 @@ ResultView.load = thread.coro(function(self)
 		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
 	end
 
-	self.inputMap = InputMap(self)
 	self.displayInfo = DisplayInfo(self)
 	self.scoreReveal = 0
 

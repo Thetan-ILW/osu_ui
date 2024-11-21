@@ -1,10 +1,8 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
-local actions = require("osu_ui.actions")
 local ui = require("osu_ui.ui")
 local flux = require("flux")
 
-local InputMap = require("osu_ui.views.SelectView.InputMap")
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 local View = require("osu_ui.views.SelectView.View")
 local ChartInfoShowcase = require("osu_ui.views.SelectView.ChartInfoShowcase")
@@ -30,8 +28,6 @@ function SelectView:load()
 
 	self.selectedGroup = self.groups[1]
 	self.notechartChangeTime = love.timer.getTime()
-
-	self.inputMap = InputMap(self)
 
 	local viewport = self.gameView.viewport
 

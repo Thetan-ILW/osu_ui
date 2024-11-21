@@ -1,19 +1,19 @@
-local CanvasContainer = require("osu_ui.ui.CanvasContainer")
+local CanvasComponent = require("ui.CanvasComponent")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
-local Container = require("osu_ui.ui.Container")
+local Component = require("ui.Component")
 
 local math_util = require("math_util")
+local text_input = require("ui.text_input")
 local flux = require("flux")
-local Rectangle = require("osu_ui.ui.Rectangle")
-local Label = require("osu_ui.ui.Label")
-local TextBox = require("osu_ui.ui.TextBox")
+local Rectangle = require("ui.Rectangle")
+local Label = require("ui.Label")
 
 local Section = require("osu_ui.views.Options.Section")
 
 ---@alias OptionsParams { assets: osu.ui.OsuAssets, localization: Localization, game: sphere.GameController }
 ---@alias SectionParams { name: string, icon: love.Text, buildFunction: fun(section: osu.ui.OptionsSection) }
 
----@class osu.ui.OptionsView : osu.ui.CanvasContainer
+---@class osu.ui.OptionsView : ui.CanvasComponent
 ---@overload fun(params: OptionsParams): osu.ui.OptionsView
 ---@field game sphere.GameController
 ---@field assets osu.ui.OsuAssets
@@ -21,7 +21,7 @@ local Section = require("osu_ui.views.Options.Section")
 ---@field fadeTween table?
 ---@field sections {[string]: SectionParams}
 ---@field section string[]
-local Options = CanvasContainer + {}
+local Options = CanvasComponent + {}
 
 Options.panelWidth = 438
 Options.tabsContrainerWidth = 64
@@ -42,30 +42,29 @@ function Options:toggle()
 	self:fade(self.state == "closed" and 1 or 0)
 end
 
-function Options:drawCanvas()
+function Options:draw()
 	local scale = self.viewportScale
-	love.graphics.setScissor(0, 0, math.max(self.tabsContrainerWidth * scale, self.totalW * scale), self.totalH * scale)
+	love.graphics.setScissor(0, 0, math.max(self.tabsContrainerWidth * scale, self.width * scale), self.height * scale)
 	love.graphics.draw(self.canvas)
 	love.graphics.setScissor()
 end
 
-function Options:update(dt, mouse_focus)
-	self.totalW = (self.panelWidth + self.tabsContrainerWidth) * self.alpha
+function Options:update(dt)
+	self.width = (self.panelWidth + self.tabsContrainerWidth) * self.alpha
+	self.canUpdateChildren = self.color[4] * self.alpha ~= 0
 
-	local p = self.hoverState.progress
-	self.koolRectangle.color[4] = p
+	local p = 1--self.hoverState.progress
+	--self.koolRectangle.color[4] = p
 	if p == 0 then
 		self.koolRectangle.y = -1
 	end
-
-	return CanvasContainer.update(self, dt, mouse_focus)
 end
 
 function Options:searchUpdated()
-	local new_tree = self:buildTree()
+	--[[local new_tree = self:buildTree()
 
 	if #new_tree.childrenOrder == 0 then
-		self.search = TextBox.removeChar(self.search)
+		self.search = text_input.removeChar(self.search)
 		return
 	end
 
@@ -76,6 +75,7 @@ function Options:searchUpdated()
 	self.tree = new_tree
 	self.panel:addChild("tree", new_tree, true)
 	self.panel:build()
+	]]
 
 	local label = self.children.searchLabel
 	---@cast label osu.ui.Label
@@ -110,7 +110,7 @@ function Options:keyPressed(event)
 		return false
 	end
 
-	self.search = TextBox.removeChar(self.search)
+	self.search = text_input.removeChar(self.search)
 	self:searchUpdated()
 
 	return true
@@ -123,26 +123,39 @@ function Options:newSection(name, icon, build_function)
 
 	Options.sections[name] = {
 		name = name,
-		icon = self.assets:awesomeIcon(icon, 36),
+		--icon = self.assets:awesomeIcon(icon, 36),
 		buildFunction = build_function
 	}
 	table.insert(Options.sectionsOrder, name)
 end
 
+function Options:bindEvents()
+	self.parent:bindEvent(self, "viewportResized")
+	-- other events are at the bottom of the load
+end
+
+function Options:viewportResized()
+	self.children = {}
+	self:load()
+end
+
 function Options:load()
 	local assets = self.assets
 	local width, height = self.parent:getDimensions()
-	local viewport = self.parent:getViewport()
-	self.viewportScale = viewport:getScale()
+	local viewport = self:getViewport()
+	local fonts = viewport:getFontManager()
+	self.viewportScale = viewport:getInnerScale()
 
-	self.totalW = (self.panelWidth + self.tabsContrainerWidth) * self.viewportScale
-	self.totalH = viewport.screenH * self.viewportScale
+	self.width = self.panelWidth + self.tabsContrainerWidth
+	self.height = height
 	self.state = "closed"
 	self.alpha = 0
 	self.text = self.localization.text
 	self.searchFormat[4] = self.text.SongSelection_TypeToBegin
 	self.search = ""
 	self.stencil = true
+
+	self:createCanvas(self.width, self.height)
 
 	self:newSection(
 		self.text.Options_General:upper(),
@@ -155,92 +168,88 @@ function Options:load()
 		require("osu_ui.views.Options.sections.gameplay")
 	)
 
-	CanvasContainer.load(self)
-	self:addTags({ "allowReload" })
-	self.hoverState.tweenDuration = 0.5
-	self.hoverState.ease = "quadout"
+	--self.hoverState.tweenDuration = 0.5
+	--self.hoverState.ease = "quadout"
 
 	self:addChild("tabsBackground", Rectangle({
-		totalW = self.tabsContrainerWidth,
-		totalH = height,
+		width = self.tabsContrainerWidth,
+		height = height,
 		color = { 0, 0, 0, 1 },
-		depth = 0,
+		blockMouseFocus = true,
+		z = 0,
 	}))
 
 	self:addChild("panelBackground", Rectangle({
 		x = self.tabsContrainerWidth,
-		totalW = self.panelWidth,
-		totalH = height,
+		width = self.panelWidth,
+		height = height,
 		color = { 0, 0, 0, 0.7 },
-		depth = 0,
+		blockMouseFocus = true,
+		z = 0,
 	}))
 
 	local panel = self:addChild("panel", ScrollAreaContainer({
 		x = self.tabsContrainerWidth,
-		totalW = self.panelWidth,
-		totalH = height,
+		width = self.panelWidth,
+		height = height,
 		scrollLimit = height,
-		depth = 0.1
+		z = 0.1,
+		update = function(this)
+			this.width = self.width
+		end
 	}))
 	---@cast panel osu.ui.ScrollAreaContainer
 
 	panel:addChild("optionsLabel", Label({
 		y = 60,
-		totalW = panel.totalW,
+		width = panel.width,
 		alignX = "center",
 		text = self.text.Options_Options,
-		font = assets:loadFont("Light", 28),
+		font = fonts:loadFont("Light", 28),
 	}))
 
 	panel:addChild("gameBehaviorLabel", Label({
 		y = 100,
-		totalW = panel.totalW,
+		width = panel.width,
 		alignX = "center",
 		text = self.text.Options_HeaderBlurb,
-		font = assets:loadFont("Light", 19),
+		font = fonts:loadFont("Light", 19),
 		color = { 0.83, 0.38, 0.47, 1 },
 	}))
 
-	local header_background = self:addChild("headerBackground", Rectangle({
+	self:addChild("headerBackground", Rectangle({
 		x = self.tabsContrainerWidth,
-		totalW = self.panelWidth,
-		totalH = 200,
+		width = self.panelWidth,
+		height = 200,
 		color = { 0, 0, 0, 0.5 },
-		blockMouseFocus = false,
-		depth = 0.59
-	}))
-	function header_background:update(dt)
-		header_background.alpha = math_util.clamp(panel.scrollPosition / 110, 0, 1)
-		if panel.scrollPosition < 0 then
-			header_background.y = 0
-			header_background.totalH = 200 + math.abs(panel.scrollPosition)
-		elseif panel.scrollPosition < 140 then
-			header_background.y = -panel.scrollPosition
+		z = 0.59,
+		update = function(this)
+			this.alpha = math_util.clamp(panel.scrollPosition / 110, 0, 1)
+			if panel.scrollPosition < 0 then
+				this.y = 0
+				this.height = 200 + math.abs(panel.scrollPosition)
+			elseif panel.scrollPosition < 140 then
+				this.y = -panel.scrollPosition
+			end
 		end
-		self:applyTransform()
-		Rectangle.update(header_background, dt)
-	end
+	}))
 
-	local search_font = assets:loadFont("Regular", 25)
-	search_font:setFallbacks(assets:loadFont("Awesome", 25))
+	local search_font = fonts:loadFont("Regular", 25)
+	search_font:addFallback(fonts:loadFont("Awesome", 25).instance)
 
-	local search = self:addChild("searchLabel", Label({
+	self:addChild("searchLabel", Label({
 		x = self.tabsContrainerWidth, y = 160,
-		totalW = panel.totalW,
+		width = panel.width,
 		alignX = "center",
 		text = self.searchFormat,
 		font = search_font,
-		alpha = 1,
-		blockMouseFocus = false,
-		depth = 0.6
-	}))
-	function search:update(dt)
-		if panel.scrollPosition < 140 then
-			search.y = -panel.scrollPosition + 160
+		z = 0.6,
+		update = function(this)
+			if panel.scrollPosition < 140 then
+				this.y = -panel.scrollPosition + 160
+			end
 		end
-		self:applyTransform()
-		Label.update(self, dt)
-	end
+	}))
 
 	self.koolRectangle = panel:addChild("koolRectangle", Rectangle({
 		y = -9999,
@@ -250,20 +259,17 @@ function Options:load()
 	}))
 
 	self.panel = panel
-	self.sectionSpacing = 0
-	self.tree = self:buildTree()
-	self.panel:addChild("tree", self.tree, true)
-	self.panel:build()
+	--self.sectionSpacing = 0
+	--self.tree = self:buildTree()
+	--self.panel:addChild("tree", self.tree, true)
 
-	self:addChild("optionEvents", Container({
+	self:addChild("optionEvents", Component({
 		bindEvents = function(this)
 			this:bindEvent(self, "textInput")
 			this:bindEvent(self, "keyPressed")
 		end,
-		depth = 0
+		z = 0
 	})) -- cuz they should be called last
-
-	self:build()
 end
 
 function Options:getScrollPosition()
