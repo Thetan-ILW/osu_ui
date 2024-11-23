@@ -172,9 +172,14 @@ function ScrollAreaContainer:updateTree(state)
 	Component.updateTree(self, state)
 end
 
-function ScrollAreaContainer:drawTree()
+function ScrollAreaContainer:updateChildren(state)
 	love.graphics.translate(0, -self.scrollPosition)
-	Component.drawTree(self)
+	Component.updateChildren(self, state)
+end
+
+function ScrollAreaContainer:drawChildren()
+	love.graphics.translate(0, -self.scrollPosition)
+	Component.drawChildren(self)
 end
 
 function ScrollAreaContainer:wheelUp()

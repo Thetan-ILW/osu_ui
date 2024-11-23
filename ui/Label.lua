@@ -3,7 +3,7 @@ local Component = require("ui.Component")
 ---@alias ui.LabelParams { text: string | table, font: ui.Font, color: Color?, alignX?: AlignX, alignY?: AlignY, shadow: boolean? }
 
 ---@class ui.Label : ui.Component
----@overload fun(params: LabelParams): ui.Label
+---@overload fun(params: ui.LabelParams): ui.Label
 ---@field text string | table
 ---@field font ui.Font
 ---@field shadow boolean
@@ -87,8 +87,10 @@ function Label:draw()
 	gfx.translate(self.posX, self.posY)
 	gfx.scale(1 / self.font.dpiScale)
 
+	local r, g, b, a = gfx.getColor()
+
 	if self.shadow then
-		gfx.setColor(0.078, 0.078, 0.078, 0.64 * self.alpha)
+		gfx.setColor(0.078, 0.078, 0.078, 0.64 * a)
 		gfx.draw(self.label, -shadow_offset, -shadow_offset)
 		gfx.draw(self.label, shadow_offset, -shadow_offset)
 		gfx.draw(self.label, -shadow_offset, shadow_offset)
@@ -96,7 +98,7 @@ function Label:draw()
 	end
 
 	local c = self.color
-	gfx.setColor(c[1], c[2], c[3], c[4] * self.alpha)
+	gfx.setColor(c[1], c[2], c[3], c[4] * a)
 	gfx.draw(self.label)
 end
 

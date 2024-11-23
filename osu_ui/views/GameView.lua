@@ -21,7 +21,9 @@ local GameView = class()
 function GameView:new(game_ui)
 	self.game = game_ui.game
 	self.ui = game_ui
+end
 
+function GameView:load(view)
 	local fonts = {
 		["Regular"] = "osu_ui/assets/ui_font/Aller/Aller_Rg.ttf",
 		["Light"] = "osu_ui/assets/ui_font/Aller/Aller_Lt.ttf",
@@ -42,12 +44,13 @@ function GameView:new(game_ui)
 
 	self.viewport = Viewport({
 		targetHeight = 768,
-		fontManager = FontManager(768, fonts, fallbacks)
+		shared = {
+			assets = self.ui.assets,
+			fontManager = FontManager(768, fonts, fallbacks)
+		}
 	})
-end
-
-function GameView:load(view)
 	self.viewport:load()
+
 	self.viewport:addChild("cursor", CursorView({
 		assets = self.ui.assets,
 		osuConfig = self.game.configModel.configs.osu_ui,

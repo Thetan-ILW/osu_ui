@@ -1,49 +1,62 @@
-local UiElement = require("osu_ui.ui.UiElement")
+local Component = require("ui.Component")
+local StencilComponent = require("ui.StencilComponent")
+local Label = require("ui.Label")
 
-local Label = require("osu_ui.ui.Label")
+local text_input = require("ui.text_input")
 
----@alias TextBoxParams { assets: osu.ui.OsuAssets, labelText: string, password: boolean? }
+---@alias TextBoxParams { assets: osu.ui.OsuAssets, label: string, password: boolean? }
 
----@class osu.ui.TextBox : osu.ui.UiElement
+---@class osu.ui.TextBox : ui.Component
 ---@overload fun(params: TextBoxParams): osu.ui.TextBox
 ---@field assets osu.ui.OsuAssets
 ---@field focus boolean
 ---@field password boolean?
 ---@field cursorPosition number
----@field labelText string
----@field label osu.ui.Label
+---@field label string
 ---@field input string
----@field inputLabel osu.ui.Label
-local TextBox = UiElement + {}
+---@field inputLabel ui.Label
+local TextBox = Component + {}
 
 function TextBox.censor(text)
 	return string.rep("*", text:len())
 end
 
 function TextBox:load()
-	self.totalH = self.totalH or 66
+	local fonts = self.shared.fontManager
+	self.height = self.height or 66
 	self.focus = false
 	self.input = self.input or ""
-	self.label = Label({
-		text = self.labelText,
-		font = self.assets:loadFont("Regular", 17),
-		textScale = self.parent.textScale,
-	})
-	self.label:load()
+	self.blockMouseFocus = true
 
-	self.inputLabel = Label({
-		font = self.assets:loadFont("Regular", 17),
-		textScale = self.parent.textScale,
-	})
-	self.inputLabel:load()
+	self.fieldY = self.height - 20 - 6
 
-	UiElement.load(self)
+	self:addChild("label", Label({
+		text = self.label,
+		font = fonts:loadFont("Regular", 17),
+	}))
+
+	local w = self.width
+	local h = 20
+	local field = self:addChild("fieldContainer", StencilComponent({
+		y = self.fieldY,
+		width = w,
+		height = h,
+		stencilFunction = function()
+			love.graphics.rectangle("fill", 0, 0, w, h)
+		end
+	}))
+	local input_label = field:addChild("inputLabel", Label({
+		x = 2,
+		font = fonts:loadFont("Regular", 17),
+	})) --- @cast input_label ui.Label
+	self.inputLabel = input_label
 end
 
 function TextBox:bindEvents()
 	self.parent:bindEvent(self, "mouseClick")
 	self.parent:bindEvent(self, "keyPressed")
 	self.parent:bindEvent(self, "textInput")
+	self.parent:bindEvent(self, "loseFocus")
 end
 
 function TextBox:loseFocus()
@@ -55,13 +68,16 @@ function TextBox:mouseClick(event)
 		self.focus = false
 		return false
 	end
-
-	self.parent:forEachChildGlobally(function(child)
-		child:loseFocus()
-	end)
-
+	self:getViewport():receive({ name = "loseFocus" })
 	self.focus = true
 	return true
+end
+
+function TextBox:updateField()
+	self.inputLabel:replaceText(self.password and self.censor(self.input) or self.input)
+	local diff = self:getWidth() - self.inputLabel:getWidth()
+	local x = diff < 0 and diff - 2 or 2
+	self.inputLabel.x = x
 end
 
 function TextBox:keyPressed(event)
@@ -72,9 +88,8 @@ function TextBox:keyPressed(event)
 	if not self.focus or event[2] ~= "backspace" then
 		return false
 	end
-	self.input = self.removeChar(self.input)
-	self.inputLabel:replaceText(self.password and self.censor(self.input) or self.input)
-
+	self.input = text_input.removeChar(self.input)
+	self:updateField()
 	return true
 end
 
@@ -83,23 +98,24 @@ function TextBox:textInput(event)
 		return false
 	end
 	self.input = self.input .. event[1]
-	self.inputLabel:replaceText(self.password and self.censor(self.input) or self.input)
+	self:updateField()
 	return true
 end
 
 local gfx = love.graphics
 
 function TextBox:draw()
-	local alpha = self.alpha
-	local w, h = self.totalW, self.totalH
+	local r, g, b, alpha = love.graphics.getColor()
+	local w, h = self.width, self.height
 
-	gfx.push()
-	gfx.translate(0, 8)
-	self.label:draw()
-	gfx.pop()
+	local field_y = self.fieldY
 
-	local field_y = self.totalH - 20 - 6
-	gfx.setColor(0.15, 0.15, 0.15, alpha)
+	if not self.focus then
+		gfx.setColor(0.15, 0.15, 0.15, alpha * 0.5)
+	else
+		gfx.setColor(0.15, 0.15, 0.15, alpha)
+	end
+
 	gfx.rectangle("fill", 0, field_y, w, 20)
 	gfx.setLineWidth(1)
 	gfx.setLineStyle("smooth")
@@ -111,17 +127,6 @@ function TextBox:draw()
 	end
 
 	gfx.rectangle("line", 0, field_y, w, 20)
-
-	gfx.stencil(function ()
-		gfx.rectangle("fill", 0, 0, w, h)
-	end, "replace", 1)
-
-	local diff = w - self.inputLabel:getWidth()
-	local x = diff < 0 and diff - 2 or 2
-	gfx.translate(x, field_y)
-	gfx.setStencilTest("greater", 0)
-	self.inputLabel:draw()
-	gfx.setStencilTest()
 end
 
 return TextBox

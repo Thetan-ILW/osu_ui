@@ -1,6 +1,6 @@
 local class = require("class")
 
----@alias ui.ComponentEvent "mousePressed" | "mouseReleased" | "keyPressed" | "keyReleased" | "wheelUp" | "wheelDown" | "textInput" | "mouseClick" | "viewportResized"
+---@alias ui.ComponentEvent "mousePressed" | "mouseReleased" | "keyPressed" | "keyReleased" | "wheelUp" | "wheelDown" | "textInput" | "mouseClick" | "viewportResized" | "loseFocus"
 
 ---@class ui.EventHandler
 local EventHandler = class()
@@ -39,6 +39,10 @@ end
 
 function EventHandler.viewportResized(component, event)
 	return component:callbackForEachChild("viewportResized", event)
+end
+
+function EventHandler.loseFocus(component, event)
+	return component:callbackForEachChild("loseFocus", event)
 end
 
 return EventHandler

@@ -7,6 +7,7 @@ local EventHandler = require("ui.EventHandler")
 ---@field id string
 ---@field parent ui.Component
 ---@field eventListeners {[ui.ComponentEvent]: ui.Component[]}
+---@field shared {[string]: any}
 local Component = class()
 
 ---@param params table?
@@ -17,7 +18,7 @@ function Component:new(params)
 		end
 	end
 
-	self.alpha = 1
+	self.alpha = self.alpha or 1
 	self.color = self.color or { 1, 1, 1, 1 }
 	if not self.color[4] then
 		self.color[4] = 1
@@ -27,6 +28,7 @@ function Component:new(params)
 	self.childrenOrder = {}
 	self.eventListeners = {}
 	self.eventHandler = self.eventHandler or EventHandler()
+	self.shared = self.shared or {}
 
 	self.mouseOver = false
 	self.blockMouseFocus = self.blockMouseFocus or false
@@ -68,6 +70,16 @@ function Component:isParentFocused()
 end
 
 ---@param state ui.FrameState
+function Component:updateChildren(state)
+	for _, id in ipairs(self.childrenOrder) do
+		local child = self.children[id]
+		love.graphics.push()
+		child:updateTree(state)
+		love.graphics.pop()
+	end
+end
+
+---@param state ui.FrameState
 function Component:updateTree(state)
 	if self.deferBuild then
 		self:build()
@@ -79,11 +91,11 @@ function Component:updateTree(state)
 	if
 		state.mouseFocus
 		and self.alpha * self.color[4] > 0
-		and self:isParentFocused()
+		--and self:isParentFocused()
 	then
 		local was_over = self.mouseOver
 		self:setMouseFocus(state.mouseX, state.mouseY)
-		if not was_over then
+		if not was_over and self.mouseOver then
 			self:justHovered()
 		end
 		if self.mouseOver and self.blockMouseFocus then
@@ -94,17 +106,9 @@ function Component:updateTree(state)
 	end
 
 	self:update(state.deltaTime)
-	self:getViewport():inspect(self)
 
-	if not self.canUpdateChildren then
-		return
-	end
-
-	for _, id in ipairs(self.childrenOrder) do
-		local child = self.children[id]
-		love.graphics.push()
-		child:updateTree(state)
-		love.graphics.pop()
+	if self.canUpdateChildren then
+		self:updateChildren(state)
 	end
 end
 
@@ -123,22 +127,20 @@ function Component:mixColors()
 	return r, g, b, a
 end
 
----@param r number
----@param g number
----@param b number
----@param a number
-function Component:drawChildren(r, g, b, a)
+function Component:drawChildren()
 	for i = #self.childrenOrder, 1, -1 do
 		local child = self.children[self.childrenOrder[i]]
-		love.graphics.push()
+		love.graphics.push("all")
 		child:drawTree()
 		love.graphics.pop()
-		love.graphics.push()
-		love.graphics.applyTransform(child.transform)
-		love.graphics.setColor(1, 0, 0, 1)
-		love.graphics.rectangle("line", 0, 0, child.width, child.height)
-		love.graphics.setColor(r, g, b, a)
-		love.graphics.pop()
+
+		if child.debug then
+			love.graphics.push("all")
+			love.graphics.applyTransform(child.transform)
+			love.graphics.setColor(1, 0, 0, 1)
+			love.graphics.rectangle("line", 0, 0, child.width, child.height)
+			love.graphics.pop()
+		end
 	end
 end
 
@@ -151,7 +153,8 @@ function Component:drawTree()
 	love.graphics.setColor(r, g, b, a)
 	love.graphics.applyTransform(self.transform)
 	self:draw()
-	self:drawChildren(r, g, b, a)
+	love.graphics.setColor(r, g, b, a)
+	self:drawChildren()
 end
 
 ---@return number
@@ -173,6 +176,7 @@ function Component:addChild(id, child)
 	end
 	child.id = id
 	child.parent = self
+	child.shared = self.shared
 	child:load()
 	self.children[id] = child
 	self.deferBuild = true
@@ -189,6 +193,17 @@ end
 function Component:getChild(id)
 	return self.children[id]
 end
+
+---@param old_id string
+---@param new_id string
+function Component:renameChild(old_id, new_id)
+	local child = self.children[old_id]
+	child.id = new_id
+	self.children[old_id] = nil
+	self.children[new_id] = child
+	self:build()
+end
+
 
 ---@param child ui.Component
 ---@param event ui.ComponentEvent
@@ -220,13 +235,13 @@ function Component:build()
 	self.deferBuild = false
 end
 
----@param child ui.Component
----@param new_id string
-function Component:renameChild(child, new_id)
-	child.id = new_id
-	self.children[child.id] = nil
-	self.children[new_id] = child.id
-	self:build()
+function Component:autoSize()
+	local w, h = 0, 0
+	for _, child in pairs(self.children) do
+		w = math.max(w, child.x + child.width)
+		h = math.max(h, child.y + child.height)
+	end
+	self.width, self.height = w, h
 end
 
 ---@return ui.Viewport
@@ -299,8 +314,39 @@ function Component:receive(event)
 	return false
 end
 
+---@return number
+---@return number
 function Component:getDimensions()
 	return self.width, self.height
+end
+
+---@return number
+function Component:getWidth()
+	return self.width
+end
+
+---@return number
+function Component:getHeight()
+	return self.height
+end
+
+local sound_play_time = {}
+
+---@param sound audio.Source
+function Component.playSound(sound)
+	if not sound then
+		return
+	end
+
+	local prev_time = sound_play_time[sound] or 0
+	local current_time = love.timer.getTime()
+
+	if current_time > prev_time + 0.05 then
+		sound:stop()
+		sound_play_time[sound] = current_time
+	end
+
+	sound:play()
 end
 
 return Component

@@ -23,4 +23,16 @@ function Font:setFilter(min, mag)
 	self.instance:setFilter(min, mag)
 end
 
+---@param text string
+---@return number
+function Font:getWidth(text)
+	return self.instance:getWidth(text)
+end
+
+---@return number
+function Font:getHeight()
+	return self.instance:getHeight()
+end
+
+
 return Font

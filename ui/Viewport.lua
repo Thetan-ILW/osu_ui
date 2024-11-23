@@ -1,6 +1,5 @@
 local Component = require("ui.Component")
 local EventHandler = require("ui.EventHandler")
-local Inspector = require("ui.Inspector")
 
 local flux = require("flux")
 
@@ -37,7 +36,7 @@ function Viewport:new(params)
 	self.resizeDefered = false
 	self.innerTransform = love.math.newTransform()
 	self:assert(self.targetHeight, "You should specify the target height for the viewport")
-	self:assert(self.fontManager, "You should provide FontManager class to the viewport.")
+	self:assert(self.shared.fontManager, "You should provide FontManager class to the viewport.")
 
 	self.mouseKeyDown = 0
 	self.mouseTotalMovement = 0
@@ -58,16 +57,7 @@ function Viewport:load()
 	self.scaledWidth, self.scaledHeight = xw - x, yh - y
 
 	self.canvas = love.graphics.newCanvas(self.width, self.height)
-	self.fontManager:setVieportHeight(self.height)
-
-	if self:getChild("inspector") then
-		self:removeChild("inspector")
-	end
-	self:addChild("inspector", Inspector({
-		x = self.scaledWidth,
-		origin = { x = 1 },
-		z = 1
-	}))
+	self.shared.fontManager:setVieportHeight(self.height)
 end
 
 function Viewport:getInnerScale()
@@ -77,11 +67,6 @@ end
 ---@return number
 function Viewport:getTextDpiScale()
 	return math.ceil(self.height / self.targetHeight)
-end
-
----@return ui.FontManager
-function Viewport:getFontManager()
-	return self.fontManager
 end
 
 function Viewport:resize()
@@ -137,15 +122,11 @@ function Viewport:updateTree(dt)
 		mouseFocus = true
 	}
 
-	self.inspecting = {}
-
 	love.graphics.origin()
 	love.graphics.applyTransform(self.innerTransform)
 	love.graphics.translate(love.graphics.inverseTransformPoint(0, 0))
 	self.color[4] = self.alpha
 	Component.updateTree(self, frame_state)
-
-	self.children.inspector:printInfo(self.inspecting)
 end
 
 function Viewport:draw()
@@ -181,11 +162,6 @@ end
 
 function Viewport:error(message)
 	error(("%s :: %s"):format(self.id, message))
-end
-
----@param child ui.Component
-function Viewport:inspect(child)
-	table.insert(self.inspecting, child)
 end
 
 return Viewport

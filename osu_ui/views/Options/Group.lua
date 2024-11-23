@@ -1,56 +1,54 @@
-local Container = require("osu_ui.ui.Container")
+local Component = require("ui.Component")
+local Rectangle = require("ui.Rectangle")
+local Label = require("ui.Label")
 
 local TextBox = require("osu_ui.ui.TextBox")
 local Button = require("osu_ui.ui.Button")
-local Rectangle = require("osu_ui.ui.Rectangle")
-local Label = require("osu_ui.ui.Label")
 local Combo = require("osu_ui.ui.Combo")
 
----@class osu.ui.OptionsGroup : osu.ui.Container
+---@class osu.ui.OptionsGroup : ui.Component
 ---@field section osu.ui.OptionsSection
 ---@field assets osu.ui.OsuAssets
 ---@field isEmpty boolean
 ---@field search string
 ---@field name string
 ---@field buildFunction fun(group: osu.ui.OptionsGroup)
-local Group = Container + {}
+local Group = Component + {}
 
 function Group:load()
+	local fonts = self.shared.fontManager
 	local options = self.section.options
 
 	self.game = options.game
 	self.search = options.search
 	self.assets = options.assets
-	self.automaticSizeCalc = false
+	self.fonts = fonts
 	self.isEmpty = false
 	self.indent = 12
 	self.buttonColor = { 0.05, 0.52, 0.65, 1 }
 
 	self.comboObjects = {}
 
-	Container.load(self)
-
-	self.totalH = 0
+	self.height = 0
 	self.startY = 25
 	self:buildFunction()
+	self:autoSize()
 
-	if self.totalH == 0 then
+	if self.height == 0 then
 		self.isEmpty = true
 		return
 	end
 
-	self.totalH = self.totalH + self.startY
-
 	self:addChild("rectangle", Rectangle({
-		totalW = 5,
-		totalH = self.totalH,
+		width = 5,
+		height = self.height,
 		color = { 1, 1, 1, 0.2 }
 	}))
 
 	self:addChild("label", Label({
 		x = self.indent,
 		text = self.name,
-		font = self.assets:loadFont("Bold", 16)
+		font = fonts:loadFont("Bold", 16)
 	}))
 
 	self:build()
@@ -68,7 +66,7 @@ end
 
 ---@return number
 function Group:getCurrentY()
-	return self.startY + self.totalH
+	return self.startY + self.height
 end
 
 ---@param text string
@@ -90,19 +88,23 @@ function Group:textBox(params)
 	self.textBoxes = self.textBoxes or 1
 	local text_box = self:addChild("textBox" .. self.textBoxes, TextBox({
 		x = self.indent, y = self:getCurrentY(),
-		totalW = 380,
+		width = 380,
+		height = 66,
 		assets = self.assets,
-		labelText = params.label,
+		label = params.label,
 		input = params.value,
 		password = params.password,
-		justHovered = function(text_box)
-			TextBox.justHovered(text_box)
-			self.section:hoverOver(text_box.y + self.y, text_box:getHeight())
-		end
+		update = function(text_box, delta_time)
+			TextBox.update(text_box, delta_time)
+			if text_box.mouseOver then
+				self.section:hoveringOver(text_box.y + self.y, text_box:getHeight())
+			end
+		end,
+		justHovered = function () end
 	}))
 
 	---@cast text_box osu.ui.TextBox
-	self.totalH = self.totalH + text_box:getHeight()
+	self.height = self.height + text_box:getHeight()
 	self.textBoxes = self.textBoxes + 1
 	return text_box
 end
@@ -119,53 +121,57 @@ function Group:button(params)
 		return
 	end
 
-	local assets = self.assets
+	local fonts = self.fonts
 	self.buttons = self.buttons or 1
 
-	local container = self:addChild("button_container" .. self.buttons, Container({
+	local container = self:addChild("button_container" .. self.buttons, Component({
 		x = self.indent - 5, y = self:getCurrentY(),
-		totalW = 388,
-		totalH = 45,
-		automaticSizeCalc = false,
-		justHovered = function(container)
-			Container.justHovered(container)
-			self.section:hoverOver(container.y + self.y, container:getHeight())
+		width = 388,
+		height = 45,
+		update = function(container, delta_time)
+			TextBox.update(container, delta_time)
+			if container.mouseOver then
+				self.section:hoveringOver(container.y + self.y, container:getHeight())
+			end
 		end
 	}))
-	---@cast container osu.ui.Container
 
 	local button = container:addChild("button" .. self.buttons, Button({
-		y = container.totalH / 2 - 34 / 2,
-		totalW = 388,
-		totalH = 34,
-		text = params.label,
-		font = assets:loadFont("Regular", 16),
-		imageLeft = assets:loadImage("button-left"),
-		imageMiddle = assets:loadImage("button-middle"),
-		imageRight = assets:loadImage("button-right"),
+		y = container:getHeight() / 2 - 34 / 2,
+		width = 388,
+		height = 34,
+		label = params.label,
+		font = fonts:loadFont("Regular", 16),
 		color = self.buttonColor,
-		onClick = params.onClick
+		onClick = params.onClick,
+		justHovered = function () end
 	}))
 	---@cast button osu.ui.Button
-	container:build()
-	self.totalH = self.totalH + container:getHeight()
+	self.height = self.height + container:getHeight()
 	self.buttons = self.buttons + 1
 	return button
 end
 
----@param params { label: string, totalH: number?, alignX: AlignX?, onClick: function }
----@return osu.ui.Label?
+---@param params { label: string, height: number?, alignX: AlignX?, onClick: function }
+---@return ui.Label?
 function Group:label(params)
 	if not self:canAdd(params.label) then
 		return
 	end
+	params.height = params.height or 37
 
 	self.labels = self.labels or 1
-	local container = self:addChild("label_container" .. self.labels, Container({
+	local container = self:addChild("label_container" .. self.labels, Component({
 		x = self.indent, y = self:getCurrentY(),
-		totalW = 388,
-		totalH = params.totalH,
-		automaticSizeCalc = params.totalH == nil,
+		width = 388,
+		height = params.height,
+		blockMouseFocus = true,
+		update = function(container, delta_time)
+			Component.update(container, delta_time)
+			if container.mouseOver then
+				self.section:hoveringOver(container.y + self.y, container:getHeight())
+			end
+		end,
 		bindEvents = function(this)
 			self:bindEvent(this, "mouseClick")
 		end,
@@ -178,24 +184,18 @@ function Group:label(params)
 			end
 			return false
 		end,
-		justHovered = function(container)
-			Container.justHovered(container)
-			self.section:hoverOver(container.y + self.y, container:getHeight())
-		end
 	}))
-	---@cast container osu.ui.Container
 
 	local label = container:addChild("label", Label({
 		text = params.label,
-		font = self.assets:loadFont("Regular", 16),
+		font = self.fonts:loadFont("Regular", 16),
 		alignX = params.alignX,
 		alignY = "center",
-		totalW = container.totalW,
-		totalH = params.totalH
+		width = container:getWidth(),
+		height = params.height
 	}))
-	---@cast label osu.ui.Label
-	container:build()
-	self.totalH = self.totalH + container:getHeight()
+	---@cast label ui.Label
+	self.height = self.height + container:getHeight()
 	self.labels = self.labels + 1
 	return label
 end
@@ -209,7 +209,7 @@ function Group:combo(params)
 
 	local found_something = false
 	for _, v in ipairs(params.items) do
-		if self:canAdd(params.format(v)) then
+		if self:canAdd(params.format and params.format(v) or tostring(v)) then
 			found_something = true
 			break
 		end
@@ -220,41 +220,40 @@ function Group:combo(params)
 	end
 
 	self.combos = self.combos or 1
-	local container = self:addChild("combo_container" .. self.combos, Container({
+	local container = self:addChild("combo_container" .. self.combos, Component({
 		x = self.indent, y = self:getCurrentY(),
-		totalW = 388,
-		totalH = 37,
-		justHovered = function(container)
-			Container.justHovered(container)
-			self.section:hoverOver(container.y + self.y, container:getHeight())
-		end
+		width = 388,
+		height = 37,
+		update = function(container, delta_time)
+			Component.update(container, delta_time)
+			if container.mouseOver then
+				self.section:hoveringOver(container.y + self.y, container:getHeight())
+			end
+		end,
 	}))
-	---@cast container osu.ui.Container
 
 	local label = container:addChild("label", Label({
 		text = params.label,
-		font = self.assets:loadFont("Regular", 16),
+		font = self.fonts:loadFont("Regular", 16),
 		alignY = "center",
-		totalH = container.totalH
+		height = container:getHeight()
 	}))
 
 	local x = label:getWidth() + 10
 
 	local combo = container:addChild("combo", Combo({
 		x = x, y = 5,
-		totalW = container.totalW - x,
-		totalH = container.totalH,
-		font = self.assets:loadFont("Regular", 16),
-		assets = self.assets,
+		width = container:getWidth() - x,
+		height = container:getHeight(),
+		font = self.fonts:loadFont("Regular", 16),
 		items = params.items,
 		getValue = params.getValue,
 		onChange = params.onChange,
 		format = params.format,
+		justHovered = function () end
 	}))
 	---@cast combo osu.ui.Combo
-
-	container:build()
-	self.totalH = self.totalH + container:getHeight()
+	self.height = self.height + container:getHeight()
 	self.combos = self.combos + 1
 	table.insert(self.comboObjects, combo)
 	return combo

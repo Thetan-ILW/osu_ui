@@ -52,12 +52,6 @@ end
 function Options:update(dt)
 	self.width = (self.panelWidth + self.tabsContrainerWidth) * self.alpha
 	self.canUpdateChildren = self.color[4] * self.alpha ~= 0
-
-	local p = 1--self.hoverState.progress
-	--self.koolRectangle.color[4] = p
-	if p == 0 then
-		self.koolRectangle.y = -1
-	end
 end
 
 function Options:searchUpdated()
@@ -98,7 +92,6 @@ function Options:textInput(event)
 
 	self.search = self.search .. event[1]
 	self:searchUpdated()
-
 	return true
 end
 
@@ -112,7 +105,6 @@ function Options:keyPressed(event)
 
 	self.search = text_input.removeChar(self.search)
 	self:searchUpdated()
-
 	return true
 end
 
@@ -140,10 +132,10 @@ function Options:viewportResized()
 end
 
 function Options:load()
-	local assets = self.assets
 	local width, height = self.parent:getDimensions()
 	local viewport = self:getViewport()
-	local fonts = viewport:getFontManager()
+	local fonts = self.shared.fontManager
+	local assets = self.shared.assets
 	self.viewportScale = viewport:getInnerScale()
 
 	self.width = self.panelWidth + self.tabsContrainerWidth
@@ -153,23 +145,22 @@ function Options:load()
 	self.text = self.localization.text
 	self.searchFormat[4] = self.text.SongSelection_TypeToBegin
 	self.search = ""
-	self.stencil = true
 
+	self.stencil = true
 	self:createCanvas(self.width, self.height)
 
-	self:newSection(
+	self.hoverSound = assets:loadAudio("click-short")
+
+	--[[self:newSection(
 		self.text.Options_General:upper(),
 		"",
 		require("osu_ui.views.Options.sections.general")
-	)
+	)]]
 	self:newSection(
 		self.text.Options_Gameplay:upper(),
 		"",
 		require("osu_ui.views.Options.sections.gameplay")
 	)
-
-	--self.hoverState.tweenDuration = 0.5
-	--self.hoverState.ease = "quadout"
 
 	self:addChild("tabsBackground", Rectangle({
 		width = self.tabsContrainerWidth,
@@ -251,17 +242,24 @@ function Options:load()
 		end
 	}))
 
+	---@class osu.ui.KoolRectangle : ui.Component
+	---@field hoveringOverOptions boolean
 	self.koolRectangle = panel:addChild("koolRectangle", Rectangle({
 		y = -9999,
-		totalW = self.panelWidth,
-		totalH = 37,
-		color = { 0, 0, 0, 0.5 }
+		width = self.panelWidth,
+		height = 37,
+		color = { 0, 0, 0, 1 },
+		hoveringOverOptions = false,
+		update = function(this, dt)
+			local add_alpha = this.hoveringOverOptions and dt * 5 or dt * -5
+			this.alpha = math_util.clamp(this.alpha + add_alpha, 0, 1)
+			if this.alpha == 0 then
+				this.y = -9999
+			end
+			this.hoveringOverOptions = false
+		end
 	}))
-
-	self.panel = panel
-	--self.sectionSpacing = 0
-	--self.tree = self:buildTree()
-	--self.panel:addChild("tree", self.tree, true)
+	self.koolRectangleHoverTargetY = self.koolRectangle.y
 
 	self:addChild("optionEvents", Component({
 		bindEvents = function(this)
@@ -270,71 +268,79 @@ function Options:load()
 		end,
 		z = 0
 	})) -- cuz they should be called last
+
+	self:build()
+
+	self.panel = panel
+	self.sectionSpacing = 0
+	self.tree = self:buildTree()
 end
 
 function Options:getScrollPosition()
 	return self.panel.scrollPosition
 end
 
-function Options:hoverOver(y, height)
+function Options:hoveringOver(y, height)
 	local r = self.koolRectangle
+	local target = self.tree.y + y
+	r.hoveringOverOptions = true
+
+	if target == self.koolRectangleHoverTargetY then
+		return
+	end
+
+	self.koolRectangleHoverTargetY = target
+
+	if r.y < 0 then
+		r.y = target
+		r.height = height
+	end
+
 	local rt = self.koolRectangleTween
 	if rt then
 		rt:stop()
 	end
 
-	local target = self.tree.y + y
-
-	if r.y < 0 then
-		r.y = target
-		r.totalH = height
-	end
-
-	self.koolRectangleTween = flux.to(r, 0.6, { y = target, totalH = height }):ease("elasticout"):onupdate(function ()
-		r:applyTransform()
-	end)
+	self.playSound(self.hoverSound)
+	self.koolRectangleTween = flux.to(r, 0.6, { y = target, height = height }):ease("elasticout")
 end
 
----@return osu.ui.Container
+---@return ui.Component
 function Options:buildTree()
-	local container = self.panel:addChild("temporaryTree", Container({
+	local tree = self.panel:addChild("tree", Component({
 		y = 270,
-		totalW = self.panel.totalW,
-		depth = 0.5,
+		width = self.panelWidth,
+		z = 0.5,
 	}))
-	---@cast container osu.ui.Container
 
 	local y = 0
-	local depth = 1
+	local z = 1
 	for i, v in ipairs(self.sectionsOrder) do
 		local section_params = self.sections[v]
 		local name = section_params.name
 		local icon = section_params.icon
 		local build = section_params.buildFunction
 
-		local section = container:addChild(name, Section({
-			totalW = self.panelWidth,
+		local section = tree:addChild(name, Section({
+			width = self.panelWidth,
 			options = self,
 			assets = self.assets,
 			name = name,
 			icon = icon,
 			buildFunction = build,
-			depth = depth - i * 0.000001,
+			z = z - i * 0.000001,
 		}))
 		---@cast section osu.ui.OptionsSection
 		if section.isEmpty then
-			container:removeChild(name)
+			tree:removeChild(name)
 		else
 			section.y = y
-			section:applyTransform()
 			y = y + section:getHeight() + self.sectionSpacing
+			tree.height = y
 		end
 	end
 
-	container:build()
-	self.panel:removeChild("temporaryTree")
-
-	return container
+	return tree
 end
 
 function Options:recalcPositions()
@@ -347,13 +353,12 @@ function Options:recalcPositions()
 		---@cast section osu.ui.OptionsSection
 		if section then
 			section.y = height
-			section:applyTransform()
 			section:recalcPositions()
 			height = height + section:getHeight()
 		end
 	end
 
-	self.tree.totalH = height
+	self.tree.height = height
 end
 
 return Options

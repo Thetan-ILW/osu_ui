@@ -1,10 +1,12 @@
 local Component = require("ui.Component")
 
 ---@class ui.CanvasComponent : ui.Component
+---@field stencil boolean
 local Canvas = Component + {}
 
 function Canvas:load()
 	self:createCanvas(self.width, self.height)
+	self.stencil = self.stencil or false
 end
 
 ---@param width number
@@ -27,14 +29,15 @@ function Canvas:drawTree()
 
 	local prev_canvas = love.graphics.getCanvas()
 
-	love.graphics.setCanvas(self.canvas)
+	love.graphics.setCanvas({ self.canvas, stencil = self.stencil })
 	love.graphics.setBlendMode("alpha", "alphamultiply")
 
-	love.graphics.push()
+	love.graphics.push("all")
 	love.graphics.origin()
 	love.graphics.scale(self.viewportScale)
 	love.graphics.clear()
-	self:drawChildren(r, g, b, a)
+	love.graphics.setColor(r, g, b, a)
+	self:drawChildren()
 	love.graphics.pop()
 
 	love.graphics.setCanvas(prev_canvas)
