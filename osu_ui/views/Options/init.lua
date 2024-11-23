@@ -1,6 +1,7 @@
 local CanvasComponent = require("ui.CanvasComponent")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 local Component = require("ui.Component")
+local Blur = require("ui.Blur")
 
 local math_util = require("math_util")
 local text_input = require("ui.text_input")
@@ -44,7 +45,7 @@ end
 
 function Options:draw()
 	local scale = self.viewportScale
-	love.graphics.setScissor(0, 0, math.max(self.tabsContrainerWidth * scale, self.width * scale), self.height * scale)
+	love.graphics.setScissor(0, 0, math.max(0, self.width * scale), self.height * scale)
 	love.graphics.draw(self.canvas)
 	love.graphics.setScissor()
 end
@@ -167,7 +168,7 @@ function Options:load()
 		height = height,
 		color = { 0, 0, 0, 1 },
 		blockMouseFocus = true,
-		z = 0,
+		z = 0.01,
 	}))
 
 	self:addChild("panelBackground", Rectangle({
@@ -176,7 +177,7 @@ function Options:load()
 		height = height,
 		color = { 0, 0, 0, 0.7 },
 		blockMouseFocus = true,
-		z = 0,
+		z = 0.01,
 	}))
 
 	local panel = self:addChild("panel", ScrollAreaContainer({
@@ -240,6 +241,12 @@ function Options:load()
 				this.y = -panel.scrollPosition + 160
 			end
 		end
+	}))
+
+	self:addChild("blur", Blur({
+		image = viewport.canvas,
+		percent = 0.2,
+		z = 0
 	}))
 
 	---@class osu.ui.KoolRectangle : ui.Component

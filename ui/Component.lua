@@ -204,7 +204,6 @@ function Component:renameChild(old_id, new_id)
 	self:build()
 end
 
-
 ---@param child ui.Component
 ---@param event ui.ComponentEvent
 function Component:bindEvent(child, event)

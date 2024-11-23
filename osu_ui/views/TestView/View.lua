@@ -1,7 +1,6 @@
 local Component = require("ui.Component")
 local Image = require("ui.Image")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
-local Label = require("ui.Label")
 
 ---@class TestViewContainer : ui.Component
 ---@operator call: TestViewContainer
@@ -19,13 +18,9 @@ end
 
 function View:load()
 	local assets = self.assets
-	local viewport = self:getViewport()
-	local fonts = viewport:getFontManager()
 	local width, height = self.parent:getDimensions()
 
 	self.width, self.height = width, height
-	self.textScale = fonts:getTextDpiScale()
-	self.blockMouseFocus = false
 
 	local area = self:addChild("scroll", ScrollAreaContainer({
 		width = width,
@@ -33,11 +28,9 @@ function View:load()
 		scrollLimit = 300
 	}))
 
-	area:addChild("label", Label({
-		x = width / 2, y = height / 2,
-		origin = { x = 0.5, y = 0.5 },
-		font = fonts:loadFont("Regular", 76),
-		text = "wassup"
+	self:addChild("img", Image({
+		image = love.graphics.newImage("screenshot205.png"),
+		z = 0.1,
 	}))
 
 	area:addChild("left_top", Image({

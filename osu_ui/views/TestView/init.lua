@@ -7,7 +7,7 @@ local View = require("osu_ui.views.TestView.View")
 local TestView = ScreenView + {}
 
 function TestView:load()
-	--self.gameView.scene:addChild("testView", View({ assets = self.assets, z = 0.1 }))
+	self.gameView.scene:addChild("testView", View({ assets = self.assets, z = 0.1 }))
 end
 
 function TestView:update(dt)
