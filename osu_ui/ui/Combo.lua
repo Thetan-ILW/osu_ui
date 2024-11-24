@@ -47,7 +47,6 @@ function Combo:load()
 	local font = fonts:loadFont("Regular", 16)
 	local awesome_regular = fonts:loadFont("Awesome", 18)
 	local awesome_small = fonts:loadFont("Awesome", 15)
-	--self.iconRight = self.assets:awesomeIcon("", 15)
 
 	local main = self:addChild("mainCell", Component({
 		width = self.width,
@@ -146,10 +145,10 @@ function Combo:load()
 			z = 0.1,
 		}))
 		cell:addChild("mainCellArrow", Label({
-			x = 2,
+			x = 4,
 			height = main:getHeight(),
 			text = "",
-			font = awesome_regular,
+			font = awesome_small,
 			alignY = "center",
 			color = black,
 			z = 0.1,
@@ -163,6 +162,14 @@ end
 
 function Combo:bindEvents()
 	self.parent:bindEvent(self, "loseFocus")
+	self.parent:bindEvent(self, "mousePressed")
+end
+
+function Combo:mousePressed()
+	if not self.mouseOver then
+		self:processState("close")
+	end
+	return false
 end
 
 ---@private

@@ -5,6 +5,7 @@ local Label = require("ui.Label")
 local TextBox = require("osu_ui.ui.TextBox")
 local Button = require("osu_ui.ui.Button")
 local Combo = require("osu_ui.ui.Combo")
+local Checkbox = require("osu_ui.ui.Checkbox")
 
 ---@class osu.ui.OptionsGroup : ui.Component
 ---@field section osu.ui.OptionsSection
@@ -28,6 +29,12 @@ function Group:load()
 	self.buttonColor = { 0.05, 0.52, 0.65, 1 }
 
 	self.comboObjects = {}
+
+	self.labels = 0
+	self.checkboxes = 0
+	self.combos = 0
+	self.buttons = 0
+	self.textBoxes = 0
 
 	self.height = 0
 	self.startY = 25
@@ -56,7 +63,7 @@ end
 
 ---@return boolean
 function Group:hasOpenCombos()
-	for i, child in ipairs(self.comboObjects) do
+	for _, child in ipairs(self.comboObjects) do
 		if child.state ~= "hidden" then
 			return true
 		end
@@ -67,6 +74,11 @@ end
 ---@return number
 function Group:getCurrentY()
 	return self.startY + self.height
+end
+
+function Group:getCurrentZ()
+	local item_count = self.labels + self.checkboxes + self.combos + self.textBoxes + self.buttons
+	return 1 - (item_count * 0.00000001)
 end
 
 ---@param text string
@@ -85,7 +97,6 @@ function Group:textBox(params)
 		return
 	end
 
-	self.textBoxes = self.textBoxes or 1
 	local text_box = self:addChild("textBox" .. self.textBoxes, TextBox({
 		x = self.indent, y = self:getCurrentY(),
 		width = 380,
@@ -94,6 +105,7 @@ function Group:textBox(params)
 		label = params.label,
 		input = params.value,
 		password = params.password,
+		z = self:getCurrentZ(),
 		update = function(text_box, delta_time)
 			TextBox.update(text_box, delta_time)
 			if text_box.mouseOver then
@@ -121,13 +133,11 @@ function Group:button(params)
 		return
 	end
 
-	local fonts = self.fonts
-	self.buttons = self.buttons or 1
-
 	local container = self:addChild("button_container" .. self.buttons, Component({
 		x = self.indent - 5, y = self:getCurrentY(),
 		width = 388,
 		height = 45,
+		z = self:getCurrentZ(),
 		update = function(container, delta_time)
 			TextBox.update(container, delta_time)
 			if container.mouseOver then
@@ -141,7 +151,7 @@ function Group:button(params)
 		width = 388,
 		height = 34,
 		label = params.label,
-		font = fonts:loadFont("Regular", 16),
+		font = self.fonts:loadFont("Regular", 16),
 		color = self.buttonColor,
 		onClick = params.onClick,
 		justHovered = function () end
@@ -160,12 +170,12 @@ function Group:label(params)
 	end
 	params.height = params.height or 37
 
-	self.labels = self.labels or 1
 	local container = self:addChild("label_container" .. self.labels, Component({
 		x = self.indent, y = self:getCurrentY(),
 		width = 388,
 		height = params.height,
 		blockMouseFocus = true,
+		z = self:getCurrentZ(),
 		update = function(container, delta_time)
 			Component.update(container, delta_time)
 			if container.mouseOver then
@@ -219,11 +229,11 @@ function Group:combo(params)
 		return
 	end
 
-	self.combos = self.combos or 1
 	local container = self:addChild("combo_container" .. self.combos, Component({
 		x = self.indent, y = self:getCurrentY(),
 		width = 388,
 		height = 37,
+		z = self:getCurrentZ(),
 		update = function(container, delta_time)
 			Component.update(container, delta_time)
 			if container.mouseOver then
@@ -257,6 +267,34 @@ function Group:combo(params)
 	self.combos = self.combos + 1
 	table.insert(self.comboObjects, combo)
 	return combo
+end
+
+---@param params { label: string, getValue: (fun(): boolean), clicked: function }
+---@return osu.ui.Checkbox?
+function Group:checkbox(params)
+	if not self:canAdd(params.label) then
+		return
+	end
+
+	local checkbox = self:addChild("checkbox" .. self.checkboxes, Checkbox({
+		x = self.indent + 5,
+		y = self:getCurrentY(),
+		width = self.width,
+		height = 37,
+		label = params.label,
+		getValue = params.getValue,
+		clicked = params.clicked,
+		z = self:getCurrentZ(),
+		update = function(checkbox)
+			Checkbox.update(checkbox)
+			if checkbox.mouseOver then
+				self.section:hoveringOver(checkbox.y + self.y, checkbox:getHeight())
+			end
+		end,
+	})) ---@cast checkbox osu.ui.Checkbox
+	self.height = self.height + checkbox:getHeight()
+	self.checkboxes = self.checkboxes + 1
+	return checkbox
 end
 
 return Group

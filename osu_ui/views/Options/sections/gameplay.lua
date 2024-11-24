@@ -15,5 +15,14 @@ return function(section)
 				value = v
 			end
 		})
+
+		local b = false
+		group:checkbox({ label = "goodbye",
+		getValue = function ()
+			return b
+		end,
+		clicked = function ()
+			b = not b
+		end})
 	end)
 end
