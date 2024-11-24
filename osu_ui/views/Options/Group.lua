@@ -1,6 +1,7 @@
 local Component = require("ui.Component")
 local Rectangle = require("ui.Rectangle")
 local Label = require("ui.Label")
+local Slider= require("osu_ui.ui.Slider2")
 
 local TextBox = require("osu_ui.ui.TextBox")
 local Button = require("osu_ui.ui.Button")
@@ -35,6 +36,7 @@ function Group:load()
 	self.combos = 0
 	self.buttons = 0
 	self.textBoxes = 0
+	self.sliders = 0
 
 	self.height = 0
 	self.startY = 25
@@ -77,7 +79,7 @@ function Group:getCurrentY()
 end
 
 function Group:getCurrentZ()
-	local item_count = self.labels + self.checkboxes + self.combos + self.textBoxes + self.buttons
+	local item_count = self.labels + self.checkboxes + self.combos + self.textBoxes + self.buttons + self.sliders
 	return 1 - (item_count * 0.00000001)
 end
 
@@ -135,11 +137,11 @@ function Group:button(params)
 
 	local container = self:addChild("button_container" .. self.buttons, Component({
 		x = self.indent - 5, y = self:getCurrentY(),
-		width = 388,
+		width = self:getWidth(),
 		height = 45,
 		z = self:getCurrentZ(),
 		update = function(container, delta_time)
-			TextBox.update(container, delta_time)
+			Component.update(container, delta_time)
 			if container.mouseOver then
 				self.section:hoveringOver(container.y + self.y, container:getHeight())
 			end
@@ -210,7 +212,7 @@ function Group:label(params)
 	return label
 end
 
----@param params { label: string, items: any[], getValue: (fun(): any), onChange: fun(index: integer), format: (fun(any): string)? }
+---@param params { label: string, items: any[], getValue: (fun(): any), setValue: fun(index: integer), format: (fun(any): string)? }
 ---@return osu.ui.Combo?
 function Group:combo(params)
 	if not self:canAdd(params.label) then
@@ -258,7 +260,7 @@ function Group:combo(params)
 		font = self.fonts:loadFont("Regular", 16),
 		items = params.items,
 		getValue = params.getValue,
-		onChange = params.onChange,
+		setValue = params.onChange,
 		format = params.format,
 		justHovered = function () end
 	}))
@@ -295,6 +297,51 @@ function Group:checkbox(params)
 	self.height = self.height + checkbox:getHeight()
 	self.checkboxes = self.checkboxes + 1
 	return checkbox
+end
+
+---@param params { label: string, min: number, max: number, step: number, getValue: (fun(): number), setValue: (fun(v: number)) }
+---@return osu.ui.Slider?
+function Group:slider(params)
+	if not self:canAdd(params.label) then
+		return
+	end
+
+	local container = self:addChild("slider_container" .. self.sliders, Component({
+		x = self.indent, y = self:getCurrentY(),
+		width = self:getWidth(),
+		height = 37,
+		z = self:getCurrentZ(),
+		update = function(container, delta_time)
+			Component.update(container, delta_time)
+			if container.mouseOver then
+				self.section:hoveringOver(container.y + self.y, container:getHeight())
+			end
+		end
+	}))
+
+	local label = container:addChild("label", Label({
+		text = params.label,
+		font = self.fonts:loadFont("Regular", 16),
+		alignY = "center",
+		height = container:getHeight()
+	}))
+
+	local x = label:getWidth() + 10
+
+	local slider = container:addChild("slider", Slider({
+		x = x,
+		width = container:getWidth() - x - 50,
+		height = container:getHeight(),
+		z = self:getCurrentZ(),
+		min = params.min,
+		max = params.max,
+		step = params.step,
+		getValue = params.getValue,
+		setValue = params.setValue
+	})) ---@cast slider osu.ui.Slider
+	self.sliders = self.sliders + 1
+	self.height = self.height + container:getHeight()
+	return slider
 end
 
 return Group

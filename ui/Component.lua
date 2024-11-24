@@ -332,15 +332,18 @@ end
 local sound_play_time = {}
 
 ---@param sound audio.Source
-function Component.playSound(sound)
+---@param limit number?
+function Component.playSound(sound, limit)
 	if not sound then
 		return
 	end
 
+	limit = limit or 0.05
+
 	local prev_time = sound_play_time[sound] or 0
 	local current_time = love.timer.getTime()
 
-	if current_time > prev_time + 0.05 then
+	if current_time > prev_time + limit then
 		sound:stop()
 		sound_play_time[sound] = current_time
 	end

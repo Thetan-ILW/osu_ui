@@ -37,6 +37,7 @@ function ScrollAreaContainer:bindEvents()
 	self.parent:bindEvent(self, "wheelDown")
 	self.parent:bindEvent(self, "mousePressed")
 	self.parent:bindEvent(self, "mouseReleased")
+	self.parent:bindEvent(self, "loseFocus")
 end
 
 local function sign(v)
@@ -202,6 +203,10 @@ function ScrollAreaContainer:wheelDown()
 		return true
 	end
 	return false
+end
+
+function ScrollAreaContainer:loseFocus()
+	self.isDragging = false
 end
 
 function ScrollAreaContainer:mousePressed(event)

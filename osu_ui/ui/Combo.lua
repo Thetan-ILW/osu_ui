@@ -6,7 +6,7 @@ local Rectangle = require("ui.Rectangle")
 
 local flux = require("flux")
 
----@alias osu.ui.ComboParams { hoverColor: number[]?, borderColor: number[]?, items: any[], onChange: (fun(index: integer)), getValue: (fun(): any), format: (fun(value: any): string) }
+---@alias osu.ui.ComboParams { hoverColor: number[]?, borderColor: number[]?, items: any[], setValue: (fun(index: integer)), getValue: (fun(): any), format: (fun(value: any): string) }
 
 ---@class osu.ui.Combo : ui.Component
 ---@overload fun(params: osu.ui.ComboParams): osu.ui.Combo
@@ -19,7 +19,7 @@ local flux = require("flux")
 ---@field borderColor number[]
 ---@field cellHeight number
 ---@field minCellHeight number
----@field onChange fun(index: integer)
+---@field setValue fun(index: integer)
 ---@field getValue fun(): any, table
 ---@field format? fun(any): string
 ---@field state "hidden" | "fade_in" | "open" | "fade_out"
@@ -129,7 +129,7 @@ function Combo:load()
 			end,
 			mouseClick = function(this)
 				if this.mouseOver then
-					self.onChange(i)
+					self.setValue(i)
 					self:processState("close")
 					return true
 				end

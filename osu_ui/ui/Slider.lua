@@ -4,8 +4,8 @@ local HoverState = require("osu_ui.ui.HoverState")
 local math_util = require("math_util")
 local ui = require("osu_ui.ui")
 
----@class osu.ui.Slider : osu.ui.UiElement
----@operator call: osu.ui.Slider
+---@class osu.ui.Slider_old : osu.ui.UiElement
+---@operator call: osu.ui.Slider_old
 ---@field private label love.Text
 ---@field private sliderW number?
 ---@field private params { min: number, max: number, increment: number }
