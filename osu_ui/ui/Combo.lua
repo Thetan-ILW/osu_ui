@@ -10,6 +10,7 @@ local flux = require("flux")
 
 ---@class osu.ui.Combo : ui.Component
 ---@overload fun(params: osu.ui.ComboParams): osu.ui.Combo
+---@field font ui.Font?
 ---@field items any[]
 ---@field itemsText osu.ui.DynamicText[]
 ---@field selectedText osu.ui.DynamicText
@@ -44,7 +45,7 @@ function Combo:load()
 	self.visibility = 0
 
 	local fonts = self.shared.fontManager
-	local font = fonts:loadFont("Regular", 16)
+	local font = self.font or fonts:loadFont("Regular", 16)
 	local awesome_regular = fonts:loadFont("Awesome", 18)
 	local awesome_small = fonts:loadFont("Awesome", 15)
 
@@ -99,6 +100,14 @@ function Combo:load()
 			end
 			return false
 		end
+	}))
+	main:addChild("mainCellBorder", Rectangle({
+		width = main:getWidth(),
+		height = main:getHeight(),
+		rounding = 4,
+		mode = "line",
+		color = self.borderColor,
+		z = 1
 	}))
 
 	local items = self:addChild("items", Component({

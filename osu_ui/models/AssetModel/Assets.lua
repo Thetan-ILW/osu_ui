@@ -290,9 +290,7 @@ function Assets:loadAudio(name)
 	return self.emptyAudio()
 end
 
----@param config_model sphere.ConfigModel
-function Assets:updateVolume(config_model)
-	local configs = config_model.configs
+function Assets:updateVolume(configs)
 	local settings = configs.settings
 	local osu = configs.osu_ui
 	local a = settings.audio

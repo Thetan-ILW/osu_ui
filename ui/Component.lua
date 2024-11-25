@@ -6,6 +6,7 @@ local EventHandler = require("ui.EventHandler")
 ---@operator call: ui.Component
 ---@field id string
 ---@field parent ui.Component
+---@field children {[string]: ui.Component}
 ---@field eventListeners {[ui.ComponentEvent]: ui.Component[]}
 ---@field shared {[string]: any}
 local Component = class()
@@ -64,6 +65,10 @@ function Component:setMouseFocus(mx, my)
 	self.mouseOver = imx >= 0 and imx < self.width and imy >= 0 and imy < self.height
 end
 
+function Component:noMouseFocus()
+	self.mouseOver = false
+end
+
 ---@return boolean
 function Component:isParentFocused()
 	return self.parent.mouseOver
@@ -91,7 +96,6 @@ function Component:updateTree(state)
 	if
 		state.mouseFocus
 		and self.alpha * self.color[4] > 0
-		--and self:isParentFocused()
 	then
 		local was_over = self.mouseOver
 		self:setMouseFocus(state.mouseX, state.mouseY)
@@ -102,7 +106,7 @@ function Component:updateTree(state)
 			state.mouseFocus = false
 		end
 	else
-		self.mouseOver = false
+		self:noMouseFocus()
 	end
 
 	self:update(state.deltaTime)

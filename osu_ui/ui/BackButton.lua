@@ -1,48 +1,77 @@
-local UiElement = require("osu_ui.ui.UiElement")
-local HoverState = require("osu_ui.ui.HoverState")
-local Label = require("osu_ui.ui.Label")
+local Component = require("ui.Component")
+local HoverState = require("ui.HoverState")
+local Label = require("ui.Label")
+local Image = require("ui.Image")
 
-local ui = require("osu_ui.ui")
+---@alias osu.ui.BackButtonParams { hoverWidth: number, hoverHeight: number, assets: osu.ui.OsuAssets, text: string }
 
----@alias BackButtonParams { hoverWidth: number, hoverHeight: number, assets: osu.ui.OsuAssets, text: string }
+---@class osu.ui.BackButton : ui.Component
+---@overload fun(params: osu.ui.BackButtonParams): osu.ui.BackButton
+---@field text string
+---@field onClick function
+---@field hoverWidth number
+---@field hoverHeight number
+local BackButton = Component + {}
 
----@class osu.ui.BackButton : osu.ui.UiElement
----@overload fun(params: BackButtonParams): osu.ui.BackButton
----@field private assets osu.ui.OsuAssets
----@field private text string
----@field private label osu.ui.Label
----@field private icon love.Text
----@field private clickSound audio.Source
----@field private hoverSound audio.Source
----@field private canvas love.Canvas
----@field private canvasScale number
----@field private onClick function
-local BackButton = UiElement + {}
-
-local inactive_color = { 238 / 255, 51 / 255, 153 / 255 }
-local active_color = { 187 / 255, 17 / 255, 119 / 255 }
+local inactive_color = { love.math.colorFromBytes(238, 51, 153) }
+local active_color = { love.math.colorFromBytes(187, 17, 119) }
 
 function BackButton:load()
-	self.icon = self.assets:awesomeIcon("", 20)
-	self.layerImage = self.assets:loadImage("back-button-layer")
-	self.clickSound = self.assets:loadAudio("menuback")
-	self.hoverSound = self.assets:loadAudio("menuclick")
+	local assets = self.shared.assets
+	local fonts = self.shared.fontManager
+
+	self.layerImage = assets:loadImage("back-button-layer")
+	self.clickSound = assets:loadAudio("menuback")
+	self.hoverSound = assets:loadAudio("menuclick")
 
 	self.hoverState = HoverState("elasticout", 0.7)
-	self.totalW = 93
-	self.totalH = 45
+	self.width = 93
+	self.height = 45
+	self.hoverWidth = self.hoverWidth or self.width
+	self.hoverHeight = self.hoverHeight or self.height
 
-	self.label = Label({
+	self:addChild("layerBottom", Image({
+		color = inactive_color,
+		image = self.layerImage,
+		update = function(this)
+			this.x = 42 * self.hoverState.progress - 64
+		end
+	}))
+
+	self:addChild("layerTop", Image({
+		image = self.layerImage,
+		z = 0.2,
+		update = function(this)
+			local p = self.hoverState.progress
+			this.x = 28 * p - 124
+			this.color[1] = inactive_color[1] - (inactive_color[1] - active_color[1]) * p
+			this.color[2] = inactive_color[2] - (inactive_color[2] - active_color[2]) * p
+			this.color[3] = inactive_color[3] - (inactive_color[3] - active_color[3]) * p
+		end
+	}))
+
+	self:addChild("label" , Label({
+		height = self.height,
 		alignY = "center",
-		totalH = self.totalH,
 		text = self.text,
-		textScale  = self.parent.textScale,
 		shadow = true,
-		font = self.assets:loadFont("Regular", 20)
-	})
-	self.label:load()
+		font = fonts:loadFont("Regular", 20),
+		z = 1,
+		update = function(this)
+			this.x = 34 * self.hoverState.progress + 40
+		end
+	}))
 
-	UiElement.load(self)
+	self:addChild("icon", Label({
+		y = self.height / 2,
+		origin = { x = 0.5, y = 0.5 },
+		text = "",
+		font = fonts:loadFont("Awesome", 20),
+		z = 0.9,
+		update = function(this)
+			this.x = 12 * self.hoverState.progress + 14
+		end
+	}))
 end
 
 function BackButton:bindEvents()
@@ -50,51 +79,20 @@ function BackButton:bindEvents()
 end
 
 function BackButton:justHovered()
-	ui.playSound(self.hoverSound)
+	self.playSound(self.hoverSound)
+end
+
+function BackButton:setMouseFocus(mx, my)
+	self.mouseOver = self.hoverState:checkMouseFocus(self.hoverWidth, self.hoverHeight, mx, my)
 end
 
 function BackButton:mousePressed()
 	if self.mouseOver then
 		self.onClick()
-		ui.playSound(self.clickSound)
+		self.playSound(self.clickSound)
 		return true
 	end
 	return false
-end
-
-local gfx = love.graphics
-
-function BackButton:draw()
-	local progress = self.hoverState.progress
-
-	gfx.push()
-	gfx.translate(42 * progress - 64, 0)
-	gfx.setColor(inactive_color[1], inactive_color[2], inactive_color[3], self.alpha)
-	gfx.draw(self.layerImage)
-	gfx.pop()
-
-	gfx.push()
-	gfx.translate(28 * progress - 124, 0)
-	gfx.setColor(
-		inactive_color[1] - (inactive_color[1] - active_color[1]) * progress,
-		inactive_color[2] - (inactive_color[2] - active_color[2]) * progress,
-		inactive_color[3] - (inactive_color[3] - active_color[3]) * progress,
-		self.alpha
-	)
-	gfx.draw(self.layerImage)
-	gfx.pop()
-
-	gfx.setColor(1, 1, 1)
-	gfx.push()
-	gfx.translate(34 * progress + 40, 1)
-	self.label:draw()
-	gfx.pop()
-
-	gfx.setColor(1, 1, 1, self.alpha)
-
-	local iw, ih = self.icon:getDimensions()
-	local s = self.parent.textScale
-	gfx.draw(self.icon, 12 * progress + 14, self.totalH / 2, 0, s, s, iw / 2, ih / 2)
 end
 
 return BackButton

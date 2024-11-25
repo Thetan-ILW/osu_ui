@@ -78,19 +78,33 @@ function Viewport:resize()
 		self.previousWindowSize = { w = ww, h = wh }
 		self.resizeTime = time + 0.2
 		self.resizeDefered = true
-
-		if self.changingScaleTween then
-			self.changingScaleTween:stop()
-		end
 		self.alpha = 0
+
+		if self.alphaTween then
+			self.alphaTween:stop()
+		end
 	end
 
 	if self.resizeDefered and time > self.resizeTime then
-		self:load()
-		self:receive({ name = "viewportResized" })
-		self.resizeDefered = false
-		self.changingScaleTween = flux.to(self, 0.4, { alpha = 1 }):ease("quadout")
+		self:reload()
 	end
+end
+
+function Viewport:reload()
+	self.alpha = 0
+	if self.alphaTween then
+		self.alphaTween:stop()
+	end
+	self:load()
+	self:receive({ name = "viewportResized" })
+	self.resizeDefered = false
+	self.alphaTween = flux.to(self, 0.4, { alpha = 1 }):ease("quadout")
+end
+
+function Viewport:softReload()
+	self.alphaTween = flux.to(self, 0.2, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		self:reload()
+	end)
 end
 
 function Viewport:checkMouseMovement()
@@ -137,21 +151,21 @@ function Viewport:drawTree()
 	love.graphics.origin()
 	love.graphics.applyTransform(self.innerTransform)
 	love.graphics.translate(love.graphics.inverseTransformPoint(0, 0))
-	love.graphics.setColor(self.color)
 
 	love.graphics.setCanvas(self.canvas)
 	love.graphics.clear()
+	love.graphics.setColor(1, 1, 1)
 	for i = #self.childrenOrder, 1, -1 do
 		local child = self.children[self.childrenOrder[i]]
-		love.graphics.push()
+		love.graphics.push("all")
 		child:drawTree()
-		love.graphics.setColor(self.color)
 		love.graphics.pop()
 	end
 
 	love.graphics.setCanvas()
 	love.graphics.origin()
 	love.graphics.setBlendMode("alpha")
+	love.graphics.setColor(self.color)
 	self:draw()
 end
 

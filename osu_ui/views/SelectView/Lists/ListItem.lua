@@ -1,9 +1,9 @@
-local UiElement = require("osu_ui.ui.UiElement")
+local Component = require("ui.Component")
 local math_util = require("math_util")
 
 ---@alias ListItemParams { background: love.Image, titleFont: love.Font, infoFont: love.Font }
 
----@class osu.ui.WindowListItem : osu.ui.UiElement
+---@class osu.ui.WindowListItem : ui.Component
 ---@overload fun(params: ListItemParams): osu.ui.WindowListView
 ---@field parent osu.ui.WindowListView
 ---@field x number
@@ -15,14 +15,14 @@ local math_util = require("math_util")
 ---@field colorT number
 ---@field slideX number
 ---@field background love.Image
----@field titleFont love.Font
----@field infoFont love.Font
+---@field titleFont ui.Font
+---@field infoFont ui.Font
 ---@field title string
 ---@field secondRow string
 ---@field thirdRow string
 ---@field color number[]
 ---@field list osu.ui.WindowListView
-local ListItem = UiElement + {}
+local ListItem = Component + {}
 
 local function color(r, g, b, a)
 	return { r / 255, g / 255, b / 255, a / 255 }
@@ -53,10 +53,9 @@ function ListItem:load()
 	self.title = ""
 	self.secondRow = ""
 	self.thirdRow = ""
-	self.totalW = 640
-	self.totalH = 90
+	self.width = 640
+	self.height = 90
 	self.color = { self.inactivePanel[1], self.inactivePanel[2], self.inactivePanel[3], 1 }
-	UiElement.load(self)
 end
 
 function ListItem:bindEvents()
@@ -81,7 +80,7 @@ end
 
 function ListItem:isVisible()
 	local sp = self.list.parent.scrollPosition - self.list.y
-	return sp > self.y - 400 and sp < self.y + 500
+	return sp > self.y - 500 and sp < self.y + 500
 end
 
 ---@param dt number
@@ -155,7 +154,7 @@ function ListItem:update(dt)
 		self.alpha = wrap_p
 	end
 
-	self.y = (vi - 1) * (self.totalH * wrap_p) - ((1 - wrap_p) * self.totalH)
+	self.y = (vi - 1) * (self.height * wrap_p) - ((1 - wrap_p) * self.height)
 	if vi > self.list:getSelectedItemIndex() then
 		self.y = self.y + self.list.holeSize
 	end
@@ -168,8 +167,6 @@ function ListItem:update(dt)
 
 	local x = -hover * hover_distance + hover_distance + slide
 	self.x = x + selected * 80
-
-	self:applyTransform()
 end
 
 function ListItem:justHovered()
@@ -177,12 +174,12 @@ function ListItem:justHovered()
 end
 
 function ListItem:draw()
-	love.graphics.draw(self.background, 0, self.totalH / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
+	love.graphics.draw(self.background, 0, self.height / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
 	love.graphics.setColor(1, 1, 1, self.alpha)
 	love.graphics.print(self.id, 20, 20)
 end
 
-function ListItem.mixColors(a, b, t)
+function ListItem.mixTwoColors(a, b, t)
 	return {
 		a[1] * (1 - t) + b[1] * t,
 		a[2] * (1 - t) + b[2] * t,

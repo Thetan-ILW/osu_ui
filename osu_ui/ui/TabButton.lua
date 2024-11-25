@@ -1,39 +1,34 @@
-local UiElement = require("osu_ui.ui.UiElement")
+local Component = require("ui.Component")
+local Label = require("ui.Label")
+local Image = require("ui.Image")
 
-local Label = require("osu_ui.ui.Label")
+---@alias osu.ui.TabButtonParams { text: string, font: love.Font, image: love.Image }
 
-local ui = require("osu_ui.ui")
-
----@alias TabButtonParams { text: string, font: love.Font, image: love.Image, hoverSound: audio.Source?, clickSound: audio.Source? }
-
----@class osu.ui.TabButton : osu.ui.UiElement
----@overload fun(params: TabButtonParams): osu.ui.TabButton
----@field image love.Image
----@field hoverSound audio.Source?
----@field clickSound audio.Source?
----@field label osu.ui.Label
+---@class osu.ui.TabButton : ui.Component
+---@overload fun(params: osu.ui.TabButtonParams): osu.ui.TabButton
 ---@field text string
----@field font love.Font
 ---@field onClick function
----@field hoverState osu.ui.HoverState
 ---@field active boolean
-local TabButton = UiElement + {}
+local TabButton = Component + {}
 
 function TabButton:load()
-	self.totalW, self.totalH = self.image:getDimensions()
+	local image = self.shared.assets:loadImage("selection-tab")
+	self.width, self.height = image:getDimensions()
 	self.active = false
 
-	self.label = Label({
-		text = self.text,
-		font = self.font,
-		textScale = self.parent.textScale,
+	self.image = self:addChild("image", Image({
+		image = image
+	}))
+
+	self.label = self:addChild("label", Label({
+		width = self.width,
+		height = self.height,
 		alignX = "center",
 		alignY = "center",
-		totalW = self.totalW,
-		totalH = self.totalH
-	})
-	self.label:load()
-	UiElement.load(self)
+		text = self.text,
+		font = self.shared.fontManager:loadFont("Regular", 13),
+		z = 1,
+	}))
 end
 
 function TabButton:bindEvents()
@@ -41,38 +36,34 @@ function TabButton:bindEvents()
 end
 
 function TabButton:justHovered()
-	ui.playSound(self.hoverSound)
+	self.playSound(self.hoverSound)
 end
 
 function TabButton:mousePressed()
 	if self.mouseOver then
-		ui.playSound(self.clickSound)
+		self.playSound(self.clickSound)
 		self.onClick()
 		return true
 	end
 	return false
 end
 
-local inactive = { 0.86, 0.08, 0.23 }
-local active = { 1, 1, 1 }
+local inactive = { 0.86, 0.08, 0.23, 1 }
+local active = { 1, 1, 1, 1 }
 
 local text_inactive = { 1, 1, 1, 1 }
 local text_active = { 0, 0, 0, 1 }
 
 function TabButton:update()
-	self.label.shadow = not self.active
-	self.label.color = self.active and text_active or text_inactive
-	self.label.alpha = self.alpha
-end
-
-local gfx = love.graphics
-
-function TabButton:draw()
-	local c = self.active and active or inactive
-	gfx.setColor(c[1], c[2], c[3], self.alpha)
-	gfx.draw(self.image)
-
-	self.label:draw()
+	if self.active then
+		self.label.color = text_active
+		self.label.shadow = true
+		self.image.color = active
+	else
+		self.label.color = text_inactive
+		self.label.shadow = false
+		self.image.color = inactive
+	end
 end
 
 return TabButton

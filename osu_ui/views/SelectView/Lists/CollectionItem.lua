@@ -32,13 +32,12 @@ function CollectionItem:replaceWith(item, tree)
 end
 
 function CollectionItem:update(dt)
-	self.y = (self.visualIndex - 1) * self.totalH
+	self.y = (self.visualIndex - 1) * self.height
 	if self.visualIndex > self.list:getSelectedItemIndex() then
 		self.y = self.y + self.list.holeSize
 	end
 
 	if not self:isVisible() then
-		self:applyTransform()
 		return
 	end
 
@@ -49,8 +48,6 @@ function CollectionItem:update(dt)
 	self:applyFlash(dt)
 
 	self.x = -hover * 20 + 20 + slide
-
-	self:applyTransform()
 end
 
 local gfx = love.graphics
@@ -69,22 +66,22 @@ function CollectionItem:draw()
 
 	local ct = self.selectedT
 
-	local panel_color = self.mixColors(main_color, active_panel, ct)
+	local panel_color = self.mixTwoColors(main_color, active_panel, ct)
 
 	if self.flashColorT ~= 0 then
 		panel_color = self.lighten2(panel_color, self.flashColorT * 0.3)
 	end
 
-	local text_color = self.mixColors(inactive_text, active_text, ct)
+	local text_color = self.mixTwoColors(inactive_text, active_text, ct)
 
 	gfx.setColor(panel_color)
-	gfx.draw(self.background, 0, self.totalH / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
+	gfx.draw(self.background, 0, self.height / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
 
 	local font = self.titleFont
-	gfx.setFont(font)
+	gfx.setFont(font.instance)
 	gfx.setColor(text_color)
-	local text_scale = self.list.textScale
-	gfx.translate(30, self.totalH / 2 - (font:getHeight() * text_scale) / 2)
+	local text_scale = 1 / font.dpiScale
+	gfx.translate(30, self.height / 2 - (font:getHeight() * text_scale) / 2)
 	gfx.scale(text_scale)
 	gfx.print(self.name)
 end

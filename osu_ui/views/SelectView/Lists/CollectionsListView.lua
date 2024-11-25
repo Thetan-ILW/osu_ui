@@ -1,4 +1,5 @@
 local WindowListView = require("osu_ui.views.SelectView.Lists.WindowListView")
+local Image = require("ui.Image")
 
 local CollectionItem = require("osu_ui.views.SelectView.Lists.CollectionItem")
 local ChartListView = require("osu_ui.views.SelectView.Lists.ChartListView")
@@ -13,20 +14,40 @@ local flux = require("flux")
 local CollectionsListView = WindowListView + {}
 
 function CollectionsListView:load()
-	local item_params = {
-		background = self.assets:loadImage("menu-button-background"),
-		titleFont = self.assets:loadFont("Regular", 32),
-		infoFont = self.assets:loadFont("Regular", 16),
-		list = self
-	}
+	local fonts = self.shared.fontManager
+	local assets = self.shared.assets
 
+	self.width, self.height = self.parent:getDimensions()
 	self.holeSize = 0
 	self.wrapProgress = 0
-	WindowListView.load(self)
 	self.state = "loading"
-	self.loadingCircle = self.assets:loadImage("loading")
-	self.loadingCircleR = 0
-	self:loadItems(CollectionItem, item_params)
+	self.itemClass = CollectionItem
+	self.itemParams = {
+		background = assets:loadImage("menu-button-background"),
+		titleFont = fonts:loadFont("Regular", 32),
+		infoFont = fonts:loadFont("Regular", 16),
+		list = self
+	}
+	self:loadItems()
+
+	local img = assets:loadImage("loading")
+	local scale = 0.7
+	self:addChild("loading", Image({
+		x = self.width - img:getWidth() * scale,
+		origin = { x = 0.5, y = 0.5 },
+		scale = scale,
+		image = img,
+		alpha = 0,
+		z = 1,
+		update = function(this, dt)
+			this.alpha = 0
+			if self.state == "loading" then
+				this.angle = this.angle + dt * 3
+				this.y = self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2
+				this.alpha = 1
+			end
+		end
+	}))
 end
 
 function CollectionsListView:getSelectedItemIndex()
@@ -38,41 +59,39 @@ function CollectionsListView:getItems()
 	return self.game.selectModel.collectionLibrary.tree.items
 end
 
-function CollectionsListView:update(dt, mouse_focus)
-	local new_mouse_focus = WindowListView.update(self, dt, mouse_focus)
-
+function CollectionsListView:update()
 	if self.state == "loading" then
-		self.loadingCircleR = self.loadingCircleR + dt * 3
 		if self.lastStateCounter ~= self.game.selectModel.noteChartSetStateCounter then
 			self:collectionLoaded()
 		end
 	end
-
-	return new_mouse_focus
 end
 
 function CollectionsListView:getChildItemCount()
 	return #self.childList:getItems()
 end
 
+function CollectionsListView:childUpdated()
+	self:stopWrapTween()
+	local size = self:getChildItemCount() * self.panelHeight
+	self.wrapTween = flux.to(self, 0.4, { holeSize = size, wrapProgress = 1 }):ease("cubicout")
+end
+
 function CollectionsListView:collectionLoaded()
 	if self.parent:getChild("charts") then
 		self.parent:removeChild("charts")
 	end
-	self.childList = self.parent:addChild("charts", ChartListView({
+	self.childList = ChartListView({
 		game = self.game,
 		assets = self.assets,
 		parentList = self,
 		depth = 0.9,
-	}))
-	self.parent:build()
-
+	})
+	self.parent:addChild("charts", self.childList)
+	self.state = "opening"
 	self.holeSize = 0
 	self.wrapProgress = 0
-	self.state = "opening"
-	self:stopWrapTween()
-	local size = self:getChildItemCount() * self.panelHeight
-	self.wrapTween = flux.to(self, 0.4, { holeSize = size, wrapProgress = 1 }):ease("cubicout")
+	self:childUpdated()
 end
 
 function CollectionsListView:stopWrapTween()
@@ -105,7 +124,7 @@ function CollectionsListView:selectItem(child)
 	local prev_charts = self.parent:getChild("charts")
 	local prev_size = 0
 	if prev_charts then
-		prev_size = prev_charts.totalH * self.wrapProgress
+		prev_size = prev_charts.height * self.wrapProgress
 		self.parent:removeChild("charts")
 		self.parent:build()
 	end
@@ -130,18 +149,6 @@ function CollectionsListView:replaceItem(window_index, visual_index)
 	local tree = self.game.selectModel.collectionLibrary.tree
 	item:replaceWith(collection, tree)
 	item.visualIndex = visual_index
-end
-
-function CollectionsListView:draw()
-	WindowListView.draw(self)
-	if self.state == "loading" then
-		local img = self.loadingCircle
-		local iw, ih = img:getDimensions()
-		local x = self.totalW - iw / 2
-		local y = self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2
-		love.graphics.setColor(1, 1, 1, self.alpha)
-		love.graphics.draw(img, x, y, self.loadingCircleR, 0.7, 0.7, iw / 2, ih / 2)
-	end
 end
 
 return CollectionsListView

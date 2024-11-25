@@ -29,30 +29,29 @@ function SelectView:load()
 	self.selectedGroup = self.groups[1]
 	self.notechartChangeTime = love.timer.getTime()
 
+	local scene = self.gameView.scene
 	local viewport = self.gameView.viewport
 
-	if not viewport:getChild("selectView") then
+	if not scene:getChild("selectView") then
 		self.displayInfo = DisplayInfo(self)
 		self:notechartChanged()
 
-		viewport:addChild("selectView", View({ selectView = self, depth = 0.1 }))
+		scene:addChild("selectView", View({ selectView = self, z = 0.1 }))
+		--[[
 		viewport:addChild("chartInfoShowcase", ChartInfoShowcase({
 			assets = self.assets,
 			depth = 0.7,
 			alpha = 0,
-		}))
-		viewport:build()
+		}))]]
 	end
 
-	local view = viewport:getChild("selectView")
 	local cursor = viewport:getChild("cursor")
-	local background = viewport:getChild("background")
+	local view = scene:getChild("selectView")
+	local background = scene:getChild("background")
 	view.alpha = 0
 	flux.to(view, 0.7, { alpha = 1 }):ease("cubicout")
 	flux.to(cursor, 0.7, { alpha = 1 }):ease("cubicout")
 	flux.to(background, 0.5, { dim = 0.3, parallax = 0.01 }):ease("quadout")
-
-	actions.enable()
 end
 
 function SelectView:beginUnload()
@@ -198,41 +197,14 @@ function SelectView:changeTimeRate(delta)
 	end
 end
 
-local events = {
-	keypressed = function(self, event)
-		if event[2] == "r" then
-			self:reloadView()
-		end
-
-		if self.inputMap:call("music") then
-			return
-		end
-
-		if self.inputMap:call("view") then
-			return
-		end
-
-		if self.inputMap:call("selectModals") then
-			return
-		end
-
-		if self.modal then
-			return
-		end
-
-		self.inputMap:call("select")
-	end,
-	directorydropped = function(self, event)
-		self:openModal("osu_ui.views.modals.LocationImport", event[1])
-	end
-}
-
 function SelectView:receive(event)
 	self.game.selectController:receive(event)
 
-	local f = events[event.name]
-	if f then
-		f(self, event)
+	if event.name == "keypressed" then
+		if love.keyboard.isDown("lctrl") and event[2] == "o" then
+			local options = self.gameView.scene:getChild("options")
+			options:toggle()
+		end
 	end
 end
 
@@ -259,6 +231,16 @@ function SelectView:quit(back_button_click)
 	end
 
 	self:changeScreen("mainMenuView")
+end
+
+function SelectView:updateSearch(text)
+	local config = self.configs.select
+	local prev = config.filterString
+
+	if prev ~= text then
+		config.filterString = text
+		self.game.selectModel:debouncePullNoteChartSet()
+	end
 end
 
 ---@return string

@@ -33,6 +33,10 @@ local t = {
 		nativeResY = 0.5
 		--nativeResSize is defined in the gameplay settings!!!
 	},
+	graphics = {
+		blur = true,
+		blurQuality = 0.2,
+	},
 	uiVolume = 0.4,
 	--[[vimMotions = false,
 	keybinds = {

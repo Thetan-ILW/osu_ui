@@ -138,7 +138,7 @@ function UserInterface:loadAssets(view_name)
 	end
 
 	self.assets:loadViewAssets(view_name)
-	self.assets:updateVolume(self.game.configModel)
+	self.assets:updateVolume(self.game.configModel.configs)
 end
 
 function UserInterface:load()
@@ -159,7 +159,7 @@ function UserInterface:load()
 	self.localization:loadFile("en.txt")
 
 	---@type osu.ui.ScreenView
-	local view = self.testView
+	local view = self.selectView
 
 	if self.gucci then
 		if not osu.gucci.installed then
@@ -212,7 +212,7 @@ end
 
 ---@param dt number
 function UserInterface:update(dt)
-	self.assets:updateVolume(self.game.configModel)
+	self.assets:updateVolume(self.game.configModel.configs)
 	self.gameView:update(dt)
 end
 
@@ -222,7 +222,6 @@ end
 
 ---@param event table
 function UserInterface:receive(event)
-	--self.globalEvents:receive(event)
 	self.gameView:receive(event)
 end
 

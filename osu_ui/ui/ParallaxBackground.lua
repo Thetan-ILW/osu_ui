@@ -49,16 +49,17 @@ function ParallaxBackground:draw()
 	local alpha = self.backgroundModel.alpha
 
 	local dim = 1 - self.dim
-	local r, g, b = dim, dim, dim
+	local r, g, b, a = love.graphics.getColor()
+	r, g, b = r * dim, g * dim, b * dim
 
 	for i = 1, 3 do
 		if images[i] then
 			if i == 1 then
-				love.graphics.setColor(r, g, b, 1)
+				love.graphics.setColor(r, g, b, a)
 			elseif i == 2 then
-				love.graphics.setColor(r, g, b, alpha)
+				love.graphics.setColor(r, g, b, alpha * a)
 			elseif i == 3 then
-				love.graphics.setColor(r, g, b, 0)
+				love.graphics.setColor(r, g, b, a)
 			end
 
 			self:drawImage(images[i])

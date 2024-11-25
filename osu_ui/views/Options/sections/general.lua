@@ -39,7 +39,7 @@ return function(section)
 		local active = next(group.game.configModel.configs.online.session)
 
 		local base_update = group.update
-		function group:update(dt, mouse_focus)
+		function group:update(dt)
 			if wait_for_login then
 				local logged_in = next(group.game.configModel.configs.online.session)
 				if logged_in then
@@ -59,7 +59,7 @@ return function(section)
 					section.options:recalcPositions()
 				end
 			end
-			return base_update(group, dt, mouse_focus)
+			base_update(group, dt)
 		end
 
 		if active then
@@ -67,25 +67,5 @@ return function(section)
 		else
 			login(group)
 		end
-
-		local boolean = { "true", "false", "nil", "not sure", "no", "maybe", "in between", "not true", "not false" }
-		local value = boolean[1]
-		group:combo({
-			label = "Booleans",
-			items = boolean,
-			getValue = function ()
-				return value
-			end,
-			onChange = function(index)
-				value = boolean[index]
-			end,
-			format = function(v)
-				return v:upper()
-			end
-		})
-	end)
-
-	section:group("UPDATES", function(group)
-		group:textBox({ label = "hallo" })
 	end)
 end

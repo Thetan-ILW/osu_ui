@@ -128,6 +128,7 @@ function Options:bindEvents()
 end
 
 function Options:viewportResized()
+	self.prevScrollPosition = self:getScrollPosition()
 	self.children = {}
 	self:load()
 end
@@ -137,12 +138,12 @@ function Options:load()
 	local viewport = self:getViewport()
 	local fonts = self.shared.fontManager
 	local assets = self.shared.assets
+	local osu_cfg = self:getConfigs().osu_ui
 	self.viewportScale = viewport:getInnerScale()
 
 	self.width = self.panelWidth + self.tabsContrainerWidth
 	self.height = height
 	self.state = "closed"
-	self.alpha = 0
 	self.text = self.localization.text
 	self.searchFormat[4] = self.text.SongSelection_TypeToBegin
 	self.search = ""
@@ -152,15 +153,25 @@ function Options:load()
 
 	self.hoverSound = assets:loadAudio("click-short")
 
-	--[[self:newSection(
+	self:newSection(
 		self.text.Options_General:upper(),
 		"",
 		require("osu_ui.views.Options.sections.general")
-	)]]
+	)
 	self:newSection(
 		self.text.Options_Gameplay:upper(),
 		"",
 		require("osu_ui.views.Options.sections.gameplay")
+	)
+	self:newSection(
+		self.text.Options_Graphics:upper(),
+		"",
+		require("osu_ui.views.Options.sections.graphics")
+	)
+	self:newSection(
+		("audio"):upper(),
+		"",
+		require("osu_ui.views.Options.sections.audio")
 	)
 
 	self:addChild("tabsBackground", Rectangle({
@@ -175,7 +186,7 @@ function Options:load()
 		x = self.tabsContrainerWidth,
 		width = self.panelWidth,
 		height = height,
-		color = { 0, 0, 0, 0.7 },
+		color = { 0, 0, 0, 0.6 },
 		blockMouseFocus = true,
 		z = 0.01,
 	}))
@@ -191,6 +202,11 @@ function Options:load()
 		end
 	}))
 	---@cast panel osu.ui.ScrollAreaContainer
+
+	if self.prevScrollPosition then
+		panel.scrollPosition = self.prevScrollPosition
+		self.prevScrollPosition = nil
+	end
 
 	panel:addChild("optionsLabel", Label({
 		y = 60,
@@ -217,6 +233,7 @@ function Options:load()
 		z = 0.59,
 		update = function(this)
 			this.alpha = math_util.clamp(panel.scrollPosition / 110, 0, 1)
+			this.y = -140
 			if panel.scrollPosition < 0 then
 				this.y = 0
 				this.height = 200 + math.abs(panel.scrollPosition)
@@ -237,17 +254,31 @@ function Options:load()
 		font = search_font,
 		z = 0.6,
 		update = function(this)
-			if panel.scrollPosition < 140 then
-				this.y = -panel.scrollPosition + 160
+			this.y = 160 - panel.scrollPosition
+			if panel.scrollPosition > 140 then
+				this.y = 20
 			end
 		end
 	}))
 
-	self:addChild("blur", Blur({
-		image = viewport.canvas,
-		percent = 0.2,
-		z = 0
-	}))
+	if osu_cfg.graphics.blur then
+		local next_check = 0
+		self:addChild("blur", Blur({
+			image = viewport.canvas,
+			percent = 0.01,
+			z = 0,
+			update = function(this)
+				if love.timer.getTime() > next_check then
+					local new_percent = osu_cfg.graphics.blurQuality
+					if this.percent ~= new_percent then
+						this.percent = new_percent
+						this:load()
+						next_check = love.timer.getTime() + 0.1
+					end
+				end
+			end
+		}))
+	end
 
 	---@class osu.ui.KoolRectangle : ui.Component
 	---@field hoveringOverOptions boolean
@@ -366,6 +397,14 @@ function Options:recalcPositions()
 	end
 
 	self.tree.height = height
+end
+
+function Options:getConfigs()
+	return self.game.configModel.configs
+end
+
+function Options:reloadViewport()
+	self:getViewport():softReload()
 end
 
 return Options

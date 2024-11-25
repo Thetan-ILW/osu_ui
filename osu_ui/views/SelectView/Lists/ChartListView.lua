@@ -11,18 +11,9 @@ local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 local ChartListView = WindowListView + {}
 
 function ChartListView:load()
-	self.nextAutoScrollTime = 0
-
-	local item_params = {
-		background = self.assets:loadImage("menu-button-background"),
-		maniaIcon = self.assets:loadImage("mode-mania-small-for-charts"),
-		star = self.assets:loadImage("star"),
-		titleFont = self.assets:loadFont("Regular", 22),
-		infoFont = self.assets:loadFont("Regular", 16),
-		list = self
-	}
-
-	local star = self.assets:loadImage("star2")
+	local fonts = self.shared.fontManager
+	local assets = self.shared.assets
+	local star = assets:loadImage("star2")
 
 	local iw, ih = star:getDimensions()
 	if iw * ih > 1 then
@@ -38,8 +29,18 @@ function ChartListView:load()
 		self.particles = p
 	end
 
-	WindowListView.load(self)
-	self:loadItems(ChartListItem, item_params)
+	self.itemClass = ChartListItem
+	self.itemParams = {
+		background = assets:loadImage("menu-button-background"),
+		maniaIcon = assets:loadImage("mode-mania-small-for-charts"),
+		star = assets:loadImage("star"),
+		titleFont = fonts:loadFont("Regular", 22),
+		infoFont = fonts:loadFont("Regular", 16),
+		list = self
+	}
+
+	self.width, self.height = self.parent:getDimensions()
+	self:loadItems()
 end
 
 function ChartListView:getSelectedItemIndex()
@@ -48,6 +49,10 @@ end
 
 function ChartListView:getItems()
 	return self.game.selectModel.noteChartSetLibrary.items
+end
+
+function ChartListView:getStateCounter()
+	return self.game.selectModel.noteChartSetStateCounter
 end
 
 function ChartListView:selectItem(child)
@@ -62,18 +67,17 @@ function ChartListView:replaceItem(window_index, visual_index)
 	item.visualIndex = visual_index
 end
 
-function ChartListView:update(dt, mouse_focus)
-	local new_mouse_focus = WindowListView.update(self, dt, mouse_focus)
-
+function ChartListView:update(dt)
 	if self.parentList then
-		self.totalH = self.itemCount * self.panelHeight * self.parentList.wrapProgress
+		self.height = self.itemCount * self.panelHeight * self.parentList.wrapProgress
 	end
 
 	if self.particles then
-		self.particles:setPosition(self.totalW, self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2)
+		self.particles:setPosition(self.width, self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2)
 		self.particles:update(dt)
 	end
-	return new_mouse_focus
+
+	WindowListView.update(self, dt)
 end
 
 function ChartListView:draw()

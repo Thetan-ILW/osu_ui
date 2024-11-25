@@ -56,19 +56,19 @@ local gfx = love.graphics
 function ChartItem:drawChartPanel(panel_color, text_color)
 	gfx.push()
 	gfx.setColor(panel_color)
-	gfx.draw(self.background, 0, self.totalH / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
+	gfx.draw(self.background, 0, self.height / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
 
 	local preview_icon_w = self.list.previewIcon and 115 or 0
 	gfx.setColor(text_color)
 	gfx.translate(20 + preview_icon_w, 5)
 	gfx.draw(self.maniaIcon)
 
-	local ts = self.list.textScale
+	local ts = 1 / self.titleFont.dpiScale
 	gfx.translate(40, -4)
-	gfx.setFont(self.titleFont)
+	gfx.setFont(self.titleFont.instance)
 	gfx.print(self.title, 0, 0, 0, ts, ts)
 
-	gfx.setFont(self.infoFont)
+	gfx.setFont(self.infoFont.instance)
 	gfx.translate(0, 22)
 	gfx.print(self.secondRow, 0, 0, 0, ts, ts)
 	gfx.translate(0, 18)
@@ -78,7 +78,7 @@ function ChartItem:drawChartPanel(panel_color, text_color)
 	local star = self.star
 	local iw, ih = star:getDimensions()
 
-	gfx.translate(80 + preview_icon_w, self.totalH - 17)
+	gfx.translate(80 + preview_icon_w, self.height - 17)
 
 	for si = 0, 10, 1 do
 		if si >= self.stars then
@@ -107,14 +107,14 @@ function ChartItem:draw()
 
 	local ct = self.selectedT
 
-	local panel_color = self.mixColors(main_color, active_panel, ct)
+	local panel_color = self.mixTwoColors(main_color, active_panel, ct)
 	panel_color[4] = panel_color[4] * self.alpha
 
 	if self.flashColorT ~= 0 then
 		panel_color = self.lighten(panel_color, self.flashColorT * 0.3)
 	end
 
-	local text_color = self.mixColors(inactive_text, active_text, ct)
+	local text_color = self.mixTwoColors(inactive_text, active_text, ct)
 	text_color[4] = text_color[4] * self.alpha
 
 	self:drawChartPanel(panel_color, text_color)

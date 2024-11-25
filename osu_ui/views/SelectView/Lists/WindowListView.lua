@@ -1,16 +1,23 @@
-local Container = require("osu_ui.ui.Container")
+local Component = require("ui.Component")
 
 local math_util = require("math_util")
 
----@class osu.ui.WindowListView : osu.ui.Container
+---@class osu.ui.WindowListView : ui.Component
 ---@operator call: osu.ui.WindowListView
 ---@field parent osu.ui.ListContainer
 ---@field window osu.ui.WindowListItem[]
 ---@field parentList osu.ui.CollectionsListView
-local WindowListView = Container + {}
+---@field itemClass osu.ui.WindowListItem
+---@field itemParams table
+local WindowListView = Component + {}
 
 function WindowListView:getSelectedItemIndex() end
 function WindowListView:getItems() end
+function WindowListView:getStateCounter()
+	return 0
+end
+function WindowListView:childUpdated() end
+
 function WindowListView:selectItem(child) end
 
 ---@param window_index number
@@ -32,10 +39,10 @@ function WindowListView:iterOverWindow(f, ...)
 	end
 end
 
----@param list_item_class table
----@param item_params table
-function WindowListView:loadItems(list_item_class, item_params)
+function WindowListView:loadItems()
+	self.stateCounter = self:getStateCounter()
 	self.children = {}
+	self.childrenOrder = {}
 	self.panelHeight = 90
 
 	self.items = self:getItems()
@@ -44,6 +51,10 @@ function WindowListView:loadItems(list_item_class, item_params)
 	self.windowSize = math.min(16, self.itemCount) -- lists with less than 16 items exist
 
 	if self.windowSize == 0 then
+		if self.parentList then
+			self.parentList:childUpdated()
+			self:scrollToPosition(self.parentList:getSelectedItemIndex())
+		end
 		return
 	end
 
@@ -52,10 +63,10 @@ function WindowListView:loadItems(list_item_class, item_params)
 	self.prevVisualIndex = selected_index
 	self.holeSize = 0
 
-	if not self.parentList then
-		self:setScroll(selected_index)
-	else
+	if self.parentList then
 		self.y = self.parentList:getSelectedItemIndex() * self.parentList.panelHeight
+		self.parentList:childUpdated()
+		self:scrollToPosition(self.parentList:getSelectedItemIndex() + self:getSelectedItemIndex())
 	end
 
 	self.minScroll = -self.windowSize / 2 + 1
@@ -73,10 +84,10 @@ function WindowListView:loadItems(list_item_class, item_params)
 
 	for i = 1, self.windowSize do
 		local params = {}
-		for k, v in pairs(item_params) do
+		for k, v in pairs(self.itemParams) do
 			params[k] = v
 		end
-		local item = list_item_class(params)
+		local item = self.itemClass(params)
 		table.insert(self.window, item)
 		self:addChild(tostring(i), item)
 	end
@@ -87,8 +98,6 @@ function WindowListView:loadItems(list_item_class, item_params)
 		local index = 1 + (self.first + i - 1) % self.windowSize
 		self:replaceItem(index, i + start_index)
 	end
-
-	self:build()
 end
 
 ---@return number
@@ -106,10 +115,12 @@ function WindowListView:setScroll(index)
 	self.parent.scrollPosition = index * self.panelHeight
 end
 
+function WindowListView:scrollToPosition(index)
+	self.parent:scrollToPosition(index * self.panelHeight, 0)
+end
+
 function WindowListView:loadNewItems()
 	local visual_index = self:getVisualIndex()
-
-	-- vvv but clamp it so we don't access nil elements
 	local visual_index_floored = math.floor(math_util.clamp(visual_index, 1, self.itemCount - self.windowSize + 1))
 
 	self.first = 1 + ((visual_index_floored - 1) % self.windowSize)
@@ -140,6 +151,7 @@ end
 ---@param child osu.ui.WindowListItem
 function WindowListView:select(child)
 	self:selectItem(child)
+	self.parent.isDragging = false -- Or else the scroll velocity will not be updated
 end
 
 ---@param delta number
@@ -164,7 +176,7 @@ end
 ---@param delta number
 function WindowListView:keyScroll(delta)
 	self:selectItem(self:getSelectedItemIndex() + delta)
-	self:scrollToPosition(self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2, 0)
+	--self:scrollToPosition(self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2, 0)
 end
 
 function WindowListView:processActions()
@@ -191,27 +203,29 @@ function WindowListView:translateToCenter()
 	love.graphics.translate(0, 768 / 2 - self.panelHeight / 2)
 end
 
----@param dt number
-function WindowListView:update(dt, mouse_focus)
+---@param state ui.FrameState
+function WindowListView:updateTree(state)
+	if self.stateCounter ~= self:getStateCounter() then
+		self:loadItems()
+	end
+
 	if self.windowSize == 0 then
+		self.height = 0
 		return
 	end
 
+	self:loadNewItems()
+	self.height = self.holeSize + self.itemCount * self.panelHeight
+
 	love.graphics.push()
 	self:translateToCenter()
-	local new_mouse_focus = Container.update(self, dt, mouse_focus)
+	Component.updateTree(self, state)
 	love.graphics.pop()
-
-	self.totalH = self.holeSize + self.itemCount * self.panelHeight
-
-	self:loadNewItems()
-
-	return new_mouse_focus
 end
 
-function WindowListView:draw()
+function WindowListView:drawTree()
 	self:translateToCenter()
-	Container.draw(self)
+	Component.drawTree(self)
 end
 
 return WindowListView

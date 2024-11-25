@@ -29,6 +29,7 @@ function Group:load()
 	self.indent = 12
 	self.buttonColor = { 0.05, 0.52, 0.65, 1 }
 
+	self.children = {}
 	self.comboObjects = {}
 
 	self.labels = 0
@@ -299,7 +300,7 @@ function Group:checkbox(params)
 	return checkbox
 end
 
----@param params { label: string, min: number, max: number, step: number, getValue: (fun(): number), setValue: (fun(v: number)) }
+---@param params { label: string, min: number, max: number, step: number, getValue: (fun(): number), setValue: (fun(v: number)), format: (fun(v: number): string)? }
 ---@return osu.ui.Slider?
 function Group:slider(params)
 	if not self:canAdd(params.label) then
@@ -337,7 +338,8 @@ function Group:slider(params)
 		max = params.max,
 		step = params.step,
 		getValue = params.getValue,
-		setValue = params.setValue
+		setValue = params.setValue,
+		format = params.format
 	})) ---@cast slider osu.ui.Slider
 	self.sliders = self.sliders + 1
 	self.height = self.height + container:getHeight()

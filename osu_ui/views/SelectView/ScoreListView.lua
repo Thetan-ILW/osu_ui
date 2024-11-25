@@ -1,4 +1,7 @@
+local Component = require("ui.Component")
+local StencilComponent = require("ui.StencilComponent")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
+local Image = require("ui.Image")
 
 local ScoreEntryView = require("osu_ui.views.SelectView.ScoreEntryView")
 local Scoring = require("osu_ui.Scoring")
@@ -7,24 +10,48 @@ local getModifierString = require("osu_ui.views.modifier_string")
 local math_util = require("math_util")
 local flux = require("flux")
 
----@alias ScoreListViewParams { game: sphere.GameController }
+---@alias osu.ui.ScoreListViewParams { game: sphere.GameController }
 
----@class osu.ui.ScoreListView : osu.ui.ScrollAreaContainer
----@overload fun(params: ScoreListViewParams): osu.ui.ScoreListView
+---@class osu.ui.ScoreListView : ui.Component
+---@overload fun(params: osu.ui.ScoreListViewParams): osu.ui.ScoreListView
 ---@field assets osu.ui.OsuAssets
-local ScoreListView = ScrollAreaContainer + {}
+---@field scores osu.ui.ScrollAreaContainer
+local ScoreListView = Component + {}
 
 ScoreListView.panelHeight = 58
 ScoreListView.panelSpacing = 53
 ScoreListView.panelSlideInDelay = 0.08
 
 function ScoreListView:load()
-	self.automaticSizeCalc = false
+	self:addChild("noScores", Image({
+		x = self.width / 2, y = self.height / 2,
+		origin = { x = 0.5, y = 0.5 },
+		image = self.shared.assets:loadImage("selection-norecords")
+	}))
 
-	ScrollAreaContainer.load(self)
-	self.recentScoreIcon = self.assets:awesomeIcon("", 24)
-	self.noScoresImage = self.assets:loadImage("selection-norecords")
-	self.noScoresAlpha = 0
+	local stencil = self:addChild("stencil", StencilComponent({
+		stencilFunction = function ()
+			love.graphics.rectangle("fill", 0, -64, self.width + 80, self.height + 64)
+		end
+	}))
+
+	local min_x = -80
+	local max_x = self.height
+	self.scores = stencil:addChild("scores", ScrollAreaContainer({
+		width = self.width,
+		height = self.height,
+		drawChildren = function(this)
+			love.graphics.translate(0, -this.scrollPosition)
+			for i = #this.childrenOrder, 1, -1 do
+				local child = this.children[this.childrenOrder[i]]
+				if child.y > this.scrollPosition + min_x and child.y < this.scrollPosition + max_x then
+					love.graphics.push("all")
+					child:drawTree()
+					love.graphics.pop()
+				end
+			end
+		end
+	}))
 end
 
 local function commaValue(n) -- credit http://richard.warburton.it
@@ -77,8 +104,7 @@ function ScoreListView:addProfileScore(score_index, score, source)
 		grade = Scoring.getGrade("quaver", acc)
 	end
 
-	self:addChild(tostring(score_index), ScoreEntryView({
-		id = score.id,
+	self.scores:addChild(tostring(score_index), ScoreEntryView({
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
 		assets = self.assets,
@@ -89,9 +115,11 @@ function ScoreListView:addProfileScore(score_index, score, source)
 		mods = mods_line,
 		improvement = "-",
 		slideInDelay = self.panelSlideInDelay * (score_index - 1),
-		depth = 1 - (score_index * 0.0001),
-		recentScoreIcon = self.recentScoreIcon,
-		time = score.time
+		z = 1 - (score_index * 0.0001),
+		time = score.time,
+		onClick = function()
+			self:openScore(score.id)
+		end
 	}))
 
 	return true
@@ -122,8 +150,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		grade = grade_images.C
 	end
 
-	self:addChild(tostring(score_index), ScoreEntryView({
-		id = score.id,
+	self.scores:addChild(tostring(score_index), ScoreEntryView({
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
 		assets = self.assets,
@@ -134,33 +161,36 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		mods = mods_line,
 		improvement = "-",
 		slideInDelay = self.panelSlideInDelay * (score_index - 1),
-		depth = 1 - (score_index * 0.0001),
-		recentScoreIcon = self.recentScoreIcon,
-		time = score.time
+		z = 1 - (score_index * 0.0001),
+		time = score.time,
+		onClick = function()
+			self:openScore(score.id)
+		end
 	}))
 
 	return true
 end
 
-function ScoreListView:update(dt, mouse_focus)
+function ScoreListView:update(dt)
 	self:loadScores()
-	return ScrollAreaContainer.update(self, dt, mouse_focus)
 end
 
 function ScoreListView:loadScores()
-	if self.scores == self.game.selectModel.scoreLibrary.items then
+	if self.items == self.game.selectModel.scoreLibrary.items then
 		return
 	end
 
-	self.scores = self.game.selectModel.scoreLibrary.items
-	self.children = {}
-	self.childrenOrder = {}
-	self.scrollPosition = 0
+	self.items = self.game.selectModel.scoreLibrary.items
+
+	local score_container = self.scores
+	score_container.children = {}
+	score_container.childrenOrder = {}
+	score_container.scrollPosition = 0
 
 	local source = self.game.configModel.configs.osu_ui.songSelect.scoreSource
 
 	local score_index = 1
-	for _, score in ipairs(self.scores) do
+	for _, score in ipairs(self.items) do
 		local added = false
 		if source == "local" or source == "online" then
 			added = self:getSoundsphereScore(score_index, score)
@@ -177,61 +207,24 @@ function ScoreListView:loadScores()
 	self.scoreCount = score_index - 1
 
 	if prev_score_count ~= self.scoreCount then
+		local no_scores_img = self.children.noScores
 		if self.noScoresTween then
 			self.noScoresTween:stop()
 		end
 		if self.scoreCount > 0 then
-			self.noScoresTween = flux.to(self, 0.5, { noScoresAlpha = 0 }):ease("quadout")
+			self.noScoresTween = flux.to(no_scores_img, 0.5, { alpha = 0 }):ease("quadout")
 		else
-			self.noScoresTween = flux.to(self, 0.5, { noScoresAlpha = 1 }):ease("quadout")
+			self.noScoresTween = flux.to(no_scores_img, 0.5, { alpha = 1 }):ease("quadout")
 		end
 	end
 
 	local h = self.panelHeight
-	self.scrollLimit = math.max(0, (self.scoreCount - 8) * h)
-
-	self:build()
+	self.scores.scrollLimit = math.max(0, (self.scoreCount - 8) * h)
 end
 
 function ScoreListView:openScore(id)
 	self.game.selectModel:scrollScore(nil, id)
 	self.game.ui.selectView:result()
-end
-
-local gfx = love.graphics
-
-function ScoreListView:draw()
-	if self.noScoresAlpha then
-		local iw, ih = self.noScoresImage:getDimensions()
-		gfx.setColor(1, 1, 1, self.alpha * self.noScoresAlpha)
-		gfx.draw(self.noScoresImage, self.totalW / 2, self.totalH / 2, 0, 1, 1, iw / 2, ih / 2)
-	end
-
-	if self.scoreCount == 0 or not self.scoreCount then
-		return
-	end
-
-	local first = math_util.clamp(math.floor(self.scrollPosition / self.panelHeight), 0, self.scoreCount)
-
-	gfx.stencil(function ()
-		gfx.rectangle("fill", 0, -64, self.totalW, self.totalH + 64)
-	end, "replace", 1)
-
-	gfx.setStencilTest("greater", 0)
-
-	gfx.translate(0, -self.scrollPosition)
-	for i = first + 1, self.scoreCount do
-		local child = self.children[self.childrenOrder[i]]
-		if child.y > self.scrollPosition + self.panelHeight * 8 then
-			break
-		end
-		gfx.push()
-		gfx.applyTransform(child.transform)
-		child:draw()
-		gfx.pop()
-	end
-
-	gfx.setStencilTest()
 end
 
 return ScoreListView

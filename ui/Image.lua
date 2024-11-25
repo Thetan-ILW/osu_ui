@@ -8,9 +8,10 @@ function Image:load()
 	self:assert(self.image, "No image")
 
 	local iw, ih = self.image:getDimensions()
+
 	self.width = self.width ~= 0 and self.width or iw
 	self.height = self.height ~= 0 and self.width or ih
-	self.blockMouseFocus = true
+	self.blockMouseFocus = (self.blockMouseFocus == nil) and true or self.blockMouseFocus
 end
 
 ---@param image love.Image

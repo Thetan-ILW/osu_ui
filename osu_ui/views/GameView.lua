@@ -68,18 +68,17 @@ function GameView:load(view)
 			component.height = self.viewport.scaledHeight
 		end
 	}))
-	self.scene:addChild("background", ParallaxBackground({
-		mode = "single_image",
-		image = self.ui.assets:loadImage("gucci-welcome-background"),
-		z = 0
-		--mode = "background_model",
-		--backgroundModel = self.game.backgroundModel,
-	}))
 	self.scene:addChild("options", Options({
 		game = self.game,
 		assets = self.ui.assets,
 		localization = self.ui.localization,
+		alpha = 0,
 		z = 0.2,
+	}))
+	self.scene:addChild("background", ParallaxBackground({
+		mode = "background_model",
+		backgroundModel = self.game.backgroundModel,
+		z = 0,
 	}))
 
 	--[[

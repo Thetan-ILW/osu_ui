@@ -11,19 +11,22 @@ local GroupsContainer = ScrollAreaContainer + {}
 function GroupsContainer:load()
 	ScrollAreaContainer.load(self)
 	self:addChild("root", self.root)
-	self:build()
 end
 
-function GroupsContainer:update(dt, mouse_focus)
-	local new_mouse_focus = ScrollAreaContainer.update(self, dt, mouse_focus)
-
+function GroupsContainer:updateTree(state)
+	local current_h = 0
 	local max_h = 0
 	for _, v in pairs(self.children) do
-		max_h = math.max(max_h, v.y + v.totalH)
+		---@cast v osu.ui.WindowListView
+		current_h = math.max(current_h, v.y + v.height)
+		max_h = max_h + #v.items * v.panelHeight
 	end
-	self.totalH = max_h
-	self.hoverHeight = max_h
-	self.scrollLimit = max_h
+	self.height = current_h
+	self.scrollLimit = current_h
+
+	if self.scrollPosition > self.scrollLimit then
+		self.scrollLimit = max_h
+	end
 
 	if love.mouse.isDown(2) then
 		local scale = 768 / love.graphics.getHeight()
@@ -32,7 +35,17 @@ function GroupsContainer:update(dt, mouse_focus)
 		self:scrollToPosition(self.scrollLimit * y)
 	end
 
-	return new_mouse_focus
+	local add_x = math.abs(self.scrollVelocity) * 3
+	if add_x > 20 then
+		if self.children.charts then
+			self.children.charts.x = add_x
+		end
+		if self.children.root then
+			self.children.root.x = add_x
+		end
+	end
+
+	ScrollAreaContainer.updateTree(self, state)
 end
 
 return GroupsContainer
