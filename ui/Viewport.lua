@@ -152,7 +152,7 @@ function Viewport:drawTree()
 	love.graphics.applyTransform(self.innerTransform)
 	love.graphics.translate(love.graphics.inverseTransformPoint(0, 0))
 
-	love.graphics.setCanvas(self.canvas)
+	love.graphics.setCanvas({ self.canvas, stencil = true })
 	love.graphics.clear()
 	love.graphics.setColor(1, 1, 1)
 	for i = #self.childrenOrder, 1, -1 do

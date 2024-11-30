@@ -311,7 +311,8 @@ function View:load()
 		color = { 1, 1, 1, 0.5 },
 		z = 0.9,
 		value = function ()
-			return collection_library.tree.items[collection_library.root_tree.selected].name
+			local name = collection_library.tree.items[collection_library.root_tree.selected].name
+			return name == "/" and "All songs" or name
 		end
 	}))
 

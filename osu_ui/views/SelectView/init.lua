@@ -5,7 +5,7 @@ local flux = require("flux")
 
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 local View = require("osu_ui.views.SelectView.View")
-local ChartInfoShowcase = require("osu_ui.views.SelectView.ChartInfoShowcase")
+local GameplayTransition = require("osu_ui.views.SelectView.GameplayTransition")
 
 ---@class osu.ui.SelectView: osu.ui.ScreenView
 ---@operator call: osu.ui.SelectView
@@ -37,7 +37,7 @@ function SelectView:load()
 		self:notechartChanged()
 
 		scene:addChild("selectView", View({ selectView = self, z = 0.1 }))
-		scene:addChild("chartInfoShowcase", ChartInfoShowcase({
+		scene:addChild("gameplayTransition", GameplayTransition({
 			z = 0.7,
 			alpha = 0,
 			disabled = true,
@@ -47,9 +47,12 @@ function SelectView:load()
 	local cursor = viewport:getChild("cursor")
 	local view = scene:getChild("selectView")
 	local background = scene:getChild("background")
+	local transition = scene:getChild("gameplayTransition") ---@cast transition osu.ui.GameplayTransition
+
 	view.alpha = 0
 	view.disabled = false
 	self.locked = false
+	transition:hide()
 	flux.to(view, 0.7, { alpha = 1 }):ease("cubicout")
 	flux.to(cursor, 0.7, { alpha = 1 }):ease("cubicout")
 	flux.to(background, 0.5, { dim = 0.3, parallax = 0.01 }):ease("quadout")
@@ -133,7 +136,7 @@ function SelectView:play()
 	local view = scene:getChild("selectView")
 	local background = scene:getChild("background")
 	local cursor = viewport:getChild("cursor")
-	local showcase = scene:getChild("chartInfoShowcase") ---@cast showcase osu.ui.ChartInfoShowcase
+	local transition = scene:getChild("gameplayTransition") ---@cast transition osu.ui.GameplayTransition
 	local options = scene:getChild("options") ---@cast options osu.ui.OptionsView
 
 	self.locked = true
@@ -146,7 +149,7 @@ function SelectView:play()
 	flux.to(background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
 	options:fade(0)
 
-	showcase:show(
+	transition:show(
 		self.displayInfo.chartName,
 		("Length: %s Difficulty: %s"):format(self.displayInfo.length, self.displayInfo.difficulty),
 		self.game.backgroundModel.images[1]

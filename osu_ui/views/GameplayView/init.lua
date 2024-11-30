@@ -48,11 +48,11 @@ function GameplayView:load()
 	self.view = view
 
 	local background = scene:getChild("background")
-	local showcase = scene:getChild("chartInfoShowcase") ---@cast showcase osu.ui.ChartInfoShowcase
+	local transition = scene:getChild("gameplayTransition") ---@cast transition osu.ui.GameplayTransition
 	view.alpha = 0
 	flux.to(view, 0.5, { alpha = 1 }):ease("quadout")
 	flux.to(background, 1, { dim = 0.8 }):ease("quadout")
-	showcase:hide()
+	transition:hide(1)
 end
 
 function GameplayView:unload()

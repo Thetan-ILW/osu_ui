@@ -66,6 +66,12 @@ function GameView:load(view)
 		viewportResized = function(component)
 			component.width = self.viewport.scaledWidth
 			component.height = self.viewport.scaledHeight
+		end,
+		keyPressed = function(this, event)
+			local key = event[2]
+			if key == "f12" and not event[3] then
+				self.game.app.screenshotModel:capture(false)
+			end
 		end
 	}))
 	self.scene:addChild("options", Options({
