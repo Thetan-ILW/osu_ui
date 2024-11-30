@@ -52,10 +52,6 @@ function ImageButton:load()
 	self.hoverHeight = self.hoverHeight or self.height
 end
 
-function ImageButton:bindEvents()
-	self.parent:bindEvent(self, "mousePressed")
-end
-
 function ImageButton:justHovered()
 	self.playSound(self.hoverSound)
 end
@@ -74,13 +70,18 @@ function ImageButton:setMouseFocus(mx, my)
 	self.mouseOver = self.hoverState:checkMouseFocus(self.hoverWidth, self.hoverHeight, mx, my)
 end
 
+function ImageButton:noMouseFocus()
+	self.mouseOver = false
+	self.hoverState:loseFocus()
+end
+
 local gfx = love.graphics
 
 function ImageButton:drawAnimation()
 	local r, g, b, a = gfx.getColor()
 	local frame = 1 + math.floor((love.timer.getTime() * self.framerate) % self.frameCount)
 	local img = self.animationImage[frame]
-	local c = ui.lighten({ r, g, b }, a * self.hoverState.progress * 0.3)
+	local c = ui.lighten({ r, g, b, a }, self.hoverState.progress * 0.3)
 	gfx.setColor(c[1], c[2], c[3], c[4])
 	gfx.draw(img)
 end
@@ -94,7 +95,7 @@ function ImageButton:drawImage()
 		return
 	end
 
-	local c = ui.lighten({ r, g, b }, a * self.hoverState.progress * 0.3)
+	local c = ui.lighten({ r, g, b, a }, self.hoverState.progress * 0.3)
 	gfx.setColor(c[1], c[2], c[3], c[4])
 	gfx.draw(self.idleImage)
 end

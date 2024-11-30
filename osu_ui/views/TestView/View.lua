@@ -8,11 +8,17 @@ local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 local View = Component + {}
 
 function View:bindEvents()
-	self.parent:bindEvent(self, "viewportResized")
+	self:bindEvent("viewportResized")
+	self:bindEvent("wheelUp")
+end
+
+function View:wheelUp()
+	print("up!")
+	return true
 end
 
 function View:viewportResized()
-	self.children = {}
+	self:clearTree()
 	self:load()
 end
 

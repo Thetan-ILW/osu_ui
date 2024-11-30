@@ -37,6 +37,10 @@ function Options:fade(target_value)
 	end
 	self.fadeTween = flux.to(self, 0.5, { alpha = target_value }):ease("quadout")
 	self.state = target_value == 0 and "closed" or "open"
+
+	if target_value > 0 then
+		self.disabled = false
+	end
 end
 
 function Options:toggle()
@@ -52,7 +56,9 @@ end
 
 function Options:update(dt)
 	self.width = (self.panelWidth + self.tabsContrainerWidth) * self.alpha
-	self.canUpdateChildren = self.color[4] * self.alpha ~= 0
+	if self.alpha == 0 then
+		self.disabled = true
+	end
 end
 
 function Options:searchUpdated()
@@ -86,29 +92,6 @@ function Options:searchUpdated()
 	label:replaceText(self.searchFormat)
 end
 
-function Options:textInput(event)
-	if self.alpha < 0.1 then
-		return false
-	end
-
-	self.search = self.search .. event[1]
-	self:searchUpdated()
-	return true
-end
-
-function Options:keyPressed(event)
-	if self.alpha < 0.1 then
-		return false
-	end
-	if event[2] ~= "backspace" then
-		return false
-	end
-
-	self.search = text_input.removeChar(self.search)
-	self:searchUpdated()
-	return true
-end
-
 function Options:newSection(name, icon, build_function)
 	if Options.sections[name] then
 		return
@@ -122,14 +105,9 @@ function Options:newSection(name, icon, build_function)
 	table.insert(Options.sectionsOrder, name)
 end
 
-function Options:bindEvents()
-	self.parent:bindEvent(self, "viewportResized")
-	-- other events are at the bottom of the load
-end
-
 function Options:viewportResized()
 	self.prevScrollPosition = self:getScrollPosition()
-	self.children = {}
+	self:clearTree()
 	self:load()
 end
 
@@ -264,7 +242,6 @@ function Options:load()
 	if osu_cfg.graphics.blur then
 		local next_check = 0
 		self:addChild("blur", Blur({
-			image = viewport.canvas,
 			percent = 0.01,
 			z = 0,
 			update = function(this)
@@ -299,19 +276,38 @@ function Options:load()
 	}))
 	self.koolRectangleHoverTargetY = self.koolRectangle.y
 
-	self:addChild("optionEvents", Component({
-		bindEvents = function(this)
-			this:bindEvent(self, "textInput")
-			this:bindEvent(self, "keyPressed")
-		end,
-		z = 0
-	})) -- cuz they should be called last
-
-	self:build()
-
 	self.panel = panel
 	self.sectionSpacing = 0
 	self.tree = self:buildTree()
+
+	self:addChild("searchEvents", Component({
+		z = 0,
+		textInput = function(this, event)
+			if self.alpha < 0.1 then
+				return false
+			end
+
+			self.search = self.search .. event[1]
+			self:searchUpdated()
+			return true
+		end,
+		keyPressed = function(this, event)
+			if self.alpha < 0.1 then
+				return false
+			end
+			if event[2] == "escape" then
+				self:fade(0)
+				return true
+			end
+			if event[2] ~= "backspace" then
+				return false
+			end
+
+			self.search = text_input.removeChar(self.search)
+			self:searchUpdated()
+			return true
+		end
+	}))
 end
 
 function Options:getScrollPosition()

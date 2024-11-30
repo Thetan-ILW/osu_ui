@@ -1,15 +1,15 @@
-local UiElement = require("osu_ui.ui.UiElement")
+local Component = require("ui.Component")
 
----@alias ImageValueViewParams { files: {[string]: string}, overlap: number?, align?: "left" | "center" | "right",  oy: number?, format: string, multiplier: number }
+---@alias osu.ui.ImageValueViewParams { files: {[string]: string}, overlap: number?, align?: "left" | "center" | "right",  oy: number?, format: string, multiplier: number }
 
----@class osu.ui.ImageValueView : osu.ui.UiElement
----@overload fun(params: ImageValueViewParams): osu.ui.ImageValueView
+---@class osu.ui.ImageValueView : ui.Component
+---@overload fun(params: osu.ui.ImageValueViewParams): osu.ui.ImageValueView
 ---@field overlap number
 ---@field align AlignX
 ---@field format string
 ---@field multiplier number
 ---@field images love.Image[]
-local ImageValueView = UiElement + {}
+local ImageValueView = Component + {}
 
 function ImageValueView:load()
 	self.overlap = self.overlap or 0
@@ -30,14 +30,12 @@ function ImageValueView:load()
 			self.maxCharW = math.max(images[char]:getWidth(), self.maxCharW)
 		end
 	end
-
-	UiElement.load(self)
 end
 
 ---@param value table
 ---@return number
 ---@return number
-function ImageValueView:getDimensions(value)
+function ImageValueView:getSize(value)
 	local images = self.images
 	local overlap = self.overlap or 0
 
@@ -61,10 +59,7 @@ function ImageValueView:getDimensions(value)
 	return width, height
 end
 
-function ImageValueView:draw()
-	local images = self.images
-	local overlap = self.overlap or 0
-
+function ImageValueView:update()
 	local format = self.format
 	local value = self.value
 	if value then
@@ -80,30 +75,28 @@ function ImageValueView:draw()
 			value = format(value)
 		end
 	end
-	value = tostring(value)
+	self.displayValue = tostring(value)
 
-	local oy = self.origin.y
-	local align = self.align
-
-	local width, height = self:getDimensions(value)
+	local width, height = self:getSize(self.displayValue)
 	self.width = width
 	self.height = height
+end
+
+function ImageValueView:draw()
+	local images = self.images
+	local overlap = self.overlap or 0
 
 	local x = 0
-	if align == "center" then
-		x = x - width / 2
-	elseif align == "right" then
-		x = x - width
-	end
+	local value = self.displayValue
 	for i = 1, #value do
 		local char = value:sub(i, i)
 		local image = images[char]
 		if image then
 			if tonumber(char) then
-				love.graphics.draw(image, x + (self.maxCharW - image:getWidth()) / 2, (height * (1 - oy) - image:getHeight()), 0)
+				love.graphics.draw(image, x + (self.maxCharW - image:getWidth()) / 2)
 				x = x + (self.maxCharW - overlap)
 			else
-				love.graphics.draw(image, x, (height * (1 - oy) - image:getHeight()), 0)
+				love.graphics.draw(image, x)
 				x = x + (image:getWidth() - overlap)
 			end
 		end

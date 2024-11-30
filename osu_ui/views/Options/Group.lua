@@ -1,7 +1,7 @@
 local Component = require("ui.Component")
 local Rectangle = require("ui.Rectangle")
 local Label = require("ui.Label")
-local Slider= require("osu_ui.ui.Slider2")
+local Slider = require("osu_ui.ui.Slider")
 
 local TextBox = require("osu_ui.ui.TextBox")
 local Button = require("osu_ui.ui.Button")
@@ -60,8 +60,6 @@ function Group:load()
 		text = self.name,
 		font = fonts:loadFont("Bold", 16)
 	}))
-
-	self:build()
 end
 
 ---@return boolean
@@ -186,7 +184,7 @@ function Group:label(params)
 			end
 		end,
 		bindEvents = function(this)
-			self:bindEvent(this, "mouseClick")
+			self:bindEvent("mouseClick")
 		end,
 		mouseClick = function(this)
 			if params.onClick then
@@ -261,7 +259,7 @@ function Group:combo(params)
 		font = self.fonts:loadFont("Regular", 16),
 		items = params.items,
 		getValue = params.getValue,
-		setValue = params.onChange,
+		setValue = params.setValue,
 		format = params.format,
 		justHovered = function () end
 	}))

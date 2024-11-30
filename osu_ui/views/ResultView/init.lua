@@ -27,29 +27,29 @@ ResultView.load = thread.coro(function(self)
 		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
 	end
 
-	self.displayInfo = DisplayInfo(self)
+	self.displayInfo = self.displayInfo or DisplayInfo(self)
+	self.displayInfo:load()
 	self.scoreReveal = 0
 
 	local viewport = self.gameView.viewport
+	local scene = self.gameView.scene
 
-	if not viewport:getChild("resultView") then
-		viewport:addChild("resultView", View({ resultView = self, depth = 0.07 }))
-		viewport:build()
+	if self.transitionTween then
+		self.transitionTween:stop()
 	end
 
-	local view = viewport:getChild("resultView")
+	scene:removeChild("resultView")
+	local view = scene:addChild("resultView", View({ resultView = self, z = 0.07 }))
 	local cursor = viewport:getChild("cursor")
-	local background = viewport:getChild("background")
+	local background = scene:getChild("background")
 	view.alpha = 0
 	flux.to(view, 0.5, { alpha = 1 }):ease("quadout")
 	flux.to(cursor, 0.5, { alpha = 1 }):ease("quadout")
-	flux.to(background, 0.5, { dim = 0.3, parallax = 0.01 }):ease("quadout")
+	flux.to(background, 1, { dim = 0.3, parallax = 0.01 }):ease("quadout")
 
 	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
 
 	loading = false
-
-	actions.enable()
 end)
 
 ---@param dt number
@@ -61,7 +61,7 @@ function ResultView:update(dt)
 	local configs = self.game.configModel.configs
 	local graphics = configs.settings.graphics
 
-	self.assets:updateVolume(self.game.configModel)
+	self.assets:updateVolume(self.game.configModel.configs)
 end
 
 function ResultView:receive(event)
@@ -69,15 +69,17 @@ function ResultView:receive(event)
 		return
 	end
 
-	if event.name == "keypressed" then
-		self.inputMap:call("view")
-	end
-
 	if event.name == "mousepressed" then
 		if self.scoreRevealTween then
 			self.scoreRevealTween:stop()
 		end
 		self.scoreReveal = 1
+	end
+
+	if event.name == "keypressed" then
+		if event[2] == "escape" then
+			self:quit()
+		end
 	end
 end
 
@@ -87,9 +89,12 @@ function ResultView:submitScore()
 end
 
 function ResultView:quit()
-	local view = self.gameView.viewport:getChild("resultView")
+	local scene = self.gameView.scene
+	local view = scene:getChild("resultView")
 
-	flux.to(view, 0.4, { alpha = 0 }):ease("quadout")
+	self.transitionTween = flux.to(view, 0.4, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		scene:removeChild("resultView")
+	end)
 	self:changeScreen("selectView")
 end
 

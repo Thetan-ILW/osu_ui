@@ -53,13 +53,15 @@ end
 
 local gfx = love.graphics
 
-function ChartItem:drawChartPanel(panel_color, text_color)
+function ChartItem:drawChartPanel(pc, tc)
+	local r, g, b, a = gfx.getColor()
+
 	gfx.push()
-	gfx.setColor(panel_color)
+	gfx.setColor(pc[1], pc[2], pc[3], pc[4] * a)
 	gfx.draw(self.background, 0, self.height / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
 
 	local preview_icon_w = self.list.previewIcon and 115 or 0
-	gfx.setColor(text_color)
+	gfx.setColor(tc[1], tc[2], tc[3], tc[4] * a)
 	gfx.translate(20 + preview_icon_w, 5)
 	gfx.draw(self.maniaIcon)
 
@@ -89,7 +91,6 @@ function ChartItem:drawChartPanel(panel_color, text_color)
 
 		gfx.draw(star, 0, 0, 0, scale, scale, iw / 2, ih / 2)
 		gfx.translate(iw * 0.6, 0)
-		gfx.setColor(text_color)
 	end
 end
 

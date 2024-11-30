@@ -37,18 +37,19 @@ function SelectView:load()
 		self:notechartChanged()
 
 		scene:addChild("selectView", View({ selectView = self, z = 0.1 }))
-		--[[
-		viewport:addChild("chartInfoShowcase", ChartInfoShowcase({
-			assets = self.assets,
-			depth = 0.7,
+		scene:addChild("chartInfoShowcase", ChartInfoShowcase({
+			z = 0.7,
 			alpha = 0,
-		}))]]
+			disabled = true,
+		}))
 	end
 
 	local cursor = viewport:getChild("cursor")
 	local view = scene:getChild("selectView")
 	local background = scene:getChild("background")
 	view.alpha = 0
+	view.disabled = false
+	self.locked = false
 	flux.to(view, 0.7, { alpha = 1 }):ease("cubicout")
 	flux.to(cursor, 0.7, { alpha = 1 }):ease("cubicout")
 	flux.to(background, 0.5, { dim = 0.3, parallax = 0.01 }):ease("quadout")
@@ -126,16 +127,24 @@ function SelectView:play()
 		return
 	end
 
+	local scene = self.gameView.scene
 	local viewport = self.gameView.viewport
 
-
-	viewport:build()
-
-	local view = viewport:getChild("selectView")
+	local view = scene:getChild("selectView")
+	local background = scene:getChild("background")
 	local cursor = viewport:getChild("cursor")
-	local background = viewport:getChild("background")
-	local showcase = viewport:getChild("chartInfoShowcase")
-	---@cast showcase osu.ui.ChartInfoShowcase
+	local showcase = scene:getChild("chartInfoShowcase") ---@cast showcase osu.ui.ChartInfoShowcase
+	local options = scene:getChild("options") ---@cast options osu.ui.OptionsView
+
+	self.locked = true
+	flux.to(view, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		view.disabled = true
+		self:changeScreen("gameplayView")
+	end)
+
+	flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
+	flux.to(background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
+	options:fade(0)
 
 	showcase:show(
 		self.displayInfo.chartName,
@@ -143,35 +152,34 @@ function SelectView:play()
 		self.game.backgroundModel.images[1]
 	)
 
-	flux.to(view, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		self:changeScreen("gameplayView")
-	end)
-
-	flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
-	flux.to(background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
-	flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
-	flux.to(showcase, 0.45, { alpha = 1 }):ease("quadout")
 end
 
 function SelectView:edit()
 	if not self.game.selectModel:notechartExists() then
 		return
 	end
+	self.locked = true
 	self:changeScreen("editorView")
 end
 
 function SelectView:result()
-	if self.game.selectModel:isPlayed() then
-		local viewport = self.gameView.viewport
-		local view = viewport:getChild("selectView")
-		local cursor = viewport:getChild("cursor")
-		local background = viewport:getChild("background")
-		flux.to(view, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-			self:changeScreen("resultView")
-		end)
-		flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
-		flux.to(background, 0.5, { parallax = 0 }):ease("quadout")
+	if not self.game.selectModel:isPlayed() then
+		return
 	end
+	self.locked = true
+
+	local viewport = self.gameView.viewport
+	local scene = self.gameView.scene
+	local view = scene:getChild("selectView")
+	local cursor = viewport:getChild("cursor")
+	local background = scene:getChild("background")
+	local options = scene:getChild("options") ---@cast options osu.ui.OptionsView
+	flux.to(view, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		self:changeScreen("resultView")
+	end)
+	flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
+	flux.to(background, 0.5, { parallax = 0 }):ease("quadout")
+	options:fade(0)
 end
 
 function SelectView:changeTimeRate(delta)
@@ -210,11 +218,6 @@ end
 
 ---@param back_button_click boolean?
 function SelectView:quit(back_button_click)
-	if self.settingsView.state ~= "hidden" then
-		self.settingsView:processState("hide")
-		return
-	end
-
 	if self.search ~= "" then
 		local config = self.game.configModel.configs.select
 		self.search = ""

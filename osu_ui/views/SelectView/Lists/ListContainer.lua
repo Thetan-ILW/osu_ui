@@ -5,7 +5,7 @@ local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 ---@class osu.ui.ListContainer : osu.ui.ScrollAreaContainer
 ---@overload fun(params: ListContainerParams): osu.ui.ListContainer
 ---@field root osu.ui.WindowListView
----@field assets osu.ui.OsuAssets
+---@field selectView osu.ui.SelectView
 local GroupsContainer = ScrollAreaContainer + {}
 
 function GroupsContainer:load()
@@ -36,16 +36,20 @@ function GroupsContainer:updateTree(state)
 	end
 
 	local add_x = math.abs(self.scrollVelocity) * 3
-	if add_x > 20 then
+	if add_x > 30 then
 		if self.children.charts then
-			self.children.charts.x = add_x
+			self.children.charts.x = add_x - 30
 		end
 		if self.children.root then
-			self.children.root.x = add_x
+			self.children.root.x = add_x - 30
 		end
 	end
 
 	ScrollAreaContainer.updateTree(self, state)
+end
+
+function GroupsContainer:playChart()
+	self.selectView:play()
 end
 
 return GroupsContainer

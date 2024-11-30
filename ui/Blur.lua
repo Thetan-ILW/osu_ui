@@ -4,11 +4,13 @@ local GaussianBlurView = require("sphere.views.GaussianBlurView")
 local Blur = Component + {}
 
 function Blur:load()
-	self:assert(self.image, "You need to provide a canvas or an image")
 	self.percent = self.percent or 0.2
-	local w, h = math.ceil(self.image:getWidth() * self.percent), math.ceil(self.image:getHeight() * self.percent)
+	self.viewport = self:getViewport()
+	self.viewportScale = self.viewport:getInnerScale()
+
+	local image = self.image or self.viewport.canvas
+	local w, h = math.ceil(image:getWidth() * self.percent), math.ceil(image:getHeight() * self.percent)
 	self.lowResCanvas = love.graphics.newCanvas(w, h)
-	self.viewportScale = self:getViewport():getInnerScale()
 end
 
 function Blur:draw()
@@ -20,7 +22,7 @@ function Blur:draw()
 	love.graphics.setShader(self.shader)
 	love.graphics.setColor(1, 1, 1, 1)
 	GaussianBlurView:draw(3)
-	love.graphics.draw(self.image)
+	love.graphics.draw(self.image and self.image or self.viewport.canvas)
 	GaussianBlurView:draw(3)
 	love.graphics.pop()
 	love.graphics.scale(1 / self.percent)

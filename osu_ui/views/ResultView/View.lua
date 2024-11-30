@@ -1,4 +1,4 @@
-local CanvasContainer = require("osu_ui.ui.CanvasContainer")
+local Component = require("ui.Component")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 
 local math_util = require("math_util")
@@ -8,85 +8,91 @@ local Button = require("osu_ui.ui.Button")
 local BackButton = require("osu_ui.ui.BackButton")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
 
-local Rectangle = require("osu_ui.ui.Rectangle")
-local Image = require("osu_ui.ui.Image")
-local Label = require("osu_ui.ui.Label")
+local Rectangle = require("ui.Rectangle")
+local Image = require("ui.Image")
+local Label = require("ui.Label")
 local ScrollBar = require("osu_ui.ui.ScrollBar")
 
----@class osu.ui.ResultViewContainer : osu.ui.CanvasContainer
+---@class osu.ui.ResultViewContainer : ui.Component
 ---@operator call: osu.ui.ResultViewContainer
 ---@field resultView osu.ui.ResultView
-local View = CanvasContainer + {}
+local View = Component + {}
+
+function View:bindEvents()
+	self:bindEvent("viewportResized")
+end
+
+function View:viewportResized()
+	self:clearTree()
+	self:load()
+end
 
 function View:load()
-	local viewport = self.parent:getViewport()
-	self.totalW, self.totalH = viewport.screenW, viewport.screenH
+	self.width, self.height = self.parent:getDimensions()
 
-	CanvasContainer.load(self)
 	local result_view = self.resultView
 	local display_info = result_view.displayInfo
-	local assets = result_view.assets
+	local assets = self.shared.assets
+	local fonts = self.shared.fontManager
 
-	local width, height = self.parent.totalW, self.parent.totalH
+	local width, height = self.width, self.height
 
 	local area = self:addChild("scrollArea", ScrollAreaContainer({
 		scrollLimit = 768,
-		totalW = width,
-		totalH = height * 2
+		width = width,
+		height = height * 2
 	}))
 	---@cast area osu.ui.ScrollAreaContainer
 
 	self:addChild("scrollBar", ScrollBar({
 		x = width - 13, startY = 99,
-		totalW = 10,
+		width = 10,
 		container = area,
 		windowHeight = 768 - 96 - 6,
-		blockMouseFocus = false,
-		depth = 1,
+		z = 1,
 	}))
 
 	---- HEADER ----
 	self:addChild("headerBackground", Rectangle({
-		totalW = width,
-		totalH = 96,
+		width = width,
+		height = 96,
 		color = { 0, 0, 0, 0.8 },
-		blockMouseFocus = false,
-		depth = 0.9
+		z = 0.9
 	}))
 
 	self:addChild("chartName", Label( {
 		x = 5,
 		text = display_info.chartName,
-		font = assets:loadFont("Light", 30),
-		depth = 1,
+		font = fonts:loadFont("Light", 30),
+		z = 1,
 	}))
 
 	self:addChild("chartSource", Label({
 		x = 5, y = 33,
 		text = display_info.chartSource,
-		font = assets:loadFont("Regular", 22),
-		depth = 1,
+		font = fonts:loadFont("Regular", 22),
+		z = 1,
 	}))
 
 	self:addChild("playInfo", Label({
 		x = 5, y = 54,
 		text = display_info.playInfo,
-		font = assets:loadFont("Regular", 22),
-		depth = 1,
+		font = fonts:loadFont("Regular", 22),
+		z = 1,
 	}))
 
 	self:addChild("titleImage", Image({
 		x = width - 32,
 		origin = { x = 1, y = 0 },
 		image = assets:loadImage("ranking-title"),
-		depth = 0.98,
+		z = 0.98,
 	}))
 
 	---- PANEL ----
 	area:addChild("statsPanel", Image({
 		y = 102,
 		image = assets:loadImage("ranking-panel"),
-		depth = 0.5,
+		z = 0.5,
 	}))
 
 	local ppy = 1.6
@@ -120,9 +126,8 @@ function View:load()
 		scale = 1.3,
 		files = score_font,
 		overlap = overlap,
-		align = "center",
 		format = "%08d",
-		depth = 0.55,
+		z = 0.55,
 		value = function ()
 			return math.ceil(result_view.scoreReveal * display_info.score)
 		end
@@ -133,7 +138,7 @@ function View:load()
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.5,
 		image = assets:loadImage("mania-hit300g-0"),
-		depth = 0.54,
+		z = 0.54,
 	}))
 
 	area:addChild("marvelousCount", ImageValueView({
@@ -143,8 +148,7 @@ function View:load()
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
-		align = "left",
-		depth = 0.55,
+		z = 0.55,
 		value = function ()
 			return math.ceil(result_view.scoreReveal * display_info.marvelous)
 		end
@@ -155,7 +159,7 @@ function View:load()
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.5,
 		image = assets:loadImage("mania-hit300"),
-		depth = 0.54,
+		z = 0.54,
 	}))
 
 	area:addChild("perfectCount", ImageValueView({
@@ -165,8 +169,7 @@ function View:load()
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
-		align = "left",
-		depth = 0.55,
+		z = 0.55,
 		value = function ()
 			return math.ceil(result_view.scoreReveal * display_info.perfect)
 		end
@@ -178,7 +181,7 @@ function View:load()
 			origin = { x = 0.5, y = 0.5 },
 			scale = 0.5,
 			image = assets:loadImage("mania-hit200"),
-			depth = 0.54,
+			z = 0.54,
 		}))
 
 		area:addChild("greatCount", ImageValueView({
@@ -188,8 +191,7 @@ function View:load()
 			files = score_font,
 			overlap = overlap,
 			format = judge_format,
-			align = "left",
-			depth = 0.55,
+			z = 0.55,
 			value = function ()
 				return math.ceil(result_view.scoreReveal * display_info.great)
 			end
@@ -202,7 +204,7 @@ function View:load()
 			origin = { x = 0.5, y = 0.5 },
 			scale = 0.5,
 			image = assets:loadImage("mania-hit100"),
-			depth = 0.54,
+			z = 0.54,
 		}))
 
 		area:addChild("goodCount", ImageValueView({
@@ -212,8 +214,7 @@ function View:load()
 			files = score_font,
 			overlap = overlap,
 			format = judge_format,
-			align = "left",
-			depth = 0.55,
+			z = 0.55,
 			value = function ()
 				return math.ceil(result_view.scoreReveal * display_info.good)
 			end
@@ -226,7 +227,7 @@ function View:load()
 			origin = { x = 0.5, y = 0.5 },
 			scale = 0.5,
 			image = assets:loadImage("mania-hit50"),
-			depth = 0.54,
+			z = 0.54,
 		}))
 
 		area:addChild("badCount", ImageValueView({
@@ -235,8 +236,7 @@ function View:load()
 			files = score_font,
 			overlap = overlap,
 			format = judge_format,
-			align = "left",
-			depth = 0.55,
+			z = 0.55,
 			value = function ()
 				return math.ceil(result_view.scoreReveal * display_info.bad)
 			end
@@ -248,7 +248,7 @@ function View:load()
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.5,
 		image = assets:loadImage("mania-hit0"),
-		depth = 0.54,
+		z = 0.54,
 	}))
 
 	area:addChild("missCount", ImageValueView({
@@ -258,8 +258,7 @@ function View:load()
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
-		align = "left",
-		scale = 1.1,
+		z = 1.1,
 		value = function ()
 			return math.ceil(result_view.scoreReveal * display_info.miss)
 		end
@@ -272,8 +271,7 @@ function View:load()
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
-		align = "left",
-		depth = 0.55,
+		z = 0.55,
 		value = function ()
 			return math.ceil(result_view.scoreReveal * display_info.combo)
 		end
@@ -286,29 +284,28 @@ function View:load()
 		files = score_font,
 		overlap = overlap,
 		format = "%0.02f%%",
-		align = "left",
 		multiplier = 100,
-		depth = 0.55,
+		z = 0.55,
 		value = function ()
 			return result_view.scoreReveal * display_info.accuracy
 		end
 	}))
 
-	area:addChild("comboText", Image({ x = 8, y = 480, image = assets:loadImage("ranking-maxcombo"), depth = 0.54 }))
-	area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), depth = 0.54 }))
+	area:addChild("comboText", Image({ x = 8, y = 480, image = assets:loadImage("ranking-maxcombo"), z = 0.54 }))
+	area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), z = 0.54 }))
 
 	---- GRAPH ----
 	local score_system = result_view.game.rhythmModel.scoreEngine.scoreSystem
-	area:addChild("graph", Image({ x = 256, y = 608, image = assets:loadImage("ranking-graph"), depth = 0.5 }))
+	area:addChild("graph", Image({ x = 256, y = 608, image = assets:loadImage("ranking-graph"), z = 0.5 }))
 
 	if score_system.sequence then
 		area:addChild("hpGraph", HpGraph({
 			x = 265, y = 617,
-			totalW = 300,
-			totalH = 135,
+			width = 300,
+			height = 135,
 			points = score_system.sequence,
 			hpScoreSystem = score_system.hp,
-			depth = 0.55,
+			z = 0.55,
 		}))
 	end
 
@@ -317,11 +314,10 @@ function View:load()
 		x = width - 200, y = 320,
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage("ranking-background-overlay"),
-		depth = 0,
+		z = 0,
 	}))
 	function overlay:update(dt)
-		overlay.rotation = (overlay.rotation + love.timer.getDelta() * 0.5) % (math.pi * 2)
-		overlay:applyTransform()
+		overlay.angle = (overlay.angle + love.timer.getDelta() * 0.5) % (math.pi * 2)
 		Image.update(overlay, dt)
 	end
 
@@ -329,11 +325,10 @@ function View:load()
 		x = width - 192, y = 320,
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage(("ranking-%s"):format(display_info.grade)),
-		depth = 0.5,
+		z = 0.5,
 	}))
 	function grade:update(dt)
 		grade.scale = 1 + (1 - result_view.scoreReveal) * 0.2
-		grade:applyTransform()
 		Image.update(grade, dt)
 	end
 
@@ -341,11 +336,9 @@ function View:load()
 	area:addChild("retryButton", ImageButton({
 		x = width, y = 576,
 		origin = { x = 1, y = 0.5 },
-		hoverWidth = 380,
-		hoverHeight = 95,
 		idleImage = assets:loadImage("pause-retry"),
 		alpha = 0.5,
-		depth = 0.6,
+		z = 0.6,
 		onClick = function()
 			result_view:play("retry")
 		end
@@ -354,11 +347,9 @@ function View:load()
 	area:addChild("watchReplayButton", ImageButton({
 		x = width, y = 672,
 		origin = { x = 1, y = 0.5 },
-		hoverWidth = 380,
-		hoverHeight = 95,
 		idleImage = assets:loadImage("pause-replay"),
 		alpha = 0.5,
-		depth = 0.6,
+		z = 0.6,
 		onClick = function ()
 			result_view:play("replay")
 		end
@@ -369,7 +360,7 @@ function View:load()
 		x = width - 3, y = height + 1,
 		origin = { x = 1, y = 1 },
 		idleImage = assets:loadImage("overlay-show"),
-		depth = 0.4,
+		z = 0.4,
 		onClick = function ()
 			result_view.notificationView:show("Not implemented")
 		end
@@ -380,7 +371,7 @@ function View:load()
 		origin = { x = 1, y = 1 },
 		idleImage = assets:loadImage("overlay-online"),
 		alpha = 0.5,
-		depth = 0.4,
+		z = 0.4,
 		onClick = function ()
 			result_view.notificationView:show("Not implemented")
 		end
@@ -389,14 +380,11 @@ function View:load()
 	local online_ranking = area:addChild("onlineRanking", Button({
 		x = width / 2 - 160, y = height - 41.6,
 		text = "▼ Online Ranking ▼",
-		font = assets:loadFont("Regular", 32),
-		totalW = 320,
-		totalH = 48,
+		font = fonts:loadFont("Regular", 32),
+		width = 320,
+		height = 48,
 		color = { 0.46, 0.09, 0.8, 1 },
-		imageLeft = assets:loadImage("button-left"),
-		imageMiddle = assets:loadImage("button-middle"),
-		imageRight = assets:loadImage("button-right"),
-		depth = 0.95,
+		z = 0.95,
 		onClick = function ()
 			area:scrollToPosition(768, 0)
 		end
@@ -404,7 +392,7 @@ function View:load()
 	---@cast online_ranking osu.ui.Button
 	function online_ranking:update(dt)
 		local position = area.scrollPosition
-		local alpha = 1 - math_util.clamp((position / area.totalH * 16), 0, 1)
+		local alpha = 1 - math_util.clamp((position / area.height * 16), 0, 1)
 		self.alpha = alpha
 		return Button.update(self, dt)
 	end
@@ -412,18 +400,15 @@ function View:load()
 	area:addChild("backButton", BackButton({
 		y = height - 58,
 		assets = assets,
-		font = assets:loadFont("Regular", 20),
 		text = "back",
 		hoverWidth = 93,
 		hoverHeight = 58,
-		depth = 1,
+		z = 1,
 		onClick = function ()
 			result_view:quit()
 		end
 	}))
 
-	area:build()
-	self:build()
 	if true then
 		return
 	end

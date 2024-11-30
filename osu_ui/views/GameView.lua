@@ -2,7 +2,7 @@ local class = require("class")
 local path_util = require("path_util")
 
 local CursorView = require("osu_ui.views.CursorView")
-local NotificationView = require("osu_ui.views.NotificationView")
+--local NotificationView = require("osu_ui.views.NotificationView")
 local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
 
 local Component = require("ui.Component")
@@ -61,7 +61,7 @@ function GameView:load(view)
 		width = self.viewport.scaledWidth,
 		height = self.viewport.scaledHeight,
 		bindEvents = function(component)
-			component.parent:bindEvent(component, "viewportResized")
+			component:bindEvent("viewportResized")
 		end,
 		viewportResized = function(component)
 			component.width = self.viewport.scaledWidth
@@ -148,12 +148,13 @@ function GameView:receive(event)
 		return
 	end
 
+	self.view:receive(event)
+
 	if event.name == "framestarted" then
 		return
 	end
 
 	love.graphics.origin()
-	self.view:receive(event)
 	self.viewport:receive(event)
 end
 

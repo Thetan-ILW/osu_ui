@@ -169,11 +169,6 @@ function Combo:load()
 	self.expandSound = assets:loadAudio("select-expand")
 end
 
-function Combo:bindEvents()
-	self.parent:bindEvent(self, "loseFocus")
-	self.parent:bindEvent(self, "mousePressed")
-end
-
 function Combo:mousePressed()
 	if not self.mouseOver then
 		self:processState("close")

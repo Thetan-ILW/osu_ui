@@ -1,164 +1,156 @@
-local UiElement = require("osu_ui.ui.UiElement")
-local HoverState = require("osu_ui.ui.HoverState")
+local Component = require("ui.Component")
 
 local math_util = require("math_util")
-local ui = require("osu_ui.ui")
+local flux = require("flux")
 
----@class osu.ui.Slider_old : osu.ui.UiElement
----@operator call: osu.ui.Slider_old
----@field private label love.Text
----@field private sliderW number?
----@field private params { min: number, max: number, increment: number }
----@field private value number
----@field private dragging boolean
----@field private getValue fun(): number, { min: number, max: number, increment: number }
----@field private onChange fun(number)
----@field private format? fun(number): string
----@field private hoverState osu.ui.HoverState
----@field private lastMousePosition number
-local Slider = UiElement + {}
+---@class osu.ui.Slider : ui.Component
+---@operator call: osu.ui.Slider
+---@field min number
+---@field max number
+---@field step number
+---@field setValue fun(v: number)
+---@field getValue fun(): number
+local Slider = Component + {}
 
----@param assets osu.ui.OsuAssets
----@param params { label: string, font: love.Font, pixelWidth: number, pixelHeight: number, sliderPixelWidth: number?, defaultValue: number, tip: string? }
----@param get_value fun(): number
----@param on_change fun(number)
----@param format? fun(number): string
-function Slider:new(assets, params, get_value, on_change, format)
-	self.assets = assets
-	self.label = love.graphics.newText(params.font, params.label)
-	self.totalW = params.pixelWidth
-	self.totalH = params.pixelHeight
-	self.sliderW = params.sliderPixelWidth
-	self.defaultValue = params.defaultValue
-	self.tip = params.tip
+local radius = 8
+
+function Slider:load()
+	self.height = self.height or 37
 	self.dragging = false
-	self.getValue = get_value
-	self.onChange = on_change
-	self.format = format or function(v)
-		return ("%g"):format(v)
-	end
-	self.hoverState = HoverState("linear", 0)
-	self.lastMousePosition = 0
+	self.value = 0
+	self.target = 0
+
+	self.mouseOrigin = { x = 0, y = 0 }
+
+	self.circle = self:addChild("circle", Component({
+		y = self.height / 2,
+		width = radius * 2,
+		height = radius * 2,
+		origin = { x = 0.5, y = 0.5 },
+		color = { 0.89, 0.47, 0.56, 1 },
+		z = 1,
+		draw = function ()
+			love.graphics.setLineStyle("smooth")
+			love.graphics.setLineWidth(1)
+			love.graphics.circle("line", radius, radius, radius)
+		end
+	}))
+
+	self:addChild("line1", Component({
+		y = self.height / 2,
+		color = { 0.89, 0.47, 0.56, 1 },
+		draw = function ()
+			love.graphics.setLineStyle("rough")
+			love.graphics.setLineWidth(1)
+			love.graphics.line(0,0, math.max(0, self.circle.x-radius),0)
+		end
+	}))
+
+	self:addChild("line2", Component({
+		y = self.height / 2,
+		color = { 0.89, 0.47, 0.56, 0.6 },
+		draw = function ()
+			love.graphics.setLineStyle("rough")
+			love.graphics.setLineWidth(1)
+			love.graphics.line(math.min(self.width, self.circle.x+radius),0, self.width, 0)
+		end
+	}))
+
+	self.sliderBar = self.shared.assets:loadAudio("sliderbar")
 end
 
-local gfx = love.graphics
-local line_height = 1
-local head_radius = 8
-local text_indent = 15
-
-function Slider:getPosAndWidth()
-	if self.sliderW then
-		local w = self.sliderW
-		local x = self.totalW - w - 15
-		return x, w
+function Slider:mousePressed()
+	if self.mouseOver then
+		self.dragging = true
+		self.allowDrag = false
+		self.mouseOrigin.x = love.mouse.getX()
+		self.mouseOrigin.y = love.mouse.getY()
+		return true
 	end
-
-	local x = self.label:getWidth() * ui.getTextScale()
-	local w = self.totalW - x - 15
-
-	return x, w
+	return false
 end
 
-function Slider:playDragSound(percent)
-	local sound = self.assets.sounds.sliderBar
-	sound:setRate(1 + percent * 0.2)
-	ui.playSound(sound)
+function Slider:mouseReleased()
+	self.dragging = false
 end
 
-function Slider:update(has_focus)
-	self.value, self.params = self.getValue()
-
-	if self.defaultValue ~= nil then
-		self.valueChanged = self.defaultValue ~= self.value
+function Slider:keyPressed(event)
+	if not self.mouseOver then
+		return false
 	end
 
-	if not has_focus then
-		return
+	local key = event[2]
+	local direction = 0
+
+	if key == "left" then
+		direction = -1
+	elseif key == "right" then
+		direction = 1
+	else
+		return false
 	end
 
-	local _, just_hovered = 0, false
-	self.hover, _, just_hovered = self.hoverState:check(self.totalW, self.totalH, 0, 0, has_focus)
+	self.setValue(math_util.clamp(self.getValue() + direction * self.step, self.min, self.max))
+	self.playSound(self.sliderBar, 0.065)
+	return true
+end
 
-	if self.hover then
-		ui.tooltip = self.format(self.value)
+function Slider:mouseClick()
+	if self.mouseOver then
+		self.pleaseDragToX = love.mouse.getX()
+		return true
 	end
+	return false
+end
 
-	local x, w = self:getPosAndWidth()
+function Slider:drag(mx)
+	local imx, imy = love.graphics.inverseTransformPoint(mx, 0)
+	local p = math_util.clamp((imx - radius) / (self.width - radius * 2), 0, 1)
+	local target = math_util.round(p * (self.max - self.min) + self.min, self.step)
 
-	w = w - head_radius * 2
-	x = x + head_radius * 2
-
-	local over_slider = ui.isOver(w + 8, self.totalH, x - 4, 0)
-
-	if over_slider then
-		if ui.mousePressed(1) then
-			self.dragging = true
+	if self.target ~= target then
+		if self.tween then
+			self.tween:stop()
 		end
-		if ui.mousePressed(2) and self.defaultValue then
-			self.onChange(self.defaultValue)
-		end
-		if ui.keyPressed("left") then
-			local new = math.max(self.value - self.params.increment, self.params.min)
-			self.onChange(new)
-			local range = self.params.max - self.params.min
-			self:playDragSound(new / range)
-		elseif ui.keyPressed("right") then
-			local new = math.min(self.value + self.params.increment, self.params.max)
-			self.onChange(new)
-			local range = self.params.max - self.params.min
-			self:playDragSound(new / range)
-		end
+		self.tween = flux.to(self, 0.1, { value = target }):ease("quadout"):onupdate(function ()
+			self.setValue(self.value)
+			self.sliderBar:setRate(1 + ((self.value - self.min) / (self.max - self.min)) * 0.2)
+			self.playSound(self.sliderBar, 0.065)
+		end)
+		self.target = target
 	end
+end
 
-	if self.dragging then
-		local mx, _ = gfx.inverseTransformPoint(love.mouse.getPosition())
+function Slider:update()
+	if self.pleaseDragToX then
+		self:drag(self.pleaseDragToX)
+		self.pleaseDragToX = nil
+	elseif self.dragging then
+		local mx, my = love.mouse.getPosition()
 
-		if love.mouse.isDown(1) then
-			local range = self.params.max - self.params.min
-			local percent = (mx - x) / w
-			local value = math_util.clamp(self.params.min + percent * range, self.params.min, self.params.max)
+		local dx, dy = mx - self.mouseOrigin.x, my - self.mouseOrigin.y
+		local angle = math.atan2(dy, dx)
+		local epsilon = 0.5
 
-			if self.lastMousePosition ~= mx then
-				self.onChange(math_util.round(value, self.params.increment))
-				self.changeTime = -math.huge
-				self:playDragSound(percent)
-				self.lastMousePosition = mx
+		local adx = math.abs(dx)
+
+		if adx > 2 and not self.allowDrag then
+			if math.abs(angle) < epsilon or math.abs(math.pi - angle) < epsilon then
+				self.allowDrag = true
+				self:getViewport():receive( { name = "loseFocus" } )
 			end
-		else
-			self.dragging = false
+			if adx > 5 then
+				self.dragging = false
+			end
+		end
+
+		if self.allowDrag then
+			self:drag(mx)
 		end
 	end
 
-	if just_hovered then
-		ui.playSound(self.assets.sounds.hoverOverRect)
-	end
-end
-
-function Slider:draw()
-	gfx.setColor(1, 1, 1)
-	ui.textFrame(self.label, 0, 0, self.totalW, self.totalH, "left", "center")
-
-	local x, w = self:getPosAndWidth()
-
-	local r2 = head_radius * 2
-	local head_coordinate = (self.value - self.params.min) / (self.params.max - self.params.min)
-	local head_x = head_coordinate * (w - r2)
-
-	gfx.push()
-	gfx.translate(x + text_indent, self.totalH / 2 - line_height)
-
-	gfx.setLineWidth(1)
-	gfx.setColor(0.89, 0.47, 0.56)
-	gfx.line(0, 0, math.max(head_x - head_radius, 0), 0)
-	gfx.setColor(0.89, 0.47, 0.56, 0.6)
-	gfx.line(head_x + head_radius, 0, w - r2, 0)
-
-	gfx.setColor(0.89, 0.47, 0.56)
-	gfx.circle("line", head_x, 0, head_radius)
-
-	gfx.pop()
-
-	gfx.translate(0, self.totalH)
+	local p = (self.getValue() - self.min) / (self.max - self.min)
+	self.circle.x = radius + ((self.width - radius * 2) * p)
 end
 
 return Slider

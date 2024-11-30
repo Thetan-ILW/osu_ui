@@ -24,24 +24,30 @@ local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsLi
 ---@field selectView osu.ui.SelectView
 local View = CanvasComponent + {}
 
-function View:bindEvents()
-	self.parent:bindEvent(self, "viewportResized")
-	self.parent:bindEvent(self, "textInput")
-	self.parent:bindEvent(self, "keyPressed")
-end
-
 function View:viewportResized()
-	self.children = {}
+	self:clearTree()
 	self:load()
 end
 
 function View:textInput(event)
+	if self.selectView.locked then
+		return false
+	end
 	self.search = self.search .. event[1]
 	self:searchUpdated()
 	return true
 end
 
 function View:keyPressed(event)
+	if self.selectView.locked then
+		return false
+	end
+
+	if event[2] == "escape" then
+		self.search = ""
+		self:searchUpdated()
+		return true
+	end
 	if event[2] ~= "backspace" then
 		return false
 	end
@@ -62,7 +68,6 @@ function View:load()
 	self.width, self.height = self.parent:getDimensions()
 	self.stencil = true
 	self:createCanvas(self.width, self.height)
-
 
 	local shaders = require("osu_ui.ui.shaders")
 	self.shader = shaders.lighten
@@ -503,7 +508,7 @@ function View:load()
 		height = 35,
 		text = self.searchFormat,
 		font = fonts:loadFont("Bold", 18),
-		z = 1,
+		z = 0.3,
 	})) ---@cast search_label ui.Label
 	self.searchLabel = search_label
 	self:searchUpdated()
@@ -521,7 +526,7 @@ function View:load()
 		height = height,
 		root = root,
 		game = select_view.game,
-		assets = assets,
+		selectView = select_view,
 		z = 0,
 	}))
 	---@cast list osu.ui.ListContainer

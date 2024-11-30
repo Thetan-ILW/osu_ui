@@ -52,13 +52,6 @@ function TextBox:load()
 	self.inputLabel = input_label
 end
 
-function TextBox:bindEvents()
-	self.parent:bindEvent(self, "mouseClick")
-	self.parent:bindEvent(self, "keyPressed")
-	self.parent:bindEvent(self, "textInput")
-	self.parent:bindEvent(self, "loseFocus")
-end
-
 function TextBox:loseFocus()
 	self.focus = false
 end

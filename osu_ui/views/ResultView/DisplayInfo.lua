@@ -16,17 +16,18 @@ local DisplayInfo = class()
 ---@param result_view osu.ui.ResultView
 function DisplayInfo:new(result_view)
 	local game = result_view.game
-
 	self.game = game
 	self.resultView = result_view
 	self.configs = game.configModel.configs
+	self.text = result_view.localization.text
+end
 
+function DisplayInfo:load()
+	local game = self.game
 	self.chartview = game.selectModel.chartview
 	self.chartdiff = game.playContext.chartdiff
 	self.playContext = game.playContext
 	self.scoreItem = game.selectModel.scoreItem
-
-	self.text = result_view.localization.text
 
 	if self.chartview and self.chartdiff then
 		self:getDifficulty()

@@ -26,7 +26,6 @@ function DisplayInfo:load()
 	end
 end
 
-
 ---@param chartview table
 ---@return number
 local function getOD(chartview)
@@ -49,9 +48,9 @@ end
 function DisplayInfo:setChartInfoDefaults()
 	self.chartName = "No chart name - No chart name"
 	self.chartSource = "No chart source"
-	self.chartInfoFirstRow = "-"
-	self.chartInfoSecondRow = "-"
-	self.chartInfoThirdRow = "-"
+	self.chartInfoFirstRow = ""
+	self.chartInfoSecondRow = ""
+	self.chartInfoThirdRow = ""
 	self.length = "??:??"
 	self.difficulty = "??*"
 end

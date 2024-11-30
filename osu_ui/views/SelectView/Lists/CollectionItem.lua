@@ -74,12 +74,13 @@ function CollectionItem:draw()
 
 	local text_color = self.mixTwoColors(inactive_text, active_text, ct)
 
-	gfx.setColor(panel_color)
+	local r, g, b, a = gfx.getColor()
+	gfx.setColor(panel_color[1], panel_color[2], panel_color[3], a)
 	gfx.draw(self.background, 0, self.height / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
 
 	local font = self.titleFont
 	gfx.setFont(font.instance)
-	gfx.setColor(text_color)
+	gfx.setColor(text_color[1], text_color[2], text_color[3], a)
 	local text_scale = 1 / font.dpiScale
 	gfx.translate(30, self.height / 2 - (font:getHeight() * text_scale) / 2)
 	gfx.scale(text_scale)

@@ -166,7 +166,7 @@ function ScoreEntryView:load()
 end
 
 function ScoreEntryView:bindEvents()
-	self.parent:bindEvent(self, "mouseClick")
+	self:bindEvent("mouseClick")
 end
 
 function ScoreEntryView:mouseClick()

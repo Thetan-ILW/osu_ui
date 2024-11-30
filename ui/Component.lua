@@ -7,7 +7,6 @@ local EventHandler = require("ui.EventHandler")
 ---@field id string
 ---@field parent ui.Component
 ---@field children {[string]: ui.Component}
----@field eventListeners {[ui.ComponentEvent]: ui.Component[]}
 ---@field shared {[string]: any}
 local Component = class()
 
@@ -27,13 +26,12 @@ function Component:new(params)
 
 	self.children = {}
 	self.childrenOrder = {}
-	self.eventListeners = {}
+	self.boundEvents = {}
 	self.eventHandler = self.eventHandler or EventHandler()
 	self.shared = self.shared or {}
 
 	self.mouseOver = false
 	self.blockMouseFocus = self.blockMouseFocus or false
-	self.canUpdateChildren = true
 
 	self.z = self.z or 0.0
 	self.x = self.x or 0.0
@@ -51,6 +49,7 @@ function Component:new(params)
 	self:updateTransform()
 
 	self.deferBuild = false
+	self.disabled = false
 end
 
 function Component:load() end
@@ -69,11 +68,6 @@ function Component:noMouseFocus()
 	self.mouseOver = false
 end
 
----@return boolean
-function Component:isParentFocused()
-	return self.parent.mouseOver
-end
-
 ---@param state ui.FrameState
 function Component:updateChildren(state)
 	for _, id in ipairs(self.childrenOrder) do
@@ -88,6 +82,9 @@ end
 function Component:updateTree(state)
 	if self.deferBuild then
 		self:build()
+	end
+	if self.disabled then
+		return
 	end
 
 	self.transform:setTransformation(self.x, self.y, self.angle, self.scaleX, self.scaleY, self:getOrigin())
@@ -110,10 +107,7 @@ function Component:updateTree(state)
 	end
 
 	self:update(state.deltaTime)
-
-	if self.canUpdateChildren then
-		self:updateChildren(state)
-	end
+	self:updateChildren(state)
 end
 
 function Component:draw() end
@@ -150,7 +144,7 @@ end
 
 function Component:drawTree()
 	local r, g, b, a = self:mixColors()
-	if a <= 0 then
+	if a <= 0 or self.disabled then
 		return
 	end
 
@@ -192,6 +186,12 @@ function Component:removeChild(id)
 	self:build()
 end
 
+function Component:clearTree()
+	self.eventListeners = {}
+	self.children = {}
+	self.childrenOrder = {}
+end
+
 ---@param id string
 ---@return ui.Component?
 function Component:getChild(id)
@@ -208,15 +208,8 @@ function Component:renameChild(old_id, new_id)
 	self:build()
 end
 
----@param child ui.Component
----@param event ui.ComponentEvent
-function Component:bindEvent(child, event)
-	self.eventListeners[event] = self.eventListeners[event] or {}
-	table.insert(self.eventListeners[event], child)
-end
-
-function Component:bindEvents() end
-
+---@private
+--- DON'T EVEN THINK ABOUT CALLING IT MANUALLY
 function Component:build()
 	---@type ui.Component[]
 	local sorted = {}
@@ -229,12 +222,9 @@ function Component:build()
 	end)
 
 	self.childrenOrder = {}
-	self.eventListeners = {}
 	for _, child in ipairs(sorted) do
 		table.insert(self.childrenOrder, child.id)
-		child:bindEvents()
 	end
-
 	self.deferBuild = false
 end
 
@@ -268,42 +258,37 @@ end
 ---@param event_name ui.ComponentEvent
 ---@param event table
 function Component:callbackFirstChild(event_name, event)
-	if not self.eventListeners[event_name] then
+	if not self[event_name] then
 		return false
 	end
-	for _, child in ipairs(self.eventListeners[event_name]) do
-		local handled = child[event_name](child, event)
-		assert(handled ~= nil, ("%s %s event did not return a `handled` boolean"):format(child.id, event_name))
-		if handled then
-			return true
-		end
+	if self[event_name](self, event) then
+		return true
 	end
 	return false
 end
 
 function Component:callbackForEachChild(event_name, event)
-	if not self.eventListeners[event_name] then
+	if not self[event_name] then
 		return false
 	end
-	for _, child in pairs(self.eventListeners[event_name]) do
-		child[event_name](child, event)
-	end
+	self[event_name](self, event)
 	return false
 end
 
 ---@param event table
 ---@return boolean handled
 function Component:receive(event)
+	if self.disabled then
+		return false
+	end
+
 	local f = self.eventHandler[event.name]
+
 	if f then
 		local handled = f(self, event)
 		if handled then
 			return true
 		end
-	end
-
-	if not self.canUpdateChildren then
-		return false
 	end
 
 	for _, id in ipairs(self.childrenOrder) do

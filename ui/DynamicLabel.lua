@@ -42,8 +42,6 @@ function DynamicLabel:update()
 
 	local font = self.font
 	local fw, fh = font:getWidth(new_text), font:getHeight()
-	local text_scale = 1 / self.font.dpiScale
-	fw, fh = fw * text_scale, fh * text_scale
 	local w, h = self.initialWidth or fw, self.initialHeight or fh
 	self.width, self.height = w, h
 	self.hoverWidth, self.hoverHeight = w, h

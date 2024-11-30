@@ -131,7 +131,7 @@ function PlayerInfoView:load()
 end
 
 function PlayerInfoView:bindEvents()
-	self.parent:bindEvent(self, "mousePressed")
+	self:bindEvent("mousePressed")
 end
 
 function PlayerInfoView:mousePressed()

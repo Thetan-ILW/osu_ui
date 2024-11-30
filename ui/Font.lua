@@ -26,12 +26,12 @@ end
 ---@param text string
 ---@return number
 function Font:getWidth(text)
-	return self.instance:getWidth(text)
+	return self.instance:getWidth(text) * (1 / self.dpiScale)
 end
 
 ---@return number
 function Font:getHeight()
-	return self.instance:getHeight()
+	return self.instance:getHeight() * (1 / self.dpiScale)
 end
 
 

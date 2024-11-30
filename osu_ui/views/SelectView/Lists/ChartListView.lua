@@ -56,6 +56,9 @@ function ChartListView:getStateCounter()
 end
 
 function ChartListView:selectItem(child)
+	if self:getSelectedItemIndex() == child.visualIndex then
+		self.parent:playChart()
+	end
 	self.game.selectModel:scrollNoteChartSet(nil, child.visualIndex)
 	self.parent:scrollToPosition(self.y + self:getSelectedItemIndex() * self.panelHeight, 0)
 end
@@ -83,7 +86,8 @@ end
 function ChartListView:draw()
 	WindowListView.draw(self)
 	if self.particles and self.parentList and self.parentList.wrapProgress ~= 0 then
-		love.graphics.setColor(1, 1, 1, self.parentList.wrapProgress)
+		local r, g, b, a = love.graphics.getColor()
+		love.graphics.setColor(r, g, b, a * self.parentList.wrapProgress)
 		love.graphics.draw(self.particles)
 	end
 end

@@ -47,10 +47,6 @@ function Button:setMouseFocus(mx, my)
 	self.mouseOver = self.hoverState:checkMouseFocus(self.width, self.height, mx, my)
 end
 
-function Button:bindEvents()
-	self.parent:bindEvent(self, "mouseClick")
-end
-
 function Button:justHovered()
 	ui.playSound(self.hoverSound)
 end

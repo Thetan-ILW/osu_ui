@@ -31,10 +31,6 @@ function TabButton:load()
 	}))
 end
 
-function TabButton:bindEvents()
-	self.parent:bindEvent(self, "mousePressed")
-end
-
 function TabButton:justHovered()
 	self.playSound(self.hoverSound)
 end

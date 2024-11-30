@@ -47,6 +47,8 @@ function UserInterface:new(game, mount_path)
 
 	self.lastResolutionCheck = -math.huge
 	self.prevWindowResolution = 0
+
+	require("ui.Component_test")
 end
 
 function UserInterface:getMods()

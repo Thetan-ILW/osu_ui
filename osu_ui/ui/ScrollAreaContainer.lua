@@ -33,11 +33,11 @@ function ScrollAreaContainer:load()
 end
 
 function ScrollAreaContainer:bindEvents()
-	self.parent:bindEvent(self, "wheelUp")
-	self.parent:bindEvent(self, "wheelDown")
-	self.parent:bindEvent(self, "mousePressed")
-	self.parent:bindEvent(self, "mouseReleased")
-	self.parent:bindEvent(self, "loseFocus")
+	self:bindEvent("wheelUp")
+	self:bindEvent("wheelDown")
+	self:bindEvent("mousePressed")
+	self:bindEvent("mouseReleased")
+	self:bindEvent("loseFocus")
 end
 
 local function sign(v)

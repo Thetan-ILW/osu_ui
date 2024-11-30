@@ -1,14 +1,14 @@
-local UiElement = require("osu_ui.ui.UiElement")
+local Component = require("ui.Component")
 local flux = require("flux")
 
 local Label = require("osu_ui.ui.Label")
 
----@alias NotificationView { assets: osu.ui.OsuAssets }
+---@alias osu.ui.NotificationViewParams { assets: osu.ui.OsuAssets }
 
----@class osu.ui.NotificationView : osu.ui.UiElement
+---@class osu.ui.NotificationView : ui.Component
 ---@operator call: osu.ui.NotificationView
 ---@field assets osu.ui.OsuAssets
-local NotificationView = UiElement + {}
+local NotificationView = Component + {}
 
 function NotificationView:load()
 	self.totalW = self.totalW or self.parent.totalW

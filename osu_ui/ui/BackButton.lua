@@ -74,10 +74,6 @@ function BackButton:load()
 	}))
 end
 
-function BackButton:bindEvents()
-	self.parent:bindEvent(self, "mousePressed")
-end
-
 function BackButton:justHovered()
 	self.playSound(self.hoverSound)
 end

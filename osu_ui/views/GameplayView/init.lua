@@ -3,9 +3,7 @@ local SequenceView = require("sphere.views.SequenceView")
 
 local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
 
-local Playfield = require("osu_ui.views.GameplayView.Playfield")
-local PauseScreen = require("osu_ui.views.GameplayView.PauseScreen")
-local CanvasContainer = require("osu_ui.ui.CanvasContainer")
+local View = require("osu_ui.views.GameplayView.View")
 
 local flux = require("flux")
 local just = require("just")
@@ -23,12 +21,9 @@ function GameplayView:new(game)
 end
 
 function GameplayView:load()
-	actions.disable()
-
 	self.game.rhythmModel.observable:add(self.sequenceView)
 	self.game.gameplayController:load()
 
-	self.subscreen = ""
 	self.failed = false
 
 	local sequence_view = self.sequenceView
@@ -43,41 +38,21 @@ function GameplayView:load()
 	self.pauseAssets:load()
 	self.pauseAssets.shaders = self.ui.assets.shaders
 
-	local viewport = self.gameView.viewport
+	local scene = self.gameView.scene
 
-	if not viewport:getChild("gameplayView") then
-		local view = viewport:addChild("gameplayView", CanvasContainer({
-			totalW = viewport.screenW,
-			totalH = viewport.screenH,
-			depth = 0.05,
-		}))
-		---@cast view osu.ui.CanvasContainer
+	scene:removeChild("gameplayView")
+	local view = scene:addChild("gameplayView", View({
+		gameplayView = self,
+		z = 0.05,
+	})) ---@cast view osu.ui.GameplayViewContainer
+	self.view = view
 
-		view:addChild("view", Playfield({
-			configModel = self.game.configModel,
-			sequenceView = self.sequenceView,
-			depth = 0.1
-		}))
-
-		self.pauseScreen = view:addChild("pause", PauseScreen({
-			assets = self.pauseAssets,
-			gameplayController = self.game.gameplayController,
-			gameplayView = self,
-			alpha = 0,
-			depth = 0.2,
-		}))
-
-		view:build()
-		viewport:build()
-	end
-
-	local view = viewport:getChild("gameplayView")
-	local background = viewport:getChild("background")
-	local showcase = viewport:getChild("chartInfoShowcase")
+	local background = scene:getChild("background")
+	local showcase = scene:getChild("chartInfoShowcase") ---@cast showcase osu.ui.ChartInfoShowcase
 	view.alpha = 0
 	flux.to(view, 0.5, { alpha = 1 }):ease("quadout")
-	flux.to(background, 0.5, { dim = 0.8 }):ease("quadout")
-	flux.to(showcase, 0.3, { alpha = 0 }):delay(1):ease("quadout")
+	flux.to(background, 1, { dim = 0.8 }):ease("quadout")
+	showcase:hide()
 end
 
 function GameplayView:unload()
@@ -96,16 +71,8 @@ end
 function GameplayView:update(dt)
 	self.game.gameplayController:update(dt)
 
-	local state = self.game.pauseModel.state
-	if state == "play" then
-		self.subscreen = ""
-	elseif state == "pause" then
-		if self.subscreen == "" then
-			self.pauseScreen:show()
-		end
-		self.subscreen = "pause"
-		self.pauseAssets:updateVolume(self.game.configModel)
-	end
+	self.view:processGameState(self.game.pauseModel.state)
+	self.pauseAssets:updateVolume(self.game.configModel.configs)
 
 	if self.game.pauseModel.needRetry then
 		self.failed = false
@@ -142,7 +109,6 @@ function GameplayView:update(dt)
 		and self.game.rhythmModel.inputManager.mode ~= "internal"
 	then
 		self.game.gameplayController:pause()
-		--self.pauseScreen:show()
 	end
 
 	self.sequenceView:update(dt)
@@ -157,14 +123,16 @@ function GameplayView:receive(event)
 end
 
 function GameplayView:quit()
-	local view = self.gameView.viewport:getChild("gameplayView")
-	local background = self.gameView.viewport:getChild("background")
+	local scene = self.gameView.scene
+	local view = self.gameView.scene:getChild("gameplayView")
+	local background = self.gameView.scene:getChild("background")
 
 	if self.game.gameplayController:hasResult() then
 		flux.to(view, 0.25, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+			scene:removeChild("gameplayView")
 			self:changeScreen("resultView")
 		end)
-		flux.to(background, 0.25, { dim = 0.8, parallax = 0.01 }):ease("quadout")
+		flux.to(background, 1, { dim = 0.8, parallax = 0.01 }):ease("quadout")
 	elseif self.game.multiplayerModel.room then
 		flux.to(view, 0.25, { alpha = 0 }):ease("quadout")
 		self:changeScreen("multiplayerView")
@@ -172,8 +140,6 @@ function GameplayView:quit()
 		flux.to(view, 0.25, { alpha = 0 }):ease("quadout")
 		self:changeScreen("selectView")
 	end
-
-
 end
 
 function GameplayView:keypressed()
@@ -208,7 +174,6 @@ function GameplayView:keypressed()
 	elseif state == "pause" then
 		if kp(input.pause) and not shift then
 			gameplayController:changePlayState("play")
-			self.pauseScreen:hide()
 		elseif kp(input.pause) and shift then
 			self:quit()
 		elseif kp(input.quickRestart) then
@@ -216,7 +181,6 @@ function GameplayView:keypressed()
 		end
 	elseif state == "pause-play" and kp(input.pause) then
 		gameplayController:changePlayState("pause")
-		self.pauseScreen:show()
 	end
 end
 

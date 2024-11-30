@@ -55,10 +55,6 @@ function Checkbox:load()
 	self.checkOffSound = assets:loadAudio("check-off")
 end
 
-function Checkbox:bindEvents()
-	self.parent:bindEvent(self, "mouseClick")
-end
-
 function Checkbox:mouseClick()
 	if not self.mouseOver or self.disabled then
 		return false

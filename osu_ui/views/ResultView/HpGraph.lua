@@ -1,21 +1,21 @@
-local UiElement = require("osu_ui.ui.UiElement")
+local Component = require("ui.Component")
 
----@alias HpGraphParams { totalW: number, totalH: number, points: table, hpScoreSystem: table }
+---@alias HpGraphParams { points: table, hpScoreSystem: table }
 
----@class osu.ui.HpGraph : osu.ui.UiElement
+---@class osu.ui.HpGraph : ui.Component
 ---@overload fun(params: HpGraphParams): osu.ui.HpGraph
 ---@field points table
 ---@field hpScoreSystem table
-local HpGraph = UiElement + {}
+local HpGraph = Component + {}
 
 local colors = {
-	green = { 0.6, 0.8, 0.2 },
-	red = { 1, 0, 0 }
+	green = { 0.6, 0.8, 0.2, 1},
+	red = { 1, 0, 0, 1 }
 }
 
 function HpGraph:load()
-	local w = self.totalW
-	local h = self.totalH
+	local w = self.width
+	local h = self.height
 	local points = self.points
 	local hp_score_system = self.hpScoreSystem
 
@@ -70,8 +70,6 @@ function HpGraph:load()
 			})
 		end
 	end
-
-	UiElement.load(self)
 end
 
 local gfx = love.graphics
@@ -80,6 +78,10 @@ function HpGraph:draw()
 	gfx.setLineWidth(4)
 	gfx.setLineStyle("smooth")
 	gfx.setLineJoin("miter")
+
+	local r, g, b, a = gfx.getColor()
+	colors.green[4] = a
+	colors.red[4] = a
 
 	local first = self.lines[1]
 	gfx.setColor(colors[first.color])

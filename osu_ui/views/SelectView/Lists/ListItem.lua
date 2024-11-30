@@ -59,7 +59,7 @@ function ListItem:load()
 end
 
 function ListItem:bindEvents()
-	self.parent:bindEvent(self, "mouseClick")
+	self:bindEvent("mouseClick")
 end
 
 function ListItem:mouseClick(event)
@@ -175,7 +175,6 @@ end
 
 function ListItem:draw()
 	love.graphics.draw(self.background, 0, self.height / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
-	love.graphics.setColor(1, 1, 1, self.alpha)
 	love.graphics.print(self.id, 20, 20)
 end
 
