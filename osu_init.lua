@@ -4,6 +4,7 @@ local ui = require("osu_ui.ui")
 local AssetModel = require("osu_ui.models.AssetModel")
 local OsuAssets = require("osu_ui.OsuAssets")
 local Localization = require("osu_ui.models.AssetModel.Localization")
+local Shell = require("Shell")
 
 local GameView = require("osu_ui.views.GameView")
 local SelectView = require("osu_ui.views.SelectView")
@@ -27,6 +28,8 @@ local UserInterface = class()
 ---@param game sphere.GameController
 ---@param mount_path string
 function UserInterface:new(game, mount_path)
+	self.shell = Shell(self.game, self)
+
 	game.persistence:openAndReadThemeConfig("osu_ui", mount_path)
 	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
 	self.mountPath = mount_path
@@ -47,6 +50,7 @@ function UserInterface:new(game, mount_path)
 
 	self.lastResolutionCheck = -math.huge
 	self.prevWindowResolution = 0
+
 
 	require("ui.Component_test")
 end

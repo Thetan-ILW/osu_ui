@@ -64,7 +64,7 @@ end
 ---@param text string | table
 function Label:replaceText(text)
 	if self.initialWidth then
-		local _, wrapped_text = self.font.instance:getWrap(text, self.initialWidth)
+		local _, wrapped_text = self.font.instance:getWrap(text, self.initialWidth / (1 / self.font.dpiScale))
 		self.text = table.concat(wrapped_text, "\n")
 	else
 		self.text = text

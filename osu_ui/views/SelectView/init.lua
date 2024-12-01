@@ -125,9 +125,9 @@ function SelectView:play()
 	local binds = self.game.configModel.configs.input[mode]
 
 	if shouldBindKeys(mode, binds) then
-		self:openModal("osu_ui.views.modals.Inputs")
-		self.popupView:add("You need to bind keys first.", "purple")
-		return
+		--self:openModal("osu_ui.views.modals.Inputs")
+		--self.popupView:add("You need to bind keys first.", "purple")
+		--return
 	end
 
 	local scene = self.gameView.scene

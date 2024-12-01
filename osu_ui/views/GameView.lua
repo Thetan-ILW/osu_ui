@@ -1,5 +1,6 @@
 local class = require("class")
 local path_util = require("path_util")
+local TermEmuView = require("osu_ui.views.TermEmuView")
 
 local CursorView = require("osu_ui.views.CursorView")
 --local NotificationView = require("osu_ui.views.NotificationView")
@@ -28,7 +29,8 @@ function GameView:load(view)
 		["Regular"] = "osu_ui/assets/ui_font/Aller/Aller_Rg.ttf",
 		["Light"] = "osu_ui/assets/ui_font/Aller/Aller_Lt.ttf",
 		["Bold"] = "osu_ui/assets/ui_font/Aller/Aller_Bd.ttf",
-		["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf"
+		["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf",
+		["NotoSansMono"] = "osu_ui/assets/ui_font/NotoSansMono-Regular.ttf"
 	}
 	local fallbacks = {
 		["Regular"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Regular.ttf",
@@ -85,6 +87,13 @@ function GameView:load(view)
 		mode = "background_model",
 		backgroundModel = self.game.backgroundModel,
 		z = 0,
+	}))
+
+	self.scene:addChild("terminalEmulator", TermEmuView({
+		x = self.scene.width / 2 - 500 / 2, y = self.scene.height / 2 - 400 / 2,
+		width = 500, height = 400,
+		shell = self.ui.shell,
+		z = 1,
 	}))
 
 	--[[
