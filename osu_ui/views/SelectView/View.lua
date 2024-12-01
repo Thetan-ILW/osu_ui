@@ -568,6 +568,11 @@ function View:update()
 	self.shader:send("amount", 0.05 * (1 - easing.linear(self.selectView.notechartChangeTime, 0.5)))
 end
 
+function View:draw()
+	love.graphics.setShader(self.shader)
+	CanvasComponent.draw(self)
+end
+
 ---@alias TabNames "noGrouping" | "byDifficulty" | "byArtist" | "recentlyPlayed" | "collections"
 ---@param selected TabNames  
 function View:selectTab(selected)

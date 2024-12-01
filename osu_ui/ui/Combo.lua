@@ -81,9 +81,6 @@ function Combo:load()
 		rounding = 4,
 		blockMouseFocus = true,
 		hoverState = HoverState("quadout", 0.12),
-		bindEvents = function(this)
-			self:bindEvent(this, "mouseClick")
-		end,
 		setMouseFocus = function(this, mx, my)
 			this.mouseOver = this.hoverState:checkMouseFocus(this.width, this.height, mx, my)
 		end,
@@ -114,6 +111,7 @@ function Combo:load()
 		width = self.width,
 		alpha = 0,
 		z = 0,
+		disabled = true,
 	}))
 
 	for i, v in ipairs(self.items) do
@@ -130,9 +128,6 @@ function Combo:load()
 			rounding = 4,
 			color = black,
 			blockMouseFocus = true,
-			bindEvents = function(this)
-				self:bindEvent(this, "mouseClick")
-			end,
 			update = function(this)
 				this.color = (this.mouseOver and self.state ~= "fade_out") and self.hoverColor or black
 			end,
@@ -204,6 +199,7 @@ function Combo:processState(event)
 
 	if state == "hidden" then
 		if event == "open" then
+			self.children.items.disabled = false
 			self:open()
 		end
 	elseif state == "fade_in" then
@@ -220,6 +216,7 @@ function Combo:processState(event)
 	elseif state == "fade_out" then
 		if self.visibility == 0 then
 			self.state = "hidden"
+			self.children.items.disabled = true
 		end
 		if event == "open" then
 			self:open()
@@ -245,15 +242,7 @@ function Combo:loseFocus()
 end
 
 function Combo:mouseClick()
-	if self.mouseOver then
-		if self.state == "open" or self.state == "fade_in" then
-			self:processState("close")
-			return true
-		end
-		self:getViewport():receive({ name = "loseFocus" })
-		self:processState("toggle")
-		return true
-	elseif not self.mouseOver and (self.state == "open" or self.state == "fade_in") then
+	if not self.mouseOver and (self.state == "open" or self.state == "fade_in") then
 		self:processState("close")
 		return false
 	end
@@ -269,7 +258,6 @@ function Combo:update()
 	local items_container = self.children.items
 	items_container.alpha = self.visibility
 	items_container.height = height
-	items_container.canUpdateChildren = self.state ~= "hidden"
 end
 
 return Combo

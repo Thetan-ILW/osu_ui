@@ -49,7 +49,7 @@ function Component:new(params)
 	self:updateTransform()
 
 	self.deferBuild = false
-	self.disabled = false
+	self.disabled = self.disabled or false
 end
 
 function Component:load() end
