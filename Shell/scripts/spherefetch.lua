@@ -7,21 +7,7 @@ local SphereFetch = IScript + {}
 SphereFetch.command = "spherefetch"
 SphereFetch.description = "Show game and system info"
 
----@param shell gucci.Shell
-function SphereFetch:execute(shell)
-	local ui = shell.ui
-
-	local sys = love.system.getOS()
-	local ver = version.commit:sub(1, 6)
-
-	local pkg_manager = shell.game.packageManager
-	local pkgs = 0
-	for k, v in pairs(pkg_manager) do
-		pkgs = pkgs + 1
-	end
-
-	if ui.gucci then
-		return ([[
+local gucci = [[
            @@@@             Game: gucci!mania
       @@@........@@@        Theme: osu!
     @@..............@@      OS: %s
@@ -35,11 +21,10 @@ function SphereFetch:execute(shell)
    @..................@   
     @@..............@@    
       @@@........@@@      
-           @@@@           
-]]):format(sys, ver, pkgs)
-	end
+           @@@@         
+]]
 
-	return ([[
+local soundsphere = [[
          ***###           Game: soundsphere
      *******#######       Theme: osu!
    *********#########     OS: %s
@@ -53,7 +38,22 @@ function SphereFetch:execute(shell)
    ###########******+   
      *######******+=    
         +++++++==       
-]]):format(sys, ver, pkgs)
+]]
+
+function SphereFetch:execute()
+	local ui = self.shell.ui
+	local sys = love.system.getOS()
+	local ver = version.commit:sub(1, 6)
+
+	local pkg_manager = self.shell.game.packageManager
+	local pkgs = 0
+	for _, _ in pairs(pkg_manager) do
+		pkgs = pkgs + 1
+	end
+
+	local text = ui.gucci and gucci or soundsphere
+	text = text:format(sys, ver, pkgs)
+	self.shell:print(text)
 end
 
 return SphereFetch

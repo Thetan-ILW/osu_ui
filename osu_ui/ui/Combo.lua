@@ -84,6 +84,10 @@ function Combo:load()
 		setMouseFocus = function(this, mx, my)
 			this.mouseOver = this.hoverState:checkMouseFocus(this.width, this.height, mx, my)
 		end,
+		noMouseFocus = function(this)
+			this.hoverState:loseFocus()
+			this.mouseOver = false
+		end,
 		update = function(this)
 			local h_color = self.hoverColor
 			this.color[1] = h_color[1] * this.hoverState.progress

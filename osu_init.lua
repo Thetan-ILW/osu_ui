@@ -28,7 +28,7 @@ local UserInterface = class()
 ---@param game sphere.GameController
 ---@param mount_path string
 function UserInterface:new(game, mount_path)
-	self.shell = Shell(self.game, self)
+	self.shell = Shell(game, self)
 
 	game.persistence:openAndReadThemeConfig("osu_ui", mount_path)
 	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
@@ -50,7 +50,6 @@ function UserInterface:new(game, mount_path)
 
 	self.lastResolutionCheck = -math.huge
 	self.prevWindowResolution = 0
-
 
 	require("ui.Component_test")
 end

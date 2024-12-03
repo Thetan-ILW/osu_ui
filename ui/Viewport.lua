@@ -1,5 +1,4 @@
 local Component = require("ui.Component")
-local EventHandler = require("ui.EventHandler")
 
 local flux = require("flux")
 
@@ -13,23 +12,6 @@ local Viewport = Component + {}
 
 ---@param params { targetHeight: number }
 function Viewport:new(params)
-	self.eventHandler = EventHandler()
-	self.eventHandler.mousepressed = function(component, event)
-		self.mouseKeyDown = event[3]
-		self.mouseLastX, self.mouseLastY = love.mouse.getPosition()
-		self.mouseTotalMovement = 0
-		local handled = component:callbackFirstChild("mousePressed", event)
-		return handled
-	end
-	self.eventHandler.mousereleased = function(component, event)
-		local handled = component:callbackForEachChild("mouseReleased", event)
-		if self.mouseTotalMovement < 6 and self.mouseKeyDown == event[3] then
-			self:receive({ name = "mouseClick", key = event[3] })
-		end
-		self.mouseKeyDown = 0
-		return handled
-	end
-
 	Component.new(self, params)
 	self.id = self.id or "root"
 	self.resizeTime = 0
@@ -167,6 +149,24 @@ function Viewport:drawTree()
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setColor(self.color)
 	self:draw()
+end
+
+function Viewport:receive(event)
+	if event.name == "mousepressed" then
+		self.mouseKeyDown = event[3]
+		self.mouseLastX, self.mouseLastY = love.mouse.getPosition()
+		self.mouseTotalMovement = 0
+	elseif event.name == "mousereleased" then
+		if self.mouseTotalMovement < 6 and self.mouseKeyDown == event[3] then
+			Component.receive(self, { name = "mouseClick", key = event[3] })
+		end
+		self.mouseKeyDown = 0
+	elseif event.name == "wheelmoved" then
+		Component.receive(self, { name = event[2] == 1 and "wheelUp" or "wheelDown" })
+		return
+	end
+
+	Component.receive(self, event)
 end
 
 ---@return ui.Viewport

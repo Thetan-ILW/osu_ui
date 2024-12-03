@@ -4,6 +4,7 @@ local math_util = require("math_util")
 ---@class gucci.Shell
 ---@operator call: gucci.Shell
 ---@field scripts gucci.IShellScript
+---@field process gucci.IShellScript?
 local Shell = class()
 
 Shell.scripts = {
@@ -11,6 +12,13 @@ Shell.scripts = {
 	require("Shell.scripts.spherefetch"),
 	require("Shell.scripts.mod"),
 	require("Shell.scripts.diag")
+}
+
+Shell.colors = {
+	white = {love.math.colorFromBytes(239, 241, 245)},
+	blue = {love.math.colorFromBytes(30, 102, 245)},
+	red = {love.math.colorFromBytes(210, 15, 57)},
+	green = {love.math.colorFromBytes(64, 160, 43)}
 }
 
 ---@param game sphere.GameController
@@ -25,10 +33,13 @@ function Shell:new(game, ui)
 		self.installedScripts[v.command] = v
 	end
 
-	self.buffer = ""
+	self.buffer = {}
 	self.history = {}
 	self.historyIndex = 0
 	self.stateCounter = 0
+
+	self.charsWidth = 0
+	self.charsHeight = 0
 
 	local base_print = print
 	print = function(...)
@@ -43,14 +54,20 @@ function Shell:new(game, ui)
 			str = tostring(...)
 		end
 
-		self:appendToBuffer(str .. "\n")
+		self:appendToBuffer({ Shell.colors.white, str .. "\n" })
 	end
 end
 
----@param str string
-function Shell:appendToBuffer(str)
-	self.buffer = self.buffer .. str
+---@param t table
+function Shell:appendToBuffer(t)
+	for _, v in ipairs(t) do
+		table.insert(self.buffer, v)
+	end
 	self.stateCounter = self.stateCounter + 1
+end
+
+function Shell:print(text)
+	self:appendToBuffer({ Shell.colors.white, text })
 end
 
 ---@param delta number
@@ -66,30 +83,56 @@ end
 
 ---@param command string
 function Shell:execute(command)
-	self:appendToBuffer(("$ %s\n"):format(command))
-	table.insert(self.history, command)
-	self.historyIndex = #self.history + 1
-
 	if command == "" then
 		return
 	end
 
 	if command == "clear" then
-		self.buffer = ""
+		self.buffer = {}
 		self.stateCounter = self.stateCounter + 1
 		return
 	end
 
 	local split = command:trim():split(" ")
-
 	local script = self.installedScripts[split[1]]
+
+	local input_fmt = { script and Shell.colors.green or Shell.colors.red, ("$ %s "):format(split[1]) }
+
+	if #split > 1 then
+		table.insert(input_fmt, Shell.colors.white)
+		for i = 2, #split do
+			table.insert(input_fmt, split[i] .. " ")
+		end
+	end
+
+	input_fmt[#input_fmt] = input_fmt[#input_fmt] .. "\n"
+	self:appendToBuffer(input_fmt)
+
 	if script then
-		local output = script:execute(self, split)
-		self:appendToBuffer(output)
+		table.insert(self.history, command)
+		self.historyIndex = #self.history + 1
+
+		script.shell = self
+		local success, err = pcall(script.execute, script, split)
+		if not success then
+			self:appendToBuffer({ Shell.colors.red, err .. "\n"})
+		end
 		return
 	end
 
-	return self:appendToBuffer(("Shell: %s: command not found.\n"):format(split[1]))
+	self:print(("Shell: %s: command not found.\n"):format(split[1]))
+end
+
+function Shell:update(dt)
+	if self.process then
+		self.process:update(dt)
+	end
+end
+
+function Shell:receive(event)
+	if self.process then
+		self.process:receive(event)
+	end
 end
 
 return Shell

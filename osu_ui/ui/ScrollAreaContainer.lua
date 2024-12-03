@@ -219,7 +219,7 @@ end
 
 function ScrollAreaContainer:mouseReleased(event)
 	if event[3] == 2 then
-		return false
+		return
 	end
 
 	if self.isDragging then
@@ -230,7 +230,6 @@ function ScrollAreaContainer:mouseReleased(event)
 	end
 
 	self.isDragging = false
-	return true
 end
 
 return ScrollAreaContainer

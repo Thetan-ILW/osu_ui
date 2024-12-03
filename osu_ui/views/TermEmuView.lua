@@ -103,16 +103,28 @@ function TermEmuView:load()
 	})) ---@cast area osu.ui.ScrollAreaContainer
 	self.area = area
 
+	self.font = fonts:loadFont("NotoSansMono", 14)
+	local input_label = self.area:addChild("input", Label({
+		x = 3, y = 0,
+		width = output_width,
+		text = "",
+		color = {love.math.colorFromBytes(244, 238, 224)},
+		font = self.font,
+		z = 0.5,
+	})) ---@cast input_label ui.Label
+	self.inputLabel = input_label
+
 	local buf_label = self.area:addChild("buffer", Label({
 		x = 3, y = 3,
 		width = output_width,
 		text = "",
 		color = {love.math.colorFromBytes(244, 238, 224)},
-		font = fonts:loadFont("NotoSansMono", 14),
+		font = self.font,
 		z = 0.5,
 	})) ---@cast buf_label ui.Label
 	self.bufferLabel = buf_label
 	self:updateBuffer()
+	self:updateInput()
 end
 
 function TermEmuView:update()
@@ -130,36 +142,40 @@ function TermEmuView:update()
 end
 
 function TermEmuView:updateBuffer()
-	self.bufferLabel:replaceText(
-		("%s$ %s"):format(self.shell.buffer, self.input)
-	)
+	self.bufferLabel:replaceText(self.shell.buffer)
 	self.area.scrollLimit = math.max(0, self.bufferLabel:getHeight() + 5 - self.area.height)
 	self.area:scrollToPosition(self.area.scrollLimit, 0)
+	self.inputLabel.y = math.max(0, self.bufferLabel.height - self.font:getHeight()) + 3
+end
+
+function TermEmuView:updateInput()
+	self.inputLabel:replaceText(("$ %s"):format(self.input))
 end
 
 function TermEmuView:keyPressed(event)
-	if self.open then
+	if self.open and not self.shell.process then
 		if event[2] == "backspace" then
 			self.input = text_input.removeChar(self.input)
-			self:updateBuffer()
+			self:updateInput()
 			return true
 		end
 
 		if event[2] == "return" then
 			self.shell:execute(self.input)
 			self.input = ""
+			self:updateInput()
 			return true
 		end
 
 		if event[2] == "up" then
 			self.input = self.shell:scrollHistory(-1)
-			self:updateBuffer()
+			self:updateInput()
 			return true
 		end
 
 		if event[2] == "down" then
 			self.input = self.shell:scrollHistory(1)
-			self:updateBuffer()
+			self:updateInput()
 			return true
 		end
 	end
@@ -186,11 +202,11 @@ function TermEmuView:keyPressed(event)
 end
 
 function TermEmuView:textInput(event)
-	if not self.open then
+	if not self.open or self.shell.process then
 		return false
 	end
 	self.input = self.input .. event[1]
-	self:updateBuffer()
+	self:updateInput()
 	return true
 end
 

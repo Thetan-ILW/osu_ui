@@ -1,7 +1,5 @@
 local class = require("class")
 
-local EventHandler = require("ui.EventHandler")
-
 ---@class ui.Component
 ---@operator call: ui.Component
 ---@field id string
@@ -26,8 +24,6 @@ function Component:new(params)
 
 	self.children = {}
 	self.childrenOrder = {}
-	self.boundEvents = {}
-	self.eventHandler = self.eventHandler or EventHandler()
 	self.shared = self.shared or {}
 
 	self.mouseOver = false
@@ -255,46 +251,32 @@ function Component:assert(thing, message)
 	end
 end
 
----@param event_name ui.ComponentEvent
----@param event table
-function Component:callbackFirstChild(event_name, event)
-	if not self[event_name] then
-		return false
-	end
-	if self[event_name](self, event) then
-		return true
-	end
-	return false
-end
-
-function Component:callbackForEachChild(event_name, event)
-	if not self[event_name] then
-		return false
-	end
-	self[event_name](self, event)
-	return false
-end
+Component.eventAlias = {
+	mousepressed = "mousePressed",
+	mousereleased = "mouseReleased",
+	keypressed = "keyPressed",
+	keyreleased = "keyReleased",
+	textinput = "textInput"
+}
 
 ---@param event table
----@return boolean handled
+---@return boolean blocked
 function Component:receive(event)
 	if self.disabled then
 		return false
 	end
 
-	local f = self.eventHandler[event.name]
-
-	if f then
-		local handled = f(self, event)
-		if handled then
+	local event_name = self.eventAlias[event.name] or event.name
+	if self[event_name] then
+		if self[event_name](self, event) then
 			return true
 		end
 	end
 
 	for _, id in ipairs(self.childrenOrder) do
 		local child = self.children[id]
-		local handled = child:receive(event)
-		if handled then
+		local blocked = child:receive(event)
+		if blocked then
 			return true
 		end
 	end

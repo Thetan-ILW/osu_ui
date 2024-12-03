@@ -5,13 +5,12 @@ local Help = IShellScript + {}
 Help.command = "help"
 Help.description = "Print this info"
 
----@param shell gucci.Shell
-function Help:execute(shell)
+function Help:execute()
 	local str = "Available commands:\n"
-	for i, v in ipairs(shell.scripts) do
+	for i, v in ipairs(self.shell.scripts) do
 		str = ("%s  %s - %s\n"):format(str, v.command, v.description)
 	end
-	return str
+	self.shell:print(str)
 end
 
 return Help
