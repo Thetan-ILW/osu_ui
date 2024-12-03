@@ -3,6 +3,7 @@ local StencilComponent = require("ui.StencilComponent")
 local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
 local Rectangle = require("ui.Rectangle")
 local Image = require("ui.Image")
+local Spectrum = require("osu_ui.views.MainMenuView.Spectrum")
 
 local flux = require("flux")
 local math_util = require("math_util")
@@ -149,6 +150,15 @@ function View:load()
 			self:logoClicked()
 			return true
 		end
+	}))
+
+	self.logo:addChild("spectrum", Spectrum({
+		x = logo_w / 2, y = logo_h / 2,
+		alpha = 0.2,
+		update = function(this, dt)
+			this.audio = self.mainMenu.game.previewModel.audio
+			Spectrum.update(this, dt)
+		end,
 	}))
 end
 
