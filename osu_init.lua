@@ -10,7 +10,7 @@ local GameView = require("osu_ui.views.GameView")
 local SelectView = require("osu_ui.views.SelectView")
 local GameplayView = require("osu_ui.views.GameplayView")
 local ResultView = require("osu_ui.views.ResultView")
---local MainMenuView = require("osu_ui.views.MainMenuView")
+local MainMenuView = require("osu_ui.views.MainMenuView")
 --local PlayerStatsView = require("osu_ui.views.PlayerStatsView")
 --local EditorView = require("ui.views.EditorView")
 local TestView = require("osu_ui.views.TestView")
@@ -39,7 +39,7 @@ function UserInterface:new(game, mount_path)
 	self.game = game
 
 	self.gameView = GameView(self)
-	--self.mainMenuView = MainMenuView(game)
+	self.mainMenuView = MainMenuView(game)
 	self.selectView = SelectView(game)
 	self.resultView = ResultView(game)
 	self.gameplayView = GameplayView(game)
@@ -164,7 +164,7 @@ function UserInterface:load()
 	self.localization:loadFile("en.txt")
 
 	---@type osu.ui.ScreenView
-	local view = self.selectView
+	local view = self.mainMenuView
 
 	if self.gucci then
 		if not osu.gucci.installed then

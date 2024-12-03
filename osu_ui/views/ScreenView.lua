@@ -89,31 +89,10 @@ function ScreenView:receive(event) end
 
 ---@param dt number
 function ScreenView:update(dt)
-	if self.modal then
-		self.modal:update(dt)
-
-		if self.modal.alpha < 0 then
-			self.modal = nil
-		end
-	end
-end
-
-function ScreenView:drawModal()
-	if self.modal then
-		love.graphics.origin()
-		love.graphics.setColor({ 0, 0, 0, self.modal.alpha * 0.85 })
-		love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), love.graphics.getHeight())
-		self.modal:draw(self)
-	end
 end
 
 function ScreenView:sendQuitSignal()
 	if self.game.cacheModel.isProcessing then
-		return
-	end
-
-	if self.modal then
-		self.modal:quit()
 		return
 	end
 

@@ -22,12 +22,12 @@ SelectView.groups = {
 
 function SelectView:load()
 	love.mouse.setVisible(false)
-	self.game.selectController:load()
+	--self.game.selectController:load()
 	self.selectModel = self.game.selectModel
 	self.configs = self.game.configModel.configs
 
 	self.selectedGroup = self.groups[1]
-	self.notechartChangeTime = love.timer.getTime()
+	self.notechartChangeTime = self.notechartChangeTime or love.timer.getTime()
 
 	local scene = self.gameView.scene
 	local viewport = self.gameView.viewport
@@ -219,22 +219,17 @@ function SelectView:receive(event)
 	end
 end
 
----@param back_button_click boolean?
-function SelectView:quit(back_button_click)
-	if self.search ~= "" then
-		local config = self.game.configModel.configs.select
-		self.search = ""
-		config.filterString = ""
-		self.game.selectModel:debouncePullNoteChartSet()
+function SelectView:quit()
+	local scene = self.gameView.scene
+	local view = scene:getChild("selectView")
+	local main_menu = scene:getChild("mainMenuView")
 
-		if not back_button_click then
-			return
-		end
-	end
+	self.locked = true
+	flux.to(view, 0.4, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		self.disabled = 1
+	end)
 
-	if not back_button_click then
-		ui.playSound(self.assets.sounds.menuBack)
-	end
+	flux.to(main_menu, 0.33, { alpha = 1 }):ease("quadout")
 
 	self:changeScreen("mainMenuView")
 end

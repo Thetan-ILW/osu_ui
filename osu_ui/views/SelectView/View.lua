@@ -386,6 +386,10 @@ function View:load()
 		hoverHeight = 58,
 		z = 0.9,
 		onClick = function ()
+			if self.search ~= "" then
+				self.search = ""
+				self:searchUpdated()
+			end
 			select_view:quit()
 		end
 	}))

@@ -127,6 +127,8 @@ function GameplayView:quit()
 	local view = self.gameView.scene:getChild("gameplayView")
 	local background = self.gameView.scene:getChild("background")
 
+	self.game.selectController:load()
+
 	if self.game.gameplayController:hasResult() then
 		flux.to(view, 0.25, { alpha = 0 }):ease("quadout"):oncomplete(function ()
 			scene:removeChild("gameplayView")

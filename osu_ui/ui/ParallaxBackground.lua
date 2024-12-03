@@ -16,6 +16,7 @@ function ParallaxBackground:load()
 	self.parallax = self.parallax or 0.01
 	self.dim = self.dim or 0
 	self.blur = 0
+	self.mode = self.mode or "single_image"
 
 	if self.mode == "background_model" then
 		assert(self.backgroundModel, "backgroundModel was not provided")

@@ -1,11 +1,8 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
-local flux = require("flux")
-local actions = require("osu_ui.actions")
-local ViewConfig = require("osu_ui.views.MainMenuView.ViewConfig")
-local InputMap = require("osu_ui.views.MainMenuView.InputMap")
+local View = require("osu_ui.views.MainMenuView.View")
 
-local SettingsView = require("osu_ui.views.SettingsView")
+local flux = require("flux")
 
 ---@class osu.ui.MainMenuView : osu.ui.ScreenView
 ---@operator call: osu.ui.MainMenuView
@@ -16,13 +13,24 @@ local SettingsView = require("osu_ui.views.SettingsView")
 ---@field outroTween table?
 local MainMenuView = ScreenView + {}
 
-local show_intro = true
+local loaded = false
 
 function MainMenuView:load()
-	self.selectModel = self.game.selectModel
-	self.prevChartViewId = -1
-	self.game.selectController:load()
+	local scene = self.gameView.scene
 
+	if not loaded then
+		self.game.selectController:load()
+		self.selectModel = self.game.selectModel
+		scene:addChild("mainMenuView", View({ z = 0.12, mainMenu = self }))
+		loaded = true
+	end
+
+	local view = scene:getChild("mainMenuView") ---@cast view osu.ui.MainMenuContainer
+	view:transitIn()
+
+	self.prevChartViewId = -1
+
+	--[[
 	self.afkPercent = 1
 	self.outroPercent = 0
 	self.introPercent = 0
@@ -35,14 +43,7 @@ function MainMenuView:load()
 		end
 	end
 
-	self.inputMap = InputMap(self)
-	--self.settingsView = SettingsView(self.assets, self.game, self.ui)
-	self.viewConfig = ViewConfig(self, self.assets)
-
 	self.lastUserActionTime = love.timer.getTime()
-	love.mouse.setVisible(false)
-	actions.enable()
-
 
 	if show_intro then
 		local snd = self.assets.sounds
@@ -53,14 +54,21 @@ function MainMenuView:load()
 	end
 
 	self.introTween = flux.to(self, 2, { introPercent = 1 }):ease("linear")
+	]]
 end
 
-function MainMenuView:beginUnload()
+function MainMenuView:toSongSelect()
+	self:changeScreen("selectView")
+end
+
+function MainMenuView:edit()
+	if not self.game.selectModel:notechartExists() then
+		return
+	end
+
 	self.game.selectController:beginUnload()
-end
-
-function MainMenuView:unload()
 	self.game.selectController:unload()
+	self:changeScreen("editorView")
 end
 
 function MainMenuView:setMasterVolume(volume)
@@ -78,6 +86,7 @@ function MainMenuView:setMasterVolume(volume)
 	audio:setVolume(v.master * v.music * (1 - volume))
 end
 
+--[[
 ---@param event string?
 function MainMenuView:processState(event)
 	local state = self.state
@@ -124,11 +133,10 @@ function MainMenuView:processState(event)
 		self:setMasterVolume(self.outroPercent)
 	end
 end
+]]
 
 ---@param dt number
 function MainMenuView:update(dt)
-	ScreenView.update(self, dt)
-
 	local chartview = self.selectModel.chartview
 
 	if chartview then
@@ -140,33 +148,7 @@ function MainMenuView:update(dt)
 		end
 	end
 
-	--self.settingsView.modalActive = self.modal == nil
-
-	if self.changingScreen then
-		--self.settingsView:processState("hide")
-	end
-
-	--self.settingsView:update()
-
-	if self.state ~= "intro" then
-		self.game.selectController:update()
-	end
-
-	self.viewConfig.hasFocus = (self.modal == nil) and not self.settingsView:isFocused() and not self.changingScreen
-	self:processState()
-	self.cursor.alpha = self.afkPercent
-end
-
-function MainMenuView:edit()
-	if not self.game.selectModel:notechartExists() then
-		return
-	end
-
-	self:changeScreen("editorView")
-end
-
-function MainMenuView:toggleSettings()
-	self.settingsView:processState("toggle")
+	self.game.selectController:update()
 end
 
 function MainMenuView:closeGame()
@@ -182,26 +164,13 @@ function MainMenuView:closeGame()
 end
 
 function MainMenuView:notechartChanged()
-	self.viewConfig:updateInfo(self)
 end
 
 function MainMenuView:sendQuitSignal()
-	if self.modal then
-		self.modal:quit()
-		return
-	end
 	--self.settingsView:processState("hide")
 end
 
-function MainMenuView:resolutionUpdated()
-	self.viewConfig:resolutionUpdated()
-	--self.settingsView:resolutionUpdated()
-
-	if self.modal then
-		self.modal.viewConfig:resolutionUpdated()
-	end
-end
-
+--[[
 function MainMenuView:receive(event)
 	if event.name == "mousemoved" then
 		self.lastUserActionTime = love.timer.getTime()
@@ -222,21 +191,6 @@ function MainMenuView:receive(event)
 	end
 
 	--self.settingsView:receive(event)
-end
-
-local gfx = love.graphics
-
-function MainMenuView:draw()
-	self.viewConfig:draw(self)
-	--self.settingsView:draw()
-	self:drawModal()
-	self.ui.screenOverlayView:draw()
-
-	if self.state == "outro" then
-		gfx.origin()
-		gfx.setColor(0, 0, 0, self.outroPercent)
-		gfx.rectangle("fill", 0, 0, gfx.getWidth(), gfx.getHeight())
-	end
-end
+end]]
 
 return MainMenuView
