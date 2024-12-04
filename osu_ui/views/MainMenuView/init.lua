@@ -23,7 +23,7 @@ function MainMenuView:load()
 		self.selectModel = self.game.selectModel
 		local view = scene:addChild("mainMenuView", View({ z = 0.12, mainMenu = self })) ---@cast view osu.ui.MainMenuContainer
 		self.view = view
-		self.view:introSequence()
+		--self.view:introSequence()
 		loaded = true
 	else
 		self.view:transitIn()
@@ -59,6 +59,10 @@ end
 
 function MainMenuView:toSongSelect()
 	self:changeScreen("selectView")
+end
+
+function MainMenuView:toLobbyList()
+	self:changeScreen("lobbyListView")
 end
 
 function MainMenuView:edit()

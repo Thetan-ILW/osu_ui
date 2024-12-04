@@ -1,6 +1,5 @@
 local ScreenView = require("osu_ui.views.ScreenView")
 
-local ui = require("osu_ui.ui")
 local flux = require("flux")
 
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
@@ -226,7 +225,7 @@ function SelectView:quit()
 
 	self.locked = true
 	flux.to(view, 0.4, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		self.disabled = 1
+		self.disabled = true
 	end)
 
 	flux.to(main_menu, 0.33, { alpha = 1 }):ease("quadout")

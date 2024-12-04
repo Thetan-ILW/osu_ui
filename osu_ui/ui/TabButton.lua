@@ -2,7 +2,7 @@ local Component = require("ui.Component")
 local Label = require("ui.Label")
 local Image = require("ui.Image")
 
----@alias osu.ui.TabButtonParams { text: string, font: love.Font, image: love.Image }
+---@alias osu.ui.TabButtonParams { text: string, font: love.Font?, image: love.Image }
 
 ---@class osu.ui.TabButton : ui.Component
 ---@overload fun(params: osu.ui.TabButtonParams): osu.ui.TabButton
@@ -26,7 +26,7 @@ function TabButton:load()
 		alignX = "center",
 		alignY = "center",
 		text = self.text,
-		font = self.shared.fontManager:loadFont("Regular", 13),
+		font = self.font or self.shared.fontManager:loadFont("Regular", 13),
 		z = 1,
 	}))
 end

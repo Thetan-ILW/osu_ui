@@ -4,7 +4,7 @@ local Label = require("ui.Label")
 
 local text_input = require("ui.text_input")
 
----@alias TextBoxParams { assets: osu.ui.OsuAssets, label: string, password: boolean? }
+---@alias TextBoxParams { label: string, password: boolean? }
 
 ---@class osu.ui.TextBox : ui.Component
 ---@overload fun(params: TextBoxParams): osu.ui.TextBox
@@ -30,10 +30,12 @@ function TextBox:load()
 
 	self.fieldY = self.height - 20 - 6
 
-	self:addChild("label", Label({
-		text = self.label,
-		font = fonts:loadFont("Regular", 17),
-	}))
+	if self.label then
+		self:addChild("label", Label({
+			text = self.label,
+			font = fonts:loadFont("Regular", 17),
+		}))
+	end
 
 	local w = self.width
 	local h = 20

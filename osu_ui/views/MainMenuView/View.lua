@@ -58,7 +58,8 @@ function View:openSecondMenu()
 	self.menu = "second"
 end
 
-function View:toSongSelect()
+---@param screen "selectView" | "lobbyListView" | "editorView"
+function View:toNextView(screen)
 	if self.locked then
 		return
 	end
@@ -66,19 +67,27 @@ function View:toSongSelect()
 	self.menu = "closed"
 	flux.to(self, 0.35, { slide = 0 }):ease("quadout")
 	flux.to(self.secondMenu, 0.25, { alpha = 0 }):ease("quadout")
-	self.playSound(self.freeplayClickSound)
+
+	if screen == "select" then
+		self.playSound(self.freeplayClickSound)
+	end
+
 	self.options:fade(0)
 
 	local scene = self.mainMenu.gameView.scene
 
-	if scene:getChild("selectView") then
+	if scene:getChild(screen) then
 		if self.transitionTween then
 			self.transitionTween:stop()
 		end
 		self.transitionTween = flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
 			self.disabled = true
 		end)
-		self.mainMenu:toSongSelect()
+		if screen == "selectView" then
+			self.mainMenu:toSongSelect()
+		elseif screen == "lobbyListView" then
+			self.mainMenu:toLobbyList()
+		end
 		return true
 
 	end
@@ -90,7 +99,11 @@ function View:toSongSelect()
 		background.dim = 0.3
 	end
 	flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		self.mainMenu:toSongSelect()
+		if screen == "selectView" then
+			self.mainMenu:toSongSelect()
+		elseif screen == "lobbyListView" then
+			self.mainMenu:toLobbyList()
+		end
 		self.disabled = true
 	end)
 end
@@ -330,7 +343,7 @@ function View:load()
 		idleImage = assets:loadImage("menu-button-freeplay"),
 		hoverImage = assets:loadImage("menu-button-freeplay-over"),
 		onClick = function()
-			self:toSongSelect()
+			self:toNextView("selectView")
 		end
 	}))
 	self.secondMenu:addChild("multiplayer", LogoButton({
@@ -338,7 +351,9 @@ function View:load()
 		idleImage = assets:loadImage("menu-button-multiplayer"),
 		hoverImage = assets:loadImage("menu-button-multiplayer-over"),
 		clickSound = assets:loadAudio("menu-multiplayer-click"),
-		onClick = function() end
+		onClick = function()
+			self:toNextView("lobbyListView")
+		end
 	}))
 	self.secondMenu:addChild("back", LogoButton({
 		x = 0, y = 305,

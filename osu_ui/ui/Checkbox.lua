@@ -43,7 +43,7 @@ function Checkbox:load()
 	img.alpha = 1
 
 	self:addChild("label", Label({
-		x = math.max(on_img:getWidth(), off_img:getWidth()) + x,
+		x = math.max(on_img:getWidth(), off_img:getWidth()),
 		height = self.height,
 		alignY = "center",
 		text = self.label,
@@ -73,7 +73,7 @@ function Checkbox:update()
 	on_img.alpha = 0
 	off_img.alpha = 0
 	img.alpha = 1
-	local scale = 0.2 + (math_util.clamp(love.timer.getTime() - self.clickTime, 0, 0.1) * 10) * 0.5
+	local scale = 0.1 + (math_util.clamp(love.timer.getTime() - self.clickTime, 0, 0.1) * 10) * 0.5
 	img.scaleX, img.scaleY = scale, scale
 end
 
