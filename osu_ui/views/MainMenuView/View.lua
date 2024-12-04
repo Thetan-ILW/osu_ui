@@ -4,6 +4,7 @@ local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
 local Rectangle = require("ui.Rectangle")
 local Image = require("ui.Image")
 local Spectrum = require("osu_ui.views.MainMenuView.Spectrum")
+local LogoButton = require("osu_ui.views.MainMenuView.LogoButton")
 
 local flux = require("flux")
 local math_util = require("math_util")
@@ -14,26 +15,58 @@ local math_util = require("math_util")
 ---@field menu "closed" | "first" | "second"
 local View = Component + {}
 
+local logo_slide = 200
+
 function View:viewportResized()
 	self:clearTree()
 	self:load()
 end
 
 function View:logoClicked()
+	if self.locked then
+		return
+	end
 	if self.menu == "closed" then
 		flux.to(self, 0.35, { slide = 1 }):ease("quadout")
-		self.menu = "first"
+		self:openFirstMenu()
 	elseif self.menu == "first" then
-		self.menu = "second"
+		self:openSecondMenu()
 	elseif self.menu == "second" then
-		self.locked = true
-		self.menu = "closed"
-		flux.to(self, 0.35, { slide = 0 }):ease("quadout")
 		self:toSongSelect()
 	end
 end
 
+function View:openFirstMenu()
+	if self.locked then
+		return
+	end
+	flux.to(self.firstMenu, 0.35, { alpha = 1 }):ease("quadout")
+	flux.to(self.secondMenu, 0.35, { alpha = 0 }):ease("quadout")
+	self.playSound(self.logoHitSound)
+	self.menu = "first"
+end
+
+function View:openSecondMenu()
+	if self.locked then
+		return
+	end
+	flux.to(self.firstMenu, 0.25, { alpha = 0 }):ease("quadout")
+	flux.to(self.secondMenu, 0.35, { alpha = 1 }):ease("quadout")
+	self.playSound(self.playClickSound)
+	self.menu = "second"
+end
+
 function View:toSongSelect()
+	if self.locked then
+		return
+	end
+	self.locked = true
+	self.menu = "closed"
+	flux.to(self, 0.35, { slide = 0 }):ease("quadout")
+	flux.to(self.secondMenu, 0.25, { alpha = 0 }):ease("quadout")
+	self.playSound(self.freeplayClickSound)
+	self.options:fade(0)
+
 	local scene = self.mainMenu.gameView.scene
 
 	if scene:getChild("selectView") then
@@ -68,6 +101,14 @@ function View:transitIn()
 	self.locked = false
 end
 
+function View:keyPressed(event)
+	if event[2] == "return" then
+		self:logoClicked()
+		self.logo:clickAnimation()
+		return true
+	end
+end
+
 function View:load()
 	local assets = self.shared.assets
 
@@ -76,18 +117,30 @@ function View:load()
 	self.menu = "closed"
 	self.slide = 0
 
+	self.logoHitSound = assets:loadAudio("menuhit")
+	self.playClickSound = assets:loadAudio("menu-play-click")
+	self.freeplayClickSound = assets:loadAudio("menu-freeplay-click")
+
+	local options = self.mainMenu.gameView.scene:getChild("options")
+	self:assert(options) ---@cast options osu.ui.OptionsView
+	self.options = options
+
 	self.stencil = self:addChild("backgroundStencil", StencilComponent({
 		width = self.width,
 		height = self.height,
 		compareMode = "less",
 		compareValue = 1,
 		stencilFunction = function()
-			love.graphics.circle("fill", self.width / 2 - (self.slide * 180), self.height / 2, 200 + ((1 - self.alpha) * 768))
+			love.graphics.circle("fill", self.width / 2 - (self.slide * logo_slide), self.height / 2, 200 + ((1 - self.alpha) * 768))
 		end
 	}))
 	self.stencil:addChild("background", ParallaxBackground({
 		image = assets:loadImage("menu-background"),
 		z = 0,
+		draw = function(this)
+			love.graphics.setColor(1, 1, 1, 1)
+			ParallaxBackground.draw(this)
+		end
 	}))
 
 	local top = self:addChild("topLayer", Component({ z = 0.5 }))
@@ -113,6 +166,7 @@ function View:load()
 		x = logo_x, y = logo_y,
 		origin = { x = 0.5, y = 0.5, },
 		image = logo_img,
+		blockMouseFocus = true,
 		hoverScale = 0,
 		clickScale = 0,
 		slide = 0,
@@ -126,7 +180,7 @@ function View:load()
 		end,
 		update = function(this, dt)
 			local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
-			this.x = logo_x + (logo_x - mx) * 0.008 + (self.slide * -180)
+			this.x = logo_x + (logo_x - mx) * 0.008 + (self.slide * -logo_slide)
 			this.y = logo_y + (logo_y - my) * 0.008
 
 			this.hoverScale = math_util.clamp(this.hoverScale + (this.mouseOver and dt * 0.5 or -dt * 0.5), 0, 0.05)
@@ -141,24 +195,114 @@ function View:load()
 			if not this.mouseOver then
 				return false
 			end
+			this:clickAnimation()
+			self:logoClicked()
+			return true
+		end,
+		clickAnimation = function(this)
 			if this.clickTween then
 				this.clickTween:stop()
 			end
 			this.clickTween = flux.to(this, 0.04, { clickScale = -0.05 }):ease("quadout"):oncomplete(function ()
 				this.clickTween = flux.to(this, 0.2, { clickScale = 0 }):ease("quadout")
 			end)
-			self:logoClicked()
-			return true
 		end
 	}))
 
-	self.logo:addChild("spectrum", Spectrum({
-		x = logo_w / 2, y = logo_h / 2,
+	self:addChild("spectrum", Spectrum({
 		alpha = 0.2,
+		z = 0.01,
 		update = function(this, dt)
 			this.audio = self.mainMenu.game.previewModel.audio
+			this.transform = self.logo.transform:clone()
+			this.transform:translate(logo_w / 2, logo_h / 2)
 			Spectrum.update(this, dt)
 		end,
+	}))
+
+	self.menus = self:addChild("menus", StencilComponent({
+		x = self.width / 2,
+		y = self.height / 2 - 500 / 2,
+		stencilFunction = function()
+			love.graphics.rectangle("fill", 0, 0, 800, 500)
+		end,
+		z = 0.09,
+		update = function(this)
+			local mx, my = love.graphics.inverseTransformPoint(love.mouse.getPosition())
+			this.x = self.width / 2 -  self.slide * logo_slide + ((logo_x - mx) * 0.008)
+			this.y = self.height / 2 - 500 / 2 + (logo_y - my) * 0.008
+		end
+	}))
+
+	self.firstMenu = self.menus:addChild("firstMenu", Component({
+		z = 0.5,
+		alpha = 0,
+		update = function(this)
+			this.x = -280 + 300 * this.alpha
+		end
+	}))
+	self.firstMenu:addChild("play", LogoButton({
+		x = 0, y = 48,
+		idleImage = assets:loadImage("menu-button-play"),
+		hoverImage = assets:loadImage("menu-button-play-over"),
+		onClick = function()
+			self:openSecondMenu()
+		end
+	}))
+	self.firstMenu:addChild("edit", LogoButton({
+		x = 0, y = 152,
+		idleImage = assets:loadImage("menu-button-edit"),
+		hoverImage = assets:loadImage("menu-button-edit-over"),
+		clickSound = assets:loadAudio("menu-edit-click"),
+		onClick = function() end
+	}))
+	self.firstMenu:addChild("options", LogoButton({
+		x = 0, y = 257,
+		idleImage = assets:loadImage("menu-button-options"),
+		hoverImage = assets:loadImage("menu-button-options-over"),
+		clickSound = assets:loadAudio("menuhit"),
+		onClick = function()
+			self.options:toggle()
+		end
+	}))
+	self.firstMenu:addChild("exit", LogoButton({
+		x = 0, y = 360,
+		idleImage = assets:loadImage("menu-button-exit"),
+		hoverImage = assets:loadImage("menu-button-exit-over"),
+		clickSound = assets:loadAudio("menuhit"),
+		onClick = function() end
+	}))
+
+	self.secondMenu = self.menus:addChild("secondMenu", Component({
+		z = 0.4,
+		alpha = 0,
+		update = function(this)
+			this.x = -280 + 300 * this.alpha
+		end
+	}))
+	self.secondMenu:addChild("freeplay", LogoButton({
+		x = 0, y = 105,
+		idleImage = assets:loadImage("menu-button-freeplay"),
+		hoverImage = assets:loadImage("menu-button-freeplay-over"),
+		onClick = function()
+			self:toSongSelect()
+		end
+	}))
+	self.secondMenu:addChild("multiplayer", LogoButton({
+		x = 0, y = 205,
+		idleImage = assets:loadImage("menu-button-multiplayer"),
+		hoverImage = assets:loadImage("menu-button-multiplayer-over"),
+		clickSound = assets:loadAudio("menu-multiplayer-click"),
+		onClick = function() end
+	}))
+	self.secondMenu:addChild("back", LogoButton({
+		x = 0, y = 305,
+		idleImage = assets:loadImage("menu-button-back"),
+		hoverImage = assets:loadImage("menu-button-back-over"),
+		clickSound = assets:loadAudio("menuhit"),
+		onClick = function()
+			self:openFirstMenu()
+		end
 	}))
 end
 
