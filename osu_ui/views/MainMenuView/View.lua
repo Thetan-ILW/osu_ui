@@ -18,8 +18,10 @@ local View = Component + {}
 local logo_slide = 200
 
 function View:viewportResized()
-	self:clearTree()
-	self:load()
+	if not self.playingIntro then
+		self:clearTree()
+		self:load()
+	end
 end
 
 function View:logoClicked()
@@ -109,14 +111,54 @@ function View:keyPressed(event)
 	end
 end
 
+function View:introSequence()
+	self.locked = true
+	self.playingIntro = true
+	self.playSound(self.welcomeSound)
+	self.playSound(self.welcomePianoSound)
+	self.introPercent = 0
+
+	local logo = self.logo
+	local stencil = self.stencil ---@cast stencil ui.StencilComponent
+	local top = self:getChild("topLayer")
+	local rect = self:getChild("blackRect")
+	local welcome = self.welcomeText
+	local spectrum = self:getChild("spectrum")
+
+	logo.alpha = 0
+	stencil.compareValue = 2
+	top.alpha = 0
+	rect.alpha = 1
+	welcome.disabled = false
+	spectrum.color = {love.math.colorFromBytes(0, 78, 155, 255)}
+
+	flux.to(self, 2, { introPercent = 1 }):ease("linear"):oncomplete(function ()
+		flux.to(logo, 0.2, { alpha = 1 }):ease("quadout"):oncomplete(function ()
+			stencil.compareValue = 1
+		end)
+		flux.to(top, 0.2, { alpha = 1 }):ease("quadout")
+		flux.to(rect, 0.4, { alpha = 0 }):ease("quadout")
+		spectrum.color = { 1, 1, 1, 1 }
+		self.locked = false
+		self.playingIntro = false
+	end)
+	flux.to(welcome, 2, { scaleX = 1, scaleY = 1, alpha = 1 }):ease("sineout"):oncomplete(function ()
+		flux.to(welcome, 0.2, { alpha = 0 }):oncomplete(function ()
+			welcome.disabled = true
+		end)
+	end)
+end
+
 function View:load()
 	local assets = self.shared.assets
 
 	self.width, self.height = self.parent:getDimensions()
-	self.locked = false
+	self.locked = self.locked or false
 	self.menu = "closed"
 	self.slide = 0
 
+	self.welcomePianoSound = assets:loadAudio("welcome")
+	self.welcomeSound = assets:loadAudio("welcome_piano")
 	self.logoHitSound = assets:loadAudio("menuhit")
 	self.playClickSound = assets:loadAudio("menu-play-click")
 	self.freeplayClickSound = assets:loadAudio("menu-freeplay-click")
@@ -134,7 +176,7 @@ function View:load()
 			love.graphics.circle("fill", self.width / 2 - (self.slide * logo_slide), self.height / 2, 200 + ((1 - self.alpha) * 768))
 		end
 	}))
-	self.stencil:addChild("background", ParallaxBackground({
+	self.background = self.stencil:addChild("background", ParallaxBackground({
 		image = assets:loadImage("menu-background"),
 		z = 0,
 		draw = function(this)
@@ -211,9 +253,12 @@ function View:load()
 
 	self:addChild("spectrum", Spectrum({
 		alpha = 0.2,
-		z = 0.01,
+		z = 0.02,
 		update = function(this, dt)
 			this.audio = self.mainMenu.game.previewModel.audio
+			if self.playingIntro then
+				this.audio = self.welcomeSound
+			end
 			this.transform = self.logo.transform:clone()
 			this.transform:translate(logo_w / 2, logo_h / 2)
 			Spectrum.update(this, dt)
@@ -303,6 +348,24 @@ function View:load()
 		onClick = function()
 			self:openFirstMenu()
 		end
+	}))
+
+	self:addChild("blackRect", Rectangle({
+		width = self.width,
+		height = self.height,
+		color = { 0, 0, 0, 1 },
+		alpha = 0,
+		z = 0.01
+	}))
+
+	self.welcomeText = self:addChild("welcomeText", Image({
+		x = self.width / 2, y = self.height / 2,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.75,
+		image = assets:loadImage("welcome_text"),
+		alpha = 0,
+		disabled = true,
+		z = 1,
 	}))
 end
 

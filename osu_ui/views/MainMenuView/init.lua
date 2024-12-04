@@ -21,14 +21,14 @@ function MainMenuView:load()
 	if not loaded then
 		self.game.selectController:load()
 		self.selectModel = self.game.selectModel
-		scene:addChild("mainMenuView", View({ z = 0.12, mainMenu = self }))
+		local view = scene:addChild("mainMenuView", View({ z = 0.12, mainMenu = self })) ---@cast view osu.ui.MainMenuContainer
+		self.view = view
+		self.view:introSequence()
 		loaded = true
+	else
+		self.view:transitIn()
+		self.prevChartViewId = -1
 	end
-
-	local view = scene:getChild("mainMenuView") ---@cast view osu.ui.MainMenuContainer
-	view:transitIn()
-
-	self.prevChartViewId = -1
 
 	--[[
 	self.afkPercent = 1
@@ -148,7 +148,9 @@ function MainMenuView:update(dt)
 		end
 	end
 
-	self.game.selectController:update()
+	if not self.view.locked then
+		self.game.selectController:update()
+	end
 end
 
 function MainMenuView:closeGame()

@@ -275,6 +275,7 @@ function Assets:loadAudio(name)
 
 	if sound then
 		self.sounds[name] = sound
+		sound:setVolume(self.volume)
 		return sound
 	end
 
@@ -282,6 +283,7 @@ function Assets:loadAudio(name)
 
 	if sound then
 		self.sounds[name] = sound
+		sound:setVolume(self.volume)
 		return sound
 	end
 
@@ -298,6 +300,7 @@ function Assets:updateVolume(configs)
 
 	---@type number
 	local volume = osu.uiVolume * v.master
+	self.volume = volume
 
 	for _, item in pairs(self.sounds) do
 		item:setVolume(volume)
