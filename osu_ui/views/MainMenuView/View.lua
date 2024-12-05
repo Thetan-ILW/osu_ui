@@ -17,7 +17,7 @@ local View = Component + {}
 
 local logo_slide = 200
 
-function View:viewportResized()
+function View:reload()
 	if not self.playingIntro then
 		self:clearTree()
 		self:load()
@@ -34,7 +34,7 @@ function View:logoClicked()
 	elseif self.menu == "first" then
 		self:openSecondMenu()
 	elseif self.menu == "second" then
-		self:toSongSelect()
+		self:toNextView("selectView")
 	end
 end
 
@@ -68,7 +68,7 @@ function View:toNextView(screen)
 	flux.to(self, 0.35, { slide = 0 }):ease("quadout")
 	flux.to(self.secondMenu, 0.25, { alpha = 0 }):ease("quadout")
 
-	if screen == "select" then
+	if screen == "selectView" then
 		self.playSound(self.freeplayClickSound)
 	end
 
@@ -166,6 +166,7 @@ function View:load()
 	local assets = self.shared.assets
 
 	self.width, self.height = self.parent:getDimensions()
+	self:getViewport():listenForResize(self)
 	self.locked = self.locked or false
 	self.menu = "closed"
 	self.slide = 0
@@ -186,7 +187,7 @@ function View:load()
 		compareMode = "less",
 		compareValue = 1,
 		stencilFunction = function()
-			love.graphics.circle("fill", self.width / 2 - (self.slide * logo_slide), self.height / 2, 200 + ((1 - self.alpha) * 768))
+			love.graphics.circle("fill", self.width / 2 - (self.slide * logo_slide), self.height / 2, 200 + ((1 - self.alpha) * self.width))
 		end
 	}))
 	self.background = self.stencil:addChild("background", ParallaxBackground({

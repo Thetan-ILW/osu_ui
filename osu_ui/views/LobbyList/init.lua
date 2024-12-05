@@ -25,7 +25,7 @@ function LobbyListView:quit()
 	local main_menu = scene:getChild("mainMenuView")
 
 	flux.to(self.view, 0.4, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		self.disabled = true
+		self.view.disabled = true
 	end)
 
 	flux.to(main_menu, 0.33, { alpha = 1 }):ease("quadout")

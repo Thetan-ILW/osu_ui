@@ -21,6 +21,8 @@ end
 function View:load()
 	local fonts = self.shared.fontManager
 
+	self:getViewport():listenForResize(self)
+
 	self.width, self.height = self.parent:getDimensions()
 
 	local multi_label = self:addChild("multiplayerLabel", Label({

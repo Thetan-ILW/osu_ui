@@ -18,17 +18,9 @@ local ScrollBar = require("osu_ui.ui.ScrollBar")
 ---@field resultView osu.ui.ResultView
 local View = Component + {}
 
-function View:bindEvents()
-	self:bindEvent("viewportResized")
-end
-
-function View:viewportResized()
-	self:clearTree()
-	self:load()
-end
-
 function View:load()
 	self.width, self.height = self.parent:getDimensions()
+	self:getViewport():listenForResize(self)
 
 	local result_view = self.resultView
 	local display_info = result_view.displayInfo

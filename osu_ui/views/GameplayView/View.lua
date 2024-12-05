@@ -9,15 +9,6 @@ local flux = require("flux")
 ---@field state "play" | "pausing" | "pause" | "unpausing"
 local View = CanvasComponent + {}
 
-function View:bindEvents()
-	self:bindEvent("viewportResized")
-end
-
-function View:viewportResized()
-	self:clearTree()
-	self:load()
-end
-
 function View:setPauseAlpha(a)
 	if self.pauseTween then
 		self.pauseTween:stop()
@@ -51,6 +42,7 @@ end
 function View:load()
 	self.width, self.height = self.parent:getDimensions()
 	self:createCanvas(self.width, self.height)
+	self:getViewport():listenForResize(self)
 
 	self.state = "play"
 	local gameplay_view = self.gameplayView

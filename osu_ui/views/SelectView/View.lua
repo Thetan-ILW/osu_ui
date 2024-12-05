@@ -24,11 +24,6 @@ local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsLi
 ---@field selectView osu.ui.SelectView
 local View = CanvasComponent + {}
 
-function View:viewportResized()
-	self:clearTree()
-	self:load()
-end
-
 function View:textInput(event)
 	if self.selectView.locked then
 		return false
@@ -68,6 +63,7 @@ function View:load()
 	self.width, self.height = self.parent:getDimensions()
 	self.stencil = true
 	self:createCanvas(self.width, self.height)
+	self:getViewport():listenForResize(self)
 
 	local shaders = require("osu_ui.ui.shaders")
 	self.shader = shaders.lighten

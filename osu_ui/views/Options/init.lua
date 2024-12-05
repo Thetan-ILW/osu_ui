@@ -105,7 +105,7 @@ function Options:newSection(name, icon, build_function)
 	table.insert(Options.sectionsOrder, name)
 end
 
-function Options:viewportResized()
+function Options:reload()
 	self.prevScrollPosition = self:getScrollPosition()
 	self:clearTree()
 	self:load()
@@ -118,6 +118,8 @@ function Options:load()
 	local assets = self.shared.assets
 	local osu_cfg = self:getConfigs().osu_ui
 	self.viewportScale = viewport:getInnerScale()
+
+	viewport:listenForResize(self)
 
 	self.width = self.panelWidth + self.tabsContrainerWidth
 	self.height = height

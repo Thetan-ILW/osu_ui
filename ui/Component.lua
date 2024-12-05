@@ -6,6 +6,7 @@ local class = require("class")
 ---@field parent ui.Component
 ---@field children {[string]: ui.Component}
 ---@field shared {[string]: any}
+---@field killed boolean
 local Component = class()
 
 ---@param params table?
@@ -46,9 +47,15 @@ function Component:new(params)
 
 	self.deferBuild = false
 	self.disabled = self.disabled or false
+	self.killed = false
 end
 
 function Component:load() end
+
+function Component:reload()
+	self:clearTree()
+	self:load()
+end
 
 ---@param delta_time number
 function Component:update(delta_time) end
@@ -178,8 +185,13 @@ function Component:addChild(id, child)
 end
 
 function Component:removeChild(id)
-	self.children[id] = nil
-	self:build()
+	local child = self.children[id]
+	if child then
+		child.parent = nil
+		child.killed = true
+		self.children[id] = nil
+		self:build()
+	end
 end
 
 function Component:clearTree()

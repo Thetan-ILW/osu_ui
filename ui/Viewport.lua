@@ -8,6 +8,7 @@ local flux = require("flux")
 ---@operator call: ui.Viewport
 ---@field targetHeight number
 ---@field fontManager ui.FontManager
+---@field resizeListeners {[string]: ui.Component}
 local Viewport = Component + {}
 
 ---@param params { targetHeight: number }
@@ -16,6 +17,7 @@ function Viewport:new(params)
 	self.id = self.id or "root"
 	self.resizeTime = 0
 	self.resizeDefered = false
+	self.resizeListeners = {}
 	self.innerTransform = love.math.newTransform()
 	self:assert(self.targetHeight, "You should specify the target height for the viewport")
 	self:assert(self.shared.fontManager, "You should provide FontManager class to the viewport.")
@@ -78,7 +80,13 @@ function Viewport:reload()
 		self.alphaTween:stop()
 	end
 	self:load()
-	self:receive({ name = "viewportResized" })
+
+	for _, v in pairs(self.resizeListeners) do
+		if not v.killed then
+			v:reload()
+		end
+	end
+
 	self.resizeDefered = false
 	self.alphaTween = flux.to(self, 0.4, { alpha = 1 }):ease("quadout")
 end
@@ -172,6 +180,11 @@ end
 ---@return ui.Viewport
 function Viewport:getViewport()
 	return self
+end
+
+---@param component ui.Component
+function Viewport:listenForResize(component)
+	self.resizeListeners[component.id] = component
 end
 
 function Viewport:error(message)
