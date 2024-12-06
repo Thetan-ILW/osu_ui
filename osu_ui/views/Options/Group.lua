@@ -29,7 +29,7 @@ function Group:load()
 	self.indent = 12
 	self.buttonColor = { 0.05, 0.52, 0.65, 1 }
 
-	self.children = {}
+	self:clearTree()
 	self.comboObjects = {}
 
 	self.labels = 0

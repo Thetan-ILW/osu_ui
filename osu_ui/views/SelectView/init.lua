@@ -137,6 +137,7 @@ function SelectView:play()
 	local cursor = viewport:getChild("cursor")
 	local transition = scene:getChild("gameplayTransition") ---@cast transition osu.ui.GameplayTransition
 	local options = scene:getChild("options") ---@cast options osu.ui.OptionsView
+	local chat = scene:getChild("chat") ---@cast chat osu.ui.ChatView
 
 	self.locked = true
 	flux.to(view, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
@@ -147,6 +148,7 @@ function SelectView:play()
 	flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
 	flux.to(background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
 	options:fade(0)
+	chat:fade(0)
 
 	transition:show(
 		self.displayInfo.chartName,

@@ -42,7 +42,14 @@ function View:keyPressed(event)
 		self.search = ""
 		self:searchUpdated()
 		return true
+	elseif event[2] == "f9" then
+		local scene = self.selectView.gameView.scene
+		local chat = scene:getChild("chat") ---@cast chat osu.ui.ChatView
+		if chat then
+			chat:toggle()
+		end
 	end
+
 	if event[2] ~= "backspace" then
 		return false
 	end

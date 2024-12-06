@@ -81,7 +81,7 @@ function Viewport:reload()
 	end
 	self:load()
 
-	for _, v in pairs(self.resizeListeners) do
+	for _, v in ipairs(self.resizeListeners) do
 		if not v.killed then
 			v:reload()
 		end
@@ -184,7 +184,12 @@ end
 
 ---@param component ui.Component
 function Viewport:listenForResize(component)
-	self.resizeListeners[component.id] = component
+	for i, v in ipairs(self.resizeListeners) do
+		if v == component then
+			return
+		end
+	end
+	table.insert(self.resizeListeners, component)
 end
 
 function Viewport:error(message)

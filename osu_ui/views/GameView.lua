@@ -5,6 +5,7 @@ local TermEmuView = require("osu_ui.views.TermEmuView")
 local CursorView = require("osu_ui.views.CursorView")
 --local NotificationView = require("osu_ui.views.NotificationView")
 local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
+local Chat = require("osu_ui.views.Chat")
 
 local Component = require("ui.Component")
 local Viewport = require("ui.Viewport")
@@ -62,10 +63,10 @@ function GameView:load(view)
 	self.scene = self.viewport:addChild("scene", Component({
 		width = self.viewport.scaledWidth,
 		height = self.viewport.scaledHeight,
-		bindEvents = function(component)
-			component:bindEvent("viewportResized")
+		load = function(this)
+			this:getViewport():listenForResize(this)
 		end,
-		viewportResized = function(component)
+		reload = function(component)
 			component.width = self.viewport.scaledWidth
 			component.height = self.viewport.scaledHeight
 		end,
@@ -82,6 +83,9 @@ function GameView:load(view)
 		localization = self.ui.localization,
 		alpha = 0,
 		z = 0.2,
+	}))
+	self.scene:addChild("chat", Chat({
+		z = 0.3,
 	}))
 	self.scene:addChild("background", ParallaxBackground({
 		mode = "background_model",
