@@ -20,11 +20,14 @@ function GameplayView:new(game)
 	self.sequenceView = SequenceView()
 end
 
+local quitting = false
+
 function GameplayView:load()
 	self.game.rhythmModel.observable:add(self.sequenceView)
 	self.game.gameplayController:load()
 
 	self.failed = false
+	quitting = false
 
 	local sequence_view = self.sequenceView
 	local note_skin = self.game.noteSkinModel.noteSkin
@@ -122,12 +125,17 @@ function GameplayView:receive(event)
 	self.sequenceView:receive(event)
 end
 
+
 function GameplayView:quit()
+	if quitting then
+		return
+	end
+
+	quitting = true
+
 	local scene = self.gameView.scene
 	local view = self.gameView.scene:getChild("gameplayView")
 	local background = self.gameView.scene:getChild("background")
-
-	self.game.selectController:load()
 
 	if self.game.gameplayController:hasResult() then
 		flux.to(view, 0.25, { alpha = 0 }):ease("quadout"):oncomplete(function ()

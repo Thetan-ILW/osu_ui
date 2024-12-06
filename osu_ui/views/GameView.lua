@@ -85,6 +85,7 @@ function GameView:load(view)
 		z = 0.2,
 	}))
 	self.scene:addChild("chat", Chat({
+		chatModel = self.ui.chatModel,
 		z = 0.3,
 	}))
 	self.scene:addChild("background", ParallaxBackground({

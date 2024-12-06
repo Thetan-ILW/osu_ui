@@ -1,11 +1,11 @@
 local Component = require("ui.Component")
 local Label = require("ui.Label")
-local Image = require("ui.Image")
 local Rectangle = require("ui.Rectangle")
 local TabButton = require("osu_ui.ui.TabButton")
 local Checkbox = require("osu_ui.ui.Checkbox")
 local TextBox = require("osu_ui.ui.TextBox")
 local Button = require("osu_ui.ui.Button")
+local Blur = require("ui.Blur")
 
 ---@class osu.ui.LobbyListContainer : ui.Component
 ---@operator call: osu.ui.LobbyListContainer
@@ -29,7 +29,8 @@ function View:load()
 		x = 3,
 		text = "Multiplayer Lobby",
 		font = fonts:loadFont("Light", 33),
-		shadow = true
+		shadow = true,
+		z = 0.1,
 	}))
 
 	self:addChild("lobbyCount", Label({
@@ -37,7 +38,8 @@ function View:load()
 		y = 13,
 		text = "Showing 161 of 257 matches",
 		font = fonts:loadFont("Regular", 17),
-		shadow = true
+		shadow = true,
+		z = 0.1,
 	}))
 
 	self:addChild("optionsBackground", Rectangle({
@@ -166,6 +168,11 @@ function View:load()
 		label = "Quick Join",
 		font = fonts:loadFont("Regular", 27),
 		z = 0.5,
+	}))
+
+	self:addChild("blur", Blur({
+		percent = 0.5,
+		z = -0.01
 	}))
 end
 

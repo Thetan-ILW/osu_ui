@@ -4,10 +4,11 @@ local beatValue = require("osu_ui.views.beat_value")
 
 local Spectrum = Component + {}
 
-local smoothing_factor = 0.2
 local radius = 253
-local bars = 256
+local smoothing_factor = 0.2
+local fft_size = 64
 local repeats = 4
+local bars = fft_size * repeats
 
 function Spectrum:load()
 	local img = self.shared.assets:loadImage("menu-vis")
@@ -43,21 +44,20 @@ function Spectrum:update(dt)
 
 	local current_fft = (audio and audio.getFft) and audio:getFft() or self.emptyFft
 	local beat = beatValue(current_fft)
-	local r_bars = bars / repeats
 	local smoothed_fft = self.smoothedFft
 
 	local rotation = self.rotation + (beat * 100) * dt
 	self.rotation = rotation
 
-	for i = 1, 64 do
+	for i = 1, fft_size do
 		smoothed_fft[i] = smoothed_fft[i] * (1 - smoothing_factor)
-		smoothed_fft[i] = smoothed_fft[i] + current_fft[(i - math.floor(rotation * 70)) % 64] * smoothing_factor * 2
+		smoothed_fft[i] = smoothed_fft[i] + current_fft[(i - math.floor(rotation * 70)) % fft_size] * smoothing_factor * 2
 
 		for r = 0, repeats - 1 do
-			local angle = (r * r_bars + i - 1) * (2 * math.pi / bars)
+			local angle = (r * fft_size + i - 1) * (2 * math.pi / bars)
 			local x = radius * math.cos(angle)
 			local y = radius * math.sin(angle)
-			self.spriteBatch:set(r * r_bars + i, x, y, angle, smoothed_fft[i], 0.5, 0, bar_h)
+			self.spriteBatch:set(r * fft_size + i, x, y, angle, smoothed_fft[i], 0.5, 0, bar_h)
 		end
 	end
 end

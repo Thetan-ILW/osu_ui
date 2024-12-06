@@ -3,16 +3,19 @@ local Rectangle = require("ui.Rectangle")
 local StencilComponent = require("ui.StencilComponent")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 local Label = require("ui.Label")
+local TabButton = require("osu_ui.ui.TabButton")
 
 local flux = require("flux")
 local text_input = require("ui.text_input")
 
 ---@class osu.ui.ChatView : ui.Component
 ---@operator call: osu.ui.ChatView
+---@field chatModel osu.ui.ChatModel
 local Chat = Component + {}
 
 function Chat:fade(target_value)
 	if target_value > 0 then
+		self.alpha = 0.01
 		self.disabled = false
 	end
 
@@ -32,10 +35,6 @@ function Chat:update()
 	end
 end
 
-local colors = {
-	client = { 1, 1, 1, 1 },
-	user = { 0.85, 0.8, 0.52, 1 }
-}
 local input_format = { ">", "" }
 function Chat:updateInput()
 	input_format[2] = self.input
@@ -44,11 +43,10 @@ function Chat:updateInput()
 end
 
 function Chat:updateChannel()
-	local channel = self.channel ---@cast channel ui.Label
-	channel:replaceText(self.messages)
-
 	local area = self.area ---@cast area osu.ui.ScrollAreaContainer
-	area.scrollLimit = math.max(0, channel:getHeight() + 5 - self.area.height)
+	local messages = self.messagesLabel ---@cast messages ui.Label
+	messages:replaceText(self.selectedChannel.formattedMessages)
+	area.scrollLimit = math.max(0, messages:getHeight() + 5 - self.area.height)
 	area:scrollToPosition(area.scrollLimit, 0)
 end
 
@@ -63,8 +61,7 @@ function Chat:keyPressed(event)
 		if self.input == "" then
 			return true
 		end
-		table.insert(self.messages, colors.client)
-		table.insert(self.messages, ("10:40 Player: %s\n"):format(self.input))
+		self.selectedChannel:sendMessage(self.input .. "\n")
 		self.input = ""
 		self:updateInput()
 		self:updateChannel()
@@ -78,22 +75,19 @@ function Chat:textInput(event)
 	return true
 end
 
---- tabs love.math.colorFromBytes(51, 71, 157)
-
 function Chat:load()
+	self:assert(self.chatModel, "Provide the chat model")
+
 	self.width, self.height = self.parent:getDimensions()
 	self:getViewport():listenForResize(self)
 
 	local fonts = self.shared.fontManager
 
+	self.selectedChannel = self.chatModel:getChannel("#general")
 	self.state = "closed"
 	self.disabled = true
 	self.alpha = 0
 	self.input = ""
-	self.messages = {"\n\n\n\n\n\n\n\n\n",
-		"Welcome to soundsphere.xyz, Player!\n",
-		{ 0.65, 0.65, 0.65, 1 }, "Actually, this chat is not connected to any server, so no one will hear you.\n"
-	}
 
 	local bg = self:addChild("background", Rectangle({
 		y = self.height,
@@ -127,10 +121,10 @@ function Chat:load()
 		height = bg:getHeight() - 22,
 		scrollLimit = 0,
 	}))
-	self.channel = self.area:addChild("messages", Label({
+	self.messagesLabel = self.area:addChild("messages", Label({
 		x = 5,
 		font = fonts:loadFont("Regular", 16),
-		text = self.messages,
+		text = "",
 	}))
 
 	self.inputLabel = self:addChild("input", Label({
@@ -141,11 +135,48 @@ function Chat:load()
 		z = 0.3,
 	}))
 
-	self:updateInput()
+	self.tabs = self:addChild("tabs", Component({
+		x = 5,
+		y = self.height - bg:getHeight() - 2,
+		z = 1,
+	}))
 
-	-- General
-	-- Lobby
-	-- Logs
+	local tab_spacing = 107
+	local channels = self.chatModel:getChannels()
+
+	for i, v in ipairs(channels) do
+		self.tabs:addChild(v.name, TabButton({
+			x = (i - 1) * tab_spacing,
+			text = v.name,
+			tabColor = {love.math.colorFromBytes(51, 71, 157, 255)},
+			z = 0.99 - (i * 0.00001),
+			onClick = function() self:openChannel(v.name) end
+		}))
+	end
+
+	self:updateInput()
+	self:openChannel("#general")
+end
+
+function Chat:openChannel(name)
+	local channels = self.chatModel:getChannels()
+	for i, channel in ipairs(channels) do
+		local tab = self.tabs.children[channel.name] ---@cast tab osu.ui.TabButton
+		tab.active = false
+		tab.z = 0.99 - (i * 0.00001)
+	end
+
+	local tab = self.tabs.children[name] ---@cast tab osu.ui.TabButton
+	tab.active = true
+	tab.z = 1
+	self.selectedChannel = self.chatModel:getChannel(name)
+	self:updateChannel()
+	self.tabs.deferBuild = true
+
+	local area = self.area ---@cast area osu.ui.ScrollAreaContainer
+	local messages = self.messagesLabel ---@cast messages ui.Label
+	area.scrollVelocity = 0
+	area.scrollPosition = math.max(0, messages:getHeight() + 5 - self.area.height)
 end
 
 return Chat

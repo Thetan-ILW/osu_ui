@@ -18,6 +18,9 @@ function LobbyListView:load()
 	self.view.disabled = false
 	self.view.alpha = 0
 	flux.to(self.view, 0.7, { alpha = 1 }):ease("quadout")
+
+	self.chat = scene:getChild("chat")
+	self.chat:fade(1)
 end
 
 function LobbyListView:quit()
@@ -29,6 +32,7 @@ function LobbyListView:quit()
 	end)
 
 	flux.to(main_menu, 0.33, { alpha = 1 }):ease("quadout")
+	self.chat:fade(0)
 	self:changeScreen("mainMenuView")
 end
 

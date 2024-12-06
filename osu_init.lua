@@ -1,10 +1,9 @@
 local class = require("class")
 
-local ui = require("osu_ui.ui")
 local AssetModel = require("osu_ui.models.AssetModel")
 local OsuAssets = require("osu_ui.OsuAssets")
 local Localization = require("osu_ui.models.AssetModel.Localization")
-local Shell = require("Shell")
+local ChatModel = require("osu_ui.models.ChatModel")
 
 local GameView = require("osu_ui.views.GameView")
 local SelectView = require("osu_ui.views.SelectView")
@@ -12,10 +11,6 @@ local GameplayView = require("osu_ui.views.GameplayView")
 local ResultView = require("osu_ui.views.ResultView")
 local MainMenuView = require("osu_ui.views.MainMenuView")
 local LobbyListView = require("osu_ui.views.LobbyList")
---local PlayerStatsView = require("osu_ui.views.PlayerStatsView")
---local EditorView = require("ui.views.EditorView")
-local TestView = require("osu_ui.views.TestView")
---local ScreenOverlayView = require("osu_ui.views.ScreenOverlayView")
 
 local physfs = require("physfs")
 local path_util = require("path_util")
@@ -29,11 +24,11 @@ local UserInterface = class()
 ---@param game sphere.GameController
 ---@param mount_path string
 function UserInterface:new(game, mount_path)
-	self.shell = Shell(game, self)
-
-	game.persistence:openAndReadThemeConfig("osu_ui", mount_path)
-	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
 	self.mountPath = mount_path
+	game.persistence:openAndReadThemeConfig("osu_ui", mount_path)
+
+	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
+	self.chatModel = ChatModel()
 
 	self.localization = Localization(path_util.join(mount_path, "osu_ui/localization"), "en.txt")
 
@@ -45,10 +40,6 @@ function UserInterface:new(game, mount_path)
 	self.resultView = ResultView(game)
 	self.gameplayView = GameplayView(game)
 	self.lobbyListView = LobbyListView(game)
-	--self.playerStatsView = PlayerStatsView(game)
-	--self.editorView = EditorView(game)
-	self.testView = TestView()
-	--self.screenOverlayView = ScreenOverlayView(game)
 
 	self.lastResolutionCheck = -math.huge
 	self.prevWindowResolution = 0

@@ -25,6 +25,7 @@ ResultView.load = thread.coro(function(self)
 
 	if self.previousViewName == "select" then
 		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
+		self.game.selectController:load()
 	end
 
 	self.displayInfo = self.displayInfo or DisplayInfo(self)

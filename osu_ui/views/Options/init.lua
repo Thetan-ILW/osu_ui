@@ -39,6 +39,7 @@ function Options:fade(target_value)
 	self.state = target_value == 0 and "closed" or "open"
 
 	if target_value > 0 then
+		self.alpha = 0.01
 		self.disabled = false
 	end
 end

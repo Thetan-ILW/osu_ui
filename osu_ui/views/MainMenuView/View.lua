@@ -193,7 +193,7 @@ function View:load()
 		compareMode = "less",
 		compareValue = 1,
 		stencilFunction = function()
-			love.graphics.circle("fill", self.width / 2 - (self.slide * logo_slide), self.height / 2, 200 + ((1 - self.alpha) * self.width))
+			love.graphics.circle("fill", self.width / 2 - (self.slide * logo_slide), self.height / 2, 200 + ((1 - self.alpha) * self.width / 2))
 		end
 	}))
 	self.background = self.stencil:addChild("background", ParallaxBackground({
