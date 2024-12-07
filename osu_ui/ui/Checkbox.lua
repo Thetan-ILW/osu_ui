@@ -12,14 +12,17 @@ local math_util = require("math_util")
 ---@field clickTime number
 ---@field getValue fun(): boolean
 ---@field clicked function
+---@field font ui.Font?
+---@field large boolean?
 local Checkbox = Component + {}
 
 function Checkbox:load()
 	local assets = self.shared.assets ---@cast assets osu.ui.OsuAssets
 	local fonts = self.shared.fontManager ---@cast fonts ui.FontManager
 
-	self.height = self.height or 37
 	local x = 5
+
+	self.height = self.height == 0 and 37 or self.height
 
 	local off_img = self:addChild("off", Image({
 		x = x,
@@ -42,17 +45,19 @@ function Checkbox:load()
 	local img = self.toggled and on_img or off_img
 	img.alpha = 1
 
-	self:addChild("label", Label({
+	local label = self:addChild("label", Label({
 		x = math.max(on_img:getWidth(), off_img:getWidth()),
 		height = self.height,
 		alignY = "center",
 		text = self.label,
-		font = fonts:loadFont("Regular", 16),
+		font = self.font or fonts:loadFont("Regular", 18),
 	}))
 
 	self.clickTime = -9999
 	self.checkOnSound = assets:loadAudio("check-on")
 	self.checkOffSound = assets:loadAudio("check-off")
+	self.width = off_img:getWidth() + label:getWidth()
+	self.imageScale = self.large and 0.18 or 0.1
 end
 
 function Checkbox:mouseClick()
@@ -73,7 +78,7 @@ function Checkbox:update()
 	on_img.alpha = 0
 	off_img.alpha = 0
 	img.alpha = 1
-	local scale = 0.1 + (math_util.clamp(love.timer.getTime() - self.clickTime, 0, 0.1) * 10) * 0.5
+	local scale = self.imageScale + (math_util.clamp(love.timer.getTime() - self.clickTime, 0, 0.1) * 10) * 0.5
 	img.scaleX, img.scaleY = scale, scale
 end
 

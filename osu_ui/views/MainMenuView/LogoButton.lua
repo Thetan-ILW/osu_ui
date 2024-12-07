@@ -29,7 +29,7 @@ function LogoButton:noMouseFocus()
 end
 
 function LogoButton:mousePressed(event)
-	if not self.mouseOver or event[3] ~= 1 or self.alpha ~= 1 then
+	if not self.mouseOver or event[3] ~= 1 then
 		return false
 	end
 

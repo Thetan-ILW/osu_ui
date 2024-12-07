@@ -17,8 +17,8 @@ local Button = Component + {}
 
 function Button:load()
 	local assets = self.shared.assets ---@cast assets osu.ui.OsuAssets
-	self.width = self.width or 737
-	self.height = self.height or 65
+	self.width = self.width == 0 and 737 or self.width
+	self.height = self.height == 0 and 65 or self.height
 	self.blockMouseFocus = true
 
 	self:addChild("buttonLabel", Label({

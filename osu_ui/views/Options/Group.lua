@@ -98,26 +98,40 @@ function Group:textBox(params)
 		return
 	end
 
-	local text_box = self:addChild("textBox" .. self.textBoxes, TextBox({
-		x = self.indent, y = self:getCurrentY(),
-		width = 380,
+	local fonts = self.shared.fontManager
+
+	local container = self:addChild("textBoxContainer" .. self.textBoxes, Component({
+		x = self.indent - 2, y = self:getCurrentY(),
+		width = self:getWidth(),
 		height = 66,
-		assets = self.assets,
+		z = self:getCurrentZ(),
+		update = function(component, delta_time)
+			Component.update(component, delta_time)
+			if component.mouseOver then
+				self.section:hoveringOver(component.y + self.y, component:getHeight())
+			end
+		end,
+	}))
+
+	container:addChild("label", Label({
+		x = 2, y = 12,
+		text = params.label,
+		font = fonts:loadFont("Regular", 16),
+	}))
+	local text_box = container:addChild("textBox", TextBox({
+		y = container:getHeight() - 5,
+		origin = { y = 1 },
+		width = 380,
+		height = 20,
 		label = params.label,
 		input = params.value,
 		password = params.password,
-		z = self:getCurrentZ(),
-		update = function(text_box, delta_time)
-			TextBox.update(text_box, delta_time)
-			if text_box.mouseOver then
-				self.section:hoveringOver(text_box.y + self.y, text_box:getHeight())
-			end
-		end,
+		font = fonts:loadFont("Regular", 17),
 		justHovered = function () end
 	}))
 
 	---@cast text_box osu.ui.TextBox
-	self.height = self.height + text_box:getHeight()
+	self.height = self.height + container:getHeight()
 	self.textBoxes = self.textBoxes + 1
 	return text_box
 end
@@ -277,11 +291,14 @@ function Group:checkbox(params)
 		return
 	end
 
+	local fonts = self.shared.fontManager
+
 	local checkbox = self:addChild("checkbox" .. self.checkboxes, Checkbox({
 		x = self.indent + 5,
 		y = self:getCurrentY(),
 		width = self.width,
 		height = 37,
+		font = fonts:loadFont("Regular", 16),
 		label = params.label,
 		getValue = params.getValue,
 		clicked = params.clicked,

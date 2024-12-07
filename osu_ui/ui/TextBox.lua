@@ -4,7 +4,7 @@ local Label = require("ui.Label")
 
 local text_input = require("ui.text_input")
 
----@alias TextBoxParams { label: string, password: boolean? }
+---@alias TextBoxParams { input: string?, password: boolean?, font: ui.Font? }
 
 ---@class osu.ui.TextBox : ui.Component
 ---@overload fun(params: TextBoxParams): osu.ui.TextBox
@@ -15,6 +15,7 @@ local text_input = require("ui.text_input")
 ---@field label string
 ---@field input string
 ---@field inputLabel ui.Label
+---@field font ui.Font?
 local TextBox = Component + {}
 
 function TextBox.censor(text)
@@ -23,24 +24,14 @@ end
 
 function TextBox:load()
 	local fonts = self.shared.fontManager
-	self.height = self.height or 66
+	self.height = self.height == 0 and 28 or self.height
 	self.focus = false
 	self.input = self.input or ""
 	self.blockMouseFocus = true
 
-	self.fieldY = self.height - 20 - 6
-
-	if self.label then
-		self:addChild("label", Label({
-			text = self.label,
-			font = fonts:loadFont("Regular", 17),
-		}))
-	end
-
 	local w = self.width
-	local h = 20
+	local h = self.height
 	local field = self:addChild("fieldContainer", StencilComponent({
-		y = self.fieldY,
 		width = w,
 		height = h,
 		stencilFunction = function()
@@ -49,9 +40,10 @@ function TextBox:load()
 	}))
 	local input_label = field:addChild("inputLabel", Label({
 		x = 2,
-		font = fonts:loadFont("Regular", 17),
+		font = self.font or fonts:loadFont("Bold", 22),
 	})) --- @cast input_label ui.Label
 	self.inputLabel = input_label
+	self:updateField()
 end
 
 function TextBox:loseFocus()
@@ -103,15 +95,13 @@ function TextBox:draw()
 	local r, g, b, alpha = love.graphics.getColor()
 	local w, h = self.width, self.height
 
-	local field_y = self.fieldY
-
 	if not self.focus then
 		gfx.setColor(0.15, 0.15, 0.15, alpha * 0.5)
 	else
 		gfx.setColor(0.15, 0.15, 0.15, alpha)
 	end
 
-	gfx.rectangle("fill", 0, field_y, w, 20)
+	gfx.rectangle("fill", 0, 0, w, self.height)
 	gfx.setLineWidth(1)
 	gfx.setLineStyle("smooth")
 
@@ -121,7 +111,7 @@ function TextBox:draw()
 		gfx.setColor(1, 1, 1, alpha)
 	end
 
-	gfx.rectangle("line", 0, field_y, w, 20)
+	gfx.rectangle("line", 0, 0, w, self.height)
 end
 
 return TextBox

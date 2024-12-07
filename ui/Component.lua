@@ -47,6 +47,7 @@ function Component:new(params)
 
 	self.deferBuild = false
 	self.disabled = self.disabled or false
+	self.handleEvents = self.handleEvents or true
 	self.killed = false
 end
 
@@ -274,7 +275,7 @@ Component.eventAlias = {
 ---@param event table
 ---@return boolean blocked
 function Component:receive(event)
-	if self.disabled then
+	if self.disabled or not self.handleEvents then
 		return false
 	end
 

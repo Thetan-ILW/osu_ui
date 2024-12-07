@@ -3,6 +3,7 @@ local StencilComponent = require("ui.StencilComponent")
 local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
 local Rectangle = require("ui.Rectangle")
 local Image = require("ui.Image")
+local Label = require("ui.Label")
 local Spectrum = require("osu_ui.views.MainMenuView.Spectrum")
 local LogoButton = require("osu_ui.views.MainMenuView.LogoButton")
 
@@ -28,6 +29,7 @@ function View:logoClicked()
 	if self.locked then
 		return
 	end
+
 	if self.menu == "closed" then
 		flux.to(self, 0.35, { slide = 1 }):ease("quadout")
 		self:openFirstMenu()
@@ -46,6 +48,13 @@ function View:openFirstMenu()
 	flux.to(self.secondMenu, 0.35, { alpha = 0 }):ease("quadout")
 	self.playSound(self.logoHitSound)
 	self.menu = "first"
+
+	for _, v in pairs(self.secondMenu.children) do
+		v.handleEvents = false
+	end
+	for _, v in pairs(self.firstMenu.children) do
+		v.handleEvents = true
+	end
 end
 
 function View:openSecondMenu()
@@ -56,6 +65,13 @@ function View:openSecondMenu()
 	flux.to(self.secondMenu, 0.35, { alpha = 1 }):ease("quadout")
 	self.playSound(self.playClickSound)
 	self.menu = "second"
+
+	for _, v in pairs(self.firstMenu.children) do
+		v.handleEvents = false
+	end
+	for _, v in pairs(self.secondMenu.children) do
+		v.handleEvents = true
+	end
 end
 
 ---@param screen "selectView" | "lobbyListView" | "editorView"
@@ -67,6 +83,13 @@ function View:toNextView(screen)
 	self.menu = "closed"
 	flux.to(self, 0.35, { slide = 0 }):ease("quadout")
 	flux.to(self.secondMenu, 0.25, { alpha = 0 }):ease("quadout")
+
+	for _, v in pairs(self.firstMenu.children) do
+		v.handleEvents = false
+	end
+	for _, v in pairs(self.secondMenu.children) do
+		v.handleEvents = false
+	end
 
 	if screen == "selectView" then
 		self.playSound(self.freeplayClickSound)
@@ -170,6 +193,7 @@ end
 
 function View:load()
 	local assets = self.shared.assets
+	local fonts = self.shared.fontManager
 
 	self.width, self.height = self.parent:getDimensions()
 	self:getViewport():listenForResize(self)
@@ -218,6 +242,72 @@ function View:load()
 		width = self.width,
 		height = 86,
 		color = { 0, 0, 0, 0.4 }
+	}))
+
+	local secret = "LOVE YOURSELF LOVE YOUR PARENTS LOVE YOUR FRIENDS LOVE EVERYONE HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME"
+	local char_set = [[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}|:./"]]
+	top:addChild("heart", Image({
+		x = self.width - 32, y = self.height - 48,
+		origin = { x = 0.5, y = 0.5 },
+		image = assets:loadImage("menu-subscriber"),
+		clicks = 0,
+		mousePressed = function(this, event)
+			if this.mouseOver then
+				this.clicks = this.clicks + 1
+			end
+			if this.clicks == 7 then
+				this.clicks = 9999999
+				local scene = self.mainMenu.gameView.scene
+				local ily = scene:addChild("ily", Component({ z = 0.5, alpha = 0 }))
+				this.ily = ily:addChild("loveyourself", Rectangle({
+					width = self.width,
+					height = self.height,
+					color = { 0, 0, 0, 0.8 },
+					blockMouseFocus = true,
+				}))
+				this.label = ily:addChild("lovelovelovelovelove", Label({
+					x = 5, y = 5,
+					width = self.width - 5,
+					font = fonts:loadFont("Regular", 18),
+					text = secret,
+					z = 0.1
+				}))
+				flux.to(ily, 0.5, { alpha = 1 }):ease("quadout")
+			end
+		end,
+		keyPressed = function(this, event)
+			if event[2] ~= "escape" then
+				return
+			end
+			local scene = self.mainMenu.gameView.scene
+			if this.ily then
+				flux.to(this.ily, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+					scene:removeChild("ily")
+				end)
+			end
+		end,
+		update = function(this)
+			this.alpha = 0.25 + (0.75 * (1 + math.sin(love.timer.getTime())) / 2)
+			if not this.ily then
+				return
+			end
+			this.label.alpha = this.ily.alpha
+			for i = 1, 5 do
+				local index = math.random(1, #char_set)
+				local char = char_set:sub(index, index)
+				secret = secret .. char
+			end
+			this.label:replaceText(secret)
+		end
+	}))
+
+	top:addChild("bat", Image({
+		x = self.width - 80, y = self.height - 48,
+		origin = { x = 0.5, y = 0.5 },
+		image = assets:loadImage("menu-bat"),
+		update = function(this)
+			this.alpha = 0.25 + (0.75 * (1 + math.sin(love.timer.getTime())) / 2)
+		end
 	}))
 
 	local logo_x = self.width / 2

@@ -95,14 +95,6 @@ function GameView:load(view)
 	}))
 
 	--[[
-	self.scene:addChild("terminalEmulator", TermEmuView({
-		x = self.scene.width / 2 - 500 / 2, y = self.scene.height / 2 - 400 / 2,
-		width = 500, height = 400,
-		shell = self.ui.shell,
-		z = 1,
-	}))]]
-
-	--[[
 	self.viewport:addChild("notifications", NotificationView({
 		assets = self.ui.assets,
 		blockMouseFocus = false,

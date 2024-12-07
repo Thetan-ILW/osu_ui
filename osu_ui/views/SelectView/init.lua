@@ -57,14 +57,6 @@ function SelectView:load()
 	flux.to(background, 0.5, { dim = 0.3, parallax = 0.01 }):ease("quadout")
 end
 
-function SelectView:beginUnload()
-	self.game.selectController:beginUnload()
-end
-
-function SelectView:unload()
-	self.game.selectController:unload()
-end
-
 ---@param dt number
 function SelectView:update(dt)
 	ScreenView.update(self, dt)
@@ -155,6 +147,9 @@ function SelectView:play()
 		("Length: %s Difficulty: %s"):format(self.displayInfo.length, self.displayInfo.difficulty),
 		self.game.backgroundModel.images[1]
 	)
+
+	self.game.selectController:beginUnload()
+	self.game.selectController:unload()
 
 end
 
