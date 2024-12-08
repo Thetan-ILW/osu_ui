@@ -1,7 +1,10 @@
+local utf8validate = require("utf8validate")
+
 ---@param section osu.ui.OptionsSection
 return function(section)
 	local configs = section.options:getConfigs()
 	local osu = configs.osu_ui ---@cast osu osu.ui.OsuConfig
+	local ui = section.options.ui
 
 	section:group("GRAPHICS", function(group)
 		group:checkbox({ label = "Enable blur",
@@ -21,8 +24,30 @@ return function(section)
 			setValue = function(v)
 				osu.graphics.blurQuality = v
 			end,
+		})
+
+		local skins = ui.assetModel:getOsuSkins()
+		group:combo({
+			items = skins,
+			getValue = function ()
+				return osu.skin
+			end,
+			setValue = function(index)
+				osu.skin = skins[index]
+				ui:loadAssets()
+				ui.scene:load()
+			end,
 			format = function(v)
+				if not v then
+					return "??"
+				end
+				local len = v:len()
+				if len > 38 then
+					return utf8validate(v:sub(1, 38), ".") .. ".."
+				end
+				return v
 			end
+
 		})
 	end)
 end

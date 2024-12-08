@@ -4,19 +4,20 @@ local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
 local Rectangle = require("ui.Rectangle")
 local Image = require("ui.Image")
 local Label = require("ui.Label")
-local Spectrum = require("osu_ui.views.MainMenuView.Spectrum")
-local LogoButton = require("osu_ui.views.MainMenuView.LogoButton")
+local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
+local LogoButton = require("osu_ui.views.MainMenu.LogoButton")
 
 local flux = require("flux")
 local math_util = require("math_util")
 
----@class osu.ui.MainMenuContainer : ui.Component
----@operator call: osu.ui.MainMenuContainer
----@field mainMenu osu.ui.MainMenuView
+---@class osu.ui.MainMenuView : ui.Component
+---@operator call: osu.ui.MainMenuView
 ---@field menu "closed" | "first" | "second"
+---@field selectApi game.SelectAPI
 local View = Component + {}
 
 local logo_slide = 200
+local play_intro = true
 
 function View:reload()
 	if not self.playingIntro then
@@ -36,7 +37,7 @@ function View:logoClicked()
 	elseif self.menu == "first" then
 		self:openSecondMenu()
 	elseif self.menu == "second" then
-		self:toNextView("selectView")
+		self:toNextView("select")
 	end
 end
 
@@ -74,59 +75,32 @@ function View:openSecondMenu()
 	end
 end
 
----@param screen "selectView" | "lobbyListView" | "editorView"
-function View:toNextView(screen)
+---@param screen_name "select" | "lobbyList" | "editor" | "osuDirect"
+function View:toNextView(screen_name)
 	if self.locked then
 		return
 	end
-	self.locked = true
-	self.menu = "closed"
-	flux.to(self, 0.35, { slide = 0 }):ease("quadout")
-	flux.to(self.secondMenu, 0.25, { alpha = 0 }):ease("quadout")
 
-	for _, v in pairs(self.firstMenu.children) do
-		v.handleEvents = false
-	end
-	for _, v in pairs(self.secondMenu.children) do
-		v.handleEvents = false
-	end
-
-	if screen == "selectView" then
+	if screen_name == "select" then
 		self.playSound(self.freeplayClickSound)
 	end
 
-	self.options:fade(0)
+	self:quit()
 
-	local scene = self.mainMenu.gameView.scene
+	local scene = self.shared.scene
 
-	if scene:getChild(screen) then
-		if self.transitionTween then
-			self.transitionTween:stop()
-		end
-		self.transitionTween = flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-			self.disabled = true
-		end)
-		if screen == "selectView" then
-			self.mainMenu:toSongSelect()
-		elseif screen == "lobbyListView" then
-			self.mainMenu:toLobbyList()
-		end
+	if scene:getChild(screen_name) then
+		scene:transitInScreen(screen_name)
 		return true
-
 	end
 
-	local background = scene:getChild("background")
-	if background then
-		---@cast background osu.ui.ParallaxBackground
-		background.parallax = 0
-		background.dim = 0.3
-	end
+	local background = scene:getChild("background") ---@cast background osu.ui.ParallaxBackground
+	background.parallax = 0
+	background.dim = 0.3
+
 	flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		if screen == "selectView" then
-			self.mainMenu:toSongSelect()
-		elseif screen == "lobbyListView" then
-			self.mainMenu:toLobbyList()
-		end
+		local screen = scene:addScreen(screen_name)
+		screen:transitIn()
 		self.disabled = true
 	end)
 end
@@ -137,6 +111,34 @@ function View:transitIn()
 	end
 	self.disabled = false
 	self.locked = false
+	self.handleEvents = true
+	self.transitionTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
+end
+
+function View:quit()
+	self.locked = true
+	self.menu = "closed"
+	flux.to(self, 0.35, { slide = 0 }):ease("quadout")
+	flux.to(self.firstMenu, 0.25, { alpha = 0 }):ease("quadout")
+	flux.to(self.secondMenu, 0.25, { alpha = 0 }):ease("quadout")
+
+	self.options:fade(0)
+
+	for _, v in pairs(self.firstMenu.children) do
+		v.handleEvents = false
+	end
+	for _, v in pairs(self.secondMenu.children) do
+		v.handleEvents = false
+	end
+
+	if self.transitionTween then
+		self.transitionTween:stop()
+	end
+
+	self.handleEvents = false
+	self.transitionTween = flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		self.disabled = true
+	end)
 end
 
 function View:keyPressed(event)
@@ -145,7 +147,7 @@ function View:keyPressed(event)
 		self.logo:clickAnimation()
 		return true
 	elseif event[2] == "f9" then
-		local scene = self.mainMenu.gameView.scene
+		local scene = self.shared.scene
 		local chat = scene:getChild("chat") ---@cast chat osu.ui.ChatView
 		if chat then
 			chat:toggle()
@@ -155,6 +157,7 @@ end
 
 function View:introSequence()
 	self.locked = true
+	self.handleEvents = false
 	self.playingIntro = true
 	self.playSound(self.welcomeSound)
 	self.playSound(self.welcomePianoSound)
@@ -183,6 +186,7 @@ function View:introSequence()
 		spectrum.color = { 1, 1, 1, 1 }
 		self.locked = false
 		self.playingIntro = false
+		self.handleEvents = true
 	end)
 	flux.to(welcome, 2, { scaleX = 1, scaleY = 1, alpha = 1 }):ease("sineout"):oncomplete(function ()
 		flux.to(welcome, 0.2, { alpha = 0 }):oncomplete(function ()
@@ -191,9 +195,16 @@ function View:introSequence()
 	end)
 end
 
+function View:update()
+	self.selectApi:updateController()
+end
+
 function View:load()
 	local assets = self.shared.assets
 	local fonts = self.shared.fontManager
+
+	self.selectApi = self.shared.selectApi
+	self.selectApi:loadController()
 
 	self.width, self.height = self.parent:getDimensions()
 	self:getViewport():listenForResize(self)
@@ -207,8 +218,7 @@ function View:load()
 	self.playClickSound = assets:loadAudio("menu-play-click")
 	self.freeplayClickSound = assets:loadAudio("menu-freeplay-click")
 
-	local options = self.mainMenu.gameView.scene:getChild("options")
-	self:assert(options) ---@cast options osu.ui.OptionsView
+	local options = self.shared.scene:getChild("options")
 	self.options = options
 
 	self.stencil = self:addChild("backgroundStencil", StencilComponent({
@@ -365,7 +375,7 @@ function View:load()
 		alpha = 0.2,
 		z = 0.02,
 		update = function(this, dt)
-			this.audio = self.mainMenu.game.previewModel.audio
+			this.audio = self.selectApi:getPreviewAudioSource()
 			if self.playingIntro then
 				this.audio = self.welcomeSound
 			end
@@ -440,7 +450,7 @@ function View:load()
 		idleImage = assets:loadImage("menu-button-freeplay"),
 		hoverImage = assets:loadImage("menu-button-freeplay-over"),
 		onClick = function()
-			self:toNextView("selectView")
+			self:toNextView("select")
 		end
 	}))
 	self.secondMenu:addChild("multiplayer", LogoButton({
@@ -449,7 +459,7 @@ function View:load()
 		hoverImage = assets:loadImage("menu-button-multiplayer-over"),
 		clickSound = assets:loadAudio("menu-multiplayer-click"),
 		onClick = function()
-			self:toNextView("lobbyListView")
+			self:toNextView("lobbyList")
 		end
 	}))
 	self.secondMenu:addChild("back", LogoButton({
@@ -479,6 +489,11 @@ function View:load()
 		disabled = true,
 		z = 1,
 	}))
+
+	if play_intro then
+		self:introSequence()
+		play_intro = false
+	end
 end
 
 return View

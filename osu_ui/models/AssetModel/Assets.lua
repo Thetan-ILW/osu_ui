@@ -74,6 +74,7 @@ function Assets:setPaths(directory, defaults_directory)
 end
 
 function Assets:setFileList()
+	assert(self.directory)
 	self.fileList = {}
 
 	if self.directory ~= "" then

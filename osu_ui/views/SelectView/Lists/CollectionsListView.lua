@@ -8,14 +8,17 @@ local flux = require("flux")
 
 ---@class osu.ui.CollectionsListView : osu.ui.WindowListView
 ---@operator call: osu.ui.CollectionsListView
----@field assets osu.ui.OsuAssets
 ---@field window osu.ui.CollectionItem[]
 ---@field state "closed" | "loading" | "opening" | "open" | "closing"
+---@field selectApi game.SelectAPI
 local CollectionsListView = WindowListView + {}
 
 function CollectionsListView:load()
 	local fonts = self.shared.fontManager
 	local assets = self.shared.assets
+
+	self.selectApi = self.shared.selectApi
+	self.assets = assets
 
 	self.width, self.height = self.parent:getDimensions()
 	self.holeSize = 0
@@ -51,17 +54,16 @@ function CollectionsListView:load()
 end
 
 function CollectionsListView:getSelectedItemIndex()
-	local tree = self.game.selectModel.collectionLibrary.tree
-	return tree.selected
+	return self.selectApi:getCollectionLibrary().tree.selected
 end
 
 function CollectionsListView:getItems()
-	return self.game.selectModel.collectionLibrary.tree.items
+	return self.selectApi:getCollectionLibrary().tree.items
 end
 
 function CollectionsListView:update()
 	if self.state == "loading" then
-		if self.lastStateCounter ~= self.game.selectModel.noteChartSetStateCounter then
+		if self.lastStateCounter ~= self.selectApi:getNotechartSetStateCounter() then
 			self:collectionLoaded()
 		end
 	end
@@ -82,8 +84,6 @@ function CollectionsListView:collectionLoaded()
 		self.parent:removeChild("charts")
 	end
 	self.childList = ChartListView({
-		game = self.game,
-		assets = self.assets,
 		parentList = self,
 		depth = 0.9,
 	})
@@ -134,7 +134,7 @@ function CollectionsListView:selectItem(child)
 	self:stopWrapTween()
 	self.holeSize = 0
 	self.wrapProgress = 0
-	self.lastStateCounter = self.game.selectModel.noteChartSetStateCounter
+	self.lastStateCounter = self.selectApi:getNotechartSetStateCounter()
 
 	if self:getSelectedItemIndex() > prev_index then
 		self.parent.scrollPosition = self.parent.scrollPosition - prev_size
@@ -146,7 +146,7 @@ end
 function CollectionsListView:replaceItem(window_index, visual_index)
 	local collection = self.items[visual_index]
 	local item = self.window[window_index]
-	local tree = self.game.selectModel.collectionLibrary.tree
+	local tree = self.selectApi:getCollectionLibrary().tree
 	item:replaceWith(collection, tree)
 	item.visualIndex = visual_index
 end

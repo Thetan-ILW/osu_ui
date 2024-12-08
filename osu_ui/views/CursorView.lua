@@ -14,10 +14,12 @@ local CursorView = Component + {}
 function CursorView:load()
 	self.alpha = 1
 	self.config = self.osuConfig.cursor
-	self.params = self.assets.params
-	self.cursorImage = self.assets:loadImage("cursor")
-	self.cursorMiddleImage = self.assets:loadImage("cursormiddle")
-	self.cursorTrailImage = self.assets:loadImage("cursortrail")
+
+	local assets = self.shared.assets
+	self.params = assets.params
+	self.cursorImage = assets:loadImage("cursor")
+	self.cursorMiddleImage = assets:loadImage("cursormiddle")
+	self.cursorTrailImage = assets:loadImage("cursortrail")
 
 	self.lastX, self.lastY = love.mouse.getPosition()
 	self:updateSpriteBatch()

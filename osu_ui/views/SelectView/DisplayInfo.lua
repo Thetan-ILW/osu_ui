@@ -7,17 +7,18 @@ local Format = require("sphere.views.Format")
 ---@operator call: osu.ui.SelectViewDisplayInfo
 local DisplayInfo = class()
 
----@param select_view osu.ui.SelectView
-function DisplayInfo:new(select_view)
-	self.game = select_view.game
-	local text = select_view.localization.text
-	assert(text)
-	self.text = text
+---@param localization Localization
+---@param select_api game.SelectAPI
+---@param minacalc table
+function DisplayInfo:new(localization, select_api, minacalc)
+	self.text = localization.text
+	self.selectApi = select_api
+	self.minacalc = minacalc
 end
 
-function DisplayInfo:load()
-	self.chartview = self.game.selectModel.chartview
-	self.playContext = self.game.playContext
+function DisplayInfo:updateInfo()
+	self.chartview = self.selectApi:getChartview()
+	self.playContext = self.selectApi:getPlayContext()
 
 	if self.chartview then
 		self:setChartInfo()
@@ -81,15 +82,15 @@ function DisplayInfo:setChartInfo()
 	local columns_str = Format.inputMode(chartview.chartdiff_inputmode)
 
 	---@type string
-	local diff_column = self.game.configModel.configs.settings.select.diff_column
+	local diff_column = self.selectApi:getSelectedDiffColumn()
 	local difficulty = "-9999"
 
 	if diff_column == "msd_diff" and chartview.msd_diff_data then
-		local etterna_msd = self.game.ui.etternaMsd
-		local msd = etterna_msd.getMsdFromData(chartview.msd_diff_data, rate)
+		local minacalc = self.minacalc
+		local msd = minacalc.getMsdFromData(chartview.msd_diff_data, rate)
 		if msd then
 			local overall = msd.overall
-			local pattern = etterna_msd.simplifySsr(etterna_msd.getFirstFromMsd(msd), chartview.chartdiff_inputmode)
+			local pattern = minacalc.simplifySsr(minacalc.getFirstFromMsd(msd), chartview.chartdiff_inputmode)
 			difficulty = ("%0.02f %s"):format(overall, pattern)
 		end
 	elseif diff_column == "enps_diff" then

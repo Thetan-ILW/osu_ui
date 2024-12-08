@@ -11,7 +11,6 @@ local StencilComponent = Component + {}
 
 function StencilComponent:new(params)
 	Component.new(self, params)
-	self:assert(self.stencilFunction, "You should provide the stencil function")
 	self.action = self.action or "replace"
 	self.value = self.value or 1
 	self.compareMode = self.compareMode or "greater"

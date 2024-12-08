@@ -60,11 +60,15 @@ function TextBox:mouseClick(event)
 	return true
 end
 
+---@param input string
+function TextBox.changed(input) end
+
 function TextBox:updateField()
 	self.inputLabel:replaceText(self.password and self.censor(self.input) or self.input)
 	local diff = self:getWidth() - self.inputLabel:getWidth()
 	local x = diff < 0 and diff - 2 or 2
 	self.inputLabel.x = x
+	self.changed(self.input)
 end
 
 function TextBox:keyPressed(event)

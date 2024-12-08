@@ -14,8 +14,8 @@ local flux = require("flux")
 
 ---@class osu.ui.ScoreListView : ui.Component
 ---@overload fun(params: osu.ui.ScoreListViewParams): osu.ui.ScoreListView
----@field assets osu.ui.OsuAssets
 ---@field scores osu.ui.ScrollAreaContainer
+---@field selectApi game.SelectAPI
 local ScoreListView = Component + {}
 
 ScoreListView.panelHeight = 58
@@ -23,6 +23,9 @@ ScoreListView.panelSpacing = 53
 ScoreListView.panelSlideInDelay = 0.08
 
 function ScoreListView:load()
+	self.selectApi = self.shared.selectApi
+	self.playerProfile = self.selectApi:getPlayerProfile()
+
 	self:addChild("noScores", Image({
 		x = self.width / 2, y = self.height / 2,
 		origin = { x = 0.5, y = 0.5 },
@@ -107,7 +110,6 @@ function ScoreListView:addProfileScore(score_index, score, source)
 	self.scores:addChild(tostring(score_index), ScoreEntryView({
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
-		assets = self.assets,
 		gradeImageName = grade_images[Scoring.convertGradeToOsu(grade)],
 		username = "Player",
 		score = score_str,
@@ -153,7 +155,6 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 	self.scores:addChild(tostring(score_index), ScoreEntryView({
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
-		assets = self.assets,
 		gradeImageName = grade,
 		username = "Player",
 		score = ("Score: %s (%ix)"):format(commaValue(math_util.round(score_num, 1)), score.max_combo),
@@ -176,18 +177,19 @@ function ScoreListView:update(dt)
 end
 
 function ScoreListView:loadScores()
-	if self.items == self.game.selectModel.scoreLibrary.items then
+	local items = self.selectApi:getScores()
+	if self.items == items then
 		return
 	end
 
-	self.items = self.game.selectModel.scoreLibrary.items
+	self.items = items
 
 	local score_container = self.scores
 	score_container.children = {}
 	score_container.childrenOrder = {}
 	score_container.scrollPosition = 0
 
-	local source = self.game.configModel.configs.osu_ui.songSelect.scoreSource
+	local source = self.selectApi:getScoreSource()
 
 	local score_index = 1
 	for _, score in ipairs(self.items) do

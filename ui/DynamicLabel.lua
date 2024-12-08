@@ -38,6 +38,7 @@ function DynamicLabel:update()
 		return
 	end
 
+	self:assert(new_text, "Text is nil")
 	self.text = new_text
 
 	local font = self.font

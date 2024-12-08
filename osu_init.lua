@@ -5,14 +5,16 @@ local OsuAssets = require("osu_ui.OsuAssets")
 local Localization = require("osu_ui.models.AssetModel.Localization")
 local ChatModel = require("osu_ui.models.ChatModel")
 
-local GameView = require("osu_ui.views.GameView")
-local SelectView = require("osu_ui.views.SelectView")
-local GameplayView = require("osu_ui.views.GameplayView")
-local ResultView = require("osu_ui.views.ResultView")
-local MainMenuView = require("osu_ui.views.MainMenuView")
-local LobbyListView = require("osu_ui.views.LobbyList")
+local SelectAPI = require("game_api.Select")
+local MultiplayerAPI = require("game_api.Multiplayer")
 
-local physfs = require("physfs")
+local Viewport = require("ui.Viewport")
+local FontManager = require("ui.FontManager")
+local CursorView = require("osu_ui.views.CursorView")
+local Scene = require("osu_ui.views.Scene")
+
+local packages = require("osu_ui.packages")
+
 local path_util = require("path_util")
 
 ---@class osu.ui.UserInterface
@@ -24,142 +26,94 @@ local UserInterface = class()
 ---@param game sphere.GameController
 ---@param mount_path string
 function UserInterface:new(game, mount_path)
+	self.game = game
 	self.mountPath = mount_path
 	game.persistence:openAndReadThemeConfig("osu_ui", mount_path)
 
 	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
 	self.chatModel = ChatModel()
-
 	self.localization = Localization(path_util.join(mount_path, "osu_ui/localization"), "en.txt")
+	self.assets = OsuAssets(self.assetModel)
 
-	self.game = game
-
-	self.gameView = GameView(self)
-	self.mainMenuView = MainMenuView(game)
-	self.selectView = SelectView(game)
-	self.resultView = ResultView(game)
-	self.gameplayView = GameplayView(game)
-	self.lobbyListView = LobbyListView(game)
-
-	self.lastResolutionCheck = -math.huge
-	self.prevWindowResolution = 0
+	self.selectApi = SelectAPI(game)
+	self.multiplayerApi = MultiplayerAPI(game)
 
 	require("ui.Component_test")
 end
 
-function UserInterface:getMods()
-	local package_manager = self.game.packageManager
-	local player_profile_pkg = package_manager:getPackage("player_profile")
-
-	local player_profile
-
-	if player_profile_pkg then
-		player_profile = self.game.playerProfileModel
-	end
-
-	if not player_profile or (player_profile and player_profile.version ~= 1) then
-		player_profile = {
-			notInstalled = true,
-			pp = 0,
-			accuracy = 0,
-			osuLevel = 0,
-			osuLevelPercent = 0,
-			rank = 69,
-			getScore = function()
-				return nil
-			end,
-			getDanClears = function(_self, mode)
-				return "-", "-"
-			end,
-			isDanIsCleared = function()
-				return false, false
-			end,
-			getActivity = function()
-				return nil
-			end,
-			getAvailableDans = function()
-				return nil
-			end,
-			getDanTable = function(_self, mode, type)
-				return nil
-			end,
-			getOverallStats = function()
-				return nil
-			end,
-			getModeStats = function()
-				return nil
-			end
-		}
-	end
-
-	self.playerProfile = player_profile
-
-	local minacalc_pkg = package_manager:getPackage("msd_calculator")
-	local etterna_msd = minacalc_pkg and require("minacalc.etterna_msd") or {
-		getMsdFromData = function()
-			return nil
-		end,
-		simplifySsr = function()
-			return "minacalc not installed"
-		end
-	}
-
-	self.etternaMsd = etterna_msd
-
-	local manip_factor_pkg = package_manager:getPackage("manip_factor")
-	self.manipFactor = manip_factor_pkg and require("manip_factor") or nil
-
-	local gucci_pkg = package_manager:getPackage("gucci")
-	self.gucci = gucci_pkg and require("gucci_init") or nil
-
-	if self.gucci then
-		--local FirstTimeSetupView = require("osu_ui.views.FirstTimeSetupView")
-		--self.firstTimeSetupView = FirstTimeSetupView(self.game)
-	end
-end
-
-function UserInterface:loadAssets(view_name)
-	local asset_model = self.assetModel
+function UserInterface:loadAssets()
 	local configs = self.game.configModel.configs
 	local osu = configs.osu_ui
 
 	---@type string
-	local language = osu.language
-
-	---@type string
 	local skin_path = ("userdata/skins/%s"):format(osu.skin:trim())
 
-	if not self.assets or (self.assets and self.assets.directory ~= skin_path) then
-		--local default_localization = asset_model:getLocalizationFileName("English")
-		self.assets = OsuAssets(asset_model, skin_path)
+	if self.assets.directory ~= skin_path then
+		self.assets:setPaths(skin_path, "osu_ui/assets")
 		self.assets:load()
 	end
 
-	self.assets:loadViewAssets(view_name)
 	self.assets:updateVolume(self.game.configModel.configs)
 end
 
 function UserInterface:load()
-	self:getMods()
+	self.pkgs = packages(self.game)
 
+	self:loadAssets()
+	self.localization:load()
+	self.localization:loadFile("en.txt")
+
+	local fonts = {
+		["Regular"] = "osu_ui/assets/ui_font/Aller/Aller_Rg.ttf",
+		["Light"] = "osu_ui/assets/ui_font/Aller/Aller_Lt.ttf",
+		["Bold"] = "osu_ui/assets/ui_font/Aller/Aller_Bd.ttf",
+		["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf",
+		["NotoSansMono"] = "osu_ui/assets/ui_font/NotoSansMono-Regular.ttf"
+	}
+	local fallbacks = {
+		["Regular"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Regular.ttf",
+		["Light"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Light.ttf",
+		["Bold"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Bold.ttf",
+	}
+	for k, path in pairs(fonts) do
+		fonts[k] = path_util.join(self.mountPath, path)
+	end
+	for k, path in pairs(fallbacks) do
+		fallbacks[k] = path_util.join(self.mountPath, path)
+	end
+
+	self.viewport = Viewport({
+		targetHeight = 768,
+		shared = {
+			assets = self.assets,
+			fontManager = FontManager(768, fonts, fallbacks),
+			localization =  self.localization,
+			pkgs = self.pkgs,
+			selectApi = self.selectApi,
+			multiplayerApi = self.multiplayerApi
+		}
+	})
+	self.viewport:load()
+	self.viewport:addChild("cursor", CursorView({
+		osuConfig = self.game.configModel.configs.osu_ui,
+		z = 0.98
+	}))
+
+	local scene = self.viewport:addChild("scene", Scene({ game = self.game, ui = self })) ---@cast scene osu.ui.SceneView
+	self.scene = scene
+
+	love.mouse.setVisible(false)
+
+	--[[
 	local windows = jit.os == "Windows"
 	local osu = self.game.configModel.configs.osu_ui
-
 	if windows then
 		local osu_skins_path = osu.gucci.osuSkinsPath
 		if osu_skins_path ~= "" then
 			self:mountOsuSkins(osu_skins_path)
 		end
 	end
-
-	self:loadAssets()
-	self.localization:load()
-	self.localization:loadFile("en.txt")
-
-	---@type osu.ui.ScreenView
-	local view = self.mainMenuView
-
-	if self.gucci then
+	if self.pkgs.gucci then
 		if not osu.gucci.installed then
 			if windows then
 				local other_games = self.gucci.findOtherGames()
@@ -184,10 +138,10 @@ function UserInterface:load()
 			end
 		end
 	end
-
-	self.gameView:load(view)
+	]]
 end
 
+--[[
 local osu_skins_mounted = false
 
 function UserInterface:mountOsuSkins(path)
@@ -203,24 +157,30 @@ function UserInterface:mountOsuSkins(path)
 	self.game.noteSkinModel:load()
 	osu_skins_mounted = true
 end
+]]
 
 function UserInterface:unload()
-	self.gameView:unload()
 end
 
 ---@param dt number
 function UserInterface:update(dt)
 	self.assets:updateVolume(self.game.configModel.configs)
-	self.gameView:update(dt)
+	self.viewport:updateTree(dt)
 end
 
 function UserInterface:draw()
-	self.gameView:draw()
+	self.viewport:drawTree()
 end
 
 ---@param event table
 function UserInterface:receive(event)
-	self.gameView:receive(event)
+	if event.name == "framestarted" then
+		return
+	elseif event.name == "mousemoved" then
+		return
+	end
+
+	self.viewport:receive(event)
 end
 
 return UserInterface

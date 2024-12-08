@@ -124,9 +124,8 @@ end
 
 ---@param asset_model osu.ui.AssetModel
 ---@param skin_path string
-function OsuAssets:new(asset_model, skin_path)
+function OsuAssets:new(asset_model)
 	self.assetModel = asset_model
-	self:setPaths(skin_path, "osu_ui/assets")
 end
 
 function OsuAssets:load()

@@ -21,7 +21,7 @@ function Button:load()
 	self.height = self.height == 0 and 65 or self.height
 	self.blockMouseFocus = true
 
-	self:addChild("buttonLabel", Label({
+	self.text = self:addChild("buttonLabel", Label({
 		width = self.width,
 		height = self.height,
 		text = self.label,
@@ -49,6 +49,10 @@ end
 
 function Button:justHovered()
 	ui.playSound(self.hoverSound)
+end
+
+function Button:update()
+	self.text.alpha = self.alpha
 end
 
 function Button:mouseClick()

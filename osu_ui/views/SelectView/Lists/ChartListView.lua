@@ -7,13 +7,16 @@ local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 ---@class osu.ui.ChartListView : osu.ui.WindowListView
 ---@overload fun(params: ChartListViewParams): osu.ui.ChartListView
 ---@field window osu.ui.WindowListChartItem[]
----@field assets osu.ui.OsuAssets
+---@field selectApi game.SelectAPI
 local ChartListView = WindowListView + {}
 
 function ChartListView:load()
 	local fonts = self.shared.fontManager
-	local assets = self.shared.assets
+	local assets = self.shared.assets ---@cast assets osu.ui.OsuAssets
 	local star = assets:loadImage("star2")
+
+	self.selectApi = self.shared.selectApi
+	self.assets = assets
 
 	local iw, ih = star:getDimensions()
 	if iw * ih > 1 then
@@ -44,22 +47,22 @@ function ChartListView:load()
 end
 
 function ChartListView:getSelectedItemIndex()
-	return self.game.selectModel.chartview_set_index
+	return self.selectApi:getSelectedNoteChartSetIndex()
 end
 
 function ChartListView:getItems()
-	return self.game.selectModel.noteChartSetLibrary.items
+	return self.selectApi:getNotechartSets()
 end
 
 function ChartListView:getStateCounter()
-	return self.game.selectModel.noteChartSetStateCounter
+	return self.selectApi:getNotechartSetStateCounter()
 end
 
 function ChartListView:selectItem(child)
 	if self:getSelectedItemIndex() == child.visualIndex then
 		self.parent:playChart()
 	end
-	self.game.selectModel:scrollNoteChartSet(nil, child.visualIndex)
+	self.selectApi:setNotechartSetIndex(child.visualIndex)
 	self.parent:scrollToPosition(self.y + self:getSelectedItemIndex() * self.panelHeight, 0)
 end
 

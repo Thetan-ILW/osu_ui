@@ -172,8 +172,6 @@ function Viewport:receive(event)
 	elseif event.name == "wheelmoved" then
 		Component.receive(self, { name = event[2] == 1 and "wheelUp" or "wheelDown" })
 		return
-	elseif event.name == "focus" then
-		return
 	end
 
 	Component.receive(self, event)

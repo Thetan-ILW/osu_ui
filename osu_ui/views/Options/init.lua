@@ -17,6 +17,7 @@ local Section = require("osu_ui.views.Options.Section")
 ---@class osu.ui.OptionsView : ui.CanvasComponent
 ---@overload fun(params: OptionsParams): osu.ui.OptionsView
 ---@field game sphere.GameController
+---@field ui osu.ui.UserInterface
 ---@field assets osu.ui.OsuAssets
 ---@field localization Localization
 ---@field fadeTween table?
@@ -41,6 +42,9 @@ function Options:fade(target_value)
 	if target_value > 0 then
 		self.alpha = 0.01
 		self.disabled = false
+		self.handleEvents = true
+	elseif target_value == 0 then
+		self.handleEvents = false
 	end
 end
 
