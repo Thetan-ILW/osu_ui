@@ -87,18 +87,19 @@ function View:toNextView(screen_name)
 
 	self:quit()
 
-	local scene = self.shared.scene
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 
 	if scene:getChild(screen_name) then
 		scene:transitInScreen(screen_name)
 		return true
 	end
 
-	local background = scene:getChild("background") ---@cast background osu.ui.ParallaxBackground
+	local background = self.scene.background
 	background.parallax = 0
 	background.dim = 0.3
 
-	flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+	flux.to(self.scene.cursor, 0.6, { alpha = 0 }):ease("quadout")
+	self.transitionTween = flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
 		local screen = scene:addScreen(screen_name)
 		screen:transitIn()
 		self.disabled = true
@@ -122,7 +123,7 @@ function View:quit()
 	flux.to(self.firstMenu, 0.25, { alpha = 0 }):ease("quadout")
 	flux.to(self.secondMenu, 0.25, { alpha = 0 }):ease("quadout")
 
-	self.options:fade(0)
+	self.scene.options:fade(0)
 
 	for _, v in pairs(self.firstMenu.children) do
 		v.handleEvents = false
@@ -136,7 +137,7 @@ function View:quit()
 	end
 
 	self.handleEvents = false
-	self.transitionTween = flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+	self.transitionTween = flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
 		self.disabled = true
 	end)
 end
@@ -187,6 +188,7 @@ function View:introSequence()
 		self.locked = false
 		self.playingIntro = false
 		self.handleEvents = true
+		self.selectApi:loadController()
 	end)
 	flux.to(welcome, 2, { scaleX = 1, scaleY = 1, alpha = 1 }):ease("sineout"):oncomplete(function ()
 		flux.to(welcome, 0.2, { alpha = 0 }):oncomplete(function ()
@@ -200,11 +202,11 @@ function View:update()
 end
 
 function View:load()
-	local assets = self.shared.assets
-	local fonts = self.shared.fontManager
-
-	self.selectApi = self.shared.selectApi
-	self.selectApi:loadController()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
+	local fonts = scene.fontManager
+	self.scene = scene
+	self.selectApi = scene.ui.selectApi
 
 	self.width, self.height = self.parent:getDimensions()
 	self:getViewport():listenForResize(self)
@@ -217,9 +219,6 @@ function View:load()
 	self.logoHitSound = assets:loadAudio("menuhit")
 	self.playClickSound = assets:loadAudio("menu-play-click")
 	self.freeplayClickSound = assets:loadAudio("menu-freeplay-click")
-
-	local options = self.shared.scene:getChild("options")
-	self.options = options
 
 	self.stencil = self:addChild("backgroundStencil", StencilComponent({
 		width = self.width,
@@ -267,7 +266,6 @@ function View:load()
 			end
 			if this.clicks == 7 then
 				this.clicks = 9999999
-				local scene = self.mainMenu.gameView.scene
 				local ily = scene:addChild("ily", Component({ z = 0.5, alpha = 0 }))
 				this.ily = ily:addChild("loveyourself", Rectangle({
 					width = self.width,
@@ -289,7 +287,6 @@ function View:load()
 			if event[2] ~= "escape" then
 				return
 			end
-			local scene = self.mainMenu.gameView.scene
 			if this.ily then
 				flux.to(this.ily, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
 					scene:removeChild("ily")
@@ -427,7 +424,7 @@ function View:load()
 		hoverImage = assets:loadImage("menu-button-options-over"),
 		clickSound = assets:loadAudio("menuhit"),
 		onClick = function()
-			self.options:toggle()
+			self.scene.options:toggle()
 		end
 	}))
 	self.firstMenu:addChild("exit", LogoButton({

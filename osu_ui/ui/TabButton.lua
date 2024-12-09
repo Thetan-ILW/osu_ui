@@ -13,7 +13,11 @@ local Image = require("ui.Image")
 local TabButton = Component + {}
 
 function TabButton:load()
-	local image = self.shared.assets:loadImage("selection-tab")
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	local assets = scene.assets
+
+	local image = assets:loadImage("selection-tab")
 	self.width, self.height = image:getDimensions()
 	self.active = self.active or false
 	self.tabColor = self.tabColor or { 0.86, 0.08, 0.23, 1 }
@@ -22,7 +26,7 @@ function TabButton:load()
 		image = image
 	}))
 
-	self.font = self.font or self.shared.fontManager:loadFont("Regular", 13)
+	self.font = self.font or fonts:loadFont("Regular", 13)
 	self.label = self:addChild("label", Label({
 		width = self.width,
 		height = self.height,

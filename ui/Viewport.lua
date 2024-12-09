@@ -20,7 +20,6 @@ function Viewport:new(params)
 	self.resizeListeners = {}
 	self.innerTransform = love.math.newTransform()
 	self:assert(self.targetHeight, "You should specify the target height for the viewport")
-	self:assert(self.shared.fontManager, "You should provide FontManager class to the viewport.")
 
 	self.mouseKeyDown = 0
 	self.mouseTotalMovement = 0
@@ -41,7 +40,6 @@ function Viewport:load()
 	self.scaledWidth, self.scaledHeight = xw - x, yh - y
 
 	self.canvas = love.graphics.newCanvas(self.width, self.height)
-	self.shared.fontManager:setVieportHeight(self.height)
 end
 
 function Viewport:getInnerScale()

@@ -81,7 +81,8 @@ function Chat:load()
 	self.width, self.height = self.parent:getDimensions()
 	self:getViewport():listenForResize(self)
 
-	local fonts = self.shared.fontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
 
 	self.selectedChannel = self.chatModel:getChannel("#general")
 	self.state = "closed"

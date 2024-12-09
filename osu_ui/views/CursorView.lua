@@ -4,7 +4,6 @@ local Component = require("ui.Component")
 
 ---@class osu.ui.CursorView : ui.Component
 ---@overload fun(CursorViewParams): osu.ui.CursorView
----@field assets osu.ui.OsuAssets
 ---@field osuConfig osu.ui.OsuConfig
 ---@field cursorImage love.Image
 ---@field cursorMiddleImage love.Image
@@ -12,14 +11,16 @@ local Component = require("ui.Component")
 local CursorView = Component + {}
 
 function CursorView:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.alpha = 1
-	self.config = self.osuConfig.cursor
 
-	local assets = self.shared.assets
+	local assets = scene.assets
 	self.params = assets.params
 	self.cursorImage = assets:loadImage("cursor")
 	self.cursorMiddleImage = assets:loadImage("cursormiddle")
 	self.cursorTrailImage = assets:loadImage("cursortrail")
+
+	self.config = scene.game.configModel.configs.osu_ui.cursor
 
 	self.lastX, self.lastY = love.mouse.getPosition()
 	self:updateSpriteBatch()

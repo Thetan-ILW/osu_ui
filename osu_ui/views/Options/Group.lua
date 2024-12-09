@@ -18,13 +18,14 @@ local Checkbox = require("osu_ui.ui.Checkbox")
 local Group = Component + {}
 
 function Group:load()
-	local fonts = self.shared.fontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	local options = self.section.options
+
+	self.fonts = scene.fontManager
 
 	self.game = options.game
 	self.search = options.search
 	self.assets = options.assets
-	self.fonts = fonts
 	self.isEmpty = false
 	self.indent = 12
 	self.buttonColor = { 0.05, 0.52, 0.65, 1 }
@@ -58,7 +59,7 @@ function Group:load()
 	self:addChild("label", Label({
 		x = self.indent,
 		text = self.name,
-		font = fonts:loadFont("Bold", 16)
+		font = self.fonts:loadFont("Bold", 16)
 	}))
 end
 
@@ -98,8 +99,6 @@ function Group:textBox(params)
 		return
 	end
 
-	local fonts = self.shared.fontManager
-
 	local container = self:addChild("textBoxContainer" .. self.textBoxes, Component({
 		x = self.indent - 2, y = self:getCurrentY(),
 		width = self:getWidth(),
@@ -116,7 +115,7 @@ function Group:textBox(params)
 	container:addChild("label", Label({
 		x = 2, y = 12,
 		text = params.label,
-		font = fonts:loadFont("Regular", 16),
+		font = self.fonts:loadFont("Regular", 16),
 	}))
 	local text_box = container:addChild("textBox", TextBox({
 		y = container:getHeight() - 5,
@@ -126,7 +125,7 @@ function Group:textBox(params)
 		label = params.label,
 		input = params.value,
 		password = params.password,
-		font = fonts:loadFont("Regular", 17),
+		font = self.fonts:loadFont("Regular", 17),
 		justHovered = function () end
 	}))
 
@@ -291,14 +290,12 @@ function Group:checkbox(params)
 		return
 	end
 
-	local fonts = self.shared.fontManager
-
 	local checkbox = self:addChild("checkbox" .. self.checkboxes, Checkbox({
 		x = self.indent + 5,
 		y = self:getCurrentY(),
 		width = self.width,
 		height = 37,
-		font = fonts:loadFont("Regular", 16),
+		font = self.fonts:loadFont("Regular", 16),
 		label = params.label,
 		getValue = params.getValue,
 		clicked = params.clicked,

@@ -117,10 +117,13 @@ function Options:reload()
 end
 
 function Options:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.game = scene.game
+
 	local width, height = self.parent:getDimensions()
 	local viewport = self:getViewport()
-	local fonts = self.shared.fontManager
-	local assets = self.shared.assets
+	local fonts = scene.fontManager
+	local assets = scene.assets
 	local osu_cfg = self:getConfigs().osu_ui
 	self.viewportScale = viewport:getInnerScale()
 

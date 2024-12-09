@@ -44,7 +44,10 @@ function Combo:load()
 	self.state = "hidden"
 	self.visibility = 0
 
-	local fonts = self.shared.fontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	local assets = scene.assets
+
 	local font = self.font or fonts:loadFont("Regular", 16)
 	local awesome_regular = fonts:loadFont("Awesome", 18)
 	local awesome_small = fonts:loadFont("Awesome", 15)
@@ -163,7 +166,6 @@ function Combo:load()
 		}))
 	end
 
-	local assets = self.shared.assets
 	self.hoverSound = assets:loadAudio("click-short")
 	self.expandSound = assets:loadAudio("select-expand")
 end

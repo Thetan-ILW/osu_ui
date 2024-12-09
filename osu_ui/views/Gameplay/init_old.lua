@@ -1,5 +1,4 @@
 local ScreenView = require("osu_ui.views.ScreenView")
-local SequenceView = require("sphere.views.SequenceView")
 
 local OsuPauseAssets = require("osu_ui.OsuPauseAssets")
 
@@ -17,7 +16,6 @@ GameplayView.name = "gameplay"
 ---@param game sphere.GameController
 function GameplayView:new(game)
 	self.game = game
-	self.sequenceView = SequenceView()
 end
 
 local quitting = false

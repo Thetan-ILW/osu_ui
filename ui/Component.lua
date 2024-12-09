@@ -195,6 +195,10 @@ function Component:removeChild(id)
 	end
 end
 
+function Component:kill()
+	self.parent:removeChild(self.id)
+end
+
 function Component:clearTree()
 	self.eventListeners = {}
 	self.children = {}
@@ -205,6 +209,15 @@ end
 ---@return ui.Component?
 function Component:getChild(id)
 	return self.children[id]
+end
+
+---@param id string
+---@return ui.Component?
+function Component:findComponent(id)
+	if self.id == id then
+		return self
+	end
+	return self.parent:findComponent(id)
 end
 
 ---@param old_id string

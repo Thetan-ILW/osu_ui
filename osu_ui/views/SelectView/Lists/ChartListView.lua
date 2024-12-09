@@ -11,11 +11,12 @@ local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 local ChartListView = WindowListView + {}
 
 function ChartListView:load()
-	local fonts = self.shared.fontManager
-	local assets = self.shared.assets ---@cast assets osu.ui.OsuAssets
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	local assets = scene.assets
 	local star = assets:loadImage("star2")
 
-	self.selectApi = self.shared.selectApi
+	self.selectApi = scene.ui.selectApi
 	self.assets = assets
 
 	local iw, ih = star:getDimensions()

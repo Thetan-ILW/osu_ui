@@ -23,13 +23,14 @@ ScoreListView.panelSpacing = 53
 ScoreListView.panelSlideInDelay = 0.08
 
 function ScoreListView:load()
-	self.selectApi = self.shared.selectApi
-	self.playerProfile = self.selectApi:getPlayerProfile()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.selectApi = scene.ui.selectApi
+	self.playerProfile = scene.ui.pkgs.playerProfile
 
 	self:addChild("noScores", Image({
 		x = self.width / 2, y = self.height / 2,
 		origin = { x = 0.5, y = 0.5 },
-		image = self.shared.assets:loadImage("selection-norecords")
+		image = scene.assets:loadImage("selection-norecords")
 	}))
 
 	local stencil = self:addChild("stencil", StencilComponent({

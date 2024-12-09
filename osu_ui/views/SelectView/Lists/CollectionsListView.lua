@@ -14,10 +14,11 @@ local flux = require("flux")
 local CollectionsListView = WindowListView + {}
 
 function CollectionsListView:load()
-	local fonts = self.shared.fontManager
-	local assets = self.shared.assets
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	local assets = scene.assets
 
-	self.selectApi = self.shared.selectApi
+	self.selectApi = scene.ui.selectApi
 	self.assets = assets
 
 	self.width, self.height = self.parent:getDimensions()

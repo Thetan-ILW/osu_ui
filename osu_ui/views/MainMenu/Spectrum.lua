@@ -2,6 +2,11 @@ local Component = require("ui.Component")
 
 local beatValue = require("osu_ui.views.beat_value")
 
+---@class osu.ui.Spectrum : ui.Component
+---@operator call: osu.ui.Spectrum
+---@field emptyFft number[]
+---@field smoothedFft number[]
+---@field audio audio.Source?
 local Spectrum = Component + {}
 
 local radius = 253
@@ -11,7 +16,9 @@ local repeats = 4
 local bars = fft_size * repeats
 
 function Spectrum:load()
-	local img = self.shared.assets:loadImage("menu-vis")
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local img = scene.assets:loadImage("menu-vis")
+
 	self.spriteBatch = love.graphics.newSpriteBatch(img)
 	self.rotation = 0
 	self.smoothedFft = {}
@@ -19,7 +26,7 @@ function Spectrum:load()
 	self.emptyFft[0] = 0
 
 	for _ = 1, bars do
-		self.spriteBatch:add()
+		self.spriteBatch:add(0, 0)
 	end
 
 	for i = 1, 64 do

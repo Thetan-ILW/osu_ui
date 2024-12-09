@@ -15,7 +15,8 @@ local Label = require("ui.Label")
 local Section = Component + {}
 
 function Section:load()
-	local fonts = self.shared.fontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
 
 	self.startY = 60
 	self.currentY = 0

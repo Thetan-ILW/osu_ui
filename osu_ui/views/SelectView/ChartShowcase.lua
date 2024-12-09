@@ -7,16 +7,18 @@ local StencilComponent = require("ui.StencilComponent")
 
 local flux = require("flux")
 
----@class osu.ui.GameplayTransition : ui.Component
----@operator call: osu.ui.GameplayTransition
-local GameplayTransition = Component + {}
+---@class osu.ui.ChartShowcase : ui.Component
+---@operator call: osu.ui.ChartShowcase
+local ChartShowcase = Component + {}
 
-function GameplayTransition:load()
+function ChartShowcase:load()
 	self.width, self.height = self.parent:getDimensions()
 	self.chartName = self.chartName or "chartName"
 	self.chartInfo = self.chartInfo or "chartInfo"
-	local assets = self.shared.assets
-	local fonts = self.shared.fontManager
+
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
+	local fonts = scene.fontManager
 
 	local ratio = 21 / 9
 	local c_width = 342 * ratio
@@ -67,7 +69,7 @@ function GameplayTransition:load()
 	}))
 end
 
-function GameplayTransition:show(chart_name, chart_info, image)
+function ChartShowcase:show(chart_name, chart_info, image)
 	self.chartName = chart_name
 	self.chartInfo = chart_info
 	self.image = image
@@ -78,23 +80,22 @@ function GameplayTransition:show(chart_name, chart_info, image)
 		self.tween:stop()
 	end
 	self.tween = flux.to(self, 0.4, { alpha = 1 }):ease("quadout")
-	self.disabled = false
 end
 
 ---@param delay number?
-function GameplayTransition:hide(delay)
+function ChartShowcase:hide(delay)
 	if self.tween then
 		self.tween:stop()
 	end
 	self.tween = flux.to(self, 0.4, { alpha = 0 }):ease("quadout"):delay(delay or 0):oncomplete(function ()
-		self.disabled = true
+		self:kill()
 	end)
 end
 
-function GameplayTransition:update()
+function ChartShowcase:update()
 	self.stencilContainer.y = (self.height / 2 - 80) * self.alpha
 	self.chartNameLabel.x = (self.width / 2) * self.alpha
 	self.chartInfoLabel.x = self.width - (self.width / 2) * self.alpha
 end
 
-return GameplayTransition
+return ChartShowcase

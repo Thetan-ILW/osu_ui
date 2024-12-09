@@ -16,7 +16,8 @@ local Label = require("ui.Label")
 local Button = Component + {}
 
 function Button:load()
-	local assets = self.shared.assets ---@cast assets osu.ui.OsuAssets
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
 	self.width = self.width == 0 and 737 or self.width
 	self.height = self.height == 0 and 65 or self.height
 	self.blockMouseFocus = true

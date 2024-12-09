@@ -17,8 +17,9 @@ local inactive_color = { love.math.colorFromBytes(238, 51, 153) }
 local active_color = { love.math.colorFromBytes(187, 17, 119) }
 
 function BackButton:load()
-	local assets = self.shared.assets
-	local fonts = self.shared.fontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
+	local fonts = scene.fontManager
 
 	self.layerImage = assets:loadImage("back-button-layer")
 	self.clickSound = assets:loadAudio("menuback")

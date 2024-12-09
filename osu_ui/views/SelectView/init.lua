@@ -19,6 +19,7 @@ local ScrollBar = require("osu_ui.ui.ScrollBar")
 local Rectangle = require("ui.Rectangle")
 local ListContainer = require("osu_ui.views.SelectView.Lists.ListContainer")
 local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
+local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
 
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 
@@ -56,7 +57,7 @@ function View:keyPressed(event)
 end
 
 function View:searchUpdated()
-	local text = self.search ~= "" and self.search or self.shared.localization.text.SongSelection_TypeToBegin
+	local text = self.search ~= "" and self.search or self.scene.localization.text.SongSelection_TypeToBegin
 	self.searchFormat[4] = text
 	self.searchLabel:replaceText(self.searchFormat)
 	self.selectApi:updateSearch(self.search)
@@ -73,60 +74,65 @@ function View:transitIn()
 	self.handleEvents = true
 	self.alpha = 0
 	self:stopTransitionTween()
-	flux.to(self, 0.7, { alpha = 1 }):ease("cubicout")
+	self.transitionTween = flux.to(self, 0.7, { alpha = 1 }):ease("cubicout")
+
+	flux.to(self.scene.background, 0.2, { dim = 0.3, parallax = 0.01 }):ease("quadout")
+	flux.to(self.scene.cursor, 0.2, { alpha = 1 }):ease("quadout")
 end
 
 function View:transitToGameplay()
-	local scene = self.shared.scene ---@cast scene osu.ui.SceneView
 	local viewport = self:getViewport()
-
-	local background = scene:getChild("background")
-	local cursor = viewport:getChild("cursor")
-	local transition = scene:getChild("gameplayTransition") ---@cast transition osu.ui.GameplayTransition
-	local options = scene:getChild("options") ---@cast options osu.ui.OptionsView
-	local chat = scene:getChild("chat") ---@cast chat osu.ui.ChatView
 
 	self.handleEvents = false
 	self:stopTransitionTween()
 	self.transitionTween = flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
 		self.disabled = true
-		scene:transitInScreen("gameplay")
+		self.scene:transitInScreen("gameplay")
 	end)
 
-	flux.to(cursor, 0.5, { alpha = 0 }):ease("quadout")
-	flux.to(background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
-	options:fade(0)
-	chat:fade(0)
+	flux.to(self.scene.cursor, 0.5, { alpha = 0 }):ease("quadout")
+	flux.to(self.scene.background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
+	self.scene.options:fade(0)
+	self.scene.chat:fade(0)
 
-	transition:show(
+	local showcase = self.scene:getChild("chartShowcase")
+	if not showcase then
+		showcase = self.scene:addChild("chartShowcase", ChartShowcase({
+			z = 0.7,
+			alpha = 0,
+		}))
+	end
+
+	showcase:show(
 		self.displayInfo.chartName,
 		("Length: %s Difficulty: %s"):format(self.displayInfo.length, self.displayInfo.difficulty),
-		self.game.backgroundModel.images[1]
+		self.selectApi:getBackgroundImages()[1]
 	)
 
 	self.selectApi:unloadController()
 end
 
 function View:transitToMainMenu()
-	local scene = self.shared.scene ---@cast scene osu.ui.SceneView
-
 	self.handleEvents = false
 	self:stopTransitionTween()
 	self.transitionTween = flux.to(self, 0.4, { alpha = 0 }):ease("quadin"):oncomplete(function ()
 		self.disabled = true
 	end)
 
-	scene:transitInScreen("mainMenu")
+	self.scene:transitInScreen("mainMenu")
 end
 
 function View:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.scene = scene
+
 	self.width, self.height = self.parent:getDimensions()
 	self.stencil = true
 	self:createCanvas(self.width, self.height)
 	self:getViewport():listenForResize(self)
 
-	self.selectApi = self.shared.selectApi
-	self.displayInfo = DisplayInfo(self.shared.localization, self.selectApi, self.shared.pkgs.minacalc)
+	self.selectApi = scene.ui.selectApi
+	self.displayInfo = DisplayInfo(scene.localization, self.selectApi, scene.ui.pkgs.minacalc)
 	self.displayInfo:updateInfo()
 	self.notechartChangeTime = -1
 
@@ -139,10 +145,10 @@ function View:load()
 	self.shader = shaders.lighten
 
 	local display_info = self.displayInfo
-	local assets = self.shared.assets
-	local fonts = self.shared.fontManager
+	local assets = scene.assets
+	local fonts = scene.fontManager
 
-	local text = self.shared.localization.text
+	local text = scene.localization.text
 
 	local width, height = self.width, self.height
 	local top = self:addChild("topContainer", Component({ width = width, height = height, z = 0.5 }))
@@ -508,16 +514,9 @@ function View:load()
 		z = 0.3,
 	}))
 
-	local info = self.selectApi:getProfileInfo()
 	bottom:addChild("playerInfo", PlayerInfoView({
 		x = 624, y = height + 4,
 		origin = { x = 0, y = 1 },
-		username = info.username,
-		firstRow = info.firstRow,
-		secondRow = info.secondRow,
-		level = info.level,
-		levelProgress = info.levelPercent,
-		rank = info.rank,
 		z = 0.3,
 		onClick = function () end
 	}))
@@ -588,6 +587,7 @@ function View:load()
 		width = 600,
 		height = height,
 		root = root,
+		selectView = self,
 		z = 0,
 	}))
 	---@cast list osu.ui.ListContainer

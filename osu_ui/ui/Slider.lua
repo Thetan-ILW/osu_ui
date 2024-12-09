@@ -15,6 +15,9 @@ local Slider = Component + {}
 local radius = 8
 
 function Slider:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
+
 	self.height = self.height or 37
 	self.dragging = false
 	self.value = 0
@@ -56,7 +59,7 @@ function Slider:load()
 		end
 	}))
 
-	self.sliderBar = self.shared.assets:loadAudio("sliderbar")
+	self.sliderBar = assets:loadAudio("sliderbar")
 end
 
 function Slider:mousePressed()

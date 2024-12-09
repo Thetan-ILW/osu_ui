@@ -13,9 +13,9 @@ local View = Component + {}
 
 function View:load()
 	local width, height = self.width, self.height
-	local gameplay_controller = self.gameplayController
-	local gameplay_view = self.gameplayView
-	local assets = self.shared.assets
+
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
 
 	--local bw, bh = 380, 95
 	self:addChild("continueButton", ImageButton({

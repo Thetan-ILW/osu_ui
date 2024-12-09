@@ -43,6 +43,10 @@ function Select:unloadController()
 end
 
 function Select:updateController()
+	if not self.controllerLoaded then
+		return
+	end
+
 	self.game.selectController:update()
 
 	local chartview_i = self.selectModel.chartview_index
@@ -131,7 +135,7 @@ function Select:getScoreSource()
 end
 ---@return string[]
 function Select:getScoreSources()
-	local profile_sources = self:getPlayerProfile().scoreSources
+	local profile_sources = self.game.ui.pkgs.playerProfile.scoreSources
 	self.scoreSources = { "local" }
 	if profile_sources then
 		for i, v in ipairs(profile_sources) do
@@ -189,41 +193,17 @@ function Select:setGroup(index)
 	self.selectedGroup = self.groups[index]
 end
 
-function Select:getPlayerProfile()
-	return self.game.ui.pkgs.playerProfile
-end
-
-function Select:getProfileInfo()
-	local profile = self:getPlayerProfile()
-	local username = self.configs.online.user.name or "Guest"
-	local pp = profile.pp
-	local accuracy = profile.accuracy
-	local level = profile.osuLevel
-	local level_percent = profile.osuLevelPercent
-	local rank = profile.rank
-
-	local chartview = self.selectModel.chartview
-	if chartview then
-		local regular, ln = profile:getDanClears(chartview.chartdiff_inputmode)
-		if regular ~= "-" or ln ~= "-" then
-			username = ("%s [%s/%s]"):format(username, regular, ln)
-		end
-	end
-
-	return {
-		username = username,
-		firstRow = ("Performance: %ipp"):format(pp),
-		secondRow = ("Accuracy: %0.02f%%"):format(accuracy * 100),
-		level = level,
-		levelPercent = level_percent,
-		rank = rank
-	}
-end
-
 ---@return "enps_diff" | "osu_diff" | "msd_diff" | "user_diff"
 --- Returns selected difficulty calculator in the settings
 function Select:getSelectedDiffColumn()
 	return self.configs.settings.select.diff_column
+end
+
+---@return love.Image[]
+--- Returns a table of three images. There are three images cuz the game needs to switch BG's with animation.
+--- The first index is the BG of the select chart. Second and third index can be nil
+function Select:getBackgroundImages()
+	return self.game.backgroundModel.images
 end
 
 return Select

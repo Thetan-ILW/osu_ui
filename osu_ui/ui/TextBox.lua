@@ -23,7 +23,9 @@ function TextBox.censor(text)
 end
 
 function TextBox:load()
-	local fonts = self.shared.fontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+
 	self.height = self.height == 0 and 28 or self.height
 	self.focus = false
 	self.input = self.input or ""

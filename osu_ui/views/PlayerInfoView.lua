@@ -5,16 +5,8 @@ local Image = require("ui.Image")
 local QuadImage = require("ui.QuadImage")
 local HoverState = require("ui.HoverState")
 
----@alias osu.ui.PlayerInfoViewParams { username: string, firstRow: string, secondRow: string, rank: number, level: number, levelProgress: number, onClick: function }
-
 ---@class osu.ui.PlayerInfoView : ui.Component
----@overload fun(params: osu.ui.PlayerInfoViewParams): osu.ui.PlayerInfoView
----@field username string
----@field firstRow string
----@field secondRow string
----@field rank number
----@field level number
----@field levelProgress number
+---@operator call: osu.ui.PlayerInfoView
 ---@field onClick function
 local PlayerInfoView = Component + {}
 
@@ -37,9 +29,39 @@ local function getRankColor(rank)
 	end
 end
 
+function PlayerInfoView:setProfileInfo()
+	local profile = self.scene.ui.pkgs.playerProfile
+	local username = self.scene.game.configModel.configs.online.user.name or "Guest"
+	local pp = profile.pp
+	local accuracy = profile.accuracy
+	local level = profile.osuLevel
+	local level_percent = profile.osuLevelPercent
+	local rank = profile.rank
+
+	local chartview = self.selectApi:getChartview()
+	if chartview then
+		local regular, ln = profile:getDanClears(chartview.chartdiff_inputmode)
+		if regular ~= "-" or ln ~= "-" then
+			username = ("%s [%s/%s]"):format(username, regular, ln)
+		end
+	end
+
+	self.username = username
+	self.firstRow = ("Performance: %ipp"):format(pp)
+	self.secondRow = ("Accuracy: %0.02f%%"):format(accuracy * 100)
+	self.level = level
+	self.levelPercent = level_percent
+	self.rank = rank
+end
+
 function PlayerInfoView:load()
-	local assets = self.shared.assets
-	local fonts = self.shared.fontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
+	local fonts = scene.fontManager
+
+	self.selectApi = scene.ui.selectApi
+	self.scene = scene
+	self:setProfileInfo()
 
 	local border = assets:loadImage("user-border")
 	self.width, self.height = border:getDimensions()
@@ -98,7 +120,7 @@ function PlayerInfoView:load()
 	self:addChild("levelbar", QuadImage({
 		x = 86 + 40, y = 56 + 12,
 		image = levelbar,
-		quad = love.graphics.newQuad(0, 0, iw * self.levelProgress, ih, levelbar),
+		quad = love.graphics.newQuad(0, 0, iw * self.levelPercent, ih, levelbar),
 		color = {love.math.colorFromBytes(252, 184, 6, 255)},
 		z = 0.15
 	}))

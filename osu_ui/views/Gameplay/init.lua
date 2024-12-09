@@ -1,11 +1,11 @@
 local CanvasComponent = require("ui.CanvasComponent")
-local Playfield = require("osu_ui.views.GameplayView.Playfield")
-local PauseScreen = require("osu_ui.views.GameplayView.PauseScreen")
+local Playfield = require("osu_ui.views.Gameplay.Playfield")
+local PauseScreen = require("osu_ui.views.Gameplay.PauseScreen")
 local flux = require("flux")
 
 ---@class osu.ui.GameplayViewContainer : ui.CanvasComponent
 ---@operator call: osu.ui.GameplayViewContainer
----@field gameplayView osu.ui.GameplayView
+---@field gameplayApi game.GameplayAPI
 ---@field state "play" | "pausing" | "pause" | "unpausing"
 local View = CanvasComponent + {}
 
@@ -39,16 +39,30 @@ function View:processGameState(game_state)
 	end
 end
 
+function View:transitIn()
+	local showcase = self.scene:getChild("chartShowcase") ---@cast showcase osu.ui.ChartShowcase
+	showcase:hide(1)
+
+	self.alpha = 0
+	flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
+	flux.to(self.scene.background, 1, { dim = 0.8 }):ease("quadout")
+
+	self.gameplayApi:start()
+end
+
 function View:load()
 	self.width, self.height = self.parent:getDimensions()
 	self:createCanvas(self.width, self.height)
 	self:getViewport():listenForResize(self)
 
-	self.state = "play"
-	local gameplay_view = self.gameplayView
-	local gameplay_cfg = gameplay_view.game.configModel.configs.osu_ui.gameplay
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.scene = scene
 
-	local render_at_native_res = gameplay_view.nativeRes
+	self.gameplayApi = scene.ui.gameplayApi
+	self.state = "play"
+
+	local gameplay_cfg = scene.game.configModel.configs.osu_ui.gameplay
+	local render_at_native_res = gameplay_cfg.nativeRes
 
 	if render_at_native_res then
 		local native_res_x, native_res_y = gameplay_cfg.nativeResX, gameplay_cfg.nativeResY
@@ -60,7 +74,7 @@ function View:load()
 			width = native_res_w,
 			height = native_res_h,
 			renderAtNativeResoltion = true,
-			sequenceView = gameplay_view.sequenceView,
+			sequenceView = self.gameplayApi:getSequenceView(),
 			z = 0.1
 		}))
 	else
@@ -68,7 +82,7 @@ function View:load()
 			width = self.width,
 			height = self.height,
 			renderAtNativeResoltion = false,
-			sequenceView = gameplay_view.sequenceView,
+			sequenceView = self.gameplayApi:getSequenceView(),
 			z = 0.1
 		}))
 	end
@@ -76,11 +90,13 @@ function View:load()
 	self.pause = self:addChild("pause", PauseScreen({
 		width = self.width,
 		height = self.height,
-		gameplayController = gameplay_view.game.gameplayController,
-		gameplayView = gameplay_view,
 		alpha = 0,
 		z = 0.2,
 	}))
+end
+
+function View:update(dt)
+	self.gameplayApi:update(dt)
 end
 
 function View:draw()

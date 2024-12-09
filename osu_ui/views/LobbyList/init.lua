@@ -32,30 +32,27 @@ function View:transitIn()
 	self.handleEvents = true
 	self.alpha = 0
 	flux.to(self, 0.7, { alpha = 1 }):ease("quadout")
-
-	local chat = self.shared.scene:getChild("chat") ---@cast chat osu.ui.ChatView
-	chat:fade(1)
+	self.scene.chat:fade(1)
 end
 
 function View:quit()
 	self.handleEvents = false
-
-	local chat = self.shared.scene:getChild("chat") ---@cast chat osu.ui.ChatView
-	chat:fade(0)
-
-	self.shared.scene:transitInScreen("mainMenu")
+	self.scene.chat:fade(0)
+	self.scene:transitInScreen("mainMenu")
 	flux.to(self, 0.5, { alpha = 0 }):ease("quadin"):oncomplete(function ()
 		self.disabled = true
 	end)
 end
 
 function View:load()
-	local fonts = self.shared.fontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	self.scene = scene
 
 	self:getViewport():listenForResize(self)
 
 	self.width, self.height = self.parent:getDimensions()
-	self.multiplayerApi = self.shared.multiplayerApi
+	self.multiplayerApi = scene.ui.multiplayerApi
 
 	local multi_label = self:addChild("multiplayerLabel", Label({
 		x = 3,
@@ -226,8 +223,8 @@ function View:newGameModal()
 		return
 	end
 
-	local scene = self.shared.scene
-	local fonts = self.shared.fontManager
+	local scene = self.scene
+	local fonts = scene.fontManager
 	local username = self.multiplayerApi:getUsername() or "???"
 	local require_password = false
 
@@ -243,7 +240,7 @@ function View:newGameModal()
 	local max_players_selected = max_players_items[#max_players_items].label
 
 	self.modal = scene:addChild("newGameModal", Component({
-		z = 1,
+		z = 0.3,
 		alpha = 0,
 		close =  function ()
 			flux.to(self.modal, 0.3, { alpha = 0 }):ease("quadout"):oncomplete(function ()

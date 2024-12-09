@@ -17,8 +17,9 @@ local math_util = require("math_util")
 local Checkbox = Component + {}
 
 function Checkbox:load()
-	local assets = self.shared.assets ---@cast assets osu.ui.OsuAssets
-	local fonts = self.shared.fontManager ---@cast fonts ui.FontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
+	local fonts = scene.fontManager
 
 	local x = 5
 
