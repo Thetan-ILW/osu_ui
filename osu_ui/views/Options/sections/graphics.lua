@@ -34,8 +34,9 @@ return function(section)
 			end,
 			setValue = function(index)
 				osu.skin = skins[index]
-				ui:loadAssets()
-				ui.scene:load()
+				local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
+				scene:loadAssets()
+				scene:load()
 			end,
 			format = function(v)
 				if not v then

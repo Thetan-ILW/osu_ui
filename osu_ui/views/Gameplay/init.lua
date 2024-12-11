@@ -48,6 +48,31 @@ function View:transitIn()
 	flux.to(self.scene.background, 1, { dim = 0.8 }):ease("quadout")
 
 	self.gameplayApi:start()
+	self.disabled = false
+	self.handleEvents = true
+end
+
+function View:quit()
+	if not self.handleEvents then
+		return
+	end
+
+	self.handleEvents = false
+
+	if self.gameplayApi:hasResult() then
+		self.selectApi:unloadController()
+		flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+			self.gameplayApi:stop()
+			self.disabled = true
+			self.scene:transitInScreen("result")
+		end)
+	else
+		self.scene:transitInScreen("select")
+		flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+			self.gameplayApi:stop()
+			self.disabled = true
+		end)
+	end
 end
 
 function View:load()
@@ -58,6 +83,7 @@ function View:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.scene = scene
 
+	self.selectApi = scene.ui.selectApi
 	self.gameplayApi = scene.ui.gameplayApi
 	self.state = "play"
 
@@ -97,12 +123,25 @@ end
 
 function View:update(dt)
 	self.gameplayApi:update(dt)
+	if self.gameplayApi.chartEnded then
+		self:quit()
+	end
 end
 
 function View:draw()
 	local a = self.alpha
 	love.graphics.setColor(a, a, a, a)
 	love.graphics.draw(self.canvas)
+end
+
+function View:keyPressed(event)
+	local key = event[2]
+	local shift = love.keyboard.isScancodeDown("lshift")
+
+	if key == "escape" and shift then
+		self:quit()
+		return true
+	end
 end
 
 return View

@@ -24,6 +24,7 @@ ScoreListView.panelSlideInDelay = 0.08
 
 function ScoreListView:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.scene = scene
 	self.selectApi = scene.ui.selectApi
 	self.playerProfile = scene.ui.pkgs.playerProfile
 
@@ -121,7 +122,7 @@ function ScoreListView:addProfileScore(score_index, score, source)
 		z = 1 - (score_index * 0.0001),
 		time = score.time,
 		onClick = function()
-			self:openScore(score.id)
+			self:openScore(score_index)
 		end
 	}))
 
@@ -166,7 +167,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		z = 1 - (score_index * 0.0001),
 		time = score.time,
 		onClick = function()
-			self:openScore(score.id)
+			self:openScore(score_index)
 		end
 	}))
 
@@ -226,8 +227,12 @@ function ScoreListView:loadScores()
 end
 
 function ScoreListView:openScore(id)
-	self.game.selectModel:scrollScore(nil, id)
-	self.game.ui.selectView:result()
+	self.selectApi:setScoreIndex(id)
+	local select = self:findComponent("select")
+	self:assert(select, "No select screen? Why?")
+	---@cast select osu.ui.SelectViewContainer
+	select:transitToResult()
+	print(id)
 end
 
 return ScoreListView

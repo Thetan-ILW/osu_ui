@@ -10,6 +10,7 @@ function Gameplay:new(game)
 	self.game = game
 	self.sequenceView = SequenceView()
 	self.loaded = false
+	self.chartEnded = false
 end
 
 function Gameplay:start()
@@ -27,6 +28,7 @@ function Gameplay:start()
 	sequence_view:setSequenceConfig(note_skin.playField)
 	sequence_view:load()
 	self.loaded = true
+	self.chartEnded = false
 end
 
 function Gameplay:stop()
@@ -44,6 +46,7 @@ function Gameplay:retry()
 	self.game.gameplayController:retry()
 	self.sequenceView:unload()
 	self.sequenceView:load()
+	self.chartEnded = false
 end
 
 function Gameplay:update(dt)
@@ -60,7 +63,7 @@ function Gameplay:update(dt)
 
 	local time_engine = self.game.rhythmModel.timeEngine
 	if time_engine.currentTime >= time_engine.maxTime + 1 then
-		self:quit()
+		self.chartEnded = true
 	end
 
 	self.sequenceView:update(dt)
@@ -79,6 +82,12 @@ end
 ---@return sphere.SequenceView
 function Gameplay:getSequenceView()
 	return self.sequenceView
+end
+
+---@return boolean
+--- Plays with at least 2 note hits will return true
+function Gameplay:hasResult()
+	return self.game.gameplayController:hasResult()
 end
 
 return Gameplay

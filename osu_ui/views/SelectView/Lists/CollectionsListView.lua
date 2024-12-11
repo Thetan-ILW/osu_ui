@@ -130,12 +130,12 @@ function CollectionsListView:selectItem(child)
 		self.parent:build()
 	end
 
-	self.game.selectModel:scrollCollection(nil, child.visualIndex)
+	self.lastStateCounter = self.selectApi:getNotechartSetStateCounter()
+	self.selectApi:setCollectionIndex(child.visualIndex)
 	self.state = "loading"
 	self:stopWrapTween()
 	self.holeSize = 0
 	self.wrapProgress = 0
-	self.lastStateCounter = self.selectApi:getNotechartSetStateCounter()
 
 	if self:getSelectedItemIndex() > prev_index then
 		self.parent.scrollPosition = self.parent.scrollPosition - prev_size

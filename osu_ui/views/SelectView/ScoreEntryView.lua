@@ -29,8 +29,9 @@ local HoverState = require("ui.HoverState")
 local ScoreEntryView = Component + {}
 
 function ScoreEntryView:load()
-	local assets = self.shared.assets
-	local fonts = self.shared.fontManager
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
+	local fonts = scene.fontManager
 	self.blockMouseFocus = true
 
 	self:addChild("background", Image({
@@ -42,7 +43,6 @@ function ScoreEntryView:load()
 		update = function(this)
 			this.alpha = 0.588 + (self.hoverState.progress * 0.2)
 		end
-
 	}))
 
 	local avatar = assets:loadAvatar()

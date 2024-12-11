@@ -163,6 +163,8 @@ function OsuAssets:load()
 	self.animations = {}
 	self.customViews = {}
 	self.loadedViews = {}
+
+	self:resultView()
 end
 
 local custom_views = {

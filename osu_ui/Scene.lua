@@ -13,6 +13,7 @@ local MainMenu = require("osu_ui.views.MainMenu")
 local LobbyList = require("osu_ui.views.LobbyList")
 local Select = require("osu_ui.views.SelectView")
 local Gameplay = require("osu_ui.views.Gameplay")
+local Result = require("osu_ui.views.ResultView")
 
 local path_util = require("path_util")
 
@@ -60,7 +61,8 @@ function Scene:load()
 		mainMenu = MainMenu({ z = 0.1 }),
 		lobbyList = LobbyList({ z = 0.08 }),
 		select = Select({ z = 0.09 }),
-		gameplay = Gameplay ({ x = 0.07 })
+		gameplay = Gameplay({ z = 0.07 }),
+		result = Result({ z = 0.08 })
 	}
 
 	self.viewport = self:getViewport()
@@ -103,8 +105,10 @@ function Scene:load()
 	self.chat = chat
 	self.background = background
 
+	self.currentScreenId = ""
+	self.previousScreenId = ""
 	self:preloadScreen("lobbyList")
-	self:addScreen("mainMenu")
+	self:transitInScreen("mainMenu")
 end
 
 function Scene:update()
@@ -126,7 +130,6 @@ function Scene:loadAssets()
 	self.assets:updateVolume(self.game.configModel.configs)
 end
 
-
 function Scene:addScreen(name)
 	local screen = self.screens[name]
 	if not screen then
@@ -136,6 +139,9 @@ function Scene:addScreen(name)
 end
 
 function Scene:preloadScreen(name)
+	if self:getChild(name) then
+		return
+	end
 	self:addScreen(name).disabled = true
 end
 
@@ -145,6 +151,8 @@ function Scene:transitInScreen(screen_name)
 	if not screen then
 		screen = self:addScreen(screen_name)
 	end
+	self.previousScreenId = self.currentScreenId
+	self.currentScreenId = screen_name
 	screen:transitIn()
 end
 

@@ -45,6 +45,10 @@ function View:keyPressed(event)
 		if chat then
 			chat:toggle()
 		end
+		return true
+	elseif event[2] == "return" then
+		self:transitToGameplay()
+		return true
 	end
 
 	if event[2] ~= "backspace" then
@@ -78,11 +82,10 @@ function View:transitIn()
 
 	flux.to(self.scene.background, 0.2, { dim = 0.3, parallax = 0.01 }):ease("quadout")
 	flux.to(self.scene.cursor, 0.2, { alpha = 1 }):ease("quadout")
+	self.selectApi:loadController()
 end
 
 function View:transitToGameplay()
-	local viewport = self:getViewport()
-
 	self.handleEvents = false
 	self:stopTransitionTween()
 	self.transitionTween = flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
@@ -108,8 +111,21 @@ function View:transitToGameplay()
 		("Length: %s Difficulty: %s"):format(self.displayInfo.length, self.displayInfo.difficulty),
 		self.selectApi:getBackgroundImages()[1]
 	)
+end
 
-	self.selectApi:unloadController()
+function View:transitToResult()
+	self:receive({ name = "loseFocus" })
+	self.handleEvents = false
+	self:stopTransitionTween()
+	self.transitionTween = flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		self.disabled = true
+		self.scene:transitInScreen("result")
+	end)
+
+	flux.to(self.scene.cursor, 0.5, { alpha = 0 }):ease("quadout")
+	flux.to(self.scene.background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
+	self.scene.options:fade(0)
+	self.scene.chat:fade(0)
 end
 
 function View:transitToMainMenu()

@@ -1,143 +1,489 @@
-local ScreenView = require("osu_ui.views.ScreenView")
+local Component = require("ui.Component")
+local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
+
+local math_util = require("math_util")
+local flux = require("flux")
+local ImageButton = require("osu_ui.ui.ImageButton")
+local ImageValueView = require("osu_ui.ui.ImageValueView")
+local Button = require("osu_ui.ui.Button")
+local BackButton = require("osu_ui.ui.BackButton")
+local HpGraph = require("osu_ui.views.ResultView.HpGraph")
+
 local thread = require("thread")
+local Rectangle = require("ui.Rectangle")
+local Image = require("ui.Image")
+local Label = require("ui.Label")
+local ScrollBar = require("osu_ui.ui.ScrollBar")
 
 local DisplayInfo = require("osu_ui.views.ResultView.DisplayInfo")
-local View = require("osu_ui.views.ResultView.View")
 
-local flux = require("flux")
+---@class osu.ui.ResultViewContainer : ui.Component
+---@operator call: osu.ui.ResultViewContainer
+local View = Component + {}
 
----@class osu.ui.ResultView: osu.ui.ScreenView
----@operator call: osu.ui.ResultView
----@field displayInfo osu.ui.ResultDisplayInfo
----@field scoreReveal number
----@field scoreRevealTween table?
-local ResultView = ScreenView + {}
+function View:presentScore()
+	flux.to(self.scene.cursor, 0.4, { alpha = 1 }):ease("quadout")
+	flux.to(self.scene.background, 0.4, { dim = 0.3, parallax = 0.01 }):ease("quadout")
+	self.transitionTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
+	self.scoreReveal = 0
+	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
 
-local loading = false
-ResultView.load = thread.coro(function(self)
-	if loading then
+	self:clearTree()
+	self:load(true)
+end
+
+function View:transitIn()
+	self.handleEvents = true
+	self.disabled = false
+	if self.transitionTween then
+		self.transitionTween:stop()
+	else
+		self.alpha = 0
+	end
+
+	self.resultApi:loadController()
+
+	if self.scene.previousScreenId == "gameplay" then
+		self.selectApi:loadController()
+	elseif self.scene.previousScreenId == "select" then
+		local f = thread.coro(function()
+			self.resultApi:replayNotechartAsync("result")
+			self:presentScore()
+		end)
+		f()
 		return
 	end
 
-	loading = true
+	self:presentScore()
+end
 
-	self.game.resultController:load()
-
-	if self.previousViewName == "select" then
-		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
-	elseif self.previousViewName == "gameplay" then
-		self.game.selectController:load()
-	end
-
-	self.displayInfo = self.displayInfo or DisplayInfo(self)
-	self.displayInfo:load()
-	self.scoreReveal = 0
-
-	local viewport = self.gameView.viewport
-	local scene = self.gameView.scene
-
+function View:quit()
+	self:receive({ name = "loseFocus" })
+	self.handleEvents = false
 	if self.transitionTween then
 		self.transitionTween:stop()
 	end
 
-	scene:removeChild("resultView")
-	local view = scene:addChild("resultView", View({ resultView = self, z = 0.07 }))
-	local cursor = viewport:getChild("cursor")
-	local background = scene:getChild("background")
-	view.alpha = 0
-	flux.to(view, 0.5, { alpha = 1 }):ease("quadout")
-	flux.to(cursor, 0.5, { alpha = 1 }):ease("quadout")
-	flux.to(background, 1, { dim = 0.3, parallax = 0.01 }):ease("quadout")
-
-	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
-
-	loading = false
-end)
-
----@param dt number
-function ResultView:update(dt)
-	if loading then
-		return
-	end
-
-	local configs = self.game.configModel.configs
-	local graphics = configs.settings.graphics
-
-	self.assets:updateVolume(self.game.configModel.configs)
+	self.resultApi:unloadController()
+	self.transitionTween = flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		self:clearTree()
+		self:kill()
+	end)
+	self.scene:transitInScreen("select")
 end
 
-function ResultView:receive(event)
-	if loading then
+function View:keyPressed(event)
+	if event[2] == "escape" then
+		self:quit()
+		return true
+	end
+end
+
+function View:load(score_loaded)
+	self.width, self.height = self.parent:getDimensions()
+	self:getViewport():listenForResize(self)
+
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.scene = scene
+
+	self.resultApi = scene.ui.resultApi
+	self.selectApi = scene.ui.selectApi
+
+	if not score_loaded then
 		return
 	end
 
-	if event.name == "mousepressed" then
-		if self.scoreRevealTween then
-			self.scoreRevealTween:stop()
+	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.minacalc)
+	display_info:load()
+
+	local assets = scene.assets
+	local fonts = scene.fontManager
+
+	local width, height = self.width, self.height
+
+	local area = self:addChild("scrollArea", ScrollAreaContainer({
+		scrollLimit = 768,
+		width = width,
+		height = height * 2
+	}))
+	---@cast area osu.ui.ScrollAreaContainer
+
+	self:addChild("scrollBar", ScrollBar({
+		x = width - 13, startY = 99,
+		width = 10,
+		container = area,
+		windowHeight = 768 - 96 - 6,
+		z = 1,
+	}))
+
+	---- HEADER ----
+	self:addChild("headerBackground", Rectangle({
+		width = width,
+		height = 96,
+		color = { 0, 0, 0, 0.8 },
+		z = 0.9
+	}))
+
+	self:addChild("chartName", Label( {
+		x = 5,
+		text = display_info.chartName,
+		font = fonts:loadFont("Light", 30),
+		z = 1,
+	}))
+
+	self:addChild("chartSource", Label({
+		x = 5, y = 33,
+		text = display_info.chartSource,
+		font = fonts:loadFont("Regular", 22),
+		z = 1,
+	}))
+
+	self:addChild("playInfo", Label({
+		x = 5, y = 54,
+		text = display_info.playInfo,
+		font = fonts:loadFont("Regular", 22),
+		z = 1,
+	}))
+
+	self:addChild("titleImage", Image({
+		x = width - 32,
+		origin = { x = 1, y = 0 },
+		image = assets:loadImage("ranking-title"),
+		z = 0.98,
+	}))
+
+	---- PANEL ----
+	area:addChild("statsPanel", Image({
+		y = 102,
+		image = assets:loadImage("ranking-panel"),
+		z = 0.5,
+	}))
+
+	local ppy = 1.6
+
+	local score_x = 220 * ppy
+	local score_y = 94 * ppy
+
+	local img_x1 = 40 * ppy
+	local img_x2 = 240 * ppy
+	local text_x1 = 80 * ppy
+	local text_x2 = 280 * ppy
+
+	local row1 = 160 * ppy
+	local row2 = 220 * ppy
+	local row3 = 280 * ppy
+	local row4 = 320 * ppy
+
+	local combo_x = text_x1 - 65 * ppy
+	local combo_y = row4 + 38
+	local acc_x = text_x2 - 86 * ppy
+	local acc_y = row4 + 38
+
+	local overlap = assets.params.scoreOverlap
+	local score_font = assets.imageFonts.scoreFont
+	local judge_format = "%ix"
+	---@cast overlap number
+
+	area:addChild("score", ImageValueView({
+		x = score_x, y = score_y,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 1.3,
+		files = score_font,
+		overlap = overlap,
+		format = "%08d",
+		z = 0.55,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.score)
 		end
-		self.scoreReveal = 1
+	}))
+
+	area:addChild("marvelousImage", Image({
+		x = img_x2, y = row1,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.5,
+		image = assets:loadImage("mania-hit300g-0"),
+		z = 0.54,
+	}))
+
+	area:addChild("marvelousCount", ImageValueView({
+		x = text_x2, y = row1,
+		origin = { x = 0, y = 0.5 },
+		scale = 1.1,
+		files = score_font,
+		overlap = overlap,
+		format = judge_format,
+		z = 0.55,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.marvelous)
+		end
+	}))
+
+	area:addChild("perfectImage", Image({
+		x = img_x1, y = row1,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.5,
+		image = assets:loadImage("mania-hit300"),
+		z = 0.54,
+	}))
+
+	area:addChild("perfectCount", ImageValueView({
+		x = text_x1, y = row1,
+		origin = { x = 0, y = 0.5 },
+		scale = 1.1,
+		files = score_font,
+		overlap = overlap,
+		format = judge_format,
+		z = 0.55,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.perfect)
+		end
+	}))
+
+	if display_info.great then
+		area:addChild("greatImage", Image({
+			x = img_x1, y = row2,
+			origin = { x = 0.5, y = 0.5 },
+			scale = 0.5,
+			image = assets:loadImage("mania-hit200"),
+			z = 0.54,
+		}))
+
+		area:addChild("greatCount", ImageValueView({
+			x = text_x1, y = row2,
+			origin = { x = 0, y = 0.5 },
+			scale = 1.1,
+			files = score_font,
+			overlap = overlap,
+			format = judge_format,
+			z = 0.55,
+			value = function ()
+				return math.ceil(self.scoreReveal * display_info.great)
+			end
+		}))
 	end
 
-	if event.name == "keypressed" then
-		if event[2] == "escape" then
+	if display_info.good then
+		area:addChild("goodImage", Image({
+			x = img_x2, y = row2,
+			origin = { x = 0.5, y = 0.5 },
+			scale = 0.5,
+			image = assets:loadImage("mania-hit100"),
+			z = 0.54,
+		}))
+
+		area:addChild("goodCount", ImageValueView({
+			x = text_x2, y = row2,
+			origin = { x = 0, y = 0.5 },
+			scale = 1.1,
+			files = score_font,
+			overlap = overlap,
+			format = judge_format,
+			z = 0.55,
+			value = function ()
+				return math.ceil(self.scoreReveal * display_info.good)
+			end
+		}))
+	end
+
+	if display_info.bad then
+		area:addChild("badImage", Image({
+			x = img_x1, y = row3,
+			origin = { x = 0.5, y = 0.5 },
+			scale = 0.5,
+			image = assets:loadImage("mania-hit50"),
+			z = 0.54,
+		}))
+
+		area:addChild("badCount", ImageValueView({
+			x = text_x1, y = row3,
+			origin = { x = 0, y = 0.5 },
+			files = score_font,
+			overlap = overlap,
+			format = judge_format,
+			z = 0.55,
+			value = function ()
+				return math.ceil(self.scoreReveal * display_info.bad)
+			end
+		}))
+	end
+
+	area:addChild("missImage", Image({
+		x = img_x2, y = row3,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.5,
+		image = assets:loadImage("mania-hit0"),
+		z = 0.54,
+	}))
+
+	area:addChild("missCount", ImageValueView({
+		x = text_x2, y = row3,
+		origin = { x = 0, y = 0.5 },
+		depth = 0.55,
+		files = score_font,
+		overlap = overlap,
+		format = judge_format,
+		z = 1.1,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.miss)
+		end
+	}))
+
+	area:addChild("combo", ImageValueView({
+		x = combo_x, y = combo_y,
+		origin = { x = 0, y = 0.5 },
+		scale = 1.1,
+		files = score_font,
+		overlap = overlap,
+		format = judge_format,
+		z = 0.55,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.combo)
+		end
+	}))
+
+	area:addChild("accuracy", ImageValueView({
+		x = acc_x , y = acc_y,
+		origin = { x = 0, y = 0.5 },
+		scale = 1.1,
+		files = score_font,
+		overlap = overlap,
+		format = "%0.02f%%",
+		multiplier = 100,
+		z = 0.55,
+		value = function ()
+			return self.scoreReveal * display_info.accuracy
+		end
+	}))
+
+	area:addChild("comboText", Image({ x = 8, y = 480, image = assets:loadImage("ranking-maxcombo"), z = 0.54 }))
+	area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), z = 0.54 }))
+
+	---- GRAPH ----
+	local score_system = self.resultApi:getScoreSystem()
+	area:addChild("graph", Image({ x = 256, y = 608, image = assets:loadImage("ranking-graph"), z = 0.5 }))
+
+	if score_system.sequence then
+		area:addChild("hpGraph", HpGraph({
+			x = 265, y = 617,
+			width = 300,
+			height = 135,
+			points = score_system.sequence,
+			hpScoreSystem = score_system.hp,
+			z = 0.55,
+		}))
+	end
+
+	---- GRADE ----
+	local overlay = area:addChild("backgroundOverlay", Image({
+		x = width - 200, y = 320,
+		origin = { x = 0.5, y = 0.5 },
+		image = assets:loadImage("ranking-background-overlay"),
+		z = 0,
+	}))
+	function overlay:update(dt)
+		overlay.angle = (overlay.angle + love.timer.getDelta() * 0.5) % (math.pi * 2)
+		Image.update(overlay, dt)
+	end
+
+	local grade = area:addChild("grade", Image({
+		x = width - 192, y = 320,
+		origin = { x = 0.5, y = 0.5 },
+		image = assets:loadImage(("ranking-%s"):format(display_info.grade)),
+		z = 0.5,
+	}))
+	function grade.update(this, dt)
+		grade.scale = 1 + (1 - self.scoreReveal) * 0.2
+		Image.update(grade, dt)
+	end
+
+	---- BUTTONS ----
+	area:addChild("retryButton", ImageButton({
+		x = width, y = 576,
+		origin = { x = 1, y = 0.5 },
+		idleImage = assets:loadImage("pause-retry"),
+		alpha = 0.5,
+		z = 0.6,
+		onClick = function()
+			result_view:play("retry")
+		end
+	}))
+
+	area:addChild("watchReplayButton", ImageButton({
+		x = width, y = 672,
+		origin = { x = 1, y = 0.5 },
+		idleImage = assets:loadImage("pause-replay"),
+		alpha = 0.5,
+		z = 0.6,
+		onClick = function ()
+			result_view:play("replay")
+		end
+	}))
+
+	---- FAKE BUTTONS ----
+	self:addChild("showChat", ImageButton({
+		x = width - 3, y = height + 1,
+		origin = { x = 1, y = 1 },
+		idleImage = assets:loadImage("overlay-show"),
+		z = 0.4,
+		onClick = function ()
+			result_view.notificationView:show("Not implemented")
+		end
+	}))
+
+	self:addChild("onlineUsers", ImageButton({
+		x = width - 99, y = height + 1,
+		origin = { x = 1, y = 1 },
+		idleImage = assets:loadImage("overlay-online"),
+		alpha = 0.5,
+		z = 0.4,
+		onClick = function ()
+			result_view.notificationView:show("Not implemented")
+		end
+	}))
+
+	local online_ranking = area:addChild("onlineRanking", Button({
+		x = width / 2 - 160, y = height - 41.6,
+		text = "▼ Online Ranking ▼",
+		font = fonts:loadFont("Regular", 32),
+		width = 320,
+		height = 48,
+		color = { 0.46, 0.09, 0.8, 1 },
+		z = 0.95,
+		onClick = function ()
+			area:scrollToPosition(768, 0)
+		end
+	}))
+	---@cast online_ranking osu.ui.Button
+	function online_ranking:update(dt)
+		local position = area.scrollPosition
+		local alpha = 1 - math_util.clamp((position / area.height * 16), 0, 1)
+		self.alpha = alpha
+		return Button.update(self, dt)
+	end
+
+	area:addChild("backButton", BackButton({
+		y = height - 58,
+		assets = assets,
+		text = "back",
+		hoverWidth = 93,
+		hoverHeight = 58,
+		z = 1,
+		onClick = function ()
 			self:quit()
 		end
-	end
-end
+	}))
 
-function ResultView:submitScore()
-	local scoreItem = self.game.selectModel.scoreItem
-	self.game.onlineModel.onlineScoreManager:submit(self.game.selectModel.chartview, scoreItem.replay_hash)
-end
-
-function ResultView:quit()
-	local scene = self.gameView.scene
-	local view = scene:getChild("resultView")
-
-	self.transitionTween = flux.to(view, 0.4, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		scene:removeChild("resultView")
-	end)
-	self:changeScreen("selectView")
-end
-
-ResultView.loadScore = thread.coro(function(self, itemIndex)
-	if loading then
+	if true then
 		return
 	end
 
-	loading = true
-
-	local scoreEntry = self.game.selectModel.scoreItem
-	if itemIndex then
-		scoreEntry = self.game.selectModel.scoreLibrary.items[itemIndex]
+	local customizations = assets.customViews.resultView
+	if customizations then
+		local success, error = pcall(customizations, assets, display_info, self)
+		if not success then
+			result_view.popupView:add(error, "error")
+		end
 	end
-	self.game.resultController:replayNoteChartAsync("result", scoreEntry)
+end
 
-	if itemIndex then
-		self.game.selectModel:scrollScore(nil, itemIndex)
-	end
-
-	self.viewConfig:loadScore(self)
-
-	loading = false
-end)
-
-local playing = false
-ResultView.play = thread.coro(function(self, mode)
-	if playing then
-		return
-	end
-
-	playing = true
-	local scoreEntry = self.game.selectModel.scoreItem
-	local isResult = self.game.resultController:replayNoteChartAsync(mode, scoreEntry)
-
-	if isResult then
-		return self.view:reload()
-	end
-
-	self:changeScreen("gameplayView")
-	playing = false
-end)
-
-return ResultView
+return View

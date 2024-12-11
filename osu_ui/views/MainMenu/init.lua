@@ -100,8 +100,7 @@ function View:toNextView(screen_name)
 
 	flux.to(self.scene.cursor, 0.6, { alpha = 0 }):ease("quadout")
 	self.transitionTween = flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		local screen = scene:addScreen(screen_name)
-		screen:transitIn()
+		scene:transitInScreen(screen_name)
 		self.disabled = true
 	end)
 end
@@ -178,7 +177,7 @@ function View:introSequence()
 	welcome.disabled = false
 	spectrum.color = {love.math.colorFromBytes(0, 78, 155, 255)}
 
-	flux.to(self, 2, { introPercent = 1 }):ease("linear"):oncomplete(function ()
+	flux.to(self, --[[2]]0.1, { introPercent = 1 }):ease("linear"):oncomplete(function ()
 		flux.to(logo, 0.2, { alpha = 1 }):ease("quadout"):oncomplete(function ()
 			stencil.compareValue = 1
 		end)
@@ -260,6 +259,7 @@ function View:load()
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage("menu-subscriber"),
 		clicks = 0,
+		z = 0.5,
 		mousePressed = function(this, event)
 			if this.mouseOver then
 				this.clicks = this.clicks + 1
@@ -312,6 +312,7 @@ function View:load()
 		x = self.width - 80, y = self.height - 48,
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage("menu-bat"),
+		z = 0.5,
 		update = function(this)
 			this.alpha = 0.25 + (0.75 * (1 + math.sin(love.timer.getTime())) / 2)
 		end

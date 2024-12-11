@@ -100,6 +100,15 @@ function Select:getCollectionLibrary()
 	return self.selectModel.collectionLibrary
 end
 
+function Select:setCollectionIndex(index)
+	self.game.selectModel:scrollCollection(nil, index)
+
+	local config = self.game.configModel.configs.settings.select
+	if config.locations_in_collections then -- Changing locations does not update the notechartset state counter
+		self.game.selectModel:noDebouncePullNoteChartSet()
+	end
+end
+
 ---@return number
 function Select:getSelectedNoteChartSetIndex()
 	return self.selectModel.chartview_set_index
@@ -117,6 +126,10 @@ end
 
 function Select:setNotechartSetIndex(index)
 	self.selectModel:scrollNoteChartSet(nil, index)
+end
+
+function Select:setScoreIndex(index)
+	self.game.selectModel:scrollScore(nil, index)
 end
 
 ---@return table
@@ -204,6 +217,11 @@ end
 --- The first index is the BG of the select chart. Second and third index can be nil
 function Select:getBackgroundImages()
 	return self.game.backgroundModel.images
+end
+
+---@return sphere.Configs
+function Select:getConfigs()
+	return self.game.configModel.configs
 end
 
 return Select

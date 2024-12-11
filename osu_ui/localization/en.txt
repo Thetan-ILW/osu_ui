@@ -1,10 +1,16 @@
+# You can use comments like in python
+-- Lua comments are also supported if you like them
+
 General_Back=Back
 UserProfile_Guest=Guest
+
 Options_Options=Options
-Options_HeaderBlurb=Change the way gucci!mania behaves
+Options_HeaderBlurb=Change the way soundsphere behaves
+Options_HeaderBlurbGucci=Change the way gucci!mania behaves
 Options_General=General
 Options_Gameplay=Gameplay
 Options_Graphics=Graphics
+
 SongSelection_BeatmapInfoCreator=Mapped by %s
 SongSelection_BeatmapInfoPack=From %s
 SongSelection_BeatmapInfo=Length: %s BPM: %i Objects: %i
@@ -32,4 +38,5 @@ SongSelection_Rank_Top=Global Ranking
 SongSelection_TypeToBegin=Type to search!
 SongSelection_Search=Search:
 SongSelection_Searching=Searching...
+
 RankingDialog_PlayedBy=Played by %s %s

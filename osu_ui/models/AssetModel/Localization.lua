@@ -52,14 +52,25 @@ function Localization:parse(filename, strings)
 
 	strings = strings or {}
 
+	-- AI SLOP
 	for line in file:lines() do
-		local split = line:split("=")
-		if #split > 2 then
-			split[2] = table.concat(split, "", 2, #split)
+		---@cast line string
+		line = line:gsub("#.*$", ""):gsub("%-%-.*$", "")
+		line = line:match("^%s*(.-)%s*$")
+		if line ~= "" and not line:match("^#") then
+			local equal_pos = line:find("=")
+			if equal_pos then
+				local key = line:sub(1, equal_pos - 1):match("^%s*(.-)%s*$")
+				local value = line:sub(equal_pos + 1):match("^%s*(.-)%s*$")
+
+				if key ~= "" then
+					strings[key] = value ~= "" and value or key
+				end
+			end
 		end
-		strings[split[1]] = split[2] or split[1]
 	end
 
+	file:close()
 	return strings
 end
 
