@@ -137,6 +137,10 @@ function Select:getScores()
 	return self.selectModel.scoreLibrary.items
 end
 
+function Select:playPreview()
+	self.game.previewModel:loadPreview()
+end
+
 ---@return audio.Source
 function Select:getPreviewAudioSource()
 	return self.game.previewModel.audio

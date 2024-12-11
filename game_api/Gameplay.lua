@@ -90,4 +90,12 @@ function Gameplay:hasResult()
 	return self.game.gameplayController:hasResult()
 end
 
+---@return audio.Source
+function Gameplay:getMusicAudioSource()
+	local container = self.game.rhythmModel.audioEngine.backgroundContainer
+	for v in pairs(container.sources) do
+		return v
+	end
+end
+
 return Gameplay

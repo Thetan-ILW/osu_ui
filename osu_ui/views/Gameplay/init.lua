@@ -59,17 +59,38 @@ function View:quit()
 
 	self.handleEvents = false
 
+	local select_api = self.scene.ui.selectApi
+	select_api:playPreview()
+
+	local volume_cfg = select_api:getConfigs().settings.audio.volume
+	local volume = volume_cfg.music * volume_cfg.master
+	local gameplay_audio = self.gameplayApi:getMusicAudioSource()
+	local preview_audio = select_api:getPreviewAudioSource()
+	preview_audio:setVolume(0)
+
+	local function quit()
+		preview_audio = self.scene.ui.selectApi:getPreviewAudioSource()
+		if preview_audio and gameplay_audio then
+			gameplay_audio:setVolume(volume * 0.5)
+			preview_audio:setPosition(gameplay_audio:getPosition())
+		end
+		if preview_audio then
+			preview_audio:setVolume(volume * 0.5)
+		end
+		self.gameplayApi:stop()
+	end
+
 	if self.gameplayApi:hasResult() then
 		self.selectApi:unloadController()
 		flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-			self.gameplayApi:stop()
+			quit()
 			self.disabled = true
 			self.scene:transitInScreen("result")
 		end)
 	else
 		self.scene:transitInScreen("select")
 		flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-			self.gameplayApi:stop()
+			quit()
 			self.disabled = true
 		end)
 	end
