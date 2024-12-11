@@ -33,6 +33,7 @@ function View:presentScore()
 end
 
 function View:transitIn()
+	self.y = 0
 	self.handleEvents = true
 	self.disabled = false
 	if self.transitionTween then
@@ -65,7 +66,7 @@ function View:quit()
 	end
 
 	self.resultApi:unloadController()
-	self.transitionTween = flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+	self.transitionTween = flux.to(self, 0.5, { alpha = 0, y = 100 }):ease("quadout"):oncomplete(function ()
 		self:clearTree()
 		self:kill()
 	end)
