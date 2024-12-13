@@ -70,7 +70,7 @@ function View:quit()
 
 	local function quit()
 		preview_audio = self.scene.ui.selectApi:getPreviewAudioSource()
-		if preview_audio and gameplay_audio then
+		if preview_audio and gameplay_audio and gameplay_audio:isPlaying() then
 			gameplay_audio:setVolume(volume * 0.5)
 			preview_audio:setPosition(gameplay_audio:getPosition())
 		end

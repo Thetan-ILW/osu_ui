@@ -141,6 +141,10 @@ function Select:playPreview()
 	self.game.previewModel:loadPreview()
 end
 
+function Select:pausePreview()
+	self.game.previewModel:stop()
+end
+
 ---@return audio.Source
 function Select:getPreviewAudioSource()
 	return self.game.previewModel.audio
@@ -223,9 +227,20 @@ function Select:getBackgroundImages()
 	return self.game.backgroundModel.images
 end
 
+---@return string?
+function Select:getBackgroundImagePath()
+	return self.selectModel:getBackgroundPath()
+end
+
 ---@return sphere.Configs
 function Select:getConfigs()
 	return self.game.configModel.configs
 end
+
+---@return ncdk2.Chart?
+function Select:getChart()
+	return self.selectModel:loadChartAbsolute()
+end
+
 
 return Select

@@ -18,6 +18,7 @@ function Viewport:new(params)
 	self.resizeTime = 0
 	self.resizeDefered = false
 	self.resizeListeners = {}
+	self.constantSize = self.constantSize or false
 	self.innerTransform = love.math.newTransform()
 	self:assert(self.targetHeight, "You should specify the target height for the viewport")
 
@@ -27,7 +28,10 @@ function Viewport:new(params)
 end
 
 function Viewport:load()
-	self.width, self.height = love.graphics.getDimensions()
+	if not self.constantSize then
+		self.width, self.height = love.graphics.getDimensions()
+	end
+
 	self.previousWindowSize = { w = self.width, h = self.height }
 	Component.load(self)
 
