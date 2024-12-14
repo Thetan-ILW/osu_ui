@@ -51,11 +51,11 @@ function VideoExporter:setViewParams(width, height, framerate, draw_background, 
 	self.canvasWidth = width
 	self.canvasHeight = height
 	self.framerate = framerate
-	self.drawBackground = draw_background or true
-	self.drawInfo = draw_info or true
+	self.drawBackground = draw_background == nil and true or draw_background
+	self.drawInfo = draw_info == nil and true or draw_info
 end
 
----@param mode "full_chart" | "preview"
+---@param mode "full_chart" | "preview_5s" | "preview_10s" | "gif_preview"
 function VideoExporter:setMode(mode)
 	self.mode = mode
 end
@@ -79,14 +79,20 @@ function VideoExporter:setChart(chart, chartview, background_path)
 		stars = ("%0.02f*"):format((chartview.osu_diff or 0))
 	}
 
-	if self.mode == "preview" then
+	if self.mode == "preview_5s" then
 		local preview_time = chartview.preview_time ---@type number
 		self.duration = 5
+		self.startTime = preview_time
+	elseif self.mode == "preview_10s" then
+		local preview_time = chartview.preview_time ---@type number
+		self.duration = 10
 		self.startTime = preview_time
 	elseif self.mode == "full_chart" then
 		local max_time = self.notes[#self.notes].time ---@type number
 		self.duration = max_time
 		self.startTime = 0
+	else
+		error(("%s mode is not implemented"):format(self.mode))
 	end
 end
 
@@ -126,44 +132,12 @@ function VideoExporter:export()
 
 	self.lib.ffmpeg_end_rendering(state)
 
-	if self.mode == "preview" then
+	if self.mode == "preview_5s" or self.mode == "preview_10s" then
 		os.execute(([[ffmpeg -y -i "%s" -ss %0.02f -t %0.02f audiocut.mp3]]):format(self.audioPath, self.startTime, self.duration))
 		os.execute("ffmpeg -y -i audiocut.mp3 -i video.mp4 -c:v copy -c:a copy output.mp4")
 	elseif self.mode == "full_chart" then
 		os.execute(([[ffmpeg -y -i "%s" -i video.mp4 -c:v copy -c:a copy output.mp4]]):format(self.audioPath))
 	end
 end
-
---[[
----@param current_time number
-function VideoExporter:drawNotes(current_time)
-	love.graphics.setColor(0, 0, 0, 0.8)
-	love.graphics.rectangle("fill", self.x, 0, self.columns * self.columnWidth, self.scaledHeight)
-
-	love.graphics.setColor(1, 0, 0)
-	love.graphics.rectangle("fill", self.x, self.hitPosition, self.columnWidth * self.columns, 16)
-
-	love.graphics.setColor(1, 1, 1)
-
-	local start_i = 1
-	local iters = 0
-
-	for i = start_i, #self.notes do
-		iters = iters + 1
-		local note = self.notes[i]
-
-		if note.time > current_time then
-			if note.time > current_time + 1 then
-				break
-			end
-
-			local y = self.noteHeight - (note.time - current_time) * self.noteHeight * self.noteSpeed + self.hitPosition - self.noteHeight
-			love.graphics.draw(self.noteImage, self.x + (note.column - 1) * self.columnWidth, y, 0, self.noteScale, self.noteScale)
-		else
-			start_i = i
-		end
-	end
-end
-]]
 
 return VideoExporter

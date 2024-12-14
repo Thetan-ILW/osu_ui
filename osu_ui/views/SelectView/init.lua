@@ -23,7 +23,7 @@ local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
 
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 
-local VideoExporter = require("osu_ui.views.VideoExporter.init")
+local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 
 ---@class osu.ui.SelectViewContainer : ui.CanvasComponent
 ---@operator call: osu.ui.SelectViewContainer
@@ -52,14 +52,9 @@ function View:keyPressed(event)
 		self:transitToGameplay()
 		return true
 	elseif event[2] == "f6" then
-		local chart = self.selectApi:getChart()
-		local chartview = self.selectApi:getChartview()
-		if chart and chartview then
-			local video = VideoExporter(self.scene.assets, self.scene.fontManager)
-			video:setViewParams(1280, 720, 60)
-			video:setChart(chart, chartview, self.selectApi:getBackgroundImagePath())
-			video:export()
-		end
+		self.scene:addChild("videoExporterModal", VideoExporterModal({
+			z = 0.5
+		}))
 	elseif event[2] == "p" then
 		if love.keyboard.isDown("lctrl") then
 			self.selectApi:pausePreview()

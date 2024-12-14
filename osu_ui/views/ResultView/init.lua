@@ -17,6 +17,8 @@ local ScrollBar = require("osu_ui.ui.ScrollBar")
 
 local DisplayInfo = require("osu_ui.views.ResultView.DisplayInfo")
 
+local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
+
 ---@class osu.ui.ResultViewContainer : ui.Component
 ---@operator call: osu.ui.ResultViewContainer
 local View = Component + {}
@@ -77,6 +79,10 @@ function View:keyPressed(event)
 	if event[2] == "escape" then
 		self:quit()
 		return true
+	elseif event[2] == "f6" then
+		self.scene:addChild("videoExporterModal", VideoExporterModal({
+			z = 0.5
+		}))
 	end
 end
 

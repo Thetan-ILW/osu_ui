@@ -1,4 +1,5 @@
 local class = require("class")
+local ModifierModel = require("sphere.models.ModifierModel")
 
 ---@class game.ResultAPI
 ---@operator call: game.ResultAPI
@@ -46,6 +47,15 @@ end
 ---@return sphere.ScoreSystemContainer
 function Result:getScoreSystem()
 	return self.game.rhythmModel.scoreEngine.scoreSystem
+end
+
+---@return ncdk2.Chart?
+function Result:getChartWithMods()
+	local chart = self.game.selectModel:loadChartAbsolute(self.game.gameplayController:getImporterSettings())
+	if chart then
+		ModifierModel:apply(self.game.playContext.modifiers, chart)
+	end
+	return chart
 end
 
 return Result

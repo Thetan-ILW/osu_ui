@@ -66,7 +66,10 @@ function View:quit()
 	local volume = volume_cfg.music * volume_cfg.master
 	local gameplay_audio = self.gameplayApi:getMusicAudioSource()
 	local preview_audio = select_api:getPreviewAudioSource()
-	preview_audio:setVolume(0)
+
+	if preview_audio then
+		preview_audio:setVolume(0)
+	end
 
 	local function quit()
 		preview_audio = self.scene.ui.selectApi:getPreviewAudioSource()

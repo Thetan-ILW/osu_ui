@@ -35,24 +35,8 @@ function View:load()
 	local title_background = self:addChild("titleBackground", Rectangle({
 		width = self.width,
 		height = 96,
-		color = { 0, 0, 0, 0.9 },
+		color = { 0, 0, 0, 1 },
 		z = 0.05,
-	}))
-
-	local info = self.videoExporter.info
-
-	self:addChild("chartName", Label({
-		x = 9, y = 9,
-		font = fonts:loadFont("Regular", 33),
-		text = info.chartName,
-		z = 0.1,
-	}))
-
-	self:addChild("chartVersion", Label({
-		x = 9, y = 50,
-		font = fonts:loadFont("Regular", 28),
-		text = info.chartVersion,
-		z = 0.1,
 	}))
 
 	local playfield = self:addChild("playfield", Playfield({
@@ -67,49 +51,68 @@ function View:load()
 		width = playfield:getWidth(),
 		height = self.height,
 		origin = { x = 1 },
-		color = { 0, 0, 0, 0.9 },
+		color = { 0, 0, 0, 1 },
 		z = 0.15
 	}))
 
-	local info_container = self:addChild("infoBackground", Rectangle({
-		x = 20, y = self.height - 20,
-		origin = { y = 1 },
-		width = 400,
-		height = 220,
-		rounding = 8,
-		color = { 0, 0, 0, 0.9 },
-		z = 0.05,
-	}))
 
-	info_container:addChild("length", Label({
-		x = 10, y = 10,
-		text = ("Length: %s"):format(info.duration),
-		font = fonts:loadFont("Regular", 40),
-	}))
+	local info = self.videoExporter.info
 
-	info_container:addChild("noteCount", Label({
-		x = 10, y = 54,
-		text = ("Notes: %s"):format(info.noteCount),
-		font = fonts:loadFont("Regular", 40),
-	}))
+	if self.videoExporter.drawInfo then
+		self:addChild("chartName", Label({
+			x = 9, y = 9,
+			font = fonts:loadFont("Regular", 33),
+			text = info.chartName,
+			z = 0.1,
+		}))
 
-	info_container:addChild("lnRatio", Label({
-		x = 10, y = 94,
-		text = ("LN%%: %i%%"):format(((info.lnCount + 1) / (info.noteCount + 1)) * 100),
-		font = fonts:loadFont("Regular", 40),
-	}))
+		self:addChild("chartVersion", Label({
+			x = 9, y = 50,
+			font = fonts:loadFont("Regular", 28),
+			text = info.chartVersion,
+			z = 0.1,
+		}))
 
-	info_container:addChild("bpm", Label({
-		x = 10, y = 134,
-		text = ("BPM: %i"):format(info.bpm),
-		font = fonts:loadFont("Regular", 40),
-	}))
+		local info_container = self:addChild("infoBackground", Rectangle({
+			x = 20, y = self.height - 20,
+			origin = { y = 1 },
+			width = 400,
+			height = 220,
+			rounding = 8,
+			color = { 0, 0, 0, 0.9 },
+			z = 0.05,
+		}))
 
-	info_container:addChild("bpm", Label({
-		x = 10, y = 168,
-		text = ("Star rate: %s"):format(info.stars),
-		font = fonts:loadFont("Regular", 40),
-	}))
+		info_container:addChild("length", Label({
+			x = 10, y = 10,
+			text = ("Length: %s"):format(info.duration),
+			font = fonts:loadFont("Regular", 40),
+		}))
+
+		info_container:addChild("noteCount", Label({
+			x = 10, y = 54,
+			text = ("Notes: %s"):format(info.noteCount),
+			font = fonts:loadFont("Regular", 40),
+		}))
+
+		info_container:addChild("lnRatio", Label({
+			x = 10, y = 94,
+			text = ("LN%%: %i%%"):format(((info.lnCount + 1) / (info.noteCount + 1)) * 100),
+			font = fonts:loadFont("Regular", 40),
+		}))
+
+		info_container:addChild("bpm", Label({
+			x = 10, y = 134,
+			text = ("BPM: %i"):format(info.bpm),
+			font = fonts:loadFont("Regular", 40),
+		}))
+
+		info_container:addChild("bpm", Label({
+			x = 10, y = 168,
+			text = ("Star rate: %s"):format(info.stars),
+			font = fonts:loadFont("Regular", 40),
+		}))
+	end
 end
 
 return View

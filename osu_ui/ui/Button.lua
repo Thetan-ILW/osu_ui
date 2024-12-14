@@ -4,7 +4,7 @@ local ui = require("osu_ui.ui")
 local HoverState = require("ui.HoverState")
 local Label = require("ui.Label")
 
----@alias osu.ui.ButtonParams { label: string, font: love.Font }
+---@alias osu.ui.ButtonParams { label: string, font: ui.Font }
 
 ---@class osu.ui.Button : ui.Component
 ---@overload fun(params: osu.ui.ButtonParams): osu.ui.Button
