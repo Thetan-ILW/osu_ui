@@ -7,17 +7,6 @@ local time_util = require("time_util")
 local Viewport = require("ui.Viewport")
 local ExporterView = require("osu_ui.views.VideoExporter.ExporterView")
 
-ffi.cdef([[
-	typedef struct {
-	    int pid;
-	    int pipe;
-	} FFMPEG;
-	FFMPEG *ffmpeg_start_rendering(size_t width, size_t height, size_t fps);
-	void ffmpeg_end_rendering(FFMPEG *ffmpeg);
-	void ffmpeg_send_frame(FFMPEG *ffmpeg, void *data, size_t width, size_t height);
-	void ffmpeg_send_frame_flipped(FFMPEG *ffmpeg, void *data, size_t width, size_t height);
-]])
-
 ---@alias SimplifiedNoteChart { column: number, time: number, endTime: number }[]
 
 ---@class osu.ui.VideoExporter
@@ -30,7 +19,6 @@ local VideoExporter = class()
 function VideoExporter:new(assets, font_manager)
 	self.assets = assets
 	self.fontManager = font_manager
-	self.lib = ffi.load("bin/linux64/libmpeg.so")
 
 	self.viewport = Viewport({
 		id = "videoExport",
@@ -97,6 +85,15 @@ function VideoExporter:setChart(chart, chartview, background_path)
 end
 
 function VideoExporter:export()
+	---@type FFmpegPipe
+	local ffmpeg
+
+	if love.system.getOS() == "Linux" then
+		ffmpeg = require("osu_ui.views.VideoExporter.ffmpeg_linux")
+	else
+		error("Install a real OS: https://linuxmint.com/download.php")
+	end
+
 	self.viewport.width = self.canvasWidth
 	self.viewport.height = self.canvasHeight
 	self.viewport:load()
@@ -107,8 +104,7 @@ function VideoExporter:export()
 		fontManager = self.fontManager
 	}))
 
-	---@type ffi.cdata*
-	local state = self.lib.ffmpeg_start_rendering(self.canvasWidth, self.canvasHeight, self.framerate)
+	ffmpeg:startRendering()
 
 	local frames = self.framerate * self.duration
 	local duration = self.duration
@@ -125,12 +121,12 @@ function VideoExporter:export()
 
 		local filedata = self.viewport.canvas:newImageData()
 		local ptr = ffi.cast("uint8_t*", filedata:getFFIPointer())
-		self.lib.ffmpeg_send_frame(state, ptr, self.canvasWidth, self.canvasHeight)
+		ffmpeg:sendFrame(ptr, self.canvasWidth, self.canvasHeight)
 		filedata:release()
 	end
 	love.graphics.pop()
 
-	self.lib.ffmpeg_end_rendering(state)
+	ffmpeg:endRendering()
 
 	if self.mode == "preview_5s" or self.mode == "preview_10s" then
 		os.execute(([[ffmpeg -y -i "%s" -ss %0.02f -t %0.02f audiocut.mp3]]):format(self.audioPath, self.startTime, self.duration))

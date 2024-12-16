@@ -232,7 +232,6 @@ function ScoreListView:openScore(id)
 	self:assert(select, "No select screen? Why?")
 	---@cast select osu.ui.SelectViewContainer
 	select:transitToResult()
-	print(id)
 end
 
 return ScoreListView

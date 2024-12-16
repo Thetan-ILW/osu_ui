@@ -43,7 +43,7 @@ function Modal:guessSize()
 	elseif self.selectedVideoType.mode == "preview_10s" then
 		duration = 10
 	elseif self.selectedVideoType.mode == "gif_preview" then
-		label:replaceText(expected_label_format:format(0.4, fps * duration))
+		label:replaceText(expected_label_format:format(0.4, 30 * 5))
 		return
 	end
 
@@ -54,29 +54,30 @@ function Modal:guessSize()
 	label:replaceText(expected_label_format:format(total, fps * duration))
 end
 
+local video_types = {
+	{ name = "GIF preview", mode = "gif_preview" },
+	{ name = "Preview (5 seconds)", mode = "preview_5s" },
+	{ name = "Preview (10 seconds)", mode = "preview_10s" },
+	{ name = "Full chart", mode = "full_chart" },
+}
+
+-- Export 1 minute chart to get the size. Use solid background behind the playfield, draw background and info
+local resolutions = {
+	{ name = "1280x720@30", w = 1280, h = 720, fps = 30, size = 12.1 },
+	{ name = "1280x720@60", w = 1280, h = 720, fps = 60, size = 15.5 },
+	{ name = "1920x1080@30", w = 1920, h = 1080, fps = 30, size = 19.1 },
+	{ name = "1920x1080@60", w = 1920, h = 1080, fps = 60, size = 20.3 },
+	{ name = "2560x1080@30", w = 2560, h = 1080, fps = 30, size = 19.3 },
+	{ name = "2560x1080@60", w = 2560, h = 1080, fps = 60, size = 20.9 },
+}
+
 function Modal:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	local fonts = scene.fontManager
 
 	self:getViewport():listenForResize(self)
 
-	local video_types = {
-		{ name = "GIF preview", mode = "gif_preview" },
-		{ name = "Preview (5 seconds)", mode = "preview_5s" },
-		{ name = "Preview (10 seconds)", mode = "preview_10s" },
-		{ name = "Full chart", mode = "full_chart" },
-	}
 	self.selectedVideoType = video_types[3]
-
-	-- Export 1 minute chart to get the size. Use solid background behind the playfield, draw background and info
-	local resolutions = {
-		{ name = "1280x720@30", w = 1280, h = 720, fps = 30, size = 12.1 },
-		{ name = "1280x720@60", w = 1280, h = 720, fps = 60, size = 15.5 },
-		{ name = "1920x1080@30", w = 1920, h = 1080, fps = 30, size = 19.1 },
-		{ name = "1920x1080@60", w = 1920, h = 1080, fps = 60, size = 20.3 },
-		{ name = "2560x1080@30", w = 2560, h = 1080, fps = 30, size = 19.3 },
-		{ name = "2560x1080@60", w = 2560, h = 1080, fps = 60, size = 20.9 },
-	}
 	self.selectedResolution = resolutions[2]
 	self.drawBackground = true -- decreases size by 0.9
 	self.drawInfo = true -- decreases size by 0.99
@@ -186,7 +187,6 @@ function Modal:load()
 
 	local select_api = scene.ui.selectApi
 	local result_api = scene.ui.resultApi
-	local chart = result_api:getChartWithMods()
 	self.chartview = select_api:getChartview()
 
 	self:addChild("startGame", Button({
@@ -197,6 +197,7 @@ function Modal:load()
 		font = fonts:loadFont("Regular", 42),
 		z = 0.1,
 		onClick = function ()
+			local chart = result_api:getChartWithMods()
 			if chart and self.chartview then
 				local video = VideoExporter(scene.assets, scene.fontManager)
 				video:setViewParams(
