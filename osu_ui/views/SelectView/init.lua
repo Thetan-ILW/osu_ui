@@ -21,6 +21,8 @@ local ListContainer = require("osu_ui.views.SelectView.Lists.ListContainer")
 local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
 local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
 
+local getModifierString = require("osu_ui.views.modifier_string")
+
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 
 local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
@@ -37,25 +39,32 @@ function View:textInput(event)
 end
 
 function View:keyPressed(event)
-	if event[2] == "escape" then
+	local key = event[2]
+	if key == "escape" then
 		self.search = ""
 		self:searchUpdated()
 		return true
-	elseif event[2] == "f9" then
+	elseif key == "f9" then
 		local scene = self.shared.scene
 		local chat = scene:getChild("chat") ---@cast chat osu.ui.ChatView
 		if chat then
 			chat:toggle()
 		end
 		return true
-	elseif event[2] == "return" then
+	elseif key == "return" then
 		self:transitToGameplay()
 		return true
-	elseif event[2] == "f6" then
+	elseif key == "f5" then
+		self.selectApi:addTimeRate(-1)
+		self:updateModsLine()
+	elseif key == "f6" then
+		self.selectApi:addTimeRate(1)
+		self:updateModsLine()
+	elseif key == "f8" then
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5
 		}))
-	elseif event[2] == "p" then
+	elseif key == "p" then
 		if love.keyboard.isDown("lctrl") then
 			self.selectApi:pausePreview()
 		end
@@ -75,6 +84,18 @@ function View:searchUpdated()
 	self.searchFormat[4] = text
 	self.searchLabel:replaceText(self.searchFormat)
 	self.selectApi:updateSearch(self.search)
+end
+
+function View:updateModsLine()
+	local label = self.modsLine ---@cast label ui.Label
+	local mods_str = getModifierString(self.selectApi:getMods())
+	local rate = self.selectApi:getTimeRate()
+
+	if rate ~= 1 then
+		mods_str = ("%gx %s"):format(rate, mods_str)
+	end
+
+	label:replaceText(mods_str)
 end
 
 function View:stopTransitionTween()
@@ -182,6 +203,16 @@ function View:load()
 	local center = self:addChild("centerContainer", Component({ width = width, height = height, z = 0 }))
 	local tabs = top:addChild("tabContainer", Component({ z = 0.5 }))
 
+	function top.update(container, dt)
+		container.y = (1 - self.alpha) * -160
+		Component.update(container, dt)
+	end
+
+	function bottom.update(container, dt)
+		container.y = (1 - self.alpha) * 160
+		Component.update(container, dt)
+	end
+
 	self.searchFormat = { { 0.68, 1, 0.18, 1 }, text.SongSelection_Search .. " ", { 1, 1, 1, 1 }, text.SongSelection_TypeToBegin }
 	self.search = self.selectApi:getSearchText()
 
@@ -192,6 +223,13 @@ function View:load()
 	top:addChild("background", QuadImage({
 		image = img,
 		quad = love.graphics.newQuad(0, 0, width, img:getHeight(), img),
+	}))
+
+	top:addChild("mouseBlock", Component({
+		width = width,
+		height = 82,
+		blockMouseFocus = true,
+		z = 0,
 	}))
 
 	local st_icon = top:addChild("statusIcon", Image({
@@ -472,6 +510,15 @@ function View:load()
 		scaleX = width / bottom_img:getWidth()
 	}))
 
+	bottom:addChild("mouseBlock", Component({
+		y = height,
+		origin = { x = 0, y = 1 },
+		width = width,
+		height = 90,
+		blockMouseFocus = true,
+		z = 0
+	}))
+
 	bottom:addChild("backButton", BackButton({
 		y = height - 58,
 		font = fonts:loadFont("Regular", 20),
@@ -555,6 +602,14 @@ function View:load()
 		z = 0.1
 	}))
 
+	self.modsLine = bottom:addChild("modsLine", Label({
+		x = 104, y = 633,
+		font = fonts:loadFont("Regular", 41),
+		text = "",
+		color = { 1, 1, 1, 0.75 },
+	}))
+	self:updateModsLine()
+
 	local score_list = center:addChild("scoreList", ScoreListView({
 		x = 5, y = 145,
 		width = 385,
@@ -567,22 +622,6 @@ function View:load()
 		score_list.x = (1 - self.alpha) * -450
 		return ScoreListView.update(container, dt)
 	end
-
-	top:addChild("mouseBlock", Component({
-		width = width,
-		height = 82,
-		blockMouseFocus = true,
-		z = 0,
-	}))
-
-	bottom:addChild("mouseBlock", Component({
-		y = height,
-		origin = { x = 0, y = 1 },
-		width = width,
-		height = 90,
-		blockMouseFocus = true,
-		z = 0
-	}))
 
 	top:addChild("searchBackground", Rectangle({
 		x = width, y = 82,
@@ -638,16 +677,6 @@ function View:load()
 		windowHeight = 561,
 		z = 0.1,
 	}))
-
-	function top.update(container, dt)
-		container.y = (1 - self.alpha) * -160
-		Component.update(container, dt)
-	end
-
-	function bottom.update(container, dt)
-		container.y = (1 - self.alpha) * 160
-		Component.update(container, dt)
-	end
 end
 
 function View:update()

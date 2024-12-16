@@ -242,5 +242,42 @@ function Select:getChart()
 	return self.selectModel:loadChartAbsolute()
 end
 
+---@return table
+function Select:getMods()
+	return self.game.playContext.modifiers
+end
+
+---@return number
+function Select:getTimeRate()
+	return self.game.timeRateModel:get()
+end
+
+---@return "linear" | "exp"
+function Select:getTimeRateType()
+	return self.game.configModel.configs.settings.gameplay.rate_type
+end
+
+---@param rate number
+function Select:setTimeRate(rate)
+	local time_rate_model = self.game.timeRateModel
+	self.game.modifierSelectModel:change()
+	time_rate_model:set(rate)
+end
+
+---@param delta number
+function Select:addTimeRate(delta)
+	local configs = self.game.configModel.configs
+	local g = configs.settings.gameplay
+	local time_rate_model = self.game.timeRateModel
+	local range = time_rate_model.range[g.rate_type]
+
+	local new_rate = time_rate_model:get() + range[3] * delta
+
+	if new_rate ~= time_rate_model:get() then
+		self.game.modifierSelectModel:change()
+		time_rate_model:set(new_rate)
+	end
+end
+
 
 return Select
