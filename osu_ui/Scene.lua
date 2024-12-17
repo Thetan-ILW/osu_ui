@@ -15,6 +15,8 @@ local Select = require("osu_ui.views.SelectView")
 local Gameplay = require("osu_ui.views.Gameplay")
 local Result = require("osu_ui.views.ResultView")
 
+local ModifiersModal = require("osu_ui.views.modals.Modifiers")
+
 local path_util = require("path_util")
 
 ---@alias osu.ui.SceneParams { game: sphere.GameController, ui: osu.ui.UserInterface }
@@ -63,6 +65,10 @@ function Scene:load()
 		select = Select({ z = 0.09 }),
 		gameplay = Gameplay({ z = 0.07 }),
 		result = Result({ z = 0.08 })
+	}
+
+	self.modals = {
+		modifiers = ModifiersModal({ z = 0.5 })
 	}
 
 	self.viewport = self:getViewport()
@@ -154,6 +160,19 @@ function Scene:transitInScreen(screen_name)
 	self.previousScreenId = self.currentScreenId
 	self.currentScreenId = screen_name
 	screen:transitIn()
+end
+
+---@param name string
+function Scene:openModal(name)
+	local modal = self.modals[name] ---@cast modal osu.ui.Modal
+
+	if self:getChild(name) then
+		modal:open()
+		return
+	end
+
+	self:addChild(name, modal)
+	modal:open()
 end
 
 function Scene:reload()

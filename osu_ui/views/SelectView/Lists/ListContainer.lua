@@ -28,7 +28,7 @@ function ListContainer:updateTree(state)
 		self.scrollLimit = max_h
 	end
 
-	if love.mouse.isDown(2) then
+	if love.mouse.isDown(2) and self.mouseOver then
 		local scale = 768 / love.graphics.getHeight()
 		local my = love.mouse.getY() * scale
 		local y = math.min(math.max(0, my - 117) / 560, 1)

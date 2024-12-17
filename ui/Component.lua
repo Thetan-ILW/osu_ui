@@ -96,6 +96,7 @@ function Component:updateTree(state)
 
 	if
 		state.mouseFocus
+		and self.handleEvents
 		and self.alpha * self.color[4] > 0
 	then
 		local was_over = self.mouseOver
@@ -196,6 +197,7 @@ function Component:removeChild(id)
 end
 
 function Component:kill()
+	self:clearTree()
 	self.parent:removeChild(self.id)
 end
 

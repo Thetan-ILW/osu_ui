@@ -247,6 +247,18 @@ function Select:getMods()
 	return self.game.playContext.modifiers
 end
 
+function Select:removeAllMods()
+	local time_rate_model = self.game.timeRateModel
+	local modifier_select_model = self.game.modifierSelectModel
+	local modifiers = self:getPlayContext().modifiers
+	for i = 1, #modifiers do
+		modifier_select_model:remove(1)
+	end
+
+	self.game.modifierSelectModel:change()
+	time_rate_model:set(1)
+end
+
 ---@return number
 function Select:getTimeRate()
 	return self.game.timeRateModel:get()

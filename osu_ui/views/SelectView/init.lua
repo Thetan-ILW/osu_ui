@@ -39,7 +39,7 @@ function View:textInput(event)
 end
 
 function View:keyPressed(event)
-	local key = event[2]
+	local key = event[2] ---@type string
 	if key == "escape" then
 		self.search = ""
 		self:searchUpdated()
@@ -54,6 +54,8 @@ function View:keyPressed(event)
 	elseif key == "return" then
 		self:transitToGameplay()
 		return true
+	elseif key == "f1" then
+		self.scene:openModal("modifiers")
 	elseif key == "f5" then
 		self.selectApi:addTimeRate(-1)
 		self:updateModsLine()
@@ -633,8 +635,8 @@ function View:load()
 	local search_label = top:addChild("search", Label({
 		x = width + 15, y = 87,
 		origin = { x = 1, y = 0 },
-		width = 364,
-		height = 35,
+		boxWidth = 364,
+		boxHeight = 35,
 		text = self.searchFormat,
 		font = fonts:loadFont("Bold", 18),
 		z = 0.3,

@@ -63,8 +63,8 @@ function ScoreEntryView:load()
 
 	self:addChild("rank", Label({
 		x = 6, y = 10,
-		width = 46,
-		height = 46,
+		boxWidth = 46,
+		boxHeight = 46,
 		alignX = "center",
 		alignY = "center",
 		font = fonts:loadFont("Regular", 28),
@@ -103,7 +103,7 @@ function ScoreEntryView:load()
 
 	self:addChild("mods", Label({
 		y = 8,
-		width = right,
+		boxWidth = right,
 		alignX = "right",
 		font = fonts:loadFont("Regular", 14),
 		text = self.mods,
@@ -113,7 +113,7 @@ function ScoreEntryView:load()
 
 	self:addChild("accuracy", Label({
 		y = 23,
-		width = right,
+		boxWidth = right,
 		alignX = "right",
 		font = fonts:loadFont("Regular", 14),
 		text = self.accuracy,
@@ -123,7 +123,7 @@ function ScoreEntryView:load()
 
 	self:addChild("improvement", Label({
 		y = 38,
-		width = right,
+		boxWidth = right,
 		alignX = "right",
 		font = fonts:loadFont("Regular", 14),
 		text = self.improvement,

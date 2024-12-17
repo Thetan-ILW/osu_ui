@@ -18,9 +18,9 @@ function Slider:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	local assets = scene.assets
 
-	self.height = self.height or 37
+	self.height = self.height == 0 and 37 or self.height
 	self.dragging = false
-	self.value = 0
+	self.value = self.getValue()
 	self.target = 0
 
 	self.mouseOrigin = { x = 0, y = 0 }
@@ -133,7 +133,7 @@ function Slider:update()
 
 		local dx, dy = mx - self.mouseOrigin.x, my - self.mouseOrigin.y
 		local angle = math.atan2(dy, dx)
-		local epsilon = 0.5
+		local epsilon = 0.6
 
 		local adx = math.abs(dx)
 

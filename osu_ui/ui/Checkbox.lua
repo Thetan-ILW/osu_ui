@@ -48,7 +48,7 @@ function Checkbox:load()
 
 	local label = self:addChild("label", Label({
 		x = math.max(on_img:getWidth(), off_img:getWidth()),
-		height = self.height,
+		boxHeight = self.height,
 		alignY = "center",
 		text = self.label,
 		font = self.font or fonts:loadFont("Regular", 18),

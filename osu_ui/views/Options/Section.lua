@@ -25,7 +25,7 @@ function Section:load()
 
 	local groups = self:addChild("groups", Component({
 		x = 24, y = self.startY,
-		width = self.width,
+		boxWidth = self.width,
 	}))
 	---@cast groups ui.Component
 	self.groups = groups
@@ -39,7 +39,7 @@ function Section:load()
 	end
 
 	self:addChild("sectionName", Label({
-		width = self.width - 15,
+		boxWidth = self.width - 15,
 		alignX = "right",
 		text = self.name,
 		font = fonts:loadFont("Regular", 33),

@@ -13,8 +13,12 @@ function Rectangle:load()
 end
 
 function Rectangle:draw()
-	love.graphics.setLineWidth(self.lineWidth)
-	love.graphics.rectangle(self.mode, 0, 0, self.width, self.height, self.rounding, self.rounding)
+	if self.mode == "line" then
+		love.graphics.setLineWidth(self.lineWidth)
+		love.graphics.rectangle("line", 0, 0, self.width, self.height, self.rounding, self.rounding)
+	else
+		love.graphics.rectangle("fill", 0, 0, self.width, self.height, self.rounding, self.rounding)
+	end
 end
 
 return Rectangle

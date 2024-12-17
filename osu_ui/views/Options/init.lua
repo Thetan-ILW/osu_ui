@@ -198,7 +198,7 @@ function Options:load()
 
 	panel:addChild("optionsLabel", Label({
 		y = 60,
-		width = panel.width,
+		boxWidth = panel.width,
 		alignX = "center",
 		text = self.text.Options_Options,
 		font = fonts:loadFont("Light", 28),
@@ -206,7 +206,7 @@ function Options:load()
 
 	panel:addChild("gameBehaviorLabel", Label({
 		y = 100,
-		width = panel.width,
+		boxWidth = panel.width,
 		alignX = "center",
 		text = self.text.Options_HeaderBlurb,
 		font = fonts:loadFont("Light", 19),
@@ -236,7 +236,7 @@ function Options:load()
 
 	self:addChild("searchLabel", Label({
 		x = self.tabsContrainerWidth, y = 160,
-		width = panel.width,
+		boxWidth = panel.width,
 		alignX = "center",
 		text = self.searchFormat,
 		font = search_font,

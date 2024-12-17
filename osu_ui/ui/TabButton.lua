@@ -28,8 +28,8 @@ function TabButton:load()
 
 	self.font = self.font or fonts:loadFont("Regular", 13)
 	self.label = self:addChild("label", Label({
-		width = self.width,
-		height = self.height,
+		boxWidth = self.width,
+		boxHeight = self.height,
 		alignX = "center",
 		alignY = "center",
 		text = self.text,

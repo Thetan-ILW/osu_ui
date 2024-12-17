@@ -336,7 +336,7 @@ function Group:slider(params)
 		text = params.label,
 		font = self.fonts:loadFont("Regular", 16),
 		alignY = "center",
-		height = container:getHeight()
+		boxHeight = container:getHeight()
 	}))
 
 	local x = label:getWidth() + 10

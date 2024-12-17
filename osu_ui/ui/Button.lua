@@ -23,8 +23,8 @@ function Button:load()
 	self.blockMouseFocus = true
 
 	self.text = self:addChild("buttonLabel", Label({
-		width = self.width,
-		height = self.height,
+		boxWidth = self.width,
+		boxHeight = self.height,
 		text = self.label,
 		font = self.font,
 		shadow = true,

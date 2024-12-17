@@ -52,7 +52,7 @@ function BackButton:load()
 	}))
 
 	self:addChild("label" , Label({
-		height = self.height,
+		boxHeight = self.height,
 		alignY = "center",
 		text = self.text,
 		shadow = true,

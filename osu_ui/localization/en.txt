@@ -1,6 +1,7 @@
 # You can use comments like in python
 -- Lua comments are also supported if you like them
 
+General_Cancel=Cancel
 General_Back=Back
 UserProfile_Guest=Guest
 
@@ -40,3 +41,6 @@ SongSelection_Search=Search:
 SongSelection_Searching=Searching...
 
 RankingDialog_PlayedBy=Played by %s %s
+
+ModSelection_Title=Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun.
+ModSelection_Reset=Reset All Mods

@@ -69,8 +69,8 @@ function Combo:load()
 		end
 	}))
 	main:addChild("mainCellArrow", Label({
-		width = main:getWidth() - 8,
-		height = main:getHeight(),
+		boxWidth = main:getWidth() - 8,
+		boxHeight = main:getHeight(),
 		text = "",
 		font = awesome_regular,
 		alignX = "right",
@@ -157,7 +157,7 @@ function Combo:load()
 		}))
 		cell:addChild("mainCellArrow", Label({
 			x = 4,
-			height = main:getHeight(),
+			boxHeight = main:getHeight(),
 			text = "",
 			font = awesome_small,
 			alignY = "center",
