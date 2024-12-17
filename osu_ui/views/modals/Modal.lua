@@ -10,20 +10,19 @@ local flux = require("flux")
 local Modal = Component + {}
 
 function Modal:keyPressed(event)
-	if event[2] == "escape" then
+	if event[2] == "escape" or event[2] == "f1" then
 		self:close()
 		return true
 	end
 
-	return true
+	return false
 end
 
 function Modal:close()
 	if self.tween then
 		self.tween:stop()
 	end
-	self.handleEvents = false
-	self.tween = flux.to(self, 0.3, { alpha = 0 }):ease("quadout"):oncomplete(function()
+	self.tween = flux.to(self, 0.2, { alpha = 0 }):ease("quadout"):oncomplete(function()
 		self:kill()
 	end)
 end
@@ -32,8 +31,11 @@ function Modal:open()
 	if self.tween then
 		self.tween:stop()
 	end
-	self.handleEvents = true
-	self.tween = flux.to(self, 0.3, { alpha = 1 }):ease("cubicout")
+	self.tween = flux.to(self, 0.2, { alpha = 1 }):ease("cubicout")
+end
+
+function Modal:update()
+	self.handleEvents = self.alpha > 0.7
 end
 
 ---@param name string
@@ -50,6 +52,12 @@ function Modal:initModal(name)
 		height = height,
 		color = { 0, 0, 0, 0.784 },
 		blockMouseFocus = true,
+		textInput = function()
+			return true
+		end,
+		keyPressed = function()
+			return true
+		end
 	}))
 
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
@@ -89,15 +97,22 @@ function Modal:addOption(label, color, on_click)
 		x = width / 2, y = self.container:getHeight() + 12,
 		origin = { x = 0.5 },
 		font = self.fonts:loadFont("Regular", 42),
-		label = label,
+		label = ("%i. %s"):format(self.options + 1, label),
 		color = color,
 		onClick = on_click,
+		key = tostring(self.options + 1),
 		update = function(this)
 			local a = self.buttonsAnimation
 			if a > 1 then
 				a = 1 - (a - 1)
 			end
 			this.x = (width / 2) + (start_pos * (1 - a))
+		end,
+		keyPressed = function(this, event)
+			if event[2] == this.key then
+				this.onClick()
+				return true
+			end
 		end
 	}))
 

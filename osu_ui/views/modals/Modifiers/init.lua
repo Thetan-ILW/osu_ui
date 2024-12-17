@@ -6,6 +6,8 @@ local Label = require("ui.Label")
 local Slider = require("osu_ui.ui.Slider")
 local Checkbox = require("osu_ui.ui.Checkbox")
 
+local AvailableMods = require("osu_ui.views.modals.Modifiers.AvailableMods")
+
 ---@class osu.ui.ModifiersModal : osu.ui.Modal
 ---@operator call: osu.ui.ModifiersModal
 local Modifiers = Modal + {}
@@ -29,7 +31,6 @@ function Modifiers:load()
 		x = (self.width - lists_spacing) / 2 - lists_width, y = 29,
 		z = 0.1,
 	}))
-
 	available_modifiers:addChild("border", Rectangle({
 		width = 400,
 		height = 295,
@@ -39,19 +40,22 @@ function Modifiers:load()
 		color = { 0.89, 0.47, 0.56 },
 		z = 0.2
 	}))
-
 	available_modifiers:addChild("background", Rectangle({
 		width = 400,
 		height = 295,
 		rounding = 5,
 		color = { 0, 0, 0, 0.7 }
 	}))
+	available_modifiers:autoSize()
+	available_modifiers:addChild("list", AvailableMods({
+		selectApi = select_api,
+		z = 0.1,
+	}))
 
 	local applied_modifiers = self.container:addChild("appliedModifiers", Component({
 		x = (self.width + lists_spacing) / 2, y = 29,
 		z = 0.1,
 	}))
-
 	applied_modifiers:addChild("border", Rectangle {
 		width = 400,
 		height = 295,
@@ -62,15 +66,12 @@ function Modifiers:load()
 		z = 0.2
 
 	})
-
 	applied_modifiers:addChild("background", Rectangle {
 		width = 400,
 		height = 295,
 		rounding = 5,
 		color = { 0, 0, 0, 0.7 }
 	})
-
-	available_modifiers:autoSize()
 	applied_modifiers:autoSize()
 
 	local music_speed_label = self.container:addChild("musicSpeedLabel", Label({

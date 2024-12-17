@@ -12,7 +12,6 @@ local ScrollAreaContainer = Component + {}
 local scroll_deceleration_default = -0.98
 local velocity_cutoff = 0.01
 local clamping_force_factor = 2
-local scroll_distance = 232
 local throwing_scroll_decay = 0.996
 
 local frame_aim_time = 1000 / 60
@@ -23,6 +22,7 @@ function ScrollAreaContainer:load()
 	self.scrollPosition = 0
 	self.scrollVelocity = 0
 	self.scrollDeceleration = scroll_deceleration_default
+	self.scrollDistance = self.scrollDistance or 232
 
 	self.lastMouseY = 0
 	self.dragOriginY = 0
@@ -180,7 +180,7 @@ function ScrollAreaContainer:wheelUp()
 		if self.scrollVelocity > 0 then
 			self.scrollVelocity = 0
 		end
-		self:scrollToPosition(-scroll_distance + self.scrollPosition, 0)
+		self:scrollToPosition(-self.scrollDistance + self.scrollPosition, 0)
 		return true
 	end
 	return false
@@ -191,7 +191,7 @@ function ScrollAreaContainer:wheelDown()
 		if self.scrollVelocity > 0 then
 			self.scrollVelocity = 0
 		end
-		self:scrollToPosition(scroll_distance + self.scrollPosition, 0)
+		self:scrollToPosition(self.scrollDistance + self.scrollPosition, 0)
 		return true
 	end
 	return false

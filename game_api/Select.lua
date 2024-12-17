@@ -291,5 +291,21 @@ function Select:addTimeRate(delta)
 	end
 end
 
+---@param modifier string
+function Select:addMod(modifier)
+	return self.game.modifierSelectModel:add(modifier)
+end
+
+---@param modifier string
+---@return boolean
+function Select:isModAdded(modifier)
+	return self.game.modifierSelectModel:isAdded(modifier)
+end
+
+---@param modifier string
+---@return boolean
+function Select:isModOneUse(modifier)
+	return self.game.modifierSelectModel:isOneUse(modifier)
+end
 
 return Select

@@ -1,194 +1,95 @@
-local just = require("just")
+local StencilComponent = require("ui.StencilComponent")
+local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
+local Rectangle = require("ui.Rectangle")
+
 local flux = require("flux")
-local class = require("class")
 
-local ui = require("osu_ui.ui")
-local actions = require("osu_ui.actions")
-
----@class osu.ui.ListView
+---@class osu.ui.ListView : ui.StencilComponent
 ---@operator call: osu.ui.ListView
----@field scrollSound audio.Source
----@field font love.Font
----@field status string
----@field text table<string, string>
-local ListView = class()
+---@field rows number
+---@field cells number
+local ListView = StencilComponent + {}
 
-ListView.centerItems = false
-ListView.targetItemIndex = 1
-ListView.itemIndex = 1
-ListView.visualItemIndex = 1
-ListView.rows = 3
+function ListView:load()
+	self.width, self.height = self.parent:getDimensions()
+	self.rows = self.rows or 8
+	self.cells = 0
+	self.cellHeight = self.height / self.rows
+	local scroll_area = self:addChild("scrollArea", ScrollAreaContainer({
+		width = self.width,
+		height = self.height,
+		drawChildren = function(area)
+			---@cast area osu.ui.ScrollAreaContainer
+			local scroll_pos = area.scrollPosition
 
-ListView.items = {}
-ListView.scrollSound = nil
-ListView.font = nil
-ListView.staticCursor = false
-ListView.status = nil
+			local first = math.max(1, math.floor(scroll_pos / self.cellHeight + 1))
+			local last = math.min(#area.childrenOrder, first + self.rows)
 
-ListView.mouseScrollEase = { "quartout", 0.2 }
-ListView.keyboardScrollEase = "linear"
+			love.graphics.translate(0, -area.scrollPosition)
+			for i = last, first, -1 do
+				local child = area.children[area.childrenOrder[i]]
+				love.graphics.push("all")
+				child:drawTree()
+				love.graphics.pop()
 
-local nextTime = 0
-local maxInterval = 0.07
-local pressInterval = 0.12
-local acceleration = 0
+				if child.debug then
+					love.graphics.push("all")
+					love.graphics.applyTransform(child.transform)
+					love.graphics.setColor(1, 0, 0, 1)
+					love.graphics.rectangle("line", 0, 0, child.width, child.height)
+					love.graphics.pop()
+				end
+			end
+		end,
+	})) ---@cast scroll_area osu.ui.ScrollAreaContainer
+	self.scrollArea = scroll_area
 
-local tweenTime = 0.2
-local ease = "quartout"
+	self.hoverRect = self:addChild("hoverRect", Rectangle({
+		width = self.width,
+		height = self.cellHeight,
+		color = { 0.89, 0.47, 0.56, 0.2 },
+		alpha = 0,
+		targetY = 0,
+		update = function(this)
+			this.y = this.targetY - self.scrollArea.scrollPosition
+		end
+	}))
 
-function ListView:new(game)
-	self.game = game
-	self.actionModel = self.game.ui.actionModel
+	self.stencilFunction = self.stencilFunction or function()
+		love.graphics.rectangle("fill", 0, 0, self.width, self.height)
+	end
 end
 
-function ListView:playSound(sound)
-	ui.playSound(sound)
-end
+local odd_color = { 0.3, 0.3, 0.3, 0.3 }
+local even_color = { 0, 0, 0, 0.1 }
 
-function ListView:reloadItems()
-	self.stateCounter = 1
-	self.items = {}
-end
-
----@param delta number
-function ListView:scroll(delta)
-	self.targetItemIndex = math.min(math.max(self.targetItemIndex + delta, 1), #self.items)
+---@return number[]
+function ListView:getCellBackgroundColor()
+	return (self.cells % 2 == 1) and even_color or odd_color
 end
 
 ---@return number
-function ListView:getItemIndex()
-	return self.targetItemIndex
+function ListView:getCellHeight()
+	return self.cellHeight
 end
 
-function ListView:autoScroll(delta, justPressed)
-	local time = love.timer.getTime()
+---@param component ui.Component
+function ListView:addCell(component)
+	self:assert(self.cells, "Call ListView.load(self)")
 
-	if time < nextTime then
-		return
+	local area = self.scrollArea
+
+	component:autoSize()
+	component.y = self.cellHeight * self.cells
+	component.z = 1 - (self.cells * 0.000001)
+	component.justHovered = function(this)
+		flux.to(self.hoverRect, 0.8, { targetY = this.y, alpha = 1 }):ease("elasticout")
 	end
+	self.cells = self.cells + 1
 
-	maxInterval = 0.07
-	pressInterval = maxInterval + 0.04
-
-	local interval = maxInterval
-	ease = self.keyboardScrollEase
-
-	interval = justPressed and pressInterval or maxInterval
-
-	nextTime = time + interval - acceleration
-	tweenTime = interval
-	acceleration = math.min(acceleration + 0.001, maxInterval)
-
-	self:scroll(delta)
-end
-
-function ListView:input(w, h)
-	local delta = just.wheel_over(self, just.is_over(w, h))
-	if delta then
-		self:scroll(-delta)
-		ease = self.mouseScrollEase[1]
-		tweenTime = self.mouseScrollEase[2]
-		return
-	end
-
-	local ap = actions.consumeAction
-	local ad = actions.isActionDown
-	local gc = actions.getCount
-
-	if ad("up") then
-		self:autoScroll(-1 * gc(), ap("up"))
-	elseif ad("down") then
-		self:autoScroll(1 * gc(), ap("down"))
-	elseif ad("up10") then
-		self:autoScroll(-10 * gc(), ap("up10"))
-	elseif ad("down10") then
-		self:autoScroll(10 * gc(), ap("down10"))
-	elseif ap("toStart") then
-		self:scroll(-math.huge)
-	elseif ap("toEnd") then
-		self:scroll(math.huge)
-	else
-		acceleration = 0
-	end
-end
-
-local item_even = { 0, 0, 0, 0.1 }
-local item_odd = { 0.3, 0.3, 0.3, 0.3 }
-local item_hover = { 0.89, 0.47, 0.56, 0.5 }
-
-function ListView:drawItemBody(w, h, i, hover)
-	local item_color = (i % 2) == 1 and item_even or item_odd
-
-	if hover then
-		item_color = item_hover
-	end
-
-	love.graphics.setColor(item_color)
-	love.graphics.rectangle("fill", 0, 0, w, h)
-end
-
-function ListView:mouseClick(w, h, i) end
-
-function ListView:update(w, h)
-	self:input(w, h)
-
-	local stateCounter = self.stateCounter
-	if stateCounter ~= self.stateCounter then
-		local itemIndex = assert(self:getItemIndex())
-		self.itemIndex = itemIndex
-		self.visualItemIndex = itemIndex
-	end
-end
-
----@param w number
----@param h number
-function ListView:draw(w, h, update)
-	if update then
-		self:update(w, h)
-	end
-
-	local itemIndex = assert(self:getItemIndex())
-
-	if self.itemIndex ~= itemIndex then
-		if self.tween then
-			self.tween:stop()
-		end
-		self.tween = flux.to(self, tweenTime, { visualItemIndex = itemIndex }):ease(ease)
-		self.itemIndex = itemIndex
-	end
-
-	love.graphics.setColor(1, 1, 1, 1)
-
-	local _h = h / self.rows
-	local visualItemIndex = self.visualItemIndex
-
-	local deltaItemIndex = math.floor(visualItemIndex) - visualItemIndex
-
-	just.clip(love.graphics.rectangle, "fill", 0, 0, w, h)
-	love.graphics.translate(0, deltaItemIndex * _h)
-
-	for i = math.floor(visualItemIndex), self.rows + math.floor(visualItemIndex) do
-		local _i = 0
-
-		if self.centerItems then
-			_i = i - math.floor(self.rows / 2)
-		else
-			_i = i
-		end
-
-		if update and _i < self.rows + math.floor(visualItemIndex) then
-			self:mouseClick(w, _h, i)
-		end
-
-		if self.items[_i] then
-			just.push()
-			self:drawItem(_i, w, _h)
-			just.pop()
-		end
-		just.emptyline(_h)
-	end
-
-	just.clip()
+	area:addChild("cell" .. self.cells, component)
+	area.scrollLimit = math.max(0, (self.cellHeight * self.cells) - (self.cellHeight * self.rows))
 end
 
 return ListView
+

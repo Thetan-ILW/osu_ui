@@ -276,7 +276,7 @@ function Options:load()
 		color = { 0, 0, 0, 1 },
 		hoveringOverOptions = false,
 		update = function(this, dt)
-			local add_alpha = this.hoveringOverOptions and dt * 5 or dt * -5
+			local add_alpha = self.mouseOver and dt * 5 or dt * -5
 			this.alpha = math_util.clamp(this.alpha + add_alpha, 0, 1)
 			if this.alpha == 0 then
 				this.y = -9999
@@ -327,7 +327,6 @@ end
 function Options:hoveringOver(y, height)
 	local r = self.koolRectangle
 	local target = self.tree.y + y
-	r.hoveringOverOptions = true
 
 	if target == self.koolRectangleHoverTargetY then
 		return

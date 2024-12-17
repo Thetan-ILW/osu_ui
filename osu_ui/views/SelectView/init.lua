@@ -45,8 +45,7 @@ function View:keyPressed(event)
 		self:searchUpdated()
 		return true
 	elseif key == "f9" then
-		local scene = self.shared.scene
-		local chat = scene:getChild("chat") ---@cast chat osu.ui.ChatView
+		local chat = self.scene:getChild("chat") ---@cast chat osu.ui.ChatView
 		if chat then
 			chat:toggle()
 		end
