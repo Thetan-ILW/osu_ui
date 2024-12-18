@@ -170,6 +170,10 @@ function View:transitToMainMenu()
 	self.scene:transitInScreen("mainMenu")
 end
 
+function View:event_modsChanged()
+	self:updateModsLine()
+end
+
 function View:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.scene = scene
@@ -177,7 +181,9 @@ function View:load()
 	self.width, self.height = self.parent:getDimensions()
 	self.stencil = true
 	self:createCanvas(self.width, self.height)
-	self:getViewport():listenForResize(self)
+	local viewport = self:getViewport()
+	viewport:listenForResize(self)
+	viewport:listenForEvent(self, "event_modsChanged")
 
 	self.selectApi = scene.ui.selectApi
 	self.displayInfo = DisplayInfo(scene.localization, self.selectApi, scene.ui.pkgs.minacalc)
@@ -570,6 +576,9 @@ function View:load()
 		idleImage = assets:loadImage("selection-mods"),
 		hoverImage = assets:loadImage("selection-mods-over"),
 		z = 0.3,
+		onClick = function()
+			self.scene:openModal("modifiers")
+		end
 	}))
 
 	bottom:addChild("randomButton", ImageButton({

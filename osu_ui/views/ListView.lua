@@ -61,7 +61,7 @@ function ListView:load()
 end
 
 local odd_color = { 0.3, 0.3, 0.3, 0.3 }
-local even_color = { 0, 0, 0, 0.1 }
+local even_color = { 0.1, 0.1, 0.1, 0.5 }
 
 ---@return number[]
 function ListView:getCellBackgroundColor()
@@ -79,16 +79,22 @@ function ListView:addCell(component)
 
 	local area = self.scrollArea
 
-	component:autoSize()
 	component.y = self.cellHeight * self.cells
 	component.z = 1 - (self.cells * 0.000001)
 	component.justHovered = function(this)
 		flux.to(self.hoverRect, 0.8, { targetY = this.y, alpha = 1 }):ease("elasticout")
 	end
-	self.cells = self.cells + 1
-
 	area:addChild("cell" .. self.cells, component)
+
+	self.cells = self.cells + 1
 	area.scrollLimit = math.max(0, (self.cellHeight * self.cells) - (self.cellHeight * self.rows))
+end
+
+function ListView:receive(event)
+	if not self.mouseOver then
+		return
+	end
+	StencilComponent.receive(self, event)
 end
 
 return ListView

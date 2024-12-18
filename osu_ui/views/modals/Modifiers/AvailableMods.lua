@@ -23,10 +23,10 @@ local column_modifiers = {
 local chart_modifiers = {
 	"FullLongNote",
 	"NoLongNote",
+	"MinLnLength",
 	"BracketSwap",
 	"MaxChord",
 	"LessChord",
-	"MinLnLength",
 }
 
 local column_swap = {
@@ -43,10 +43,11 @@ local fun = {
 function AvailableModsView:load()
 	self:assert(self.selectApi, "No select API")
 	self.rows = 8
+	self.viewport = self:getViewport()
 	ListView.load(self)
 
 	local area = self.scrollArea
-	area.scrollDistance = 100
+	area.scrollDistance = 115
 
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.fonts = scene.fontManager
@@ -55,10 +56,10 @@ function AvailableModsView:load()
 		love.graphics.rectangle("fill", 0, 0, self.width, self.height, 5, 5)
 	end
 
-	self:addCategory("Column modifiers", column_modifiers)
-	self:addCategory("Chart modifiers", chart_modifiers)
-	self:addCategory("Column swap", column_swap)
-	self:addCategory("Fun", fun)
+	self:addCategory("KEYMODE MODIFIERS", column_modifiers)
+	self:addCategory("CHART MODIFIERS", chart_modifiers)
+	self:addCategory("COLUMN SWAP", column_swap)
+	self:addCategory("FUN", fun)
 end
 
 ---@param name string
@@ -78,7 +79,7 @@ function AvailableModsView:addCategory(name, mods)
 		alignX = "center",
 		boxWidth = width,
 		boxHeight = cell_height,
-		font = self.fonts:loadFont("Bold", 20),
+		font = self.fonts:loadFont("Bold", 22),
 		text = name,
 		z = 0.1,
 	}))
@@ -88,9 +89,12 @@ function AvailableModsView:addCategory(name, mods)
 		local mod = ModifierModel:getModifier(v)
 		if mod then
 			local cell = Component({
-				mousePressed = function()
-					if self.mouseOver then
+				width = width,
+				height = cell_height,
+				mouseClick = function(this)
+					if this.mouseOver then
 						self.selectApi:addMod(v)
+						self.viewport:triggerEvent("event_modsChanged")
 						return true
 					end
 				end
@@ -125,6 +129,8 @@ function AvailableModsView:addCategory(name, mods)
 			self:addCell(cell)
 		end
 	end
+
+	self:addCell(Component())
 end
 
 return AvailableModsView

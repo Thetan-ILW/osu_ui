@@ -19,7 +19,8 @@ function Modifiers:load()
 	self:initModal(text.ModSelection_Title)
 
 	self.width, self.height = self.parent:getDimensions()
-	self:getViewport():listenForResize(self)
+	local viewport = self:getViewport()
+	viewport:listenForResize(self)
 
 	local select_api = scene.ui.selectApi
 	local play_context = select_api:getPlayContext()
@@ -93,6 +94,7 @@ function Modifiers:load()
 		end,
 		setValue = function(v)
 			select_api:setTimeRate(v)
+			viewport:triggerEvent("event_modsChanged")
 		end
 	}))
 
@@ -113,6 +115,7 @@ function Modifiers:load()
 
 	self:addOption(text.ModSelection_Reset, self.buttonColors.red, function()
 		select_api:removeAllMods()
+		viewport:triggerEvent("event_modsChanged")
 	end)
 	self:addOption(text.General_Cancel, self.buttonColors.gray, function() self:close() end)
 end

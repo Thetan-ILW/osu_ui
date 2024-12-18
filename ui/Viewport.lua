@@ -8,7 +8,8 @@ local flux = require("flux")
 ---@operator call: ui.Viewport
 ---@field targetHeight number
 ---@field fontManager ui.FontManager
----@field resizeListeners {[string]: ui.Component}
+---@field resizeListeners ui.Component[]
+---@field eventListeners {[string]: ui.Component[]}
 local Viewport = Component + {}
 
 ---@param params { targetHeight: number }
@@ -17,7 +18,10 @@ function Viewport:new(params)
 	self.id = self.id or "root"
 	self.resizeTime = 0
 	self.resizeDefered = false
-	self.resizeListeners = {}
+	self.eventListeners = {
+		["reload"] = {}
+	}
+
 	self.constantSize = self.constantSize or false
 	self.innerTransform = love.math.newTransform()
 	self:assert(self.targetHeight, "You should specify the target height for the viewport")
@@ -82,13 +86,7 @@ function Viewport:reload()
 		self.alphaTween:stop()
 	end
 	self:load()
-
-	for _, v in ipairs(self.resizeListeners) do
-		if not v.killed then
-			v:reload()
-		end
-	end
-
+	self:triggerEvent("reload")
 	self.resizeDefered = false
 	self.alphaTween = flux.to(self, 0.4, { alpha = 1 }):ease("quadout")
 end
@@ -185,13 +183,40 @@ function Viewport:getViewport()
 end
 
 ---@param component ui.Component
+---@deprecated
 function Viewport:listenForResize(component)
-	for i, v in ipairs(self.resizeListeners) do
+	for _, v in ipairs(self.eventListeners["reload"]) do
 		if v == component then
 			return
 		end
 	end
-	table.insert(self.resizeListeners, component)
+	table.insert(self.eventListeners["reload"], component)
+end
+
+---@param component ui.Component
+---@param event_name string
+function Viewport:listenForEvent(component, event_name)
+	self.eventListeners[event_name] = self.eventListeners[event_name] or {}
+	table.insert(self.eventListeners[event_name], component)
+end
+
+local killed_children = {}
+
+function Viewport:triggerEvent(event_name)
+	for i, component in ipairs(self.eventListeners[event_name]) do
+		if component.killed then
+			table.insert(killed_children, i)
+		else
+			component[event_name](component)
+		end
+	end
+
+	if #killed_children ~= 0 then
+		for i = #killed_children, 1, -1 do
+			table.remove(self.eventListeners[event_name], killed_children[i])
+		end
+		killed_children = {}
+	end
 end
 
 function Viewport:error(message)

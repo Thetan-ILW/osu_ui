@@ -308,4 +308,9 @@ function Select:isModOneUse(modifier)
 	return self.game.modifierSelectModel:isOneUse(modifier)
 end
 
+---@return table
+function Select:getSelectedMods()
+	return self.game.playContext.modifiers
+end
+
 return Select
