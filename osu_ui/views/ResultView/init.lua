@@ -450,7 +450,7 @@ function View:load(score_loaded)
 
 	local online_ranking = area:addChild("onlineRanking", Button({
 		x = width / 2 - 160, y = height - 41.6,
-		text = "▼ Online Ranking ▼",
+		label = "▼ Online Ranking ▼",
 		font = fonts:loadFont("Regular", 32),
 		width = 320,
 		height = 48,

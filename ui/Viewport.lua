@@ -183,7 +183,6 @@ function Viewport:getViewport()
 end
 
 ---@param component ui.Component
----@deprecated
 function Viewport:listenForResize(component)
 	for _, v in ipairs(self.eventListeners["reload"]) do
 		if v == component then

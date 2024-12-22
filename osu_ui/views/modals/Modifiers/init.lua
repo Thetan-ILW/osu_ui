@@ -7,6 +7,7 @@ local Slider = require("osu_ui.ui.Slider")
 local Checkbox = require("osu_ui.ui.Checkbox")
 
 local AvailableMods = require("osu_ui.views.modals.Modifiers.AvailableMods")
+local SelectedMods = require("osu_ui.views.modals.Modifiers.SelectedMods")
 
 ---@class osu.ui.ModifiersModal : osu.ui.Modal
 ---@operator call: osu.ui.ModifiersModal
@@ -74,6 +75,9 @@ function Modifiers:load()
 		color = { 0, 0, 0, 0.7 }
 	})
 	applied_modifiers:autoSize()
+	applied_modifiers:addChild("list", SelectedMods({
+		z = 0.1
+	}))
 
 	local music_speed_label = self.container:addChild("musicSpeedLabel", Label({
 		x = (self.width - lists_spacing) / 2 - lists_width,

@@ -90,6 +90,13 @@ function ListView:addCell(component)
 	area.scrollLimit = math.max(0, (self.cellHeight * self.cells) - (self.cellHeight * self.rows))
 end
 
+function ListView:removeCells()
+	local area = self.scrollArea
+	area:clearTree()
+	area.scrollLimit = 0
+	self.cells = 0
+end
+
 function ListView:receive(event)
 	if not self.mouseOver then
 		return

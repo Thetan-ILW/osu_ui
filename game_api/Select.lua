@@ -296,6 +296,11 @@ function Select:addMod(modifier)
 	return self.game.modifierSelectModel:add(modifier)
 end
 
+---@param index integer
+function Select:removeMod(index)
+	return self.game.modifierSelectModel:remove(index)
+end
+
 ---@param modifier string
 ---@return boolean
 function Select:isModAdded(modifier)
@@ -311,6 +316,16 @@ end
 ---@return table
 function Select:getSelectedMods()
 	return self.game.playContext.modifiers
+end
+
+---@return integer
+function Select:getSelectedModifiersCursor()
+	return self.game.modifierSelectModel.modifierIndex
+end
+
+---@param count integer
+function Select:moveSelectedModifiersCursor(count)
+	self.game.modifierSelectModel:scrollModifier(count)
 end
 
 return Select

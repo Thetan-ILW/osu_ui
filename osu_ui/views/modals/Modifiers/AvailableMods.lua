@@ -4,11 +4,9 @@ local Rectangle = require("ui.Rectangle")
 local Label = require("ui.Label")
 
 local ModifierModel = require("sphere.models.ModifierModel")
-local ModifierRegistry = require("sphere.models.ModifierModel.ModifierRegistry")
 
 ---@class osu.ui.AvailableModsView : osu.ui.ListView
 ---@operator call: osu.ui.AvailableModsView
----@field selectApi game.SelectAPI
 local AvailableModsView = ListView + {}
 
 local column_modifiers = {
@@ -50,6 +48,7 @@ function AvailableModsView:load()
 	area.scrollDistance = 115
 
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.selectApi = scene.ui.selectApi
 	self.fonts = scene.fontManager
 
 	self.stencilFunction = function()
