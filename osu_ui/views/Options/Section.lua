@@ -89,7 +89,7 @@ function Section:group(name, build_function)
 		y = self.currentY,
 		width = self.width,
 		section = self,
-		name = name,
+		name = name:upper(),
 		buildFunction = build_function,
 		z = 1 - self.groupCount * 0.000001,
 	}))

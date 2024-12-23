@@ -79,6 +79,11 @@ function View:keyPressed(event)
 	if event[2] == "escape" then
 		self:quit()
 		return true
+	elseif event[2] == "f2" then
+		local chart = self.resultApi:getChart()
+		if chart then
+			self.resultApi:exportOsuReplay(chart)
+		end
 	elseif event[2] == "f6" then
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5

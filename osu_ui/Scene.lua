@@ -4,6 +4,7 @@ local CursorView = require("osu_ui.views.CursorView")
 local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
 local Chat = require("osu_ui.views.Chat")
 local Options = require("osu_ui.views.Options")
+local Tooltip = require("osu_ui.views.Tooltip")
 
 local FontManager = require("ui.FontManager")
 local OsuAssets = require("osu_ui.OsuAssets")
@@ -85,6 +86,10 @@ function Scene:load()
 		z = 0.98
 	}))
 
+	local tooltip = self:addChild("tooltip", Tooltip({
+		z = 0.981
+	}))
+
 	local options = self:addChild("options", Options({
 		game = self.game,
 		ui = self.ui,
@@ -103,10 +108,12 @@ function Scene:load()
 	}))
 
 	---@cast cursor osu.ui.CursorView
+	---@cast tooltip osu.ui.TooltipView
 	---@cast options osu.ui.OptionsView
 	---@cast chat osu.ui.ChatView
 	---@cast background osu.ui.ParallaxBackground
 	self.cursor = cursor
+	self.tooltip = tooltip
 	self.options = options
 	self.chat = chat
 	self.background = background

@@ -183,7 +183,7 @@ function Options:load()
 		x = self.tabsContrainerWidth,
 		width = self.panelWidth,
 		height = height,
-		scrollLimit = height,
+		scrollLimit = 0,
 		z = 0.1,
 		update = function(this)
 			this.width = self.width
@@ -289,6 +289,7 @@ function Options:load()
 	self.panel = panel
 	self.sectionSpacing = 0
 	self.tree = self:buildTree()
+	panel.scrollLimit = self.tree:getHeight()
 
 	self:addChild("searchEvents", Component({
 		z = 0,

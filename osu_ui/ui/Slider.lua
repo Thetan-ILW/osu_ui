@@ -22,6 +22,7 @@ function Slider:load()
 	self.dragging = false
 	self.value = self.getValue()
 	self.target = 0
+	self.tooltip = scene.tooltip
 
 	self.mouseOrigin = { x = 0, y = 0 }
 
@@ -133,7 +134,7 @@ function Slider:update()
 
 		local dx, dy = mx - self.mouseOrigin.x, my - self.mouseOrigin.y
 		local angle = math.atan2(dy, dx)
-		local epsilon = 0.6
+		local epsilon = 0.8
 
 		local adx = math.abs(dx)
 
@@ -150,6 +151,10 @@ function Slider:update()
 		if self.allowDrag then
 			self:drag(mx)
 		end
+	end
+
+	if self.mouseOver then
+		self.tooltip:setText(self.format and self.format(self.value) or tostring(self.value))
 	end
 
 	local p = (self.getValue() - self.min) / (self.max - self.min)

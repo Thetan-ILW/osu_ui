@@ -50,12 +50,22 @@ function Result:getScoreSystem()
 end
 
 ---@return ncdk2.Chart?
+function Result:getChart()
+	return self.game.selectModel:loadChartAbsolute()
+end
+
+---@return ncdk2.Chart?
 function Result:getChartWithMods()
 	local chart = self.game.selectModel:loadChartAbsolute(self.game.gameplayController:getImporterSettings())
 	if chart then
 		ModifierModel:apply(self.game.playContext.modifiers, chart)
 	end
 	return chart
+end
+
+---@param chart ncdk2.Chart
+function Result:exportOsuReplay(chart)
+	self.game.replayModel:saveOsr(chart.chartmeta)
 end
 
 return Result

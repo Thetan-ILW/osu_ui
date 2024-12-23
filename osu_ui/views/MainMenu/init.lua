@@ -275,7 +275,7 @@ function View:load()
 				}))
 				this.label = ily:addChild("lovelovelovelovelove", Label({
 					x = 5, y = 5,
-					width = self.width - 5,
+					boxWidth = self.width - 5,
 					font = fonts:loadFont("Regular", 18),
 					text = secret,
 					z = 0.1
@@ -433,7 +433,9 @@ function View:load()
 		idleImage = assets:loadImage("menu-button-exit"),
 		hoverImage = assets:loadImage("menu-button-exit-over"),
 		clickSound = assets:loadAudio("menuhit"),
-		onClick = function() end
+		onClick = function()
+			love.event.push("quit")
+		end
 	}))
 
 	self.secondMenu = self.menus:addChild("secondMenu", Component({

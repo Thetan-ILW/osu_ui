@@ -20,6 +20,7 @@ local Group = Component + {}
 function Group:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	local options = self.section.options
+	self.tooltip = scene.tooltip
 
 	self.fonts = scene.fontManager
 
@@ -61,6 +62,10 @@ function Group:load()
 		text = self.name,
 		font = self.fonts:loadFont("Bold", 16)
 	}))
+end
+
+function Group:showTooltip(text)
+	self.tooltip:setText(text)
 end
 
 ---@return boolean

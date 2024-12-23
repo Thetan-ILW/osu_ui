@@ -3,6 +3,8 @@
 
 General_Cancel=Cancel
 General_Back=Back
+General_Apply=Apply
+General_Reset=Reset
 UserProfile_Guest=Guest
 
 Options_Options=Options
@@ -11,6 +13,25 @@ Options_HeaderBlurbGucci=Change the way gucci!mania behaves
 Options_General=General
 Options_Gameplay=Gameplay
 Options_Graphics=Graphics
+
+Options_Audio_Volume=Volume
+Options_Audio_Effect=Effect:
+Options_Audio_Master=Master:
+Options_Audio_Music=Music:
+Options_Audio_UserInterface=User Interface:
+Options_Audio_RateChangesPitch=Rate chages pitch
+Options_Audio_AutoKeySound=Auto Key Sound
+Options_Audio_MidiConstantVolume=MIDI constant volume
+Options_Audio_MuteOnUnfocus=Mute game when game window is not focused
+
+Options_Audio_Device=Device
+Options_Audio_UpdatePeriod=Update period:
+Options_Audio_BufferLength=Buffer length:
+Options_Audio_AdjustRate=Adjust rate:
+
+Options_Audio_Offset=Offset Adjustment
+Options_Audio_ChartFormatOffsets=Offset adjustment for chart formats
+OptionsOffsetWizard_UniversalOffset=Universal offset:
 
 SongSelection_BeatmapInfoCreator=Mapped by %s
 SongSelection_BeatmapInfoPack=From %s

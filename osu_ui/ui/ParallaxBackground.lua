@@ -58,6 +58,8 @@ function ParallaxBackground:draw()
 		self:drawImage(images[1])
 	end
 	if images[2] then
+		love.graphics.setColor(0, 0, 0, alpha * a)
+		love.graphics.rectangle("fill", 0, 0, self.parent.width, self.parent.height)
 		love.graphics.setColor(r, g, b, alpha * a)
 		self:drawImage(images[2])
 	end
