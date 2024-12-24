@@ -69,7 +69,7 @@ return function(section)
 		local mode = a.mode
 		local pitch = mode.primary == "bass_sample" and true or false
 
-		group:checkbox({ label = text.Options_Audio_RateChangesPitch,
+		group:checkbox({ label = text.Options_Audio_RateChangesPitch, tooltip = text.Options_Audio_RateChangesPitch_Tooltip,
 			getValue = function()
 				pitch = mode.primary == "bass_sample" and true or false
 				return pitch
@@ -81,7 +81,7 @@ return function(section)
 			end
 		})
 
-		group:checkbox({ label = text.Options_Audio_AutoKeySound,
+		group:checkbox({ label = text.Options_Audio_AutoKeySound, tooltip = text.Options_Audio_AutoKeySound_Tooltip,
 			getValue = function()
 				return g.autoKeySound
 			end,

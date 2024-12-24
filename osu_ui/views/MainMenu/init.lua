@@ -1,3 +1,4 @@
+local Screen = require("osu_ui.views.Screen")
 local Component = require("ui.Component")
 local StencilComponent = require("ui.StencilComponent")
 local ParallaxBackground = require("osu_ui.ui.ParallaxBackground")
@@ -10,11 +11,11 @@ local LogoButton = require("osu_ui.views.MainMenu.LogoButton")
 local flux = require("flux")
 local math_util = require("math_util")
 
----@class osu.ui.MainMenuView : ui.Component
+---@class osu.ui.MainMenuView : osu.ui.Screen
 ---@operator call: osu.ui.MainMenuView
 ---@field menu "closed" | "first" | "second"
 ---@field selectApi game.SelectAPI
-local View = Component + {}
+local View = Screen + {}
 
 local logo_slide = 200
 local play_intro = true
@@ -85,11 +86,11 @@ function View:toNextView(screen_name)
 		self.playSound(self.freeplayClickSound)
 	end
 
-	self:quit()
-
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	scene.options:fade(0)
 
 	if scene:getChild(screen_name) then
+		self:transitOut()
 		scene:transitInScreen(screen_name)
 		return true
 	end
@@ -98,11 +99,12 @@ function View:toNextView(screen_name)
 	background.parallax = 0
 	background.dim = 0.3
 
-	flux.to(self.scene.cursor, 0.6, { alpha = 0 }):ease("quadout")
-	self.transitionTween = flux.to(self, 0.6, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		scene:transitInScreen(screen_name)
-		self.disabled = true
-	end)
+	scene:hideOverlay(0.4)
+	self:transitOut({
+		onComplete = function ()
+			scene:transitInScreen(screen_name)
+		end
+	})
 end
 
 function View:transitIn()
@@ -115,14 +117,13 @@ function View:transitIn()
 	self.transitionTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
 end
 
-function View:quit()
+---@param params table?
+function View:transitOut(params)
 	self.locked = true
 	self.menu = "closed"
 	flux.to(self, 0.35, { slide = 0 }):ease("quadout")
 	flux.to(self.firstMenu, 0.25, { alpha = 0 }):ease("quadout")
 	flux.to(self.secondMenu, 0.25, { alpha = 0 }):ease("quadout")
-
-	self.scene.options:fade(0)
 
 	for _, v in pairs(self.firstMenu.children) do
 		v.handleEvents = false
@@ -131,14 +132,7 @@ function View:quit()
 		v.handleEvents = false
 	end
 
-	if self.transitionTween then
-		self.transitionTween:stop()
-	end
-
-	self.handleEvents = false
-	self.transitionTween = flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		self.disabled = true
-	end)
+	Screen.transitOut(self, params)
 end
 
 function View:keyPressed(event)

@@ -1,3 +1,4 @@
+local Screen = require("osu_ui.views.Screen")
 local Component = require("ui.Component")
 local Rectangle = require("ui.Rectangle")
 local TabButton = require("osu_ui.ui.TabButton")
@@ -9,10 +10,10 @@ local Label = require("ui.Label")
 local Blur = require("ui.Blur")
 local flux = require("flux")
 
----@class osu.ui.LobbyListContainer : ui.Component
+---@class osu.ui.LobbyListContainer : osu.ui.Screen
 ---@operator call: osu.ui.LobbyListContainer
 ---@field multiplayerApi game.MultiplayerAPI
-local View = Component + {}
+local View = Screen + {}
 
 function View:keyPressed(event)
 	if event[2] == "escape" then
@@ -28,6 +29,10 @@ function View:update()
 end
 
 function View:transitIn()
+	Screen.transitIn(self, {
+		time = 0.7,
+		ease = "quadout"
+	})
 	self.disabled = false
 	self.handleEvents = true
 	self.alpha = 0
@@ -36,12 +41,9 @@ function View:transitIn()
 end
 
 function View:quit()
-	self.handleEvents = false
 	self.scene.chat:fade(0)
 	self.scene:transitInScreen("mainMenu")
-	flux.to(self, 0.5, { alpha = 0 }):ease("quadin"):oncomplete(function ()
-		self.disabled = true
-	end)
+	self:transitOut()
 end
 
 function View:load()

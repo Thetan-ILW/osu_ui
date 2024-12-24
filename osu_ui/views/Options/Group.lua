@@ -69,13 +69,14 @@ function Group:showTooltip(text)
 end
 
 ---@return boolean
+---@return number
 function Group:hasOpenCombos()
 	for _, child in ipairs(self.comboObjects) do
 		if child.state ~= "hidden" then
-			return true
+			return true, child:getHeight()
 		end
 	end
-	return false
+	return false, 0
 end
 
 ---@return number
@@ -140,12 +141,7 @@ function Group:textBox(params)
 	return text_box
 end
 
----@param color Color
-function Group:setButtonColor(color)
-	self.buttonColor = color
-end
-
----@param params { label: string, onClick: function }  
+---@param params { label: string, onClick: function, color: number[] }
 ---@return osu.ui.Button?
 function Group:button(params)
 	if not self:canAdd(params.label) then
@@ -171,7 +167,7 @@ function Group:button(params)
 		height = 34,
 		label = params.label,
 		font = self.fonts:loadFont("Regular", 16),
-		color = self.buttonColor,
+		color = params.color or { 0.05, 0.52, 0.65, 1 },
 		onClick = params.onClick,
 		justHovered = function () end
 	}))
@@ -244,7 +240,7 @@ function Group:combo(params)
 		end
 	end
 
-	if not found_something then
+	if #params.items ~= 0 and not found_something then
 		return
 	end
 
@@ -265,7 +261,7 @@ function Group:combo(params)
 		text = params.label,
 		font = self.fonts:loadFont("Regular", 16),
 		alignY = "center",
-		height = container:getHeight()
+		boxHeight = container:getHeight()
 	}))
 
 	local x = label:getWidth() + 10
@@ -288,7 +284,7 @@ function Group:combo(params)
 	return combo
 end
 
----@param params { label: string, getValue: (fun(): boolean), clicked: function }
+---@param params { label: string, tooltip: string?, getValue: (fun(): boolean), clicked: function }
 ---@return osu.ui.Checkbox?
 function Group:checkbox(params)
 	if not self:canAdd(params.label) then
@@ -309,6 +305,7 @@ function Group:checkbox(params)
 			Checkbox.update(checkbox)
 			if checkbox.mouseOver then
 				self.section:hoveringOver(checkbox.y + self.y, checkbox:getHeight())
+				self.tooltip:setText(params.tooltip)
 			end
 		end,
 	})) ---@cast checkbox osu.ui.Checkbox

@@ -18,6 +18,7 @@ local Result = require("osu_ui.views.ResultView")
 
 local ModifiersModal = require("osu_ui.views.modals.Modifiers")
 
+local flux = require("flux")
 local path_util = require("path_util")
 
 ---@alias osu.ui.SceneParams { game: sphere.GameController, ui: osu.ui.UserInterface }
@@ -62,10 +63,10 @@ function Scene:load()
 
 	self.screens = {
 		mainMenu = MainMenu({ z = 0.1 }),
-		lobbyList = LobbyList({ z = 0.08 }),
-		select = Select({ z = 0.09 }),
-		gameplay = Gameplay({ z = 0.07 }),
-		result = Result({ z = 0.08 })
+		lobbyList = LobbyList({ z = 0.08, alpha = 0 }),
+		select = Select({ z = 0.09, alpha = 0 }),
+		gameplay = Gameplay({ z = 0.07, alpha = 0 }),
+		result = Result({ z = 0.08, alpha = 0 })
 	}
 
 	self.modals = {
@@ -180,6 +181,27 @@ function Scene:openModal(name)
 
 	self:addChild(name, modal)
 	modal:open()
+end
+
+---@param time number?
+---@param background_dim number?
+function Scene:hideOverlay(time, background_dim)
+	time = time or 0.4
+	background_dim = background_dim or 0.3
+	self:receive({ name = "loseFocus" })
+	self.options:fade(0)
+	self.chat:fade(0)
+	flux.to(self.cursor, time, { alpha = 0 }):ease("quadout")
+	flux.to(self.background, time * 0.6, { dim = background_dim, parallax = 0 }):ease("quadout")
+end
+
+---@param time number?
+---@param background_dim number?
+function Scene:showOverlay(time, background_dim)
+	time = time or 0.4
+	background_dim = background_dim or 0.3
+	flux.to(self.cursor, time, { alpha = 1 }):ease("quadin")
+	flux.to(self.background, time * 0.6, { dim = background_dim, parallax = 0.01 }):ease("quadin")
 end
 
 function Scene:reload()

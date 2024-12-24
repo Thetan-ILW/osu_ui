@@ -89,6 +89,11 @@ function Select:getChartview()
 	return self.selectModel.chartview
 end
 
+---@param state boolean
+function Select:setAutoplay(state)
+	self.game.rhythmModel:setAutoplay(state)
+end
+
 ---@return sphere.PlayContext
 --- Mods, rate and timings
 function Select:getPlayContext()
@@ -326,6 +331,29 @@ end
 ---@param count integer
 function Select:moveSelectedModifiersCursor(count)
 	self.game.modifierSelectModel:scrollModifier(count)
+end
+
+---@return ncdk.InputMode
+function Select:getCurrentInputMode()
+	return self.game.selectController.state.inputMode
+end
+
+---@param input_mode string
+---@return sphere.NoteSkin
+function Select:getNoteSkin(input_mode)
+	return self.game.noteSkinModel:getNoteSkin(input_mode)
+end
+
+---@param input_mode string
+---@return table
+function Select:getNoteSkinInfos(input_mode)
+	return self.game.noteSkinModel:getSkinInfos(input_mode)
+end
+
+---@param input_mode string
+---@param path string
+function Select:setNoteSkin(input_mode, path)
+	self.game.noteSkinModel:setDefaultNoteSkin(input_mode, path)
 end
 
 return Select

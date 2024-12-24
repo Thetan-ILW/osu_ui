@@ -1,3 +1,4 @@
+local Screen = require("osu_ui.views.Screen")
 local CanvasComponent = require("ui.CanvasComponent")
 local Component = require("ui.Component")
 
@@ -27,10 +28,10 @@ local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 
 local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 
----@class osu.ui.SelectViewContainer : ui.CanvasComponent
+---@class osu.ui.SelectViewContainer : osu.ui.Screen
 ---@operator call: osu.ui.SelectViewContainer
 ---@field selectApi game.SelectAPI
-local View = CanvasComponent + {}
+local View = Screen + {}
 
 function View:textInput(event)
 	self.search = self.search .. event[1]
@@ -65,6 +66,10 @@ function View:keyPressed(event)
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5
 		}))
+	elseif key == "o" then
+		if love.keyboard.isDown("lctrl") then
+			self.scene.options:fade(1)
+		end
 	elseif key == "p" then
 		if love.keyboard.isDown("lctrl") then
 			self.selectApi:pausePreview()
@@ -112,24 +117,11 @@ function View:transitIn()
 	self:stopTransitionTween()
 	self.transitionTween = flux.to(self, 0.7, { alpha = 1 }):ease("cubicout")
 
-	flux.to(self.scene.background, 0.2, { dim = 0.3, parallax = 0.01 }):ease("quadout")
-	flux.to(self.scene.cursor, 0.2, { alpha = 1 }):ease("quadout")
+	self.scene:showOverlay(0.4, 0.3)
 	self.selectApi:loadController()
 end
 
 function View:transitToGameplay()
-	self.handleEvents = false
-	self:stopTransitionTween()
-	self.transitionTween = flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		self.disabled = true
-		self.scene:transitInScreen("gameplay")
-	end)
-
-	flux.to(self.scene.cursor, 0.5, { alpha = 0 }):ease("quadout")
-	flux.to(self.scene.background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
-	self.scene.options:fade(0)
-	self.scene.chat:fade(0)
-
 	local showcase = self.scene:getChild("chartShowcase")
 	if not showcase then
 		showcase = self.scene:addChild("chartShowcase", ChartShowcase({
@@ -143,30 +135,33 @@ function View:transitToGameplay()
 		("Length: %s Difficulty: %s"):format(self.displayInfo.length, self.displayInfo.difficulty),
 		self.selectApi:getBackgroundImages()[1]
 	)
+
+	self.scene:hideOverlay(0.5, 0.5)
+	self:transitOut({
+		time = 0.5,
+		ease = "quadout",
+		onComplete = function()
+			self.scene:transitInScreen("gameplay")
+		end
+	})
 end
 
 function View:transitToResult()
-	self:receive({ name = "loseFocus" })
-	self.handleEvents = false
-	self:stopTransitionTween()
-	self.transitionTween = flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-		self.disabled = true
-		self.scene:transitInScreen("result")
-	end)
-
-	flux.to(self.scene.cursor, 0.5, { alpha = 0 }):ease("quadout")
-	flux.to(self.scene.background, 0.2, { dim = 0.5, parallax = 0 }):ease("quadout")
-	self.scene.options:fade(0)
-	self.scene.chat:fade(0)
+	self.scene:hideOverlay(0.5, 0.5)
+	self:transitOut({
+		time = 0.5,
+		ease = "quadout",
+		onComplete = function ()
+			self.scene:transitInScreen("result")
+		end
+	})
 end
 
 function View:transitToMainMenu()
-	self.handleEvents = false
-	self:stopTransitionTween()
-	self.transitionTween = flux.to(self, 0.4, { alpha = 0 }):ease("quadin"):oncomplete(function ()
-		self.disabled = true
-	end)
-
+	self:transitOut({
+		time = 0.4,
+		ease = "quadin"
+	})
 	self.scene:transitInScreen("mainMenu")
 end
 
@@ -179,8 +174,7 @@ function View:load()
 	self.scene = scene
 
 	self.width, self.height = self.parent:getDimensions()
-	self.stencil = true
-	self:createCanvas(self.width, self.height)
+
 	local viewport = self:getViewport()
 	viewport:listenForResize(self)
 	viewport:listenForEvent(self, "event_modsChanged")
@@ -194,9 +188,6 @@ function View:load()
 		self.displayInfo:updateInfo()
 		self.notechartChangeTime = love.timer.getTime()
 	end)
-
-	local shaders = require("osu_ui.ui.shaders")
-	self.shader = shaders.lighten
 
 	local display_info = self.displayInfo
 	local assets = scene.assets
@@ -222,6 +213,17 @@ function View:load()
 
 	self.searchFormat = { { 0.68, 1, 0.18, 1 }, text.SongSelection_Search .. " ", { 1, 1, 1, 1 }, text.SongSelection_TypeToBegin }
 	self.search = self.selectApi:getSearchText()
+
+	self:addChild("flash", Rectangle({
+		width = width,
+		height = height,
+		color = { 1, 1, 1, 1 },
+		z = 1,
+		update = function(this)
+			local n = math.min(1, (love.timer.getTime() - self.notechartChangeTime) * 3)
+			this.alpha = (1 - n * n * n) * 0.05
+		end
+	}))
 
 	----------- TOP -----------
 
@@ -691,12 +693,10 @@ end
 
 function View:update()
 	self.selectApi:updateController()
-	self.shader:send("amount", 0.05 * (1 - easing.linear(self.notechartChangeTime, 0.5)))
 end
 
 function View:draw()
-	love.graphics.setShader(self.shader)
-	CanvasComponent.draw(self)
+	Screen.draw(self)
 end
 
 ---@alias TabNames "noGrouping" | "byDifficulty" | "byArtist" | "recentlyPlayed" | "collections"

@@ -1,6 +1,8 @@
 local Component = require("ui.Component")
 local GaussianBlurView = require("sphere.views.GaussianBlurView")
 
+---@class ui.Blur : ui.Viewport
+---@operator call: ui.Blur
 local Blur = Component + {}
 
 function Blur:load()

@@ -61,18 +61,24 @@ function Section:update()
 	self.alpha = 1
 	self.canUpdateChildren = true
 
+	local open_combo = false
+	local height = 0
+
+	for _, group in pairs(self.groups.children) do
+		---@cast group osu.ui.OptionsGroup
+		open_combo, height = group:hasOpenCombos()
+	end
+
+	if height ~= 0 then
+		self.options:addAdditionalScrollLimit(height)
+	end
+
 	if not in_view then
 		self.alpha = 0
 		self.canUpdateChildren = false
-		if scroll > y_end then
-			for _, group in pairs(self.groups.children) do
-				---@cast group osu.ui.OptionsGroup
-				if group:hasOpenCombos() then
-					self.alpha = 1
-					self.canUpdateChildren = true
-					break
-				end
-			end
+		if scroll > y_end and open_combo then
+			self.alpha = 1
+			self.canUpdateChildren = true
 		end
 	end
 end

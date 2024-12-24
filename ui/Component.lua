@@ -181,6 +181,7 @@ function Component:addChild(id, child)
 	child.parent = self
 	child.shared = self.shared
 	child:load()
+	child.killed = false
 	self.children[id] = child
 	self.deferBuild = true
 	return child

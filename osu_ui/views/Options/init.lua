@@ -161,6 +161,11 @@ function Options:load()
 		"",
 		require("osu_ui.views.Options.sections.audio")
 	)
+	self:newSection(
+		self.text.Options_Skin:upper(),
+		"",
+		require("osu_ui.views.Options.sections.skin")
+	)
 
 	self:addChild("tabsBackground", Rectangle({
 		width = self.tabsContrainerWidth,
@@ -319,6 +324,11 @@ function Options:load()
 			return true
 		end
 	}))
+end
+
+---@param height number
+function Options:addAdditionalScrollLimit(height)
+	self.panel.scrollLimit = self.tree:getHeight() + height
 end
 
 function Options:getScrollPosition()

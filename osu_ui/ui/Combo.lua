@@ -21,7 +21,7 @@ local flux = require("flux")
 ---@field cellHeight number
 ---@field minCellHeight number
 ---@field setValue fun(index: integer)
----@field getValue fun(): any, table
+---@field getValue fun(): any
 ---@field format? fun(any): string
 ---@field state "hidden" | "fade_in" | "open" | "fade_out"
 ---@field visibility number
@@ -50,7 +50,9 @@ function Combo:load()
 
 	local font = self.font or fonts:loadFont("Regular", 16)
 	local awesome_regular = fonts:loadFont("Awesome", 18)
-	local awesome_small = fonts:loadFont("Awesome", 15)
+
+	self.fonts = fonts
+	self.font = font
 
 	local main = self:addChild("mainCell", Component({
 		width = self.width,
@@ -58,7 +60,7 @@ function Combo:load()
 		z = 0.2,
 	}))
 	main:addChild("mainCellLabel", DynamicLabel({
-		x = 5,
+		x = 5, y = 2,
 		font = font,
 		height = main:getHeight(),
 		alignY = "center",
@@ -114,6 +116,16 @@ function Combo:load()
 		z = 1
 	}))
 
+	self.hoverSound = assets:loadAudio("click-short")
+	self.expandSound = assets:loadAudio("select-expand")
+
+	self:addItems()
+end
+
+function Combo:addItems()
+	local awesome_small = self.fonts:loadFont("Awesome", 15)
+
+	self:removeChild("items")
 	local items = self:addChild("items", Component({
 		width = self.width,
 		alpha = 0,
@@ -149,15 +161,15 @@ function Combo:load()
 		}))
 		cell:addChild("comboCellLabel", Label({
 			x = 15,
-			height = cell:getHeight(),
+			boxHeight = cell:getHeight(),
 			text = self.format and self.format(v) or tostring(v),
 			alignY = "center",
-			font = font,
+			font = self.font,
 			z = 0.1,
 		}))
 		cell:addChild("mainCellArrow", Label({
 			x = 4,
-			boxHeight = main:getHeight(),
+			boxHeight = self.minCellHeight,
 			text = "",
 			font = awesome_small,
 			alignY = "center",
@@ -165,9 +177,6 @@ function Combo:load()
 			z = 0.1,
 		}))
 	end
-
-	self.hoverSound = assets:loadAudio("click-short")
-	self.expandSound = assets:loadAudio("select-expand")
 end
 
 function Combo:mousePressed()

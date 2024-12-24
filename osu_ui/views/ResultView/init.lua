@@ -1,3 +1,4 @@
+local Screen = require("osu_ui.views.Screen")
 local Component = require("ui.Component")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 
@@ -19,9 +20,9 @@ local DisplayInfo = require("osu_ui.views.ResultView.DisplayInfo")
 
 local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 
----@class osu.ui.ResultViewContainer : ui.Component
+---@class osu.ui.ResultViewContainer : osu.ui.Screen
 ---@operator call: osu.ui.ResultViewContainer
-local View = Component + {}
+local View = Screen + {}
 
 function View:presentScore()
 	flux.to(self.scene.cursor, 0.4, { alpha = 1 }):ease("quadout")
@@ -36,15 +37,8 @@ end
 
 function View:transitIn()
 	self.y = 0
-	self.handleEvents = true
-	self.disabled = false
-	if self.transitionTween then
-		self.transitionTween:stop()
-	else
-		self.alpha = 0
-	end
-
 	self.resultApi:loadController()
+	Screen.transitIn(self)
 
 	if self.scene.previousScreenId == "gameplay" then
 		self.selectApi:loadController()
@@ -60,7 +54,7 @@ function View:transitIn()
 	self:presentScore()
 end
 
-function View:quit()
+function View:transitOut()
 	self:receive({ name = "loseFocus" })
 	self.handleEvents = false
 	if self.transitionTween then
@@ -77,7 +71,7 @@ end
 
 function View:keyPressed(event)
 	if event[2] == "escape" then
-		self:quit()
+		self:transitOut()
 		return true
 	elseif event[2] == "f2" then
 		local chart = self.resultApi:getChart()
@@ -481,7 +475,7 @@ function View:load(score_loaded)
 		hoverHeight = 58,
 		z = 1,
 		onClick = function ()
-			self:quit()
+			self:transitOut()
 		end
 	}))
 

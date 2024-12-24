@@ -1,13 +1,13 @@
-local CanvasComponent = require("ui.CanvasComponent")
+local CanvasScreen = require("osu_ui.views.CanvasScreen")
 local Playfield = require("osu_ui.views.Gameplay.Playfield")
 local PauseScreen = require("osu_ui.views.Gameplay.PauseScreen")
 local flux = require("flux")
 
----@class osu.ui.GameplayViewContainer : ui.CanvasComponent
+---@class osu.ui.GameplayViewContainer : osu.ui.CanvasScreen
 ---@operator call: osu.ui.GameplayViewContainer
 ---@field gameplayApi game.GameplayAPI
 ---@field state "play" | "pausing" | "pause" | "unpausing"
-local View = CanvasComponent + {}
+local View = CanvasScreen + {}
 
 function View:setPauseAlpha(a)
 	if self.pauseTween then
@@ -41,7 +41,9 @@ end
 
 function View:transitIn()
 	local showcase = self.scene:getChild("chartShowcase") ---@cast showcase osu.ui.ChartShowcase
-	showcase:hide(1)
+	if showcase then
+		showcase:hide(1)
+	end
 
 	self.alpha = 0
 	flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
@@ -53,12 +55,6 @@ function View:transitIn()
 end
 
 function View:quit()
-	if not self.handleEvents then
-		return
-	end
-
-	self.handleEvents = false
-
 	local select_api = self.scene.ui.selectApi
 	select_api:playPreview()
 
@@ -84,18 +80,20 @@ function View:quit()
 	end
 
 	if self.gameplayApi:hasResult() then
-		self.selectApi:unloadController()
-		flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-			quit()
-			self.disabled = true
-			self.scene:transitInScreen("result")
-		end)
+		self:transitOut({
+			onComplete = function ()
+				quit()
+				self.selectApi:unloadController()
+				self.scene:transitInScreen("result")
+			end
+		})
 	else
 		self.scene:transitInScreen("select")
-		flux.to(self, 0.5, { alpha = 0 }):ease("quadout"):oncomplete(function ()
-			quit()
-			self.disabled = true
-		end)
+		self:transitOut({
+			onComplete = function ()
+				quit()
+			end
+		})
 	end
 end
 
