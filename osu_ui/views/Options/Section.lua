@@ -19,21 +19,21 @@ function Section:load()
 	local fonts = scene.fontManager
 
 	self.startY = 60
-	self.currentY = 0
 	self.groupSpacing = 24
 	self.isEmpty = false
 
-	local groups = self:addChild("groups", Component({
+	self.groups = self:addChild("groups", Component({
 		x = 24, y = self.startY,
-		boxWidth = self.width,
+		width = self.width,
 	}))
-	---@cast groups ui.Component
-	self.groups = groups
 
 	self.buildFunction(self)
-	groups:autoSize()
+	self.groups:build()
+	self.groups:autoSize()
 
-	if groups.height == 0 then
+	self.debug = true
+
+	if self.groups.height == 0 then
 		self.isEmpty = true
 		return
 	end
@@ -46,7 +46,7 @@ function Section:load()
 		color = { 0.13, 0.6, 0.73, 1 },
 	}))
 
-	self:autoSize()
+	self:recalcPositions()
 end
 
 function Section:update()
@@ -92,7 +92,6 @@ function Section:group(name, build_function)
 	self.groupCount = self.groupCount or 0
 
 	local group = self.groups:addChild(name, Group({
-		y = self.currentY,
 		width = self.width,
 		section = self,
 		name = name:upper(),
@@ -106,7 +105,6 @@ function Section:group(name, build_function)
 		return
 	end
 
-	self.currentY = self.currentY + group:getHeight() + self.groupSpacing
 	self.groupCount = self.groupCount + 1
 end
 
@@ -120,7 +118,6 @@ function Section:recalcPositions()
 	end
 
 	self.height = self.height + self.startY
-	self.deferBuild = true
 end
 
 return Section

@@ -44,7 +44,10 @@ function Group:load()
 	self.height = 0
 	self.startY = 25
 	self:buildFunction()
-	self:autoSize()
+
+	for _, child in pairs(self.children) do
+		self.height = math.max(self.height, child.y + child.height)
+	end
 
 	if self.height == 0 then
 		self.isEmpty = true

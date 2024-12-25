@@ -233,8 +233,6 @@ function Component:renameChild(old_id, new_id)
 	self:build()
 end
 
----@private
---- DON'T EVEN THINK ABOUT CALLING IT MANUALLY
 function Component:build()
 	---@type ui.Component[]
 	local sorted = {}

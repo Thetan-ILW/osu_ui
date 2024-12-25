@@ -294,6 +294,7 @@ function Options:load()
 	self.panel = panel
 	self.sectionSpacing = 0
 	self.tree = self:buildTree()
+	self:recalcPositions()
 	panel.scrollLimit = self.tree:getHeight()
 
 	self:addChild("searchEvents", Component({
@@ -367,7 +368,6 @@ function Options:buildTree()
 		z = 0.5,
 	}))
 
-	local y = 0
 	local z = 1
 	for i, v in ipairs(self.sectionsOrder) do
 		local section_params = self.sections[v]
@@ -387,10 +387,6 @@ function Options:buildTree()
 		---@cast section osu.ui.OptionsSection
 		if section.isEmpty then
 			tree:removeChild(name)
-		else
-			section.y = y
-			y = y + section:getHeight() + self.sectionSpacing
-			tree.height = y
 		end
 	end
 

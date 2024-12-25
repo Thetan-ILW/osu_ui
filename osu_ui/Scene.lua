@@ -88,9 +88,13 @@ function Scene:load()
 		z = 0.98
 	}))
 
+	local notification = self:addChild("notification", Notification({z = 0.9})) ---@cast notification osu.ui.NotificationView
+	self.notification = notification
+
 	local tooltip = self:addChild("tooltip", Tooltip({
 		z = 0.981
-	}))
+	})) ---@cast tooltip osu.ui.TooltipView
+	self.tooltip = tooltip
 
 	local options = self:addChild("options", Options({
 		game = self.game,
@@ -108,20 +112,15 @@ function Scene:load()
 		backgroundModel = self.game.backgroundModel,
 		z = 0,
 	}))
-	local notification = self:addChild("notification", Notification({z = 0.9}))
 
 	---@cast cursor osu.ui.CursorView
-	---@cast tooltip osu.ui.TooltipView
 	---@cast options osu.ui.OptionsView
 	---@cast chat osu.ui.ChatView
 	---@cast background osu.ui.ParallaxBackground
-	---@cast notification osu.ui.NotificationView
 	self.cursor = cursor
-	self.tooltip = tooltip
 	self.options = options
 	self.chat = chat
 	self.background = background
-	self.notification = notification
 
 	self.currentScreenId = ""
 	self.previousScreenId = ""
