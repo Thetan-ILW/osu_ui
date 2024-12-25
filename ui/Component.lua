@@ -314,12 +314,6 @@ function Component:receive(event)
 end
 
 ---@return number
----@return number
-function Component:getDimensions()
-	return self.width, self.height
-end
-
----@return number
 function Component:getWidth()
 	return self.width
 end
@@ -327,6 +321,12 @@ end
 ---@return number
 function Component:getHeight()
 	return self.height
+end
+
+---@return number
+---@return number
+function Component:getDimensions()
+	return self:getWidth(), self:getHeight()
 end
 
 local sound_play_time = {}

@@ -225,7 +225,7 @@ function Group:label(params)
 	return label
 end
 
----@param params { label: string, items: any[], getValue: (fun(): any), setValue: fun(index: integer), format: (fun(any): string)? }
+---@param params { label: string, items: any[], getValue: (fun(): any), setValue: fun(index: integer), format: (fun(any): string)?, key?: [ {[string]: any}, string ]  }
 ---@return osu.ui.Combo?
 function Group:combo(params)
 	if not self:canAdd(params.label) then
@@ -242,6 +242,18 @@ function Group:combo(params)
 
 	if #params.items ~= 0 and not found_something then
 		return
+	end
+
+	if params.key then
+		local t = params.key[1]
+		local k = params.key[2]
+		local items = params.items
+		params.getValue = function()
+			return t[k]
+		end
+		params.setValue = function(index)
+			t[k] = items[index]
+		end
 	end
 
 	local container = self:addChild("combo_container" .. self.combos, Component({
@@ -325,11 +337,22 @@ function Group:checkbox(params)
 	return checkbox
 end
 
----@param params { label: string, min: number, max: number, step: number, getValue: (fun(): number), setValue: (fun(v: number)), format: (fun(v: number): string)? }
+---@param params { label: string, min: number, max: number, step: number, getValue: (fun(): number), setValue: (fun(v: number)), format: (fun(v: number): string)?, key?: [ {[string]: number}, string ] }
 ---@return osu.ui.Slider?
 function Group:slider(params)
 	if not self:canAdd(params.label) then
 		return
+	end
+
+	if params.key then
+		local t = params.key[1]
+		local k = params.key[2]
+		params.getValue = function()
+			return t[k]
+		end
+		params.setValue = function (v)
+			t[k] = v
+		end
 	end
 
 	local container = self:addChild("slider_container" .. self.sliders, Component({

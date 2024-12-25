@@ -109,19 +109,19 @@ function View:load()
 	self.gameplayApi = scene.ui.gameplayApi
 	self.state = "play"
 
-	local gameplay_cfg = scene.game.configModel.configs.osu_ui.gameplay
+	local configs = self.selectApi:getConfigs()
+	local gameplay_cfg = configs.osu_ui.gameplay
 	local render_at_native_res = gameplay_cfg.nativeRes
 
 	if render_at_native_res then
 		local native_res_x, native_res_y = gameplay_cfg.nativeResX, gameplay_cfg.nativeResY
 		local native_res_w, native_res_h = gameplay_cfg.nativeResSize.width, gameplay_cfg.nativeResSize.height
-		local viewport_scale = self:getViewport():getInnerScale()
 		self:addChild("playfield", Playfield({
-			x = ((love.graphics.getWidth() - native_res_w) * viewport_scale) * native_res_x,
-			y = ((love.graphics.getHeight() - native_res_h) * viewport_scale) * native_res_y,
+			x = math.floor((love.graphics.getWidth() - native_res_w) * native_res_x),
+			y = math.floor((love.graphics.getHeight() - native_res_h) * native_res_y),
 			width = native_res_w,
 			height = native_res_h,
-			renderAtNativeResoltion = true,
+			renderAtNativeResolution = true,
 			sequenceView = self.gameplayApi:getSequenceView(),
 			z = 0.1
 		}))

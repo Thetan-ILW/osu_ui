@@ -1,39 +1,65 @@
 ---@param section osu.ui.OptionsSection
 return function(section)
-	section:group("LOL", function(group)
-		group:textBox({ label = "hello!" })
-		group:button({ label = "goodbye" })
-		group:label({ label = "hello!" })
+	local config = section.options:getConfigs()
+	local settings = config.settings
+	local g = settings.gameplay
+	local gf = settings.graphics
+	local osu = config.osu_ui ---@type osu.ui.OsuConfig
 
-		local items = { 1, 2, 3 }
-		local value = 1
-		group:combo({ label = "hello!", items = items,
-			getValue = function ()
-				return value
-			end,
-			setValue = function(v)
-				value = v
-			end
-		})
+	local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
+	local text = scene.localization.text
 
-		local b = false
-		group:checkbox({ label = "goodbye",
-			getValue = function ()
-				return b
+	section:group(text.Options_Screen, function(group)
+		group:checkbox({
+			label = text.Options_Graphics_Letterboxing,
+			tooltip = text.Options_Graphics_Letterboxing_Tooltip,
+			getValue = function()
+				return osu.gameplay.nativeRes
 			end,
 			clicked = function ()
-				b = not b
+				osu.gameplay.nativeRes = not osu.gameplay.nativeRes
+				group:load()
+				section.options:recalcPositions()
 			end
 		})
 
-		local happiness = 0
-		group:slider({ label = "Happiness", min = 0, max = 100, step = 1,
-			getValue = function ()
-				return happiness
-			end,
-			setValue = function (v)
-				happiness = v
+		if osu.gameplay.nativeRes then
+			local modes = love.window.getFullscreenModes()
+
+			if not osu.gameplay.nativeResSize then
+				osu.gameplay.nativeResSize = modes[1]
 			end
-		})
+
+			group:combo({
+				label = text.Options_Graphics_SelectResolution,
+				items = modes,
+				key = { osu.gameplay, "nativeResSize" },
+				format = function(v)
+					return v.width .. "x" .. v.height
+				end
+			})
+
+			group:slider({
+				label = text.Options_Graphics_LetterboxPositionX,
+				min = 0,
+				max = 1,
+				step = 0.01,
+				key = { osu.gameplay, "nativeResX" },
+				format = function(v)
+					return ("%i%%"):format(v * 100)
+				end
+			})
+
+			group:slider({
+				label = text.Options_Graphics_LetterboxPositionY,
+				min = 0,
+				max = 1,
+				step = 0.01,
+				key = { osu.gameplay, "nativeResY" },
+				format = function(v)
+					return ("%i%%"):format(v * 100)
+				end
+			})
+		end
 	end)
 end

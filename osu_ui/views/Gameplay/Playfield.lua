@@ -27,6 +27,8 @@ end
 function Playfield:load()
 	if self.renderAtNativeResolution then
 		self.canvas = love.graphics.newCanvas(self.width, self.height)
+		native_res_w = self.width
+		native_res_h = self.height
 		self.draw = self.drawNative
 	end
 end
@@ -50,9 +52,9 @@ function Playfield:drawNative()
 	gfx.pop()
 
 	gfx.setCanvas(prev_canvas)
-	local wh = gfx.getHeight()
-	local _, iwh = gfx.inverseTransformPoint(0, wh)
-	gfx.scale(iwh / self.height)
+
+	gfx.origin()
+	gfx.translate(self.x, self.y)
 	gfx.draw(self.canvas)
 end
 

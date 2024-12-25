@@ -4,7 +4,7 @@ local Component = require("ui.Component")
 
 ---@class ui.DynamicLabel : ui.Component
 ---@overload fun(params: ui.DynamicLabelParams): ui.DynamicLabel
----@field value fun(): string,
+---@field value fun(): string
 ---@field text string
 ---@field font ui.Font
 ---@field alignX AlignX

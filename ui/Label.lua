@@ -49,8 +49,9 @@ function Label:updateSizeAndPos()
 			text_width = width * text_scale
 			text_height = #wrapped_text * font:getHeight() * text_scale
 		else
+			local _, new_lines = text:gsub("\n", "")
 			text_width = font:getWidth(text) * text_scale
-			text_height = font:getHeight() * text_scale
+			text_height = (font:getHeight() * (new_lines + 1)) * text_scale
 		end
 	elseif type(text) == "table" then
 		local max_w = 0
@@ -94,6 +95,16 @@ function Label:updateSizeAndPos()
 	end
 
 	self.posX, self.posY = x, y
+end
+
+---@return number
+function Label:getWidth()
+	return math.max(self.boxWidth or 0, self.width)
+end
+
+---@return number
+function Label:getHeight()
+	return math.max(self.boxHeight or 0, self.height)
 end
 
 ---@param text string | table
