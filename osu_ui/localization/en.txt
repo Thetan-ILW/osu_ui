@@ -38,6 +38,7 @@ OptionsOffsetWizard_UniversalOffset=Universal offset:
 Options_Skin=Skin
 Options_SkinSelect=Current skin:
 Options_SkinPreview=Preview gameplay
+Options_SkinSettings=Change skin settings
 
 SongSelection_BeatmapInfoCreator=Mapped by %s
 SongSelection_BeatmapInfoPack=From %s

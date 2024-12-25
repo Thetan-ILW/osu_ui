@@ -74,11 +74,20 @@ return function(section)
 					---@cast current_screen osu.ui.Screen
 					scene:hideOverlay()
 					section.options:fade(0)
-					current_screen:transitOut(function ()
-						select_api:setAutoplay(true)
-						scene:transitInScreen("gameplay")
-					end)
+					current_screen:transitOut({
+						onComplete = function ()
+							select_api:setAutoplay(true)
+							scene:transitInScreen("gameplay")
+						end
+					})
 				end
+			end
+		})
+
+		group:button({
+			label = text.Options_SkinSettings,
+			onClick = function()
+				scene.notification:show("Not implemented")
 			end
 		})
 	end)

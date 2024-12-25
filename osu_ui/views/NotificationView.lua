@@ -1,9 +1,7 @@
 local Component = require("ui.Component")
+local Rectangle = require("ui.Rectangle")
+local Label = require("ui.Label")
 local flux = require("flux")
-
-local Label = require("osu_ui.ui.Label")
-
----@alias osu.ui.NotificationViewParams { assets: osu.ui.OsuAssets }
 
 ---@class osu.ui.NotificationView : ui.Component
 ---@operator call: osu.ui.NotificationView
@@ -11,70 +9,44 @@ local Label = require("osu_ui.ui.Label")
 local NotificationView = Component + {}
 
 function NotificationView:load()
-	self.totalW = self.totalW or self.parent.totalW
-	self.totalH = self.totalH or 48
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.NotificationView
+	self.width = self.parent.width
+	self.height = self.height == 0 and 48 or self.height
 	self.origin = self.origin or { x = 0, y = 0.5 }
-	self.y = self.parent.totalH / 2
+	self.y = self.parent.height / 2
+	self.alpha = 0
 
-	self.animation = 0
-	self.label = Label({
+	self.label = self:addChild("label", Label({
 		text = "",
-		font = self.assets:loadFont("Regular", 24),
-		totalW = self.totalW,
-		totalH = self.totalH,
+		font = scene.fontManager:loadFont("Regular", 24),
+		boxWidth = self.width,
+		boxHeight = self.height,
 		alignX = "center",
 		alignY = "center",
-		textScale = self.parent.textScale
-	})
-	self.label:load()
+		z = 0.1,
+	}))
 
-	UiElement.load(self)
-end
-
-function NotificationView:createTween()
-	self.tween = flux.to(self, 0.6, { animation = 1 }):ease("elasticout"):oncomplete(function()
-		self.tween = flux.to(self, 0.3, { animation = 0 }):ease("quadout"):delay(1):oncomplete(function()
-			self.tween = nil
-		end)
-	end)
+	self:addChild("rectangle", Rectangle({
+		width = self.width,
+		height = self.height,
+		color = { 0, 0, 0, 0.7 },
+		update = function(this)
+			local h = self.height * self.alpha
+			this.y = (self.height - h) / 2
+			this.height = h
+		end
+	}))
 end
 
 ---@param message string
----@param dont_stop_tween boolean?
-function NotificationView:show(message, dont_stop_tween)
-	dont_stop_tween = dont_stop_tween == nil and false or dont_stop_tween
-	if self.tween and not dont_stop_tween then
+function NotificationView:show(message)
+	if self.tween then
 		self.tween:stop()
-		self.tween = flux.to(self, 0.1, { animation = 0 }):ease("cubicout"):oncomplete(function()
-			self:createTween()
-			self.label:replaceText(message)
-		end)
-	else
-		if self.tween then
-			self.tween:stop()
-		end
-		self:createTween()
-		self.label:replaceText(message)
 	end
-end
-
-local gfx = love.graphics
-
-function NotificationView:draw()
-	if not self.label then
-		return
-	end
-
-	local animation = self.animation
-	if self.animation == 0 then
-		return
-	end
-
-	local rh = self.totalH * animation
-	gfx.setColor(0, 0, 0, math.min(0.7 * animation, 0.7))
-	gfx.rectangle("fill", 0, self.totalH / 2 - rh / 2, self.totalW, rh)
-	self.label.alpha = animation * self.alpha
-	self.label:draw()
+	self.tween = flux.to(self, 0.6, { alpha = 1 }):ease("elasticout"):oncomplete(function()
+		self.tween = flux.to(self, 0.3, { alpha = 0 }):ease("quadout"):delay(1)
+	end)
+	self.label:replaceText(message)
 end
 
 return NotificationView
