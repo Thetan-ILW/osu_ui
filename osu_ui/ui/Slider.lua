@@ -154,7 +154,7 @@ function Slider:update()
 	end
 
 	if self.mouseOver then
-		self.tooltip:setText(self.format and self.format(self.value) or tostring(self.value))
+		self.tooltip:setText(self.format and self.format(self.value) or ("%i"):format(self.value))
 	end
 
 	local p = (self.getValue() - self.min) / (self.max - self.min)

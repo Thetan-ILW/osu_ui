@@ -5,6 +5,7 @@ General_Cancel=Cancel
 General_Back=Back
 General_Apply=Apply
 General_Reset=Reset
+
 UserProfile_Guest=Guest
 
 Options_Options=Options
@@ -39,6 +40,21 @@ Options_Skin=Skin
 Options_SkinSelect=Current skin:
 Options_SkinPreview=Preview gameplay
 Options_SkinSettings=Change skin settings
+Options_OpenSkinFolder=Open current skin folder
+Options_LongNoteShortening=LN shortening:
+
+Options_Cursor=Cursor
+Options_CursorSize=Cursor size:
+Options_TrailDensity=Trail density:
+Options_TrailQuality=Trail quality:
+Options_TrailLifetime=Trail lifetime:
+Options_TrailStyle=Trail style:
+Options_ShowTrail=Show trail 
+
+Options_Camera=3D Camera
+Options_EnableCamera=Enable 3D camera
+Options_CameraXRotation = Allow rotation of X coordinate
+Options_CameraYRotation = Allow rotation of Y coordinate
 
 SongSelection_BeatmapInfoCreator=Mapped by %s
 SongSelection_BeatmapInfoPack=From %s

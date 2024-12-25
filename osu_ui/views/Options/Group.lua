@@ -284,11 +284,22 @@ function Group:combo(params)
 	return combo
 end
 
----@param params { label: string, tooltip: string?, getValue: (fun(): boolean), clicked: function }
+---@param params { label: string, tooltip: string?, getValue?: (fun(): boolean), clicked: function?, key?: [ {[string]: boolean}, string ] }
 ---@return osu.ui.Checkbox?
 function Group:checkbox(params)
 	if not self:canAdd(params.label) then
 		return
+	end
+
+	if params.key then
+		local t = params.key[1]
+		local k = params.key[2]
+		params.getValue = function ()
+			return t[k]
+		end
+		params.clicked = function()
+			t[k] = not t[k]
+		end
 	end
 
 	local checkbox = self:addChild("checkbox" .. self.checkboxes, Checkbox({

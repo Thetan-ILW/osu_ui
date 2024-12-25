@@ -57,7 +57,7 @@ function Checkbox:load()
 	self.clickTime = -9999
 	self.checkOnSound = assets:loadAudio("check-on")
 	self.checkOffSound = assets:loadAudio("check-off")
-	self.width = off_img:getWidth() + label:getWidth()
+	self.width = self.width == 0 and off_img:getWidth() + label:getWidth() or self.width
 	self.imageScale = self.large and 0.18 or 0.1
 end
 
