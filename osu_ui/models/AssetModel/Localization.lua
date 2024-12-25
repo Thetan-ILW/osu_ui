@@ -64,7 +64,7 @@ function Localization:parse(filename, strings)
 				local value = line:sub(equal_pos + 1):match("^%s*(.-)%s*$")
 
 				if key ~= "" then
-					strings[key] = value ~= "" and value or key
+					strings[key] = value ~= "" and value:gsub("\\n", "\n") or key
 				end
 			end
 		end

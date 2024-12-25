@@ -199,6 +199,10 @@ return function(section)
 	end)
 
 	section:group(text.Options_Camera, function(group)
+		group:label({
+			label = text.Options_CameraInstructions,
+			height = 120,
+		})
 		group:checkbox({
 			label = text.Options_EnableCamera,
 			key = { p, "camera" }

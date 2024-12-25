@@ -50,6 +50,7 @@ Options_TrailQuality=Trail quality:
 Options_TrailLifetime=Trail lifetime:
 Options_TrailStyle=Trail style:
 Options_ShowTrail=Show trail 
+Options_CameraInstructions=Controls:\nF9 - enter camera mode.\nF10 - reset\nWASD - forward/left/right/back.\nSHIFT/SPACE - up/down.\nLeft mouse button - rotate
 
 Options_Camera=3D Camera
 Options_EnableCamera=Enable 3D camera
