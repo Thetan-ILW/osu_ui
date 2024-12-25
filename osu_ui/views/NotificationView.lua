@@ -9,7 +9,7 @@ local flux = require("flux")
 local NotificationView = Component + {}
 
 function NotificationView:load()
-	local scene = self:findComponent("scene") ---@cast scene osu.ui.NotificationView
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.width = self.parent.width
 	self.height = self.height == 0 and 48 or self.height
 	self.origin = self.origin or { x = 0, y = 0.5 }

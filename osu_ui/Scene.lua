@@ -6,6 +6,7 @@ local Chat = require("osu_ui.views.Chat")
 local Options = require("osu_ui.views.Options")
 local Tooltip = require("osu_ui.views.Tooltip")
 local Notification = require("osu_ui.views.NotificationView")
+local FpsDisplay = require("osu_ui.views.FpsDisplay")
 
 local FontManager = require("ui.FontManager")
 local OsuAssets = require("osu_ui.OsuAssets")
@@ -40,7 +41,8 @@ function Scene:new(params)
 		["Light"] = "osu_ui/assets/ui_font/Aller/Aller_Lt.ttf",
 		["Bold"] = "osu_ui/assets/ui_font/Aller/Aller_Bd.ttf",
 		["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf",
-		["NotoSansMono"] = "osu_ui/assets/ui_font/NotoSansMono-Regular.ttf"
+		["MonoRegular"] = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Regular.ttf",
+		["MonoBold"] = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Bold.ttf"
 	}
 	local fallbacks = {
 		["Regular"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Regular.ttf",
@@ -111,6 +113,9 @@ function Scene:load()
 		mode = "background_model",
 		backgroundModel = self.game.backgroundModel,
 		z = 0,
+	}))
+	self:addChild("fpsDisplay", FpsDisplay({
+		z = 0.9,
 	}))
 
 	---@cast cursor osu.ui.CursorView

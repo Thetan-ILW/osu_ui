@@ -31,8 +31,6 @@ function Section:load()
 	self.groups:build()
 	self.groups:autoSize()
 
-	self.debug = true
-
 	if self.groups.height == 0 then
 		self.isEmpty = true
 		return
