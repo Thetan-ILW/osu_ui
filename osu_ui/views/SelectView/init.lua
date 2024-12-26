@@ -667,7 +667,6 @@ function View:load()
 		selectView = self,
 		z = 0,
 	}))
-	---@cast list osu.ui.ListContainer
 
 	function list.update(container, dt)
 		ListContainer.update(list, dt)

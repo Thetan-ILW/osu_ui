@@ -81,14 +81,22 @@ function CollectionsListView:childUpdated()
 end
 
 function CollectionsListView:collectionLoaded()
-	if self.parent:getChild("charts") then
-		self.parent:removeChild("charts")
-	end
+	self.parent:removeChild("charts")
 	self.childList = ChartListView({
 		parentList = self,
 		depth = 0.9,
 	})
+
 	self.parent:addChild("charts", self.childList)
+
+	if self.parent.teleportScrollPosition then
+		self.holeSize = self:getChildItemCount() * self.panelHeight
+		self.wrapProgress = 1
+		self.state = "open"
+		self.childList:calcTotalHeight()
+		return
+	end
+
 	self.state = "opening"
 	self.holeSize = 0
 	self.wrapProgress = 0

@@ -203,6 +203,10 @@ function WindowListView:translateToCenter()
 	love.graphics.translate(0, 768 / 2 - self.panelHeight / 2)
 end
 
+function WindowListView:calcTotalHeight()
+	self.height = self.itemCount * self.panelHeight
+end
+
 ---@param state ui.FrameState
 function WindowListView:updateTree(state)
 	if self.stateCounter ~= self:getStateCounter() then

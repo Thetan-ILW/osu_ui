@@ -74,11 +74,15 @@ function ChartListView:replaceItem(window_index, visual_index)
 	item.visualIndex = visual_index
 end
 
-function ChartListView:update(dt)
-	if self.parentList then
-		self.height = self.itemCount * self.panelHeight * self.parentList.wrapProgress
+function ChartListView:calcTotalHeight()
+	if not self.parentList then
+		WindowListView.calcTotalSize(self)
+		return
 	end
+	self.height = self.panelHeight * #self:getItems() * self.parentList.wrapProgress
+end
 
+function ChartListView:update(dt)
 	if self.particles then
 		self.particles:setPosition(self.width, self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2)
 		self.particles:update(dt)

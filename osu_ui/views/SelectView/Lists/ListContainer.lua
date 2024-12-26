@@ -11,6 +11,8 @@ local ListContainer = ScrollAreaContainer + {}
 function ListContainer:load()
 	ScrollAreaContainer.load(self)
 	self:addChild("root", self.root)
+	self.teleportScrollPosition = true
+	self.debug = true
 end
 
 function ListContainer:updateTree(state)
@@ -21,7 +23,6 @@ function ListContainer:updateTree(state)
 		current_h = math.max(current_h, v.y + v.height)
 		max_h = max_h + #v.items * v.panelHeight
 	end
-	self.height = current_h
 	self.scrollLimit = current_h
 
 	if self.scrollPosition > self.scrollLimit then
@@ -35,14 +36,12 @@ function ListContainer:updateTree(state)
 		self:scrollToPosition(self.scrollLimit * y)
 	end
 
-	local add_x = math.abs(self.scrollVelocity) * 3
-	if add_x > 30 then
-		if self.children.charts then
-			self.children.charts.x = add_x - 30
-		end
-		if self.children.root then
-			self.children.root.x = add_x - 30
-		end
+	local charts = self.children.charts ---@cast charts osu.ui.WindowListView
+
+	if self.teleportScrollPosition and charts then
+		self.teleportScrollPosition = false
+		self.scrollVelocity = 0
+		self.scrollPosition = charts.y + charts:getSelectedItemIndex() * charts.panelHeight
 	end
 
 	ScrollAreaContainer.updateTree(self, state)
