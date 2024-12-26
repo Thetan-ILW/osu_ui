@@ -15,6 +15,10 @@ function Locations:new(game)
 	self.manager = self.game.cacheModel.locationManager
 end
 
+function Locations:loadLocations()
+	self.manager:selectLocations()
+end
+
 ---@return Location[]
 function Locations:getLocations()
 	return self.manager.locations
@@ -35,6 +39,7 @@ function Locations:getLocationInfo()
 	return self.manager.location_info
 end
 
+---@param name string
 function Locations:changeName(name)
 	local id = self:getSelectedLocationId()
 	self.repo:updateLocation({
@@ -43,6 +48,11 @@ function Locations:changeName(name)
 	})
 	self.manager:selectLocations()
 	self.manager:selectLocation(id)
+end
+
+---@param path string
+function Locations:changePath(path)
+	self.manager:updateLocationPath(path)
 end
 
 function Locations:createLocation()
@@ -55,6 +65,7 @@ function Locations:createLocation()
 	self.manager:selectLocation(location.id)
 end
 
+---@param id integer
 function Locations:deleteLocation(id)
 	self.manager:deleteLocation(id)
 	self.manager:selectLocations()
@@ -63,6 +74,7 @@ function Locations:deleteLocation(id)
 	self.game.selectModel:noDebouncePullNoteChartSet()
 end
 
+---@param id integer
 function Locations:selectLocation(id)
 	self.manager:selectLocation(id)
 end
@@ -73,6 +85,24 @@ function Locations:deleteChartCache()
 	c.chartfilesRepo:deleteChartfileSets()
 	c.chartmetasRepo:deleteChartmetas()
 	c.chartdiffsRepo:deleteChartdiffs()
+end
+
+---@param id integer
+function Locations:updateLocation(id)
+	self.game.selectController:updateCacheLocation(id)
+end
+
+---@return boolean
+function Locations:isProcessingCharts()
+	return self.game.cacheModel.isProcessing
+end
+
+---@return number chart_count
+---@return number charts_processed
+function Locations:getProcessingInfo()
+	local count = self.game.cacheModel.shared.chartfiles_count
+	local current = self.game.cacheModel.shared.chartfiles_current
+	return count, current
 end
 
 return Locations

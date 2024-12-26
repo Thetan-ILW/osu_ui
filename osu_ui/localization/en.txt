@@ -105,3 +105,6 @@ LocationsModal_HoldShiftToRemove=Hold shift key before clicking on the remove bu
 LocationsModal_CantRemoveInternal=You can't delete internal locations.
 LocationsModal_DropFolderHere=Drop a folder with songs here!
 LocationsModal_ChangeName=Change name:
+
+ChartImport_Preparation=Status: Preparation for processing
+ChartImport_Processing=Status: Processing

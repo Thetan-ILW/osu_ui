@@ -109,6 +109,9 @@ end
 
 ---@param text string | table
 function Label:replaceText(text)
+	if self.text == text then
+		return
+	end
 	self.text = text
 	self:updateSizeAndPos()
 	self.label:set(self.text)

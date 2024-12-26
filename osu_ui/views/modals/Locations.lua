@@ -7,6 +7,7 @@ local Rectangle = require("ui.Rectangle")
 local Label = require("ui.Label")
 local Component = require("ui.Component")
 local Image = require("ui.Image")
+local ChartImport = require("osu_ui.views.ChartImport")
 
 local flux = require("flux")
 
@@ -132,6 +133,9 @@ function Locations:load()
 		color = self.buttonColors.green,
 		label = text.LocationsModal_Update,
 		z = 1,
+		onClick = function ()
+			scene:addChild("chartImport", ChartImport({ z = 0.6 }))
+		end
 	}))
 	self.info:addChild("openFolder", Button({
 		x = 10,
@@ -145,7 +149,7 @@ function Locations:load()
 		z = 1,
 		onClick = function()
 			local loc = self.locationsApi:getSelectedLocation()
-			love.system.openURL(loc.path)
+			love.system.openURL(loc.path or "")
 		end
 	}))
 
@@ -211,7 +215,7 @@ function Locations:load()
 	}))
 
 	self:addOption(text.LocationsModal_UpdateAll, self.buttonColors.green, function ()
-
+		scene:addChild("chartImport", ChartImport({ z = 0.6, cacheAll = true }))
 	end)
 
 	self:addOption(text.General_Cancel, self.buttonColors.gray, function ()
@@ -229,6 +233,11 @@ function Locations:close()
 	end
 end
 
+function Locations:directorydropped(event)
+	self.locationsApi:changePath(event[1])
+	self:updateInfo()
+end
+
 function Locations:updateInfo()
 	local loc = self.locationsApi:getSelectedLocation()
 	local info_label = self.infolabel ---@cast info_label ui.Label
@@ -237,11 +246,15 @@ function Locations:updateInfo()
 	if not loc.path then
 		flux.to(self.info, 0.3, { alpha = 0 }):ease("cubicout")
 		flux.to(self.dropChartHere, 0.3, { alpha = 1 }):ease("cubicout")
+		self.info.handleEvents = false
+		self.dropChartHere.handleEvents = true
 		return
 	end
 
 	flux.to(self.dropChartHere, 0.3, { alpha = 0 }):ease("cubicout")
 	flux.to(self.info, 0.3, { alpha = 1 }):ease("cubicout")
+	self.info.handleEvents = true
+	self.dropChartHere.handleEvents = false
 
 	local info = self.locationsApi:getLocationInfo()
 	info_label:replaceText(("Path: %s\nFiles: %i\nSets: %i"):format(loc.path, info.chartfiles, info.chartfile_sets))

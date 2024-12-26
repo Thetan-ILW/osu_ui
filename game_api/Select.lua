@@ -62,6 +62,7 @@ function Select:updateController()
 	end
 end
 
+--- Call after user changed locations to reload collections
 function Select:reloadCollections()
 	local config = self:getConfigs()
 	self.game.selectModel.collectionLibrary:load(config.settings.select.locations_in_collections)

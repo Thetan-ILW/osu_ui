@@ -103,7 +103,7 @@ function ListView:removeCells()
 end
 
 function ListView:receive(event)
-	if not self.mouseOver and not event.name == "mouseReleased" then
+	if not self.mouseOver and event.name ~= "mouseReleased" then
 		return
 	end
 	StencilComponent.receive(self, event)
