@@ -62,6 +62,11 @@ function Select:updateController()
 	end
 end
 
+function Select:reloadCollections()
+	local config = self:getConfigs()
+	self.game.selectModel.collectionLibrary:load(config.settings.select.locations_in_collections)
+end
+
 ---@param text string
 function Select:updateSearch(text)
 	local config = self.configs.select

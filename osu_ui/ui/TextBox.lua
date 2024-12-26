@@ -66,12 +66,18 @@ end
 function TextBox.changed(input) end
 
 function TextBox:updateField()
-	self.inputLabel:replaceText(self.password and self.censor(self.input) or self.input)
+	self:setInput(self.input)
+	self.changed(self.input)
+end
+
+function TextBox:setInput(input)
+	self.input = input
+	self.inputLabel:replaceText(self.password and self.censor(input) or input)
 	local diff = self:getWidth() - self.inputLabel:getWidth()
 	local x = diff < 0 and diff - 2 or 2
 	self.inputLabel.x = x
-	self.changed(self.input)
 end
+
 
 function TextBox:keyPressed(event)
 	if event[2] == "escape" then

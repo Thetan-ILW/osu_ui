@@ -57,9 +57,11 @@ function View:keyPressed(event)
 	elseif key == "f1" then
 		self.scene:openModal("modifiers")
 	elseif key == "f5" then
+		self.scene:openModal("locations")
+	elseif key == "f6" then
 		self.selectApi:addTimeRate(-1)
 		self:updateModsLine()
-	elseif key == "f6" then
+	elseif key == "f7" then
 		self.selectApi:addTimeRate(1)
 		self:updateModsLine()
 	elseif key == "f8" then

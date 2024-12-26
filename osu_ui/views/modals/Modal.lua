@@ -65,7 +65,7 @@ function Modal:initModal(name)
 	self.scene = scene
 	self:addChild("label", Label({
 		x = 9, y = 2,
-		boxWidth = width,
+		boxWidth = width - 18,
 		text = name,
 		font = self.fonts:loadFont("Light", 33),
 		z = 0.1,
@@ -81,7 +81,10 @@ end
 ---@enum osu.ui.ModalButtonColors
 Modal.buttonColors = {
 	red = { 0.91, 0.19, 0, 1 },
+	green = { 0.52, 0.72, 0.12, 1 },
+	purple = { 0.72, 0.4, 0.76, 1 },
 	gray = { 0.42, 0.42, 0.42, 1 },
+	blue =  { 0.05, 0.52, 0.65, 1 }
 }
 
 ---@param label string

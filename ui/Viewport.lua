@@ -157,6 +157,8 @@ function Viewport:drawTree()
 	love.graphics.setBlendMode("alpha")
 	love.graphics.setColor(self.color)
 	self:draw()
+
+	self.blockKeyPress = false
 end
 
 function Viewport:receive(event)
@@ -201,12 +203,14 @@ end
 
 local killed_children = {}
 
-function Viewport:triggerEvent(event_name)
+---@param event_name string
+---@param params table?
+function Viewport:triggerEvent(event_name, params)
 	for i, component in ipairs(self.eventListeners[event_name]) do
 		if component.killed then
 			table.insert(killed_children, i)
 		else
-			component[event_name](component)
+			component[event_name](component, params)
 		end
 	end
 

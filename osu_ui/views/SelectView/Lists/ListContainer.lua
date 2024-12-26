@@ -6,13 +6,21 @@ local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 ---@overload fun(params: ListContainerParams): osu.ui.ListContainer
 ---@field root osu.ui.WindowListView
 ---@field selectView osu.ui.SelectViewContainer
+---@field selectApi game.SelectAPI
 local ListContainer = ScrollAreaContainer + {}
 
 function ListContainer:load()
 	ScrollAreaContainer.load(self)
 	self:addChild("root", self.root)
 	self.teleportScrollPosition = true
-	self.debug = true
+	self.selectApi = self:findComponent("scene").ui.selectApi
+	self:getViewport():listenForEvent(self, "event_locationsUpdated")
+end
+
+function ListContainer:event_locationsUpdated()
+	self.selectApi:reloadCollections()
+	self.root:loadItems()
+	self.root:collectionLoaded()
 end
 
 function ListContainer:updateTree(state)

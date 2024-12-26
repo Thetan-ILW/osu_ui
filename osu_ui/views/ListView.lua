@@ -11,7 +11,8 @@ local flux = require("flux")
 local ListView = StencilComponent + {}
 
 function ListView:load()
-	self.width, self.height = self.parent:getDimensions()
+	self.width = self.width == 0 and self.parent:getWidth() or self.width
+	self.height = self.height == 0 and self.parent:getHeight() or self.height
 	self.rows = self.rows or 8
 	self.cells = 0
 	self.cellHeight = self.height / self.rows
@@ -73,6 +74,10 @@ function ListView:getCellHeight()
 	return self.cellHeight
 end
 
+function ListView:scrollToCell(index)
+	self.scrollArea:scrollToPosition(index * self:getCellHeight())
+end
+
 ---@param component ui.Component
 function ListView:addCell(component)
 	self:assert(self.cells, "Call ListView.load(self)")
@@ -98,7 +103,7 @@ function ListView:removeCells()
 end
 
 function ListView:receive(event)
-	if not self.mouseOver then
+	if not self.mouseOver and not event.name == "mouseReleased" then
 		return
 	end
 	StencilComponent.receive(self, event)

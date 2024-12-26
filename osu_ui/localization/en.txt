@@ -96,3 +96,12 @@ RankingDialog_PlayedBy=Played by %s %s
 
 ModSelection_Title=Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun.
 ModSelection_Reset=Reset All Mods
+
+LocationsModal_Title=Add new songs from your hard drive by specifying the path. The game will read directly from these directories without copying anything.
+LocationsModal_UpdateAll=Update all locations
+LocationsModal_Update=Update
+LocationsModal_OpenFolder=Open folder
+LocationsModal_HoldShiftToRemove=Hold shift key before clicking on the remove button!
+LocationsModal_CantRemoveInternal=You can't delete internal locations.
+LocationsModal_DropFolderHere=Drop a folder with songs here!
+LocationsModal_ChangeName=Change name:
