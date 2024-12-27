@@ -13,15 +13,15 @@ local PlayerInfoView = Component + {}
 local function getRankColor(rank)
 	local color = love.math.colorFromBytes
 	if rank > 200000 then
-	    return {color(255, 255, 255, 20)}
-	elseif rank > 100000 then
 	    return {color(255, 255, 255, 40)}
-	elseif rank > 50000 then
-	    return {color(255, 255, 255, 60)}
-	elseif rank > 1000 then
+	elseif rank > 100000 then
 	    return {color(255, 255, 255, 80)}
-	elseif rank > 10 then
+	elseif rank > 50000 then
 	    return {color(255, 255, 255, 100)}
+	elseif rank > 1000 then
+	    return {color(255, 255, 255, 110)}
+	elseif rank > 10 then
+	    return {color(255, 255, 255, 120)}
 	elseif rank > 1 then
 	    return {color(244, 218, 73, 120)}
 	else
@@ -63,8 +63,7 @@ function PlayerInfoView:load()
 	self.scene = scene
 	self:setProfileInfo()
 
-	local border = assets:loadImage("user-border")
-	self.width, self.height = border:getDimensions()
+	self.width, self.height = 330, 86
 
 	local avatar = assets:loadAvatar()
 	local iw, ih = avatar:getDimensions()
@@ -94,14 +93,15 @@ function PlayerInfoView:load()
 		z = 0.1,
 	}))
 	self:addChild("level", Label({
-		x = 86, y = 56,
+		x = 86, y = 58,
 		text = ("Lv%i"):format(self.level),
 		font = fonts:loadFont("Regular", 13),
 		z = 0.1,
 	}))
 	self:addChild("rank", Label({
-		width = self.width - 10,
-		height = self.height,
+		y = 15,
+		boxWidth = self.width - 7,
+		boxHeight = self.height,
 		alignX = "right",
 		text = ("#%i"):format(self.rank),
 		font = fonts:loadFont("Light", 50),
@@ -109,7 +109,7 @@ function PlayerInfoView:load()
 		z = 0.1
 	}))
 	self:addChild("levelbarBackground", Image({
-		x = 86 + 40, y = 56 + 12,
+		x = 86 + 40, y = 56 + 13,
 		image = assets:loadImage("levelbar-bg"),
 		alpha = 0.5,
 		z = 0.1,
@@ -118,7 +118,7 @@ function PlayerInfoView:load()
 	local levelbar = assets:loadImage("levelbar")
 	iw, ih = levelbar:getDimensions()
 	self:addChild("levelbar", QuadImage({
-		x = 86 + 40, y = 56 + 12,
+		x = 86 + 40, y = 56 + 13,
 		image = levelbar,
 		quad = love.graphics.newQuad(0, 0, iw * self.levelPercent, ih, levelbar),
 		color = {love.math.colorFromBytes(252, 184, 6, 255)},

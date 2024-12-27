@@ -622,7 +622,7 @@ function View:load()
 	}))
 
 	bottom:addChild("osuLogo", Image({
-		x = width - 65, y = height - 50,
+		x = width - 64, y = height - 49,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.4,
 		image = assets:loadImage("menu-osu-logo"),

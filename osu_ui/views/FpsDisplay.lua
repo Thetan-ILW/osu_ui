@@ -24,8 +24,12 @@ function FpsDisplay:load()
 
 	self:getViewport():listenForResize(self)
 
+	local box_width, box_height = 65, 20
+
 	self.latencyBox = self:addChild("latencyBox", Image({
 		x = self.parent:getWidth() - 4, y = self.parent:getHeight() - 6,
+		width = box_width,
+		height = box_height,
 		origin = { x = 1, y = 1 },
 		image = assets:loadImage("fps-box"),
 		color = colors.okay
@@ -33,14 +37,16 @@ function FpsDisplay:load()
 
 	self.fpsBox = self:addChild("fpsBox", Image({
 		x = self.parent:getWidth() - 4, y = self.parent:getHeight() - 10 - self.latencyBox:getHeight(),
+		width = box_width,
+		height = box_height,
 		origin = { x = 1, y = 1 },
 		image = assets:loadImage("fps-box"),
 		color = colors.okay
 	}))
 
 	self.ms = self.latencyBox:addChild("ms", Label({
-		boxWidth = self.latencyBox:getWidth(),
-		boxHeight = self.latencyBox:getHeight() - 2,
+		boxWidth = box_width,
+		boxHeight = box_height - 2,
 		alignX = "center",
 		alignY = "center",
 		font = fonts:loadFont("MonoRegular", 14),
@@ -49,8 +55,8 @@ function FpsDisplay:load()
 	}))
 
 	self.fps = self.fpsBox:addChild("fps", Label({
-		boxWidth = self.fpsBox:getWidth() / 2 - 4,
-		boxHeight = self.fpsBox:getHeight() - 2,
+		boxWidth = box_width / 2 - 4,
+		boxHeight = box_height - 2,
 		alignX = "right",
 		alignY = "center",
 		font = fonts:loadFont("MonoRegular", 14),
@@ -61,8 +67,8 @@ function FpsDisplay:load()
 	self.maxFps = self.fpsBox:addChild("maxFps", Label({
 		x = -3,
 		y = 4,
-		boxWidth = self.fpsBox:getWidth(),
-		boxHeight = self.fpsBox:getHeight(),
+		boxWidth = box_width,
+		boxHeight = box_height,
 		font = fonts:loadFont("MonoRegular", 9),
 		alignX = "right",
 		alignY = "center",
