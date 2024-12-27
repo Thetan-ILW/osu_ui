@@ -56,11 +56,6 @@ function Gameplay:update(dt)
 
 	self.game.gameplayController:update(dt)
 
-	if self.game.pauseModel.needRetry then
-		self.failed = false
-		self:retry()
-	end
-
 	local time_engine = self.game.rhythmModel.timeEngine
 	if time_engine.currentTime >= time_engine.maxTime + 1 then
 		self.chartEnded = true
@@ -114,6 +109,26 @@ function Gameplay:canSkipIntro()
 	local time_engine = self.game.rhythmModel.timeEngine
 	local skip_time = time_engine.minTime - time_engine.timeToPrepare * time_engine.timeRate
 	return time_engine.currentTime < skip_time and time_engine.timer.isPlaying
+end
+
+---@return string
+function Gameplay:getPlayState()
+	return self.game.pauseModel.state
+end
+
+---@param state string
+function Gameplay:changePlayState(state)
+	self.game.gameplayController:changePlayState(state)
+end
+
+---@return boolean
+function Gameplay:isRestarting()
+	return self.game.pauseModel.state == "play-retry"
+end
+
+---@return boolean
+function Gameplay:needRetry()
+	return self.game.pauseModel.needRetry
 end
 
 return Gameplay

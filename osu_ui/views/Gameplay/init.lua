@@ -149,6 +149,12 @@ function View:update(dt)
 	if self.gameplayApi.chartEnded then
 		self:quit()
 	end
+
+	if self.gameplayApi:needRetry() then
+		self.gameplayApi:retry()
+		self.uiLayer:retry()
+		self.introSkipped = false
+	end
 end
 
 function View:draw()
@@ -173,6 +179,25 @@ function View:keyPressed(event)
 		local showcase = self.scene:getChild("chartShowcase") ---@cast showcase osu.ui.ChartShowcase
 		if showcase then
 			showcase:hide(0)
+		end
+		return
+	end
+
+	local state = self.gameplayApi:getPlayState()
+	if state == "play" then
+		if key == "`" then
+			self.gameplayApi:changePlayState("retry")
+		end
+	end
+end
+
+function View:keyReleased(event)
+	local key = event[2]
+	local state = self.gameplayApi:getPlayState()
+
+	if state == "play-retry" then
+		if key == "`" then
+			self.gameplayApi:changePlayState("play")
 		end
 	end
 end

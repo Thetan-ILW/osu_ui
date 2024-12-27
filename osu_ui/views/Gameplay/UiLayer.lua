@@ -35,6 +35,11 @@ function UiLayer:introSkipped()
 	self.fadeRect.skipTime = love.timer.getTime()
 end
 
+function UiLayer:retry()
+	self.playSound(self.retrySound)
+	self.skipImage.disabled = false
+end
+
 function UiLayer:load()
 	local width, height = self.parent:getDimensions()
 
@@ -47,6 +52,7 @@ function UiLayer:load()
 	self:loadAssets(scene.ui.assetModel)
 
 	self.skipSound = self.gameplayAssets:loadAudio("menuhit")
+	self.retrySound = self.gameplayAssets:loadAudio("pause-retry-click")
 	self.skipImage = self:addChild("skipImage", Image({
 		x = width, y = height,
 		origin = { x = 1, y = 1 },
@@ -55,12 +61,12 @@ function UiLayer:load()
 		update = function(this, dt)
 			this.alpha = math_util.clamp(this.alpha + (gameplay_api:canSkipIntro() and dt * 3 or -dt * 6), 0, 1)
 			if gameplay_api:getTimeToStart() > 0 then
-				this:kill()
+				this.disabled = true
 			end
 		end
 	}))
 
-	---@class osu.ui.Gameplay.FadeRect : ui.Component
+	---@class osu.ui.Gameplay.FadeRect : ui.Rectangle
 	---@field skipTime number
 	---@field restartProgress number
 	self.fadeRect = self:addChild("fadeRect", Rectangle({
@@ -70,9 +76,11 @@ function UiLayer:load()
 		alpha = 0,
 		skipTime = -math.huge,
 		restartProgress = 0,
+		z = 1,
 		---@param this osu.ui.Gameplay.FadeRect
-		update = function(this)
+		update = function(this, dt)
 			local skip_alpha = 1 - math_util.clamp((love.timer.getTime() - this.skipTime) * 2, 0, 1)
+			this.restartProgress = math_util.clamp(this.restartProgress + (gameplay_api:isRestarting() and dt * 3 or -dt * 6), 0, 1)
 			this.alpha = skip_alpha + this.restartProgress
 		end
 	}))
