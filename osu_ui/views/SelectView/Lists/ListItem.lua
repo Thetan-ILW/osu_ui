@@ -58,10 +58,6 @@ function ListItem:load()
 	self.color = { self.inactivePanel[1], self.inactivePanel[2], self.inactivePanel[3], 1 }
 end
 
-function ListItem:bindEvents()
-	self:bindEvent("mouseClick")
-end
-
 function ListItem:mouseClick(event)
 	if not self.mouseOver or event.key ~= 1 then
 		return false
@@ -171,6 +167,7 @@ end
 
 function ListItem:justHovered()
 	self.flashColorT = 1
+	self.playSound(self.hoverSound)
 end
 
 function ListItem:draw()

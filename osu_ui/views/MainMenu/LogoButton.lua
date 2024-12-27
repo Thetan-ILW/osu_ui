@@ -17,6 +17,11 @@ function LogoButton:load()
 	self.width, self.height = self.idleImage:getDimensions()
 	self.hoverState = HoverState("elasticout", 0.7)
 	self.hoverImageAlpha = 0
+	self.handleEvents = false
+
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local assets = scene.assets
+	self.hoverSound = assets:loadAudio("menuclick")
 end
 
 function LogoButton:setMouseFocus(mx, my)
@@ -26,6 +31,10 @@ end
 function LogoButton:noMouseFocus()
 	self.mouseOver = false
 	self.hoverState:loseFocus()
+end
+
+function LogoButton:justHovered()
+	self.playSound(self.hoverSound)
 end
 
 function LogoButton:mousePressed(event)

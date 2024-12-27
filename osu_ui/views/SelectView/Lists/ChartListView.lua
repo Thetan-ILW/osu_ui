@@ -40,8 +40,10 @@ function ChartListView:load()
 		star = assets:loadImage("star"),
 		titleFont = fonts:loadFont("Regular", 22),
 		infoFont = fonts:loadFont("Regular", 16),
+		hoverSound = assets:loadAudio("menuclick"),
 		list = self
 	}
+	self.clickSound = assets:loadAudio("select-expand")
 
 	self.width, self.height = self.parent:getDimensions()
 	self:loadItems()
@@ -60,6 +62,8 @@ function ChartListView:getStateCounter()
 end
 
 function ChartListView:selectItem(child)
+	self.playSound(self.clickSound)
+
 	if self:getSelectedItemIndex() == child.visualIndex then
 		self.parent:playChart()
 	end

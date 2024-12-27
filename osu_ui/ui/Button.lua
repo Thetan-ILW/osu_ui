@@ -36,6 +36,7 @@ function Button:load()
 	self.imageMiddle = assets:loadImage("button-middle")
 	self.imageRight = assets:loadImage("button-right")
 	self.hoverSound = assets:loadAudio("click-short")
+	self.clickSound = assets:loadAudio("click-short-confirm")
 
 	self.heightScale = self.height / self.imageMiddle:getHeight()
 	local borders_width = self.imageLeft:getWidth() * self.heightScale + self.imageRight:getWidth() * self.heightScale
@@ -58,6 +59,7 @@ end
 
 function Button:mouseClick()
 	if self.mouseOver then
+		self.playSound(self.clickSound)
 		self.onClick()
 		return true
 	end

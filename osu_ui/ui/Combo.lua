@@ -48,6 +48,10 @@ function Combo:load()
 	local fonts = scene.fontManager
 	local assets = scene.assets
 
+	self.hoverSound = assets:loadAudio("click-short")
+	self.expandSound = assets:loadAudio("select-expand")
+	self.clickSound = assets:loadAudio("click-short-confirm")
+
 	local font = self.font or fonts:loadFont("Regular", 16)
 	local awesome_regular = fonts:loadFont("Awesome", 18)
 
@@ -116,9 +120,6 @@ function Combo:load()
 		z = 1
 	}))
 
-	self.hoverSound = assets:loadAudio("click-short")
-	self.expandSound = assets:loadAudio("select-expand")
-
 	self:addItems()
 end
 
@@ -152,6 +153,7 @@ function Combo:addItems()
 			end,
 			mouseClick = function(this)
 				if this.mouseOver then
+					self.playSound(self.clickSound)
 					self.setValue(i)
 					self:processState("close")
 					return true

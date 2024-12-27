@@ -127,6 +127,8 @@ function View:transitIn()
 end
 
 function View:transitToGameplay()
+	self.playSound(self.gameplaySound)
+
 	local showcase = self.scene:getChild("chartShowcase")
 	if not showcase then
 		showcase = self.scene:addChild("chartShowcase", ChartShowcase({
@@ -197,8 +199,9 @@ function View:load()
 	local display_info = self.displayInfo
 	local assets = scene.assets
 	local fonts = scene.fontManager
-
 	local text = scene.localization.text
+
+	self.gameplaySound = assets:loadAudio("menuhit")
 
 	local width, height = self.width, self.height
 	local top = self:addChild("topContainer", Component({ width = width, height = height, z = 0.7 }))
@@ -632,7 +635,7 @@ function View:load()
 	bottom:addChild("playerInfo", PlayerInfoView({
 		x = 624, y = height + 4,
 		origin = { x = 0, y = 1 },
-		z = 0.3,
+		z = 0.29,
 		onClick = function () end
 	}))
 

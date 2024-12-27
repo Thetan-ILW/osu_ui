@@ -23,6 +23,8 @@ function TabButton:load()
 	self.active = self.active or false
 	self.tabColor = self.tabColor or { 0.86, 0.08, 0.23, 1 }
 	self.blockMouseFocus = true
+	self.hoverSound = assets:loadAudio("click-short")
+	self.clickSound = assets:loadAudio("click-short-confirm")
 
 	self.image = self:addChild("image", Image({
 		image = image

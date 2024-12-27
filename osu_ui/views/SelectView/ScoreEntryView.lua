@@ -34,6 +34,9 @@ function ScoreEntryView:load()
 	local fonts = scene.fontManager
 	self.blockMouseFocus = true
 
+	self.hoverSound = assets:loadAudio("menuclick")
+	self.clickSound = assets:loadAudio("menuhit")
+
 	self:addChild("background", Image({
 		y = 4,
 		scaleX = 0.55,
@@ -42,6 +45,9 @@ function ScoreEntryView:load()
 		color = { 0, 0, 0, 0.588 },
 		update = function(this)
 			this.alpha = 0.588 + (self.hoverState.progress * 0.2)
+		end,
+		justHovered = function ()
+			self.playSound(self.hoverSound)
 		end
 	}))
 
@@ -165,12 +171,9 @@ function ScoreEntryView:load()
 	self.hoverState = HoverState("quadout", 0.2)
 end
 
-function ScoreEntryView:bindEvents()
-	self:bindEvent("mouseClick")
-end
-
 function ScoreEntryView:mouseClick()
 	if self.mouseOver then
+		self.playSound(self.clickSound)
 		self.onClick()
 		return true
 	end

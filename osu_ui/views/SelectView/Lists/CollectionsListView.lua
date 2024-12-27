@@ -30,8 +30,10 @@ function CollectionsListView:load()
 		background = assets:loadImage("menu-button-background"),
 		titleFont = fonts:loadFont("Regular", 32),
 		infoFont = fonts:loadFont("Regular", 16),
+		hoverSound = assets:loadAudio("menu-click"),
 		list = self
 	}
+	self.clickSound = assets:loadAudio("select-expand")
 	self:loadItems()
 
 	local img = assets:loadImage("loading")
@@ -111,6 +113,8 @@ end
 
 ---@param child osu.ui.CollectionItem
 function CollectionsListView:selectItem(child)
+	self.playSound(self.clickSound)
+
 	if child.visualIndex == self:getSelectedItemIndex() then
 		if self.state == "opening" or self.state == "open" then
 			self.state = "closing"
