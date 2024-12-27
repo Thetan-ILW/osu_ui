@@ -7,7 +7,6 @@ local text_input = require("ui.text_input")
 
 local Image = require("ui.Image")
 local QuadImage = require("ui.QuadImage")
-local ImageButton = require("osu_ui.ui.ImageButton")
 local DynamicLabel = require("ui.DynamicLabel")
 local BackButton = require("osu_ui.ui.BackButton")
 local Label = require("ui.Label")
@@ -20,6 +19,7 @@ local Rectangle = require("ui.Rectangle")
 local ListContainer = require("osu_ui.views.SelectView.Lists.ListContainer")
 local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
 local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
+local BottomButton = require("osu_ui.views.SelectView.BottomButton")
 
 local getModifierString = require("osu_ui.views.modifier_string")
 
@@ -578,43 +578,43 @@ function View:load()
 	}))
 	---@cast mode_icon ui.Image
 
-	bottom:addChild("modeSelection", ImageButton({
+	bottom:addChild("modeSelection", BottomButton({
 		x = 224, y = height,
-		origin = { x = 0, y = 1 },
-		idleImage = assets:loadImage("selection-mode"),
+		image = assets:loadImage("selection-mode"),
 		hoverImage = assets:loadImage("selection-mode-over"),
 		z = 0.3,
-		onClick = function()
+		onClick = function ()
 			selected_mode_index = 1 + (selected_mode_index % #small_icons)
 			mode_icon:replaceImage(small_icons[selected_mode_index])
 		end
 	}))
 
-	bottom:addChild("modsSelection", ImageButton({
+	bottom:addChild("modsSelection", BottomButton({
 		x = 316, y = height,
-		origin = { x = 0, y = 1 },
-		idleImage = assets:loadImage("selection-mods"),
+		image = assets:loadImage("selection-mods"),
 		hoverImage = assets:loadImage("selection-mods-over"),
-		z = 0.3,
+		z = 0.31,
 		onClick = function()
-			self.scene:openModal("modifiers")
+		       self.scene:openModal("modifiers")
 		end
 	}))
 
-	bottom:addChild("randomButton", ImageButton({
+	bottom:addChild("randomButton", BottomButton({
 		x = 393, y = height,
-		origin = { x = 0, y = 1 },
-		idleImage = assets:loadImage("selection-random"),
+		image = assets:loadImage("selection-random"),
 		hoverImage = assets:loadImage("selection-random-over"),
-		z = 0.3,
+		z = 0.32,
+		onClick = function()
+		end
 	}))
 
-	bottom:addChild("beatmapOptionsButton", ImageButton({
+	bottom:addChild("beatmapOptionsButton", BottomButton({
 		x = 470, y = height,
-		origin = { x = 0, y = 1 },
-		idleImage = assets:loadImage("selection-options"),
+		image = assets:loadImage("selection-options"),
 		hoverImage = assets:loadImage("selection-options-over"),
-		z = 0.3,
+		z = 0.33,
+		onClick = function()
+		end
 	}))
 
 	bottom:addChild("playerInfo", PlayerInfoView({

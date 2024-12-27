@@ -81,13 +81,13 @@ function FpsDisplay:load()
 end
 
 function FpsDisplay:update()
+	self.dts[self.checks] = loop.dt
+	self.checks = (self.checks + 1) % 7 + 1
+
 	if love.timer.getTime() < self.nextUpdate then
 		return
 	end
 	self.nextUpdate = love.timer.getTime() + 0.08
-
-	self.dts[self.checks] = loop.dt
-	self.checks = (self.checks + 1) % 7 + 1
 
 	local avg_dt = 0
 

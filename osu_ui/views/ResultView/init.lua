@@ -207,7 +207,7 @@ function View:load(score_loaded)
 		x = img_x2, y = row1,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.5,
-		image = assets:loadImage("mania-hit300g-0"),
+		image = assets:loadImage("mania-hit300g"),
 		z = 0.54,
 	}))
 
@@ -395,7 +395,7 @@ function View:load(score_loaded)
 		x = width - 192, y = 320,
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage(("ranking-%s"):format(display_info.grade)),
-		z = 0.5,
+		z = 0.6,
 	}))
 	function grade.update(this, dt)
 		grade.scale = 1 + (1 - self.scoreReveal) * 0.2
