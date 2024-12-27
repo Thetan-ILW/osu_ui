@@ -46,6 +46,13 @@ function View:quit()
 	self:transitOut()
 end
 
+function View:reload()
+	Screen.reload(self)
+	if self.scene.currentScreenId == self.id then
+		self.scene.chat:fade(1)
+	end
+end
+
 function View:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	local fonts = scene.fontManager

@@ -141,8 +141,7 @@ function View:keyPressed(event)
 		self.logo:clickAnimation()
 		return true
 	elseif event[2] == "f9" then
-		local scene = self.shared.scene
-		local chat = scene:getChild("chat") ---@cast chat osu.ui.ChatView
+		local chat = self.scene.chat
 		if chat then
 			chat:toggle()
 		end

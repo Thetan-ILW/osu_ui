@@ -98,4 +98,22 @@ function Gameplay:getMusicAudioSource()
 	end
 end
 
+function Gameplay:skipIntro()
+	self.game.gameplayController:skipIntro()
+end
+
+---@return number
+--- Time of the first note
+function Gameplay:getTimeToStart()
+	local time_engine = self.game.rhythmModel.timeEngine
+	return time_engine.currentTime - time_engine.minTime
+end
+
+---@return boolean
+function Gameplay:canSkipIntro()
+	local time_engine = self.game.rhythmModel.timeEngine
+	local skip_time = time_engine.minTime - time_engine.timeToPrepare * time_engine.timeRate
+	return time_engine.currentTime < skip_time and time_engine.timer.isPlaying
+end
+
 return Gameplay

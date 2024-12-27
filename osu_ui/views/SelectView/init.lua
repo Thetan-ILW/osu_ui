@@ -41,6 +41,9 @@ end
 function View:keyPressed(event)
 	local key = event[2] ---@type string
 	if key == "escape" then
+		if self.search == "" then
+			self:transitToMainMenu()
+		end
 		self.search = ""
 		self:searchUpdated()
 		return true

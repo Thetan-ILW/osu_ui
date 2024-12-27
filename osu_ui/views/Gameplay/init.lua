@@ -1,6 +1,6 @@
 local CanvasScreen = require("osu_ui.views.CanvasScreen")
 local Playfield = require("osu_ui.views.Gameplay.Playfield")
-local PauseScreen = require("osu_ui.views.Gameplay.PauseScreen")
+local UiLayer = require("osu_ui.views.Gameplay.UiLayer")
 local flux = require("flux")
 
 ---@class osu.ui.GameplayViewContainer : osu.ui.CanvasScreen
@@ -40,6 +40,8 @@ function View:processGameState(game_state)
 end
 
 function View:transitIn()
+	self.uiLayer:reload()
+
 	local showcase = self.scene:getChild("chartShowcase") ---@cast showcase osu.ui.ChartShowcase
 	if showcase then
 		showcase:hide(1)
@@ -52,6 +54,7 @@ function View:transitIn()
 	self.gameplayApi:start()
 	self.disabled = false
 	self.handleEvents = true
+	self.introSkipped = false
 end
 
 function View:quit()
@@ -107,9 +110,12 @@ function View:load()
 
 	self.selectApi = scene.ui.selectApi
 	self.gameplayApi = scene.ui.gameplayApi
-	self.state = "play"
-
 	local configs = self.selectApi:getConfigs()
+	self.configs = configs
+
+	self.state = "play"
+	self.introSkipped = false
+
 	local gameplay_cfg = configs.osu_ui.gameplay
 	local render_at_native_res = gameplay_cfg.nativeRes
 
@@ -135,12 +141,7 @@ function View:load()
 		}))
 	end
 
-	self.pause = self:addChild("pause", PauseScreen({
-		width = self.width,
-		height = self.height,
-		alpha = 0,
-		z = 0.2,
-	}))
+	self.uiLayer = self:addChild("uiLayer", UiLayer({ z = 0.2 }))
 end
 
 function View:update(dt)
@@ -163,6 +164,16 @@ function View:keyPressed(event)
 	if key == "escape" and shift then
 		self:quit()
 		return true
+	elseif key == "space" and not self.introSkipped then
+		if self.gameplayApi:canSkipIntro() then
+			self.introSkipped = true
+			self.gameplayApi:skipIntro()
+			self.uiLayer:introSkipped()
+		end
+		local showcase = self.scene:getChild("chartShowcase") ---@cast showcase osu.ui.ChartShowcase
+		if showcase then
+			showcase:hide(0)
+		end
 	end
 end
 

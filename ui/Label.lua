@@ -55,7 +55,7 @@ function Label:updateSizeAndPos()
 		end
 	elseif type(text) == "table" then
 		local max_w = 0
-		local lines = 0
+		local lines = 1
 		for i, v in ipairs(text) do
 			if type(v) == "string" then
 				max_w = math.max(max_w, font:getWidth(v))
@@ -109,7 +109,7 @@ end
 
 ---@param text string | table
 function Label:replaceText(text)
-	if self.text == text then
+	if type(text) == "string" and self.text == text then
 		return
 	end
 	self.text = text

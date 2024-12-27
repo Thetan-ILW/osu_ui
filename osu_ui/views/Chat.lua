@@ -51,13 +51,18 @@ function Chat:updateChannel()
 end
 
 function Chat:keyPressed(event)
-	if event[2] == "backspace" then
+	local key = event[2] ---@type string
+
+	if key == "backspace" then
 		self.input = text_input.removeChar(self.input)
 		self:updateInput()
 		return true
+	elseif key == "escape" and self.state == "open" then
+		self:fade(0)
+		return true
 	end
 
-	if event[2] == "return" then
+	if key == "return" then
 		if self.input == "" then
 			return true
 		end

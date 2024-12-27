@@ -9,7 +9,6 @@ local math_util = require("math_util")
 ---@field scrollLimit number
 local ScrollAreaContainer = Component + {}
 
-local scroll_deceleration_default = -0.98
 local velocity_cutoff = 0.01
 local clamping_force_factor = 2
 local throwing_scroll_decay = 0.996
@@ -21,7 +20,8 @@ function ScrollAreaContainer:load()
 	self.scrollLimit = self.scrollLimit or 0
 	self.scrollPosition = 0
 	self.scrollVelocity = 0
-	self.scrollDeceleration = scroll_deceleration_default
+	self.scrollDecelerationDefault = -0.98
+	self.scrollDeceleration = self.scrollDecelerationDefault
 	self.scrollDistance = self.scrollDistance or 232
 
 	self.lastMouseY = 0
@@ -42,7 +42,7 @@ end
 
 function ScrollAreaContainer:scrollToPosition(position, deceleration)
 	if deceleration == 0 then
-		self.scrollDeceleration = scroll_deceleration_default
+		self.scrollDeceleration = self.scrollDecelerationDefault
 	end
 
 	local distance_y = position - self.scrollPosition
@@ -105,7 +105,7 @@ function ScrollAreaContainer:updateScrollVelocity(dt)
 	if (math.abs(scroll_velocity_this_frame) <= velocity_cutoff and math.abs(self.scrollVelocity) <= velocity_cutoff and math.abs(clamped_difference) < 0.5) then
 		self.scrollPosition = clamped_position
 		self.scrollVelocity = 0
-		self.scrollDeceleration = scroll_deceleration_default
+		self.scrollDeceleration = self.scrollDecelerationDefault
 		scroll_velocity_this_frame = 0
 	else
 		local distance_to_shrink = clamped_difference -

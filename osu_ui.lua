@@ -8,10 +8,10 @@ local t = {
 	cursor = {
 		size = 1,
 		showTrail = true,
-		trailLifetime = 3,
-		trailDensity = 10,
-		trailMaxImages = 60,
-		trailStyle = "Vanishing"
+		trailLifetime = 6,
+		trailDensity = 27,
+		trailMaxImages = 210,
+		trailStyle = "Shrinking"
 	},
 	mainMenu = {
 		disableIntro = false,
