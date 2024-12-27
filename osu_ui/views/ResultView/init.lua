@@ -8,6 +8,7 @@ local ImageButton = require("osu_ui.ui.ImageButton")
 local ImageValueView = require("osu_ui.ui.ImageValueView")
 local Button = require("osu_ui.ui.Button")
 local BackButton = require("osu_ui.ui.BackButton")
+local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
 
 local thread = require("thread")
@@ -83,6 +84,11 @@ function View:keyPressed(event)
 			z = 0.5
 		}))
 	end
+end
+
+function View:reload()
+	self:clearTree()
+	self:load(true)
 end
 
 function View:load(score_loaded)
@@ -467,17 +473,29 @@ function View:load(score_loaded)
 		return Button.update(self, dt)
 	end
 
-	area:addChild("backButton", BackButton({
-		y = height - 58,
-		assets = assets,
-		text = "back",
-		hoverWidth = 93,
-		hoverHeight = 58,
-		z = 1,
-		onClick = function ()
-			self:transitOut()
-		end
-	}))
+	if #assets.menuBackFrames == 0 then
+		area:addChild("backButton", BackButton({
+			y = height - 58,
+			assets = assets,
+			text = "back",
+			hoverWidth = 93,
+			hoverHeight = 58,
+			z = 1,
+			onClick = function ()
+				self:transitOut()
+			end
+		}))
+	else
+		area:addChild("backButton", MenuBackAnimation({
+			y = height,
+			origin = { x = 0, y = 1 },
+			onClick = function ()
+				self:transitOut()
+			end,
+			z = 1
+		}))
+	end
+
 
 	if true then
 		return

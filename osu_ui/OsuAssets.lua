@@ -86,32 +86,30 @@ function OsuAssets:loadAvatar()
 end
 
 function OsuAssets:loadMenuBack()
-	self.animations.menuBack = {}
+	---@type love.Image[]
+	self.menuBackFrames = {}
 
 	local animtation_pattern = "menu-back-%i"
-	local frame = self.loadImage(self.directory, animtation_pattern:format(0), self.fileList)
+	local frame = self:loadImage(animtation_pattern:format(0))
 
 	local i = 1
-	while frame do
-		table.insert(self.animations.menuBack, frame)
-		frame = self.loadImage(self.directory, animtation_pattern:format(i), self.fileList)
+	while frame ~= self.emptyImage() do
+		table.insert(self.menuBackFrames, frame)
+		frame = self:loadImage(animtation_pattern:format(i))
 		i = i + 1
 	end
 
-	if #self.animations.menuBack ~= 0 then
-		self.backButtonType = "animation"
+	if #self.menuBackFrames ~= 0 then
 		return
 	end
 
-	local menu_back = self.loadImage(self.directory, "menu-back", self.fileList)
+	local menu_back = self:loadImage("menu-back")
 
-	if not menu_back then
-		self.backButtonType = "none"
+	if menu_back == self.emptyImage() then
 		return
 	end
 
-	self.images.menuBack = menu_back or self.emptyImage()
-	self.backButtonType = "image"
+	table.insert(self.menuBackFrames, menu_back)
 end
 
 local function strToColor(str)
@@ -164,6 +162,7 @@ function OsuAssets:load()
 	self.customViews = {}
 	self.loadedViews = {}
 
+	self:loadMenuBack()
 	self:resultView()
 end
 

@@ -20,6 +20,7 @@ local ListContainer = require("osu_ui.views.SelectView.Lists.ListContainer")
 local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
 local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
 local BottomButton = require("osu_ui.views.SelectView.BottomButton")
+local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 
 local getModifierString = require("osu_ui.views.modifier_string")
 
@@ -545,21 +546,32 @@ function View:load()
 		z = 0
 	}))
 
-	bottom:addChild("backButton", BackButton({
-		y = height - 58,
-		font = fonts:loadFont("Regular", 20),
-		text = "back",
-		hoverWidth = 93,
-		hoverHeight = 58,
-		z = 0.9,
-		onClick = function ()
-			if self.search ~= "" then
-				self.search = ""
-				self:searchUpdated()
-			end
-			self:transitToMainMenu()
+	local function quit()
+		if self.search ~= "" then
+			self.search = ""
+			self:searchUpdated()
 		end
-	}))
+		self:transitToMainMenu()
+	end
+
+	if #assets.menuBackFrames == 0 then
+		bottom:addChild("backButton", BackButton({
+			y = height - 58,
+			font = fonts:loadFont("Regular", 20),
+			text = "back",
+			hoverWidth = 93,
+			hoverHeight = 58,
+			onClick = quit,
+			z = 0.9,
+		}))
+	else
+		bottom:addChild("backButton", MenuBackAnimation({
+			y = height,
+			origin = { x = 0, y = 1 },
+			onClick = quit,
+			z = 0.9
+		}))
+	end
 
 	local selected_mode_index = 4
 	local small_icons = {
