@@ -218,8 +218,8 @@ function Group:label(params)
 		font = self.fonts:loadFont("Regular", 16),
 		alignX = params.alignX,
 		alignY = "center",
-		width = container:getWidth(),
-		height = params.height
+		boxWidth = container:getWidth(),
+		boxHeight = params.height
 	}))
 	---@cast label ui.Label
 	self.height = self.height + container:getHeight()

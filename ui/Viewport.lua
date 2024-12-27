@@ -161,12 +161,22 @@ function Viewport:drawTree()
 	self.blockKeyPress = false
 end
 
+Viewport.eventAlias = {
+	mousepressed = "mousePressed",
+	mousereleased = "mouseReleased",
+	keypressed = "keyPressed",
+	keyreleased = "keyReleased",
+	textinput = "textInput"
+}
+
+---@param event { name: string, [string]: any }
 function Viewport:receive(event)
-	if event.name == "mousepressed" then
+	event.name = self.eventAlias[event.name] or event.name
+	if event.name == "mousePressed" then
 		self.mouseKeyDown = event[3]
 		self.mouseLastX, self.mouseLastY = love.mouse.getPosition()
 		self.mouseTotalMovement = 0
-	elseif event.name == "mousereleased" then
+	elseif event.name == "mouseReleased" then
 		if self.mouseTotalMovement < 6 and self.mouseKeyDown == event[3] then
 			Component.receive(self, { name = "mouseClick", key = event[3] })
 		end

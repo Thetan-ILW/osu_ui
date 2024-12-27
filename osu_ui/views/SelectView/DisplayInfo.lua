@@ -63,10 +63,10 @@ function DisplayInfo:setChartInfo()
 	self.chartName = string.format("%s - %s [%s]", chartview.artist, chartview.title, chartview.name)
 	local chart_format = chartview.format
 
-	if chart_format == "sm" then
-		self.chartSource = (text.SongSelection_BeatmapInfoCreator):format(chartview.set_dir)
+	if chart_format ~= "sm" then
+		self.chartSource = (text.SongSelection_BeatmapInfoCreator):format(chartview.creator)
 	else
-		self.chartSource = (text.SongSelection_BeatmapInfoPack):format(chartview.creator)
+		self.chartSource = (text.SongSelection_BeatmapInfoPack):format(chartview.set_dir)
 	end
 
 	local note_count = chartview.notes_count or 0

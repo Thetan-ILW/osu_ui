@@ -278,14 +278,6 @@ function Component:assert(thing, message)
 	end
 end
 
-Component.eventAlias = {
-	mousepressed = "mousePressed",
-	mousereleased = "mouseReleased",
-	keypressed = "keyPressed",
-	keyreleased = "keyReleased",
-	textinput = "textInput"
-}
-
 ---@param event table
 ---@return boolean blocked
 function Component:receive(event)
@@ -293,9 +285,8 @@ function Component:receive(event)
 		return false
 	end
 
-	local event_name = self.eventAlias[event.name] or event.name
-	if self[event_name] then
-		if self[event_name](self, event) then
+	if self[event.name] then
+		if self[event.name](self, event) then
 			return true
 		end
 	end

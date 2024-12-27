@@ -6,7 +6,7 @@ local function events()
 	local c = Component({
 		width = 200,
 		height = 200,
-		mousePressed = function()
+		mousepressed = function()
 			mouse_pressed = true
 		end
 	})
@@ -21,11 +21,11 @@ local function events()
 	for i = 1, 100 do
 		local child = c:addChild(tostring(i), Component({
 			z = 1 - (i * 0.00001),
-			textInput = function(this)
+			textinput = function(this)
 				who_blocked = this.id
 				return true
 			end,
-			mouseReleased = function ()
+			mousereleased = function ()
 				releases_count = releases_count + 1
 				return false
 			end

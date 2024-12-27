@@ -1,5 +1,4 @@
 local Screen = require("osu_ui.views.Screen")
-local CanvasComponent = require("ui.CanvasComponent")
 local Component = require("ui.Component")
 
 local flux = require("flux")
@@ -198,13 +197,14 @@ function View:load()
 	local text = scene.localization.text
 
 	local width, height = self.width, self.height
-	local top = self:addChild("topContainer", Component({ width = width, height = height, z = 0.5 }))
-	local bottom = self:addChild("bottomContainer", Component({ width = width, height = height, z = 0.6  }))
+	local top = self:addChild("topContainer", Component({ width = width, height = height, z = 0.7 }))
+	local top_background = self:addChild("topBackgroundContainer", Component({ width = width, height = height, z = 0.5 }))
+	local bottom = self:addChild("bottomContainer", Component({ width = width, height = height, z = 0.6 }))
 	local center = self:addChild("centerContainer", Component({ width = width, height = height, z = 0 }))
-	local tabs = top:addChild("tabContainer", Component({ z = 0.5 }))
 
 	function top.update(container, dt)
 		container.y = (1 - self.alpha) * -160
+		top_background.y = container.y
 		Component.update(container, dt)
 	end
 
@@ -212,6 +212,15 @@ function View:load()
 		container.y = (1 - self.alpha) * 160
 		Component.update(container, dt)
 	end
+
+	self:addChild("screenshot", Image({
+		image = love.graphics.newImage("screenshot229.png"),
+		alpha = 0,
+		z = 1,
+		update = function(this)
+			--this.alpha = love.mouse.getX() / love.graphics.getWidth()
+		end
+	}))
 
 	self.searchFormat = { { 0.68, 1, 0.18, 1 }, text.SongSelection_Search .. " ", { 1, 1, 1, 1 }, text.SongSelection_TypeToBegin }
 	self.search = self.selectApi:getSearchText()
@@ -231,12 +240,12 @@ function View:load()
 
 	local img = assets:loadImage("songselect-top")
 	img:setWrap("clamp")
-	top:addChild("background", QuadImage({
+	top_background:addChild("background", QuadImage({
 		image = img,
 		quad = love.graphics.newQuad(0, 0, width, img:getHeight(), img),
 	}))
 
-	top:addChild("mouseBlock", Component({
+	top_background:addChild("mouseBlock", Component({
 		width = width,
 		height = 82,
 		blockMouseFocus = true,
@@ -334,10 +343,10 @@ function View:load()
 	}
 	local score_sources = self.selectApi:getScoreSources()
 	top:addChild("scoreSource", Combo({
-		x = 8, y = 117,
-		width = 308,
-		height = 34,
-		font = fonts:loadFont("Regular", 18),
+		x = 8, y = 118,
+		width = 307,
+		height = 29,
+		font = fonts:loadFont("Regular", 17),
 		borderColor = { 0.08, 0.51, 0.7, 1 },
 		hoverColor = { 0.08, 0.51, 0.7, 1 },
 		items = score_sources,
@@ -384,11 +393,11 @@ function View:load()
 	}
 
 	local sort_combo = top:addChild("sortCombo", Combo({
-		x = width - 16, y = 28,
+		x = width - 16, y = 30,
 		origin = { x = 1, y = 0 },
-		width = 193,
-		height = 34,
-		font = fonts:loadFont("Regular", 18),
+		width = 191,
+		height = 28,
+		font = fonts:loadFont("Regular", 17),
 		borderColor = { 0.68, 0.82, 0.54, 1 },
 		hoverColor = { 0.68, 0.82, 0.54, 1 },
 		items = self.selectApi:getSortFunctionNames(),
@@ -404,8 +413,8 @@ function View:load()
 		end
 	}))
 
-	local sort_text = top:addChild("sortText", Label({
-		x = sort_combo.x - sort_combo.width - 6, y = 24,
+	local sort_text = top_background:addChild("sortText", Label({
+		x = sort_combo.x - sort_combo.width - 7, y = 24,
 		origin = { x = 1, y = 0 },
 		alignX = "right",
 		text = text.SongSelection_Sort,
@@ -415,11 +424,11 @@ function View:load()
 	}))
 
 	local group_combo = top:addChild("groupCombo", Combo({
-		x = sort_text.x - sort_text.width - 16, y = 28,
+		x = sort_text.x - sort_text.width - 18, y = 30,
 		origin = { x = 1, y = 0 },
-		width = 193,
-		height = 34,
-		font = fonts:loadFont("Regular", 18),
+		width = 191,
+		height = 28,
+		font = fonts:loadFont("Regular", 17),
 		borderColor = { 0.57, 0.76, 0.9, 1 },
 		hoverColor = { 0.57, 0.76, 0.9, 1 },
 		items = self.selectApi:getGroups(),
@@ -436,7 +445,7 @@ function View:load()
 		end
 	}))
 
-	top:addChild("groupText", Label({
+	top_background:addChild("groupText", Label({
 		x = group_combo.x - group_combo.width - 6, y = 24,
 		origin = { x = 1, y = 0 },
 		alignX = "right",
@@ -460,10 +469,15 @@ function View:load()
 	}))
 
 	--- TABS ---
-	local tab_y = 54
-	local no_grouping = tabs:addChild("noGrouping", TabButton({
-		x = width - 15, y = tab_y,
-		origin = { x = 1, y = 0 },
+	local tabs = top_background:addChild("tabContainer", Component({
+		x = width - 15,
+		y = 54,
+		origin = { x = 1 },
+		z = 0.5,
+	}))
+	local tabs_spacing = 118
+
+	tabs:addChild("noGrouping", TabButton({
 		text = text.SongSelection_NoGrouping,
 		z = 0.5,
 		onClick = function ()
@@ -471,9 +485,8 @@ function View:load()
 		end
 	}))
 
-	local by_difficulty = tabs:addChild("byDifficulty", TabButton({
-		x = no_grouping.x - no_grouping.width + 25, y = tab_y,
-		origin = { x = 1, y = 0 },
+	tabs:addChild("byDifficulty", TabButton({
+		x = -tabs_spacing,
 		text = text.SongSelection_ByDifficulty,
 		z = 0.4,
 		onClick = function ()
@@ -481,9 +494,8 @@ function View:load()
 		end
 	}))
 
-	local by_artist = tabs:addChild("byArtist", TabButton({
-		x = by_difficulty.x - by_difficulty.width + 25, y = tab_y,
-		origin = { x = 1, y = 0 },
+	tabs:addChild("byArtist", TabButton({
+		x = -tabs_spacing * 2,
 		text = text.SongSelection_ByArtist,
 		z = 0.3,
 		onClick = function ()
@@ -491,9 +503,8 @@ function View:load()
 		end
 	}))
 
-	local recently_played = tabs:addChild("recentlyPlayed", TabButton({
-		x = by_artist.x - by_artist.width + 25, y = tab_y,
-		origin = { x = 1, y = 0 },
+	tabs:addChild("recentlyPlayed", TabButton({
+		x = -tabs_spacing * 3,
 		text = text.SongSelection_RecentlyPlayed,
 		z = 0.2,
 		onClick = function ()
@@ -502,14 +513,15 @@ function View:load()
 	}))
 
 	tabs:addChild("collections", TabButton({
-		x = recently_played.x - recently_played.width + 25, y = tab_y,
-		origin = { x = 1, y = 0 },
+		x = -tabs_spacing * 4,
 		text = text.SongSelection_Collections,
 		z = 0.1,
 		onClick = function ()
 			self:selectTab("collections")
 		end
 	}))
+
+	tabs:autoSize()
 
 	----------- BOTTOM -----------
 
@@ -558,6 +570,7 @@ function View:load()
 		x = 224 + 46, y = height - 56,
 		origin = { x = 0.5, y = 0.5 },
 		image = small_icons[4],
+		blendMode = "add",
 		z = 0.4
 	}))
 	---@cast mode_icon ui.Image
@@ -568,7 +581,7 @@ function View:load()
 		idleImage = assets:loadImage("selection-mode"),
 		hoverImage = assets:loadImage("selection-mode-over"),
 		z = 0.3,
-		onClick = function ()
+		onClick = function()
 			selected_mode_index = 1 + (selected_mode_index % #small_icons)
 			mode_icon:replaceImage(small_icons[selected_mode_index])
 		end
@@ -703,8 +716,8 @@ end
 ---@alias TabNames "noGrouping" | "byDifficulty" | "byArtist" | "recentlyPlayed" | "collections"
 ---@param selected TabNames  
 function View:selectTab(selected)
-	local top_container = self.children.topContainer ---@cast top_container ui.Component
-	local tab_container = top_container.children.tabContainer ---@cast tab_container ui.Component
+	local container = self.children.topBackgroundContainer ---@cast container ui.Component
+	local tab_container = container.children.tabContainer ---@cast tab_container ui.Component
 	local c = tab_container.children
 
 	---@type {[TabNames]: { element: ui.Component, z: number, onClick: function}}

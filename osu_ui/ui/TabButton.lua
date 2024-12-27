@@ -18,9 +18,11 @@ function TabButton:load()
 	local assets = scene.assets
 
 	local image = assets:loadImage("selection-tab")
-	self.width, self.height = image:getDimensions()
+	self.width = 143
+	self.height = image:getHeight()
 	self.active = self.active or false
 	self.tabColor = self.tabColor or { 0.86, 0.08, 0.23, 1 }
+	self.blockMouseFocus = true
 
 	self.image = self:addChild("image", Image({
 		image = image

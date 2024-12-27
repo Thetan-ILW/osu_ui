@@ -33,7 +33,7 @@ local black = { 0, 0, 0, 1 }
 
 function Combo:load()
 	self:assert(self.items, "No items provided")
-	self.cellHeight = self.height or 37
+	self.cellHeight = self.height == 0 and 37 or self.height
 
 	local _, _, h = self:getPosAndSize()
 	self.minCellHeight = h + border_size * 2
@@ -60,7 +60,7 @@ function Combo:load()
 		z = 0.2,
 	}))
 	main:addChild("mainCellLabel", DynamicLabel({
-		x = 5, y = 2,
+		x = 3,
 		font = font,
 		height = main:getHeight(),
 		alignY = "center",

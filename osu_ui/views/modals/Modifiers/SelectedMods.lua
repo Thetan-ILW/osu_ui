@@ -39,6 +39,8 @@ function SelectedMods:load()
 		end
 	}))
 
+	self.selectApi:moveSelectedModifiersCursor(#self.selectApi:getSelectedMods())
+
 	self:addCells()
 	self:moveCursor()
 end
