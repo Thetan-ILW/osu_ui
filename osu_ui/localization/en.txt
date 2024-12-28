@@ -5,6 +5,8 @@ General_Cancel=Cancel
 General_Back=Back
 General_Apply=Apply
 General_Reset=Reset
+General_Yes=Yes
+General_No=No
 
 UserProfile_Guest=Guest
 
@@ -14,6 +16,7 @@ Options_HeaderBlurbGucci=Change the way gucci!mania behaves
 Options_General=General
 Options_Gameplay=Gameplay
 Options_Graphics=Graphics
+Options_TabMaintenance=Maintenance
 
 Options_Screen=Screen
 Options_Graphics_SelectResolution=Resolution:
@@ -63,6 +66,9 @@ Options_Camera=3D Camera
 Options_EnableCamera=Enable 3D camera
 Options_CameraXRotation = Allow rotation of X coordinate
 Options_CameraYRotation = Allow rotation of Y coordinate
+
+Options_SwitchToLegacyUI=Switch to legacy UI
+Options_UISwitchConfirm=Are you sure you want to switch back to the old UI? Do you even know how to get back?
 
 SongSelection_BeatmapInfoCreator=Mapped by %s
 SongSelection_BeatmapInfoPack=From %s

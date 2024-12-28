@@ -78,7 +78,7 @@ function Scene:load()
 
 	self.modals = {
 		modifiers = ModifiersModal({ z = 0.5 }),
-		locations = LocationsModal({ z = 0.5 })
+		locations = LocationsModal({ z = 0.5 }),
 	}
 
 	self.viewport = self:getViewport()

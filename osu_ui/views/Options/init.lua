@@ -166,6 +166,11 @@ function Options:load()
 		"",
 		require("osu_ui.views.Options.sections.skin")
 	)
+	self:newSection(
+		self.text.Options_TabMaintenance:upper(),
+		"",
+		require("osu_ui.views.Options.sections.maintenance")
+	)
 
 	self:addChild("tabsBackground", Rectangle({
 		width = self.tabsContrainerWidth,

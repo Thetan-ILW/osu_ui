@@ -79,4 +79,10 @@ function UserInterface:receive(event)
 	self.viewport:receive(event)
 end
 
+function UserInterface:switchTheme(name)
+	self.game.configModel.configs.settings.graphics.userInterface = name
+	self.game.uiModel:switchTheme()
+	love.mouse.setVisible(true)
+end
+
 return UserInterface
