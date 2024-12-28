@@ -288,6 +288,11 @@ function View:load()
 		end,
 		update = function(this)
 			this.alpha = 0.25 + (0.75 * (1 + math.sin(love.timer.getTime())) / 2)
+
+			if this.mouseOver then
+				scene.tooltip:setText("Made with the best SDL wrapper.")
+			end
+
 			if not this.ily then
 				return
 			end
@@ -298,16 +303,21 @@ function View:load()
 				secret = secret .. char
 			end
 			this.label:replaceText(secret)
+
 		end
 	}))
 
 	top:addChild("bat", Image({
-		x = self.width - 80, y = self.height - 48,
+		x = self.width - 90, y = self.height - 48,
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage("menu-bat"),
 		z = 0.5,
 		update = function(this)
 			this.alpha = 0.25 + (0.75 * (1 + math.sin(love.timer.getTime())) / 2)
+
+			if this.mouseOver then
+				scene.tooltip:setText("Made with LuaJIT and a bit of C.")
+			end
 		end
 	}))
 

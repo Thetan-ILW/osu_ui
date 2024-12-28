@@ -8,6 +8,7 @@ local Button = require("osu_ui.ui.Button")
 local Combo = require("osu_ui.ui.Combo")
 local Label = require("ui.Label")
 local Blur = require("ui.Blur")
+local RoomList = require("osu_ui.views.LobbyList.RoomList")
 local flux = require("flux")
 
 ---@class osu.ui.LobbyListContainer : osu.ui.Screen
@@ -23,9 +24,13 @@ function View:keyPressed(event)
 end
 
 function View:update()
-	if self.multiplayerApi:getLobby() then
+	if self.multiplayerApi:getLobby() and self.modal then
 		self.modal:close()
 	end
+
+	local lc = #self.multiplayerApi:getLobbies()
+	local lobby_count = self:getChild("lobbyCount") ---@cast lobby_count ui.Label
+	lobby_count:replaceText(("Showing %i of %i matches"):format(lc, lc))
 end
 
 function View:transitIn()
@@ -38,6 +43,11 @@ function View:transitIn()
 	self.alpha = 0
 	flux.to(self, 0.7, { alpha = 1 }):ease("quadout")
 	self.scene.chat:fade(1)
+
+	local tb = self:getChild("searchTextBox") ---@cast tb osu.ui.TextBox
+	local list = self:getChild("list") ---@cast list osu.ui.RoomList
+	tb:setInput("")
+	list:setSearchInput("")
 end
 
 function View:quit()
@@ -74,7 +84,7 @@ function View:load()
 	self:addChild("lobbyCount", Label({
 		x = multi_label:getWidth() + 7,
 		y = 13,
-		text = "Showing 161 of 257 matches",
+		text = "Showing 1 of 1 matches",
 		font = fonts:loadFont("Regular", 17),
 		shadow = true,
 		z = 0.1,
@@ -186,6 +196,9 @@ function View:load()
 		y = 68,
 		width = 210,
 		z = 0.5,
+		changed = function(input)
+				
+		end
 	}))
 
 	self:addChild("backToMenu", Button({
@@ -219,6 +232,15 @@ function View:load()
 		label = "Quick Join",
 		font = fonts:loadFont("Regular", 27),
 		z = 0.5,
+	}))
+
+	local rows = 5
+	self:addChild("list", RoomList({
+		x = 5, y = 120,
+		width = 1324,
+		height = 78 * rows,
+		rows = 5,
+		z = 0.1
 	}))
 
 	self:addChild("blur", Blur({

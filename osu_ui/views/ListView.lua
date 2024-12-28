@@ -45,17 +45,6 @@ function ListView:load()
 	})) ---@cast scroll_area osu.ui.ScrollAreaContainer
 	self.scrollArea = scroll_area
 
-	self.hoverRect = self:addChild("hoverRect", Rectangle({
-		width = self.width,
-		height = self.cellHeight,
-		color = { 0.89, 0.47, 0.56, 0.2 },
-		alpha = 0,
-		targetY = 0,
-		update = function(this)
-			this.y = this.targetY - self.scrollArea.scrollPosition
-		end
-	}))
-
 	self.stencilFunction = self.stencilFunction or function()
 		love.graphics.rectangle("fill", 0, 0, self.width, self.height)
 	end
@@ -86,9 +75,6 @@ function ListView:addCell(component)
 
 	component.y = self.cellHeight * self.cells
 	component.z = 1 - (self.cells * 0.000001)
-	component.justHovered = function(this)
-		flux.to(self.hoverRect, 0.8, { targetY = this.y, alpha = 1 }):ease("elasticout")
-	end
 	area:addChild("cell" .. self.cells, component)
 
 	self.cells = self.cells + 1

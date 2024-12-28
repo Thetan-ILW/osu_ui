@@ -55,8 +55,8 @@ function TooltipView:updateTree(state)
 	local mx, my = love.graphics.inverseTransformPoint(state.mouseX, state.mouseY)
 	local w, h = self:getDimensions()
 	local sw, sh = self.parent:getDimensions()
-	self.x = math_util.clamp(mx + 10, 2, sw - 2 - w)
-	self.y = math_util.clamp(my + 10, 0, sh - 2 - h)
+	self.x = math_util.clamp(mx + 10, 2, sw - 4 - w)
+	self.y = math_util.clamp(my + 10, 0, sh - 4 - h)
 	Component.updateTree(self, state)
 end
 
