@@ -32,6 +32,7 @@ local path_util = require("path_util")
 ---@field ui osu.ui.UserInterface
 ---@field fontManager ui.FontManager
 ---@field assets osu.ui.OsuAssets
+---@field screens {[string]: osu.ui.Screen}
 local Scene = Component + {}
 
 function Scene:new(params)
@@ -65,13 +66,15 @@ end
 function Scene:load()
 	self:clearTree()
 
-	self.screens = {
+	self.defaultScreens = {
 		mainMenu = MainMenu({ z = 0.1 }),
 		lobbyList = LobbyList({ z = 0.08, alpha = 0 }),
 		select = Select({ z = 0.09, alpha = 0 }),
 		gameplay = Gameplay({ z = 0.07, alpha = 0 }),
 		result = Result({ z = 0.08, alpha = 0 })
 	}
+
+	self.screens = {}
 
 	self.modals = {
 		modifiers = ModifiersModal({ z = 0.5 }),
@@ -146,12 +149,23 @@ function Scene:loadAssets()
 	---@type string
 	local skin_path = ("userdata/skins/%s"):format(osu.skin:trim())
 
+	for k, v in pairs(self.screens) do
+		if v.parent then
+			v:kill()
+		end
+	end
+
 	if self.assets.directory ~= skin_path then
 		self.assets:setPaths(skin_path, "osu_ui/assets")
 		self.assets:load()
 	end
 
 	self.assets:updateVolume(self.game.configModel.configs)
+
+	local custom_views = self.assets.customViews
+	for k, v in pairs(self.defaultScreens) do
+		self.screens[k] = custom_views[k] and custom_views[k]({ z = 0.05 }) or v
+	end
 end
 
 function Scene:addScreen(name)

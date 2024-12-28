@@ -114,7 +114,7 @@ function View:transitIn()
 	self.disabled = false
 	self.locked = false
 	self.handleEvents = true
-	self.transitionTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
+	self.transitionTween = flux.to(self, 0.44, { alpha = 1 }):ease("sineinout")
 end
 
 ---@param params table?

@@ -8,6 +8,7 @@ local MultiplayerAPI = require("game_api.Multiplayer")
 local GameplayAPI = require("game_api.Gameplay")
 local ResultAPI = require("game_api.Result")
 local LocationsAPI = require("game_api.Locations")
+local OnlineAPI = require("game_api.Online")
 
 local Viewport = require("ui.Viewport")
 local Scene = require("osu_ui.Scene")
@@ -35,6 +36,7 @@ function UserInterface:new(game, mount_path)
 	self.gameplayApi = GameplayAPI(game)
 	self.resultApi = ResultAPI(game)
 	self.locationsApi = LocationsAPI(game)
+	self.onlineApi = OnlineAPI(game)
 
 	require("ui.Component_test")
 end

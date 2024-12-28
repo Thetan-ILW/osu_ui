@@ -12,9 +12,8 @@ local utf8validate = require("utf8validate")
 ---@field imageFonts table<string, table<string, string>>
 ---@field animations {[string]: love.Image[]}
 ---@field sounds table<string, audio.Source>
----@field params table<string, number|string|boolean|number[]>
----@field selectViewConfig function?
----@field resultViewConfig function?
+---@field params {[string]: any}
+---@field customViews {[string]: osu.ui.Screen}
 ---@field backButtonType "none" | "image" | "animation"
 local OsuAssets = Assets + {}
 
@@ -162,67 +161,55 @@ function OsuAssets:load()
 	self.customViews = {}
 	self.loadedViews = {}
 
-	self:loadMenuBack()
-	self:resultView()
-end
-
-local custom_views = {
-	resultView = "ResultView"
-}
-
-function OsuAssets:loadCustomViews(view_name)
-	if not custom_views[view_name] then
-		return
-	end
-
-	local filename = self.findFile(path_util.join("gucci", custom_views[view_name] .. ".lua"), self.fileList)
-	if not filename then
-		return
-	end
-
-	self.customViews[view_name] = love.filesystem.load(path_util.join(self.directory, filename))()
-end
-
----@param view_name string?
-function OsuAssets:loadViewAssets(view_name)
-	if not view_name then
-		return
-	end
-
-	self:loadCustomViews(view_name)
-
-	if self.loadedViews[view_name] then
-		return
-	end
-
-	self.loadedViews[view_name] = true
-
-	local f = self[view_name]
-	if f then
-		f(self)
-	end
-end
-
----@private
-function OsuAssets:selectView()
-	--self.images.panelTop:setWrap("clamp")
-	--self:loadMenuBack()
-end
-
----@private
-function OsuAssets:resultView()
 	local score_font_path = self.params.scoreFontPrefix or "score"
 	---@cast score_font_path string
 	score_font_path = score_font_path:gsub("\\", "/")
-
 	self.imageFonts.scoreFont = self:getImageFont("score", score_font_path)
 
-	local marv = self.findImage("mania-hit300g-0", self.fileList) or self.findImage("mania-hit300g", self.fileList)
+	self:loadMenuBack()
+	if skin_ini.Gucci then
+		self.params.requirePath = skin_ini.Gucci.RequirePath
+		self:loadCustomViews(skin_ini)
+	end
+end
 
-	if marv then
-		self.images.judgeMarvelous = love.graphics.newImage(path_util.join(self.directory, marv))
-	else
-		self.images.judgeMarvelous = love.graphics.newImage(path_util.join(self.defaultsDirectory, "mania-hit300g@2x.png"))
+---@param path string
+---@return table
+function OsuAssets:loadModule(path)
+	if self.params.requirePath then
+		path = path_util.join(self.params.requirePath, path)
+	end
+
+	local f = love.filesystem.load(path_util.join(self.directory, ("%s.lua"):format(path)))
+
+	if not f then
+		error(("skin module '%s' not found."):format(path))
+	end
+	return f()
+end
+
+local custom_views = {
+	{ key = "MainMenuView", alias = "mainMenu" },
+	{ key = "LobbyListView", alias = "lobbyList" },
+	{ key = "SelectView", alias = "select" },
+	{ key = "GameplayView", alias = "gameplay" },
+	{ key = "ResultView", alias = "result" },
+}
+
+---@param skin_ini table
+function OsuAssets:loadCustomViews(skin_ini)
+	for i, v in ipairs(custom_views) do
+		---@type string?
+		local path = skin_ini.Gucci[v.key]
+		if path then
+			if self.params.requirePath then
+				path = path_util.join(self.params.requirePath, path)
+			end
+			local full_path = path_util.join(self.directory, path)
+			if love.filesystem.getInfo(full_path) then
+				self.customViews[v.alias] = love.filesystem.load(full_path)()
+			end
+		end
 	end
 end
 

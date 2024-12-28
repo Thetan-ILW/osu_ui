@@ -80,8 +80,9 @@ function FpsDisplay:load()
 	self.checks = 0
 end
 
-function FpsDisplay:update()
-	self.dts[self.checks] = loop.dt
+---@param dt number
+function FpsDisplay:update(dt)
+	self.dts[self.checks] = dt
 	self.checks = (self.checks + 1) % 7 + 1
 
 	if love.timer.getTime() < self.nextUpdate then
