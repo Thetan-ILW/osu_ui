@@ -90,7 +90,7 @@ function View:toNextView(screen_name)
 	scene.options:fade(0)
 
 	if scene:getChild(screen_name) then
-		self:transitOut()
+		self:transitOut({ time = 0.5, ease = "sineout" })
 		scene:transitInScreen(screen_name)
 		return true
 	end
@@ -114,7 +114,7 @@ function View:transitIn()
 	self.disabled = false
 	self.locked = false
 	self.handleEvents = true
-	self.transitionTween = flux.to(self, 0.44, { alpha = 1 }):ease("sineinout")
+	self.transitionTween = flux.to(self, 0.4, { alpha = 1 }):ease("quadinout")
 end
 
 ---@param params table?
@@ -218,7 +218,10 @@ function View:load()
 		compareMode = "less",
 		compareValue = 1,
 		stencilFunction = function()
-			love.graphics.circle("fill", self.width / 2 - (self.slide * logo_slide), self.height / 2, 200 + ((1 - self.alpha) * self.width / 2))
+			local x = self.logo.x
+			local y = self.logo.y
+			local scale = self.logo.scaleX
+			love.graphics.circle("fill", x, y, (253 * scale) + ((1 - self.alpha) * self.width / 2))
 		end
 	}))
 	self.background = self.stencil:addChild("background", ParallaxBackground({
@@ -492,6 +495,36 @@ function View:load()
 		disabled = true,
 		z = 1,
 	}))
+
+	local date = os.date("*t")
+	local new_year_and_xmas = date.month == 12 or (date.month == 1 and date.day <= 6)
+
+	if new_year_and_xmas then
+		self:addChild("snowParticles", Component({
+			x = self.width / 2, y = -64,
+			particleSystem = love.graphics.newParticleSystem(assets:loadImage("menu-snow")),
+			color = { 1, 1, 1, 0.4 },
+			z = 1,
+			load = function(this)
+				local ps = this.particleSystem ---@cast ps love.ParticleSystem
+				ps:setEmissionRate(10)
+				ps:setRotation(-math.pi, math.pi)
+				ps:setSpinVariation(0.3)
+				ps:setDirection(math.pi * 0.5)
+				ps:setSpeed(30, 60)
+				ps:setParticleLifetime(10, 20)
+				ps:setEmissionArea("borderrectangle", self.width / 2, 0)
+				ps:setLinearAcceleration(-2, 3, 2, 10)
+				ps:setSizeVariation(0.3)
+			end,
+			update = function(this, dt)
+				this.particleSystem:update(dt)
+			end,
+			draw = function(this)
+				love.graphics.draw(this.particleSystem)
+			end
+		}))
+	end
 
 	if play_intro then
 		self:introSequence()

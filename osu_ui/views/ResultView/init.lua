@@ -495,19 +495,6 @@ function View:load(score_loaded)
 			z = 1
 		}))
 	end
-
-
-	if true then
-		return
-	end
-
-	local customizations = assets.customViews.resultView
-	if customizations then
-		local success, error = pcall(customizations, assets, display_info, self)
-		if not success then
-			result_view.popupView:add(error, "error")
-		end
-	end
 end
 
 return View
