@@ -32,6 +32,7 @@ function Label:load()
 	self.alignX = self.alignX or "left"
 	self.alignY = self.alignY or "top"
 	self.shadow = self.shadow or false
+	self.shadowOffset = self.shadowOffset or 0.6
 end
 
 function Label:updateSizeAndPos()
@@ -119,8 +120,6 @@ end
 
 local gfx = love.graphics
 
-local shadow_offset = 0.6
-
 function Label:draw()
 	gfx.translate(self.posX, self.posY)
 	gfx.scale(1 / self.font.dpiScale)
@@ -128,6 +127,7 @@ function Label:draw()
 	local r, g, b, a = gfx.getColor()
 
 	if self.shadow then
+		local shadow_offset = self.shadowOffset
 		gfx.setColor(0.078, 0.078, 0.078, 0.64 * a)
 		gfx.draw(self.label, -shadow_offset, -shadow_offset)
 		gfx.draw(self.label, shadow_offset, -shadow_offset)

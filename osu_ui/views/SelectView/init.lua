@@ -106,6 +106,7 @@ function View:updateModsLine()
 		mods_str = ("%gx %s"):format(rate, mods_str)
 	end
 
+	self.modLineString = mods_str
 	label:replaceText(mods_str)
 end
 
@@ -139,7 +140,10 @@ function View:transitToGameplay()
 
 	showcase:show(
 		self.displayInfo.chartName,
-		("Length: %s Difficulty: %s"):format(self.displayInfo.length, self.displayInfo.difficulty),
+		self.displayInfo.lengthNumber,
+		self.displayInfo.difficulty,
+		self.displayInfo.difficultyLevel,
+		self.modLineString,
 		self.selectApi:getBackgroundImages()[1]
 	)
 
@@ -190,6 +194,7 @@ function View:load()
 	self.displayInfo = DisplayInfo(scene.localization, self.selectApi, scene.ui.pkgs.minacalc)
 	self.displayInfo:updateInfo()
 	self.notechartChangeTime = -1
+	self.modLineString = ""
 
 	self.selectApi:listenForNotechartChanges(function()
 		self.displayInfo:updateInfo()

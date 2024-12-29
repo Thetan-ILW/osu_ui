@@ -44,7 +44,8 @@ function Scene:new(params)
 		["Bold"] = "osu_ui/assets/ui_font/Aller/Aller_Bd.ttf",
 		["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf",
 		["MonoRegular"] = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Regular.ttf",
-		["MonoBold"] = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Bold.ttf"
+		["MonoBold"] = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Bold.ttf",
+		["QuicksandSemiBold"] = "osu_ui/assets/ui_font/Quicksand/Quicksand-SemiBold.ttf"
 	}
 	local fallbacks = {
 		["Regular"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Regular.ttf",
