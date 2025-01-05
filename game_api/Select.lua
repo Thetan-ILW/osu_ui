@@ -362,4 +362,12 @@ function Select:setNoteSkin(input_mode, path)
 	self.game.noteSkinModel:setDefaultNoteSkin(input_mode, path)
 end
 
+function Select:openChartDirectory()
+	self.game.selectController:openDirectory()
+end
+
+function Select:exportOsuChart()
+	self.game.selectController:exportToOsu()
+end
+
 return Select

@@ -24,18 +24,21 @@ function ImageValueView:load()
 	end
 
 	self.maxCharW = 0
+	self.minHeight = math.huge
 	for char, path in pairs(self.files) do
 		images[char] = love.graphics.newImage(path)
 		if tonumber(char) then
 			self.maxCharW = math.max(images[char]:getWidth(), self.maxCharW)
 		end
+
+		self.minHeight = math.min(self.minHeight, images[char]:getHeight())
 	end
 end
 
 ---@param value table
 ---@return number
 ---@return number
-function ImageValueView:getSize(value)
+function ImageValueView:setSize(value)
 	local images = self.images
 	local overlap = self.overlap or 0
 
@@ -56,7 +59,9 @@ function ImageValueView:getSize(value)
 	if width > 0 then
 		width = width + overlap
 	end
-	return width, height
+
+	self.width = width
+	self.height = height
 end
 
 function ImageValueView:update()
@@ -77,9 +82,7 @@ function ImageValueView:update()
 	end
 	self.displayValue = tostring(value)
 
-	local width, height = self:getSize(self.displayValue)
-	self.width = width
-	self.height = height
+	self:setSize(self.displayValue)
 end
 
 function ImageValueView:draw()
@@ -88,15 +91,18 @@ function ImageValueView:draw()
 
 	local x = 0
 	local value = self.displayValue
+	local y = self.height
+	local oy = self.minHeight
+
 	for i = 1, #value do
 		local char = value:sub(i, i)
 		local image = images[char]
 		if image then
 			if tonumber(char) then
-				love.graphics.draw(image, x + (self.maxCharW - image:getWidth()) / 2)
+				love.graphics.draw(image, x + (self.maxCharW - image:getWidth()) / 2, y, 0, 1, 1, 0, oy)
 				x = x + (self.maxCharW - overlap)
 			else
-				love.graphics.draw(image, x)
+				love.graphics.draw(image, x, y, 0, 1, 1, 0, oy)
 				x = x + (image:getWidth() - overlap)
 			end
 		end

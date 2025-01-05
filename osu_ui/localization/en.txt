@@ -98,6 +98,14 @@ SongSelection_TypeToBegin=Type to search!
 SongSelection_Search=Search:
 SongSelection_Searching=Searching...
 
+SongSelection_ThisBeatmap=%s\nWhat do you want to do with this beatmap?
+SongSelection_Collection=Manage Collections
+SongSelection_ExportToOsu=Export to .osu
+SongSelection_Filters=Filters
+SongSelection_Edit=Edit
+SongSelection_OpenInFileManager=Open in file manager
+SongSelection_OsuExported=Exported to "userdata/export"
+
 RankingDialog_PlayedBy=Played by %s %s
 
 ModSelection_Title=Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun.
