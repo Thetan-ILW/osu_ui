@@ -370,4 +370,28 @@ function Select:exportOsuChart()
 	self.game.selectController:exportToOsu()
 end
 
+---@return {[number]: table}
+function Select:getNoteChartFilters()
+	return self:getConfigs().filters.notechart
+end
+
+---@param group string
+---@param filter string
+---@return boolean
+function Select:isNoteChartFilterActive(group, filter)
+	return self.game.selectModel.filterModel:isActive(group, filter) or false
+end
+
+---@param group string
+---@param filter string
+---@param state boolean
+function Select:setNoteChartFilter(group, filter, state)
+	self.game.selectModel.filterModel:setFilter(group, filter, state)
+end
+
+function Select:applyNoteChartFilters()
+	self.game.selectModel.filterModel:apply()
+	self.game.selectModel:noDebouncePullNoteChartSet()
+end
+
 return Select

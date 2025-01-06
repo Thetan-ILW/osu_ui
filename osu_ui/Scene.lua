@@ -21,6 +21,7 @@ local Result = require("osu_ui.views.ResultView")
 local ModifiersModal = require("osu_ui.views.modals.Modifiers")
 local LocationsModal = require("osu_ui.views.modals.Locations")
 local BeatmapOptionsModal = require("osu_ui.views.modals.BeatmapOptions")
+local FiltersModal = require("osu_ui.views.modals.Filters")
 
 local flux = require("flux")
 local path_util = require("path_util")
@@ -81,7 +82,8 @@ function Scene:load()
 	self.modals = {
 		modifiers = ModifiersModal({ z = 0.5 }),
 		locations = LocationsModal({ z = 0.5 }),
-		beatmapOptions = BeatmapOptionsModal({ z = 0.5 })
+		beatmapOptions = BeatmapOptionsModal({ z = 0.5 }),
+		filters = FiltersModal({ z = 0.5 })
 	}
 
 	self.viewport = self:getViewport()

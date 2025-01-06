@@ -1,6 +1,7 @@
 local Modal = require("osu_ui.views.modals.Modal")
 
 ---@class osu.ui.BeatmapOptionsModal : osu.ui.Modal
+---@operator call: osu.ui.BeatmapOptionsModal
 local BeatmapOptions = Modal + {}
 
 function BeatmapOptions:load()
@@ -26,7 +27,8 @@ function BeatmapOptions:load()
 		scene.notification:show(text.SongSelection_OsuExported)
 	end)
 	self:addOption(text.SongSelection_Filters, self.buttonColors.green, function ()
-		scene.notification:show("Not implemented")
+		self:close()
+		scene:openModal("filters")
 	end)
 	self:addOption(text.SongSelection_Edit, self.buttonColors.red, function ()
 		scene.notification:show("Not implemented")

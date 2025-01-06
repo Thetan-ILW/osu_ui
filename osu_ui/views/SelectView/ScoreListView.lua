@@ -87,7 +87,7 @@ function ScoreListView:addProfileScore(score_index, score, source)
 	local mods_line = getModifierString(score.modifiers)
 
 	if score.rate ~= 1 and score.rate ~= 0 then
-		mods_line = ("%s,%0.02fx"):format(mods_line, score.rate)
+		mods_line = ("%s %0.02fx"):format(mods_line, score.rate)
 	end
 
 	---@type string
