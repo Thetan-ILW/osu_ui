@@ -13,6 +13,7 @@ local getModifierString = require("osu_ui.views.modifier_string")
 ---@field isChart boolean
 ---@field chartIndex number?
 ---@field maniaIcon love.Image
+---@field lamp boolean
 local ChartItem = ListItem + {}
 
 ---@param chart table
@@ -49,9 +50,11 @@ function ChartItem:replaceWith(chart)
 	end
 
 	self.stars = math.min(chart.osu_diff or 0, 10)
+	self.lamp = chart.lamp
 end
 
 local gfx = love.graphics
+local lamp_color = { 0.99, 0.98, 0.44, 1 }
 
 function ChartItem:drawChartPanel(pc, tc)
 	local r, g, b, a = gfx.getColor()
@@ -70,6 +73,7 @@ function ChartItem:drawChartPanel(pc, tc)
 	gfx.setFont(self.titleFont.instance)
 	gfx.print(self.title, 0, 0, 0, ts, ts)
 
+
 	gfx.setFont(self.infoFont.instance)
 	gfx.translate(0, 22)
 	gfx.print(self.secondRow, 0, 0, 0, ts, ts)
@@ -82,6 +86,10 @@ function ChartItem:drawChartPanel(pc, tc)
 
 	gfx.translate(80 + preview_icon_w, self.height - 17)
 
+	if self.lamp then
+		gfx.setColor(lamp_color)
+	end
+
 	for si = 0, 10, 1 do
 		if si >= self.stars then
 			return
@@ -93,6 +101,7 @@ function ChartItem:drawChartPanel(pc, tc)
 		gfx.translate(iw * 0.6, 0)
 	end
 end
+
 
 function ChartItem:draw()
 	if not self:isVisible() then
