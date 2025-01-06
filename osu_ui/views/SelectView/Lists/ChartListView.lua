@@ -49,6 +49,13 @@ function ChartListView:load()
 	self:loadItems()
 end
 
+function ChartListView:loadItems()
+	local chartviews_table = self.selectApi:getConfigs().settings.select.chartviews_table
+	self.showScoreDate = chartviews_table == "chartplayviews"
+
+	WindowListView.loadItems(self)
+end
+
 function ChartListView:getSelectedItemIndex()
 	return self.selectApi:getSelectedNoteChartSetIndex()
 end

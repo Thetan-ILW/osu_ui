@@ -49,6 +49,10 @@ function ChartItem:replaceWith(chart)
 		self.thirdRow = ("%s (%s)"):format(chart.name, Format.inputMode(chart.inputmode))
 	end
 
+	if self.list.showScoreDate and chart.score_time then
+		self.thirdRow = ("%s %s"):format(self.thirdRow, os.date("%d.%m.%Y", chart.score_time))
+	end
+
 	self.stars = math.min(chart.osu_diff or 0, 10)
 	self.lamp = chart.lamp
 end
