@@ -58,6 +58,8 @@ function View:transitIn()
 end
 
 function View:quit()
+	self.uiLayer.pause:quit()
+
 	local select_api = self.scene.ui.selectApi
 	select_api:playPreview()
 
@@ -65,8 +67,6 @@ function View:quit()
 	local volume = volume_cfg.music * volume_cfg.master
 	local gameplay_audio = self.gameplayApi:getMusicAudioSource()
 	local preview_audio = select_api:getPreviewAudioSource()
-
-	self.uiLayer.pause:stopSounds()
 
 	if preview_audio then
 		preview_audio:setVolume(0)

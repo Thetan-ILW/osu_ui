@@ -14,11 +14,11 @@ local flux = require("flux")
 local View = Component + {}
 
 function View:toggle()
-	self.disabled = false
 	love.mouse.setVisible(false)
 
 	local state = self.gameplayApi:getPlayState()
 	if state == "pause" then
+		self.disabled = false
 		flux.to(self, 0.4, { alpha = 1 }):ease("cubicout")
 		flux.to(self.scene.cursor, 0.3, { alpha = 1 }):ease("cubicout")
 		self.audioLoop:play()
@@ -37,7 +37,7 @@ function View:toggle()
 	end
 end
 
-function View:stopSounds()
+function View:quit()
 	self.audioLoop:stop()
 end
 
@@ -87,15 +87,17 @@ function View:pauseButton(x, y, image, hover_sound, click_sound, on_click)
 end
 
 function View:moveMouse()
-	love.mouse.setX(self.width / 2)
+	local x, y = self.width / 2, 0
 
 	if self.cursor == 1 then
-		love.mouse.setY(224)
+		y = 224
 	elseif self.cursor == 2 then
-		love.mouse.setY(400)
+		y = 400
 	elseif self.cursor == 3 then
-		love.mouse.setY(576)
+		y = 576
 	end
+
+	love.mouse.setPosition(x * self.viewportScale, y * self.viewportScale)
 end
 
 function View:keyPressed(event)
@@ -108,6 +110,10 @@ function View:keyPressed(event)
 	end
 end
 
+function View:reload()
+	self:toggle()
+end
+
 function View:load()
 	local width, height = self.width, self.height
 
@@ -115,6 +121,7 @@ function View:load()
 	local gameplay_api = scene.ui.gameplayApi
 	local assets = scene.assets
 	local configs = scene.ui.selectApi:getConfigs()
+	self:getViewport():listenForResize(self)
 	self.scene = scene
 	self.gameplayApi = gameplay_api
 	self.unpauseTime = configs.settings.gameplay.time.pausePlay
@@ -123,6 +130,7 @@ function View:load()
 	self.pauseHover = assets:loadAudio("pause-hover")
 	self.emptyAudio = assets:emptyAudio()
 	self.cursor = 1
+	self.viewportScale = self:getViewport():getInnerScale()
 
 	self:addChild("continueButton", self:pauseButton(
 		width / 2,
