@@ -1,57 +1,171 @@
 local Component = require("ui.Component")
 local ImageButton = require("osu_ui.ui.ImageButton")
 local Rectangle = require("ui.Rectangle")
+local Image = require("ui.Image")
+local HoverState = require("ui.HoverState")
 
----@alias osu.ui.PauseViewParams { assets: osu.ui.OsuAssets, gameplayView: osu.ui.GameplayView, gameplayController: sphere.GameplayController }
+local flux = require("flux")
 
 ---@class osu.ui.PauseView : ui.Component
----@overload fun(params: osu.ui.PauseViewParams): osu.ui.PauseView
+---@operator call: osu.ui.PauseView
 ---@field assets osu.ui.OsuAssets 
 ---@field gameplayController sphere.GameplayController
 ---@field gameplayView osu.ui.GameplayView
 local View = Component + {}
 
+function View:toggle()
+	self.disabled = false
+	love.mouse.setVisible(false)
+
+	local state = self.gameplayApi:getPlayState()
+	if state == "pause" then
+		flux.to(self, 0.4, { alpha = 1 }):ease("cubicout")
+		flux.to(self.scene.cursor, 0.3, { alpha = 1 }):ease("cubicout")
+		self.audioLoop:play()
+	elseif state == "pause-play" then
+		flux.to(self, self.unpauseTime, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
+			self.disabled = true
+			self.audioLoop:stop()
+		end)
+		flux.to(self.scene.cursor, self.unpauseTime * 0.9, { alpha = 0 }):ease("cubicout")
+	elseif state == "pause-retry" then
+		flux.to(self, self.retryTime, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
+			self.disabled = true
+			self.audioLoop:stop()
+		end)
+		flux.to(self.scene.cursor, self.retryTime * 0.9, { alpha = 0 }):ease("cubicout")
+	end
+end
+
+function View:stopSounds()
+	self.audioLoop:stop()
+end
+
+function View:pauseButton(x, y, image, hover_sound, click_sound, on_click)
+	if hover_sound == self.emptyAudio then
+		hover_sound = self.pauseHover
+	end
+
+	return Image({
+		x = x, y = y,
+		origin = { x = 0.5, y = 0.5 },
+		image = image,
+		hoverState = HoverState("cubicout", 0.12),
+		z = 1,
+		mousePressed = function(this)
+			if this.mouseOver then
+				self.playSound(click_sound)
+				on_click()
+				return true
+			end
+			return false
+		end,
+		keyPressed = function(this, event)
+			if this.mouseOver and event[2] == "return" then
+				self.playSound(click_sound)
+				on_click()
+				return true
+			end
+			return false
+		end,
+		update = function(this)
+			this.scaleX = 1 + this.hoverState.progress * 0.1
+			this.scaleY = 1 + this.hoverState.progress * 0.1
+		end,
+		---@param this ui.Component
+		setMouseFocus = function(this, mx, my)
+			this.mouseOver = this.hoverState:checkMouseFocus(this.width, this.height, mx, my)
+		end,
+		noMouseFocus = function(this)
+			this.hoverState:loseFocus()
+			this.mouseOver = false
+		end,
+		justHovered = function()
+			self.playSound(hover_sound)
+		end
+	})
+end
+
+function View:moveMouse()
+	love.mouse.setX(self.width / 2)
+
+	if self.cursor == 1 then
+		love.mouse.setY(224)
+	elseif self.cursor == 2 then
+		love.mouse.setY(400)
+	elseif self.cursor == 3 then
+		love.mouse.setY(576)
+	end
+end
+
+function View:keyPressed(event)
+	if event[2] == "down" then
+		self.cursor = math.min(self.cursor + 1, 3)
+		self:moveMouse()
+	elseif event[2] == "up" then
+		self.cursor = math.max(self.cursor - 1, 1)
+		self:moveMouse()
+	end
+end
+
 function View:load()
 	local width, height = self.width, self.height
 
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local gameplay_api = scene.ui.gameplayApi
 	local assets = scene.assets
+	local configs = scene.ui.selectApi:getConfigs()
+	self.scene = scene
+	self.gameplayApi = gameplay_api
+	self.unpauseTime = configs.settings.gameplay.time.pausePlay
+	self.retryTime = configs.settings.gameplay.time.pauseRetry
+	self.audioLoop = assets:loadAudio("pause-loop")
+	self.pauseHover = assets:loadAudio("pause-hover")
+	self.emptyAudio = assets:emptyAudio()
+	self.cursor = 1
 
-	--local bw, bh = 380, 95
-	self:addChild("continueButton", ImageButton({
-		x = width / 2, y = 224,
-		origin = { x = 0.5, y = 0.5 },
-		idleImage = assets:loadImage("pause-continue"),
-		z = 1,
-		onClick = function ()
-			gameplay_controller:changePlayState("play")
+	self:addChild("continueButton", self:pauseButton(
+		width / 2,
+		224,
+		assets:loadImage("pause-continue"),
+		assets:loadAudio("pause-continue-hover"),
+		assets:loadAudio("pause-continue-click"),
+		function ()
+			self.gameplayApi:changePlayState("play")
+			self:toggle()
 		end
-	}))
+	))
 
-	self:addChild("retryButton", ImageButton({
-		x = width / 2, y = 400,
-		origin = { x = 0.5, y = 0.5 },
-		idleImage = assets:loadImage("pause-retry"),
-		z = 1,
-		onClick = function ()
-			gameplay_controller:changePlayState("retry")
+	self:addChild("retryButton", self:pauseButton(
+		width / 2,
+		400,
+		assets:loadImage("pause-retry"),
+		assets:loadAudio("pause-retry-hover"),
+		assets:loadAudio("pause-retry-click"),
+		function ()
+			self.gameplayApi:changePlayState("retry")
+			self:toggle()
 		end
-	}))
+	))
 
-	self:addChild("backButton", ImageButton({
-		x = width / 2, y = 576,
-		origin = { x = 0.5, y = 0.5 },
-		idleImage = assets:loadImage("pause-back"),
-		z = 1,
-		onClick = function ()
-			gameplay_view:quit()
+	self:addChild("backButton", self:pauseButton(
+		width / 2,
+		576,
+		assets:loadImage("pause-back"),
+		assets:loadAudio("pause-back-hover"),
+		assets:loadAudio("pause-back-click"),
+		function ()
+			local gameplay = self:findComponent("gameplay")
+			assert(gameplay, "where is the gameplay hm hm")
+			---@cast gameplay osu.ui.GameplayViewContainer
+			gameplay:quit()
 		end
-	}))
+	))
 
 	self:addChild("tint", Rectangle({
 		width = width,
 		height = height,
-		color = { 0.1, 0.1, 1, 0.1 },
+		color = { 0.05, 0.05, 0.8, 0.2 },
 	}))
 end
 

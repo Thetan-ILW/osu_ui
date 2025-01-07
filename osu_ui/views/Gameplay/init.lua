@@ -66,6 +66,8 @@ function View:quit()
 	local gameplay_audio = self.gameplayApi:getMusicAudioSource()
 	local preview_audio = select_api:getPreviewAudioSource()
 
+	self.uiLayer.pause:stopSounds()
+
 	if preview_audio then
 		preview_audio:setVolume(0)
 	end
@@ -141,7 +143,8 @@ function View:load()
 		}))
 	end
 
-	self.uiLayer = self:addChild("uiLayer", UiLayer({ z = 0.2 }))
+	local ui_layer = self:addChild("uiLayer", UiLayer({ z = 0.2 })) ---@cast ui_layer osu.ui.UiLayerView
+	self.uiLayer = ui_layer
 end
 
 function View:update(dt)
@@ -187,6 +190,14 @@ function View:keyPressed(event)
 	if state == "play" then
 		if key == "`" then
 			self.gameplayApi:changePlayState("retry")
+		elseif key == "escape" then
+			self.gameplayApi:changePlayState("pause")
+			self.uiLayer.pause:toggle()
+		end
+	elseif state == "pause" then
+		if key == "escape" then
+			self.gameplayApi:changePlayState("play")
+			self.uiLayer.pause:toggle()
 		end
 	end
 end
