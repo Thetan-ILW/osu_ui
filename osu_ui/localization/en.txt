@@ -24,6 +24,10 @@ Options_Graphics_Letterboxing=Gameplay letterboxing
 Options_Graphics_Letterboxing_Tooltip=Always use the full native resolution but display gameplay in a smaller centered portion of the screen.\nUseful to get the low latency of full screen with a smaller game resolution.
 Options_Graphics_LetterboxPositionX=Horizontal position:
 Options_Graphics_LetterboxPositionY=Vertical position:
+Options_Graphics_EnableBlur=Enable blur
+Options_Graphics_BlurQuality=Blur quality
+Options_Graphics_UISkin=UI Skin:
+Options_Graphics_CopyScreenshot=Copy screenshots to clipboard
 
 Options_Audio_Volume=Volume
 Options_Audio_Effect=Effect:

@@ -5,6 +5,7 @@ local t = {
 	originalMetadata = false,
 	scoreSystem = "soundsphere",
 	judgement = 0,
+	copyScreenshotToClipboard = true,
 	cursor = {
 		size = 1,
 		showTrail = true,

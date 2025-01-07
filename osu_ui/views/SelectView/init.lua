@@ -201,6 +201,7 @@ function View:load()
 
 	self.selectApi:listenForNotechartChanges(function()
 		self.displayInfo:updateInfo()
+		self:updateModsLine()
 		self.notechartChangeTime = love.timer.getTime()
 	end)
 

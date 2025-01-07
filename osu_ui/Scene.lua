@@ -239,11 +239,33 @@ function Scene:reload()
 	self.fontManager:setVieportHeight(self.viewport.height)
 end
 
+function Scene:makeScreenshot()
+	local canvas = self:getViewport().canvas
+	local image = canvas:newImageData()
+	local path = ("userdata/screenshots/screenshot %s.jpg"):format(os.date("%d.%m.%Y %H-%M-%S", os.time()))
+	image:encode("png", path)
+	image:release()
+
+	local configs = self.ui.selectApi:getConfigs()
+	if not configs.osu_ui.copyScreenshotToClipboard then
+		return
+	end
+
+	local full_path = path_util.join(love.filesystem.getSource(), path)
+
+	-- https://wiki.libsdl.org/SDL3/SDL_SetClipboardData
+	if love.system.getOS() == "Windows" then
+		os.execute(([[powershell -command "Set-Clipboard -Path '%s'"]]):format(full_path))
+	elseif love.system.getOS() == "Linux" then
+		os.execute(([[wl-copy < "%s"]]):format(full_path))
+	end
+end
+
 ---@param event table
 function Scene:keyPressed(event)
 	local key = event[2]
 	if key == "f12" and not event[3] then
-		self.game.app.screenshotModel:capture(false)
+		self:makeScreenshot()
 	end
 end
 

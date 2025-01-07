@@ -161,7 +161,7 @@ function Filters:load()
 
 	self:addOption(text.FiltersModal_ResetFilters, self.buttonColors.red, function ()
 	end)
-	self:addOption(text.General_Cancel, self.buttonColors.cancel, function ()
+	self:addOption(text.General_Cancel, self.buttonColors.gray, function ()
 		self:close()
 	end)
 end

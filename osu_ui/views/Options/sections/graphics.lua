@@ -6,8 +6,15 @@ return function(section)
 	local osu = configs.osu_ui ---@cast osu osu.ui.OsuConfig
 	local ui = section.options.ui
 
+	local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
+	local text = scene.localization.text
+
 	section:group("GRAPHICS", function(group)
-		group:checkbox({ label = "Enable blur",
+		group:checkbox({
+			label = text.Options_Graphics_CopyScreenshot,
+			key = { osu, "copyScreenshotToClipboard" }
+		})
+		group:checkbox({ label = text.Options_Graphics_EnableBlur,
 			getValue = function ()
 				return osu.graphics.blur
 			end,
@@ -17,7 +24,7 @@ return function(section)
 			end
 		})
 
-		group:slider({ label = "Blur quality", min = 0.1, max = 0.7, step = 0.01,
+		group:slider({ label = text.Options_Graphics_BlurQuality, min = 0.1, max = 0.7, step = 0.01,
 			getValue = function()
 				return osu.graphics.blurQuality
 			end,
@@ -28,6 +35,7 @@ return function(section)
 
 		local skins = ui.assetModel:getOsuSkins()
 		group:combo({
+			label = text.Options_Graphics_UISkin,
 			items = skins,
 			getValue = function ()
 				return osu.skin
@@ -48,7 +56,6 @@ return function(section)
 				end
 				return v
 			end
-
 		})
 	end)
 end

@@ -36,7 +36,7 @@ function BeatmapOptions:load()
 	self:addOption(text.SongSelection_OpenInFileManager, self.buttonColors.purple, function ()
 		select_api:openChartDirectory()
 	end)
-	self:addOption(text.General_Cancel, self.buttonColors.cancel, function ()
+	self:addOption(text.General_Cancel, self.buttonColors.gray, function ()
 		self:close()
 	end)
 end
