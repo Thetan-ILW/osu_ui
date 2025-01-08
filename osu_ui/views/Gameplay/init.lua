@@ -49,7 +49,7 @@ function View:transitIn()
 
 	self.alpha = 0
 	flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
-	flux.to(self.scene.background, 1, { dim = 0.8 }):ease("quadout")
+	flux.to(self.scene.background, 1, { dim = self.backgroundDim }):ease("quadout")
 
 	self.gameplayApi:start()
 	self.disabled = false
@@ -114,6 +114,7 @@ function View:load()
 	self.gameplayApi = scene.ui.gameplayApi
 	local configs = self.selectApi:getConfigs()
 	self.configs = configs
+	self.backgroundDim = configs.settings.graphics.dim.gameplay
 
 	self.state = "play"
 	self.introSkipped = false

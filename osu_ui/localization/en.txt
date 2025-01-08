@@ -29,6 +29,32 @@ Options_Graphics_BlurQuality=Blur quality
 Options_Graphics_UISkin=UI Skin:
 Options_Graphics_CopyScreenshot=Copy screenshots to clipboard
 
+FunSpoiler_BackgroundDim=Background dim:
+Options_Gameplay_ScrollSpeed=Scroll Speed
+Options_Gameplay_ScrollSpeedLol=Scroll Speed:
+Options_Gameplay_ScrollSpeedType=Scroll speed type:
+Options_Gameplay_TempoFactor=Tempo factor
+Options_Gameplay_Average=Average
+Options_Gameplay_Primary=Primary
+Options_Gameplay_Minimum=Minimum
+Options_Gameplay_Maximum=Maximum
+Options_Gameplay_PrimaryTempo=Primary tempo:
+Options_Gameplay_ConstantScrollSpeed=Constant scroll speed
+Options_Gameplay_ScaleScrollSpeedWithRate=Scale scroll speed with rate
+
+Options_Gameplay_Scoring=Scoring
+Options_Gameplay_ScoreSystem=Score system:
+Options_Gameplay_Judgement=Judgement:
+Options_Gameplay_NearestInput=Nearest input
+
+Options_Gameplay_Health=Health
+Options_Gameplay_ActionOnFail=Action on fail:
+Options_Gameplay_ActionNone=None
+Options_Gameplay_ActionPause=Pause
+Options_Gameplay_ActionQuit=Quit
+Options_Gameplay_MaxHealth=Max health:
+Options_Gameplay_AutoShift=Auto shift
+
 Options_Audio_Volume=Volume
 Options_Audio_Effect=Effect:
 Options_Audio_Master=Master:
