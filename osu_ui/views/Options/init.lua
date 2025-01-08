@@ -167,6 +167,11 @@ function Options:load()
 		require("osu_ui.views.Options.sections.skin")
 	)
 	self:newSection(
+		self.text.Options_TabInput:upper(),
+		"",
+		require("osu_ui.views.Options.sections.input")
+	)
+	self:newSection(
 		self.text.Options_TabMaintenance:upper(),
 		"",
 		require("osu_ui.views.Options.sections.maintenance")
