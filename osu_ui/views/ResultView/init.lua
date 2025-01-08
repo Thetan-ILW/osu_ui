@@ -435,6 +435,70 @@ function View:load(score_loaded)
 		end
 	}))
 
+	self.modIcons = area:addChild("modIconsContainer", Component({
+		x = width - 32,
+		y = 448,
+		origin = { x = 1 },
+		z = 0.7
+	}))
+	local added_mods = 0
+
+	local function addModIcon(image)
+		self.modIcons:addChild(tostring(added_mods), Image({
+			x = added_mods * -34,
+			origin = { x = 0.5, y = 0.5 },
+			image = image,
+		}))
+		added_mods = added_mods + 1
+	end
+
+	local mods = self.selectApi:getPlayContext().modifiers
+	local empty_image = assets.emptyImage()
+	for i, mod in ipairs(mods) do
+		local id = mod.id
+		local img_path ---@type string?
+
+		if id == 9 then
+			img_path = "selection-mod-nln"
+		elseif id == 11 then
+			img_path = ("selection-mod-key%i"):format(mod.value)
+		elseif id == 16 then
+			img_path = ("selection-mod-mirror")
+		elseif id == 17 then
+			img_path = ("selection-mod-random")
+		elseif id == 19 and mod.value == 3 then
+			img_path = ("selection-mod-fln3")
+		end
+
+		if img_path then
+			local image = assets:loadImage(img_path)
+			if image ~= empty_image then
+				addModIcon(image)
+			end
+		end
+	end
+
+	if display_info.timeRate == 1.5 then
+		addModIcon(assets:loadImage("selection-mod-doubletime"))
+	elseif display_info.timeRate == (1.5 * 1.5) then
+		local dt = assets:loadImage("selection-mod-doubletime")
+		addModIcon(dt)
+		addModIcon(dt)
+	elseif display_info.timeRate == 0.75 then
+		addModIcon(assets:loadImage("selection-mode-halftime"))
+	end
+
+	local judge_name = display_info.judgeName
+	if judge_name == "Etterna J4" then
+		addModIcon(assets:loadImage("selection-mod-j4"))
+	elseif judge_name == "Etterna J7" then
+		addModIcon(assets:loadImage("selection-mod-j7"))
+	elseif judge_name:find("osu!mania") then
+		addModIcon(assets:loadImage("selection-mod-scorev2"))
+	end
+
+	self.modIcons:autoSize()
+
 	---- FAKE BUTTONS ----
 	self:addChild("showChat", ImageButton({
 		x = width - 3, y = height + 1,

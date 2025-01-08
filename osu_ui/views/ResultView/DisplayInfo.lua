@@ -61,6 +61,8 @@ function DisplayInfo:load()
 	self.osuDiff = 0
 	self.lnPercent = 0
 	self.manipFactorPercent = 0
+	self.timeRate = 1
+	self.judgeName = ""
 
 	if self.chartview and self.chartdiff and self.scoreItem then
 		self:getDifficulty()
@@ -122,6 +124,7 @@ function DisplayInfo:getChartInfo()
 
 	local title = ("%s - %s"):format(chartview.artist, chartview.title)
 	local rate = self.playContext.rate
+	self.timeRate = rate
 
 	if osu.result.difficultyAndRate then
 		if chartview.name and rate == 1 then
@@ -225,6 +228,7 @@ function DisplayInfo:getStats()
 	self.combo = base.maxCombo
 	self.accuracy = judge.accuracy
 	self.score = judge.score or self.judgements["osu!legacy OD9"].score or 0
+	self.judgeName = judge.judgeName
 
 	local chartdiff = self.chartdiff
 	if chartdiff then
@@ -239,7 +243,7 @@ function DisplayInfo:getStats()
 	self.normalScore = normalscore.accuracyAdjusted
 	self.mean = normalscore.normalscore.mean
 
-	if self.manipFactor then
+	if self.manipFactor and self.keyMode == "4K" then
 		self.manipFactorPercent = self.manipFactor(score_system.hits)
 	end
 end
