@@ -50,7 +50,6 @@ function UserInterface:load()
 	self.scene = scene
 
 	love.mouse.setVisible(false)
-	love.window.setMode(1366, 768)
 end
 
 function UserInterface:unload()

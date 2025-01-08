@@ -14,8 +14,9 @@ function BeatmapOptions:load()
 	local select_api = scene.ui.selectApi
 	local chartview = select_api:getChartview()
 
+	local chart_name = chartview and ("%s - %s [%s]"):format(chartview.artist, chartview.title, chartview.name) or "No chart selected"
 	self:initModal(text.SongSelection_ThisBeatmap:format(
-		("%s - %s [%s]"):format(chartview.artist, chartview.title, chartview.name)
+		chart_name
 	))
 
 	self:addOption(text.SongSelection_Collection, self.buttonColors.green, function ()

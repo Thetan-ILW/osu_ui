@@ -10,6 +10,7 @@ local Button = require("osu_ui.ui.Button")
 local BackButton = require("osu_ui.ui.BackButton")
 local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
+local PlayerInfo = require("osu_ui.views.PlayerInfoView")
 
 local thread = require("thread")
 local Rectangle = require("ui.Rectangle")
@@ -110,15 +111,17 @@ function View:load(score_loaded)
 
 	local assets = scene.assets
 	local fonts = scene.fontManager
+	self.fonts = fonts
 
 	local width, height = self.width, self.height
 
 	local area = self:addChild("scrollArea", ScrollAreaContainer({
-		scrollLimit = 768,
+		scrollLimit = 768 - 96,
 		width = width,
 		height = height * 2
 	}))
 	---@cast area osu.ui.ScrollAreaContainer
+	self.area = area
 
 	self:addChild("scrollBar", ScrollBar({
 		x = width - 13, startY = 99,
@@ -462,7 +465,7 @@ function View:load(score_loaded)
 		color = { 0.46, 0.09, 0.8, 1 },
 		z = 0.95,
 		onClick = function ()
-			area:scrollToPosition(768, 0)
+			area:scrollToPosition(768 - 96, 0)
 		end
 	}))
 	---@cast online_ranking osu.ui.Button
@@ -474,7 +477,7 @@ function View:load(score_loaded)
 	end
 
 	if #assets.menuBackFrames == 0 then
-		area:addChild("backButton", BackButton({
+		self:addChild("backButton", BackButton({
 			y = height - 58,
 			assets = assets,
 			text = "back",
@@ -495,6 +498,212 @@ function View:load(score_loaded)
 			z = 1
 		}))
 	end
+
+	local rd_left = area:addChild("rankingDialogLeft", Image({
+		image = assets:loadImage("ranking-dialog-left"),
+		y = 768,
+		color = { 1, 1, 1, 0.9 }
+	}))
+
+	local rd_right = area:addChild("rankingDialogRight", Image({
+		image = assets:loadImage("ranking-dialog-right"),
+		origin = { x = 1 },
+		x = width,
+		y = 768,
+		color = { 1, 1, 1, 0.9 }
+	}))
+
+	local rd_middle_image = assets:loadImage("ranking-dialog-middle")
+	area:addChild("rankingDialogMiddle", Image({
+		x = rd_left:getWidth(),
+		y = 768,
+		image = rd_middle_image,
+		scaleX = (width - rd_left:getWidth() - rd_right:getWidth()) / rd_middle_image:getWidth(),
+		color = { 1, 1, 1, 0.9 }
+	}))
+
+	area:addChild("rankingRank", Label({
+		x = 408,
+		y = 768 + 12,
+		font = fonts:loadFont("Light", 30),
+		text = ("You achieved the #%i score on local rankings!"):format(display_info.rank),
+		shadow = true,
+		color = { 0.98, 0.8, 0.26, 1 },
+		z = 0.05,
+	}))
+
+	area:addChild("playerInfo", PlayerInfo({
+		x = 557, y = 768 + 102,
+		z = 0.05,
+		onClick = function ()
+		end
+	}))
+
+	self.accuracyTable = area:addChild("accuracyTable", Component({
+		x = 50,
+		y = 768 + 270,
+		z = 0.02
+	}))
+	self:addAccuracyColumn("osu!legacy", "OD", 0, 6, { 1, 0.95, 0.9, 0.8, 0.7 } )
+	self:addAccuracyColumn("osu!mania", "OD",  154, 6, { 1, 0.95, 0.9, 0.8, 0.7 } )
+	self:addAccuracyColumn("Etterna", "J",  (154 * 2), 3, { 1, 0.93, 0.85, 0.8, 0.7 } )
+	self:addAccuracyColumn("LR2", {"Easy", "Normal", "Hard", "Very hard" }, (154 * 3), 0, { 1, 0.93, 0.85, 0.8, 0.7 } )
+
+	self.statTable = area:addChild("statTable", Component({
+		x = width - 50,
+		y = 768 + 325,
+		origin = { x = 1 },
+		z = 0.01,
+	}))
+	self:addStat("pp", 0, "Performance", ("%i PP"):format(display_info.pp))
+	self:addStat("spam", -114, "Spam", ("%ix\n%i%%"):format(display_info.spam, display_info.spamPercent * 100))
+	self:addStat("normalScore", -(114 * 2), "NS", ("%0.02f"):format(display_info.normalScore * 1000))
+	self:addStat("mean", -(114 * 3), "Mean", ("%0.02fms"):format(display_info.mean * 1000))
+	self:addStat("keyMode", -(114 * 4), "Key Mode", display_info.keyMode)
+	self.statTable:autoSize()
+end
+
+local table_colors = {
+	{ 0.6, 0.8, 1, 1 },
+	{ 0.95, 0.796, 0.188, 1 },
+	{ 0.07, 0.8, 0.56, 1 },
+	{ 0, 0.7, 0.32, 1 },
+	{ 0.1, 0.7, 1, 1 },
+	{ 1, 0.1, 0.7, 1 },
+}
+
+local score_system_name_alias = {
+	["osu!legacy"] = "osu!mania",
+	["osu!mania"] = "osu!mania V2",
+	["LR2"] = "Lunatic Rave 2"
+}
+
+local function getAccuracyColor(x, ranges)
+	for i, v in ipairs(ranges) do
+		if x >= v then
+			return table_colors[i]
+		end
+	end
+
+	return table_colors[#table_colors]
+end
+
+---@param score_system_name string
+---@param score_system_postfix string | string[]
+---@param x number
+---@param judge_start number
+---@param accuracy_ranges number[]
+function View:addAccuracyColumn(score_system_name, score_system_postfix, x, judge_start, accuracy_ranges)
+	local score_system = self.resultApi:getScoreSystem()
+	local judgements = score_system.judgements
+
+	if not judgements then
+		return
+	end
+
+	local spacing_y = 2
+	local panel_h = 36
+
+	local scale = self.width / 1366
+	x = x * scale
+	local w = 150 * scale
+
+	self.accuracyTable:addChild(score_system_name .. "Label", Label({
+		x = x,
+		boxWidth = w,
+		alignX = "center",
+		font = self.fonts:loadFont("Bold", 15),
+		text = score_system_name_alias[score_system_name] or score_system_name,
+		z = 0.02
+	}))
+
+	local start_y = 25
+
+	for i = 1, 4, 1 do
+		local y = start_y + ((panel_h + spacing_y) * (i - 1))
+		self.accuracyTable:addChild("bg" .. score_system_name .. i, Rectangle({
+			x = x, y = y,
+			width = w,
+			height = panel_h,
+			color = { 0.16, 0.16, 0.16, 1 },
+			z = 0.01
+		}))
+
+		local judge = i + judge_start
+		local postfix ---@type string
+
+		if type(score_system_postfix) == "table" then
+			postfix = score_system_postfix[judge]
+		else
+			postfix = score_system_postfix .. judge
+		end
+
+		---@type number
+		local accuracy = judgements[("%s %s"):format(score_system_name, postfix)].accuracy
+
+		self.accuracyTable:addChild("od" .. score_system_name .. i, Label({
+			x = x + 5, y = y,
+			boxWidth = w,
+			boxHeight = panel_h,
+			alignX = "left",
+			alignY = "center",
+			font = self.fonts:loadFont("Regular", 15),
+			text = postfix,
+			shadow = true,
+			z = 0.02,
+		}))
+		self.accuracyTable:addChild("accuracy".. score_system_name .. i, Label({
+			x = x - 5, y = y,
+			boxWidth = w,
+			boxHeight = panel_h,
+			alignX = "right",
+			alignY = "center",
+			font = self.fonts:loadFont("Regular", 15),
+			text = ("%0.02f%%"):format(accuracy * 100),
+			shadow = true,
+			color = getAccuracyColor(accuracy, accuracy_ranges),
+			z = 0.02,
+		}))
+	end
+end
+
+---@param id string
+---@param x number
+---@param label string
+---@param value string
+function View:addStat(id, x, label, value)
+	local scale = self.width / 1366
+	x = x * scale
+	self.statTable:addChild(id .. "Bg", Rectangle({
+		x = x, y = 20,
+		width = 110 * scale,
+		height = 45,
+		color = { 0.16, 0.16, 0.16, 1 },
+		z = 0.01
+	}))
+
+	self.statTable:addChild(id .. "label", Label({
+		x = x,
+		boxWidth = 110 * scale,
+		alignX = "center",
+		alignY = "center",
+		font = self.fonts:loadFont("Bold", 15),
+		text = label,
+		shadow = true,
+		z = 0.02,
+	}))
+
+	self.statTable:addChild(id .. "value", Label({
+		x = x, y = 20,
+		boxWidth = 110 * scale,
+		boxHeight = 45,
+		alignX = "center",
+		alignY = "center",
+		font = self.fonts:loadFont("Regular", 15),
+		text = value,
+		shadow = true,
+		z = 0.02,
+	}))
 end
 
 return View

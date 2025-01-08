@@ -130,14 +130,14 @@ function PlayerInfoView:load()
 		image = assets:loadImage("user-bg"),
 		update = function(this)
 			local p = self.hoverState.progress
-			this.color = { bg * p, bg * p, bg * p, self.alpha }
+			this.color = { bg, bg, bg, self.alpha * p }
 		end,
 	}))
 	self:addChild("border", Image({
 		image = assets:loadImage("user-border"),
 		update = function(this)
 			local p = self.hoverState.progress
-			this.color = { bg * p, bg * p, bg * p, self.alpha }
+			this.color = { bg, bg, bg, self.alpha * p }
 		end,
 		z = 0.05
 	}))

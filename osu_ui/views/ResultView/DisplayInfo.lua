@@ -7,6 +7,9 @@ local Etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
 local Lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
 local Quaver = require("sphere.models.RhythmModel.ScoreEngine.QuaverScoring")
 
+local osuPP = require("osu_ui.osu_pp")
+local Format = require("sphere.views.Format")
+
 local Scoring = require("osu_ui.Scoring")
 
 ---@class osu.ui.ResultDisplayInfo
@@ -31,30 +34,11 @@ function DisplayInfo:load()
 	self.playContext = self.selectApi:getPlayContext()
 	self.scoreItem = self.resultApi:getScoreItem()
 
-	if self.chartview and self.chartdiff and self.scoreItem then
-		self:getDifficulty()
-		self:getChartInfo()
-	else
-		self:setDefaultChartView()
-	end
-
-	self:getJudgement()
-
-	if self.judgement then
-		self:getGrade()
-		self:getStats()
-	else
-		self:setJudgementDefaults()
-	end
-end
-
-function DisplayInfo:setDefaultChartView()
 	self.chartName = "No chart name - No chart name"
 	self.chartSource = "No chart source"
 	self.playInfo = "No play info"
-end
 
-function DisplayInfo:setJudgementDefaults()
+	self.rank = 0
 	self.score = 10000000
 	self.marvelous = 0
 	self.perfect = 0
@@ -65,6 +49,24 @@ function DisplayInfo:setJudgementDefaults()
 	self.accuracy = 0
 	self.combo = 0
 	self.grade = "D"
+	self.pp = 0
+	self.spam = 0
+	self.spamPercent = 0
+	self.normalScore = 0
+	self.keyMode = "None"
+	self.mean = 0
+
+	if self.chartview and self.chartdiff and self.scoreItem then
+		self:getDifficulty()
+		self:getChartInfo()
+	end
+
+	self:getJudgement()
+
+	if self.judgement then
+		self:getGrade()
+		self:getStats()
+	end
 end
 
 function DisplayInfo:getDifficulty()
@@ -189,6 +191,7 @@ function DisplayInfo:getStats()
 	local counters = judge.counters
 	local counter_names = judge.orderedCounters
 
+	self.rank = self.scoreItem.rank
 	self.marvelous = counters[counter_names[1]]
 	self.perfect = counters[counter_names[2]]
 	self.miss = counters["miss"]
@@ -204,10 +207,24 @@ function DisplayInfo:getStats()
 		self.bad = counters[counter_names[5]]
 	end
 
-	local base = self.resultApi:getScoreSystem()["base"]
+	local score_system = self.resultApi:getScoreSystem()
+	local base = score_system["base"]
 	self.combo = base.maxCombo
 	self.accuracy = judge.accuracy
 	self.score = judge.score or self.judgements["osu!legacy OD9"].score or 0
+
+	local chartdiff = self.chartdiff
+	if chartdiff then
+		self.pp = osuPP(base.notesCount, chartdiff.osu_diff, 9, self.score)
+		self.keyMode = Format.inputMode(chartdiff.inputmode)
+	end
+
+	self.spam = base.earlyHitCount
+	self.spamPercent = base.earlyHitCount / base.notesCount
+
+	local normalscore = score_system["normalscore"]
+	self.normalScore = normalscore.accuracyAdjusted
+	self.mean = normalscore.normalscore.mean
 end
 
 return DisplayInfo
