@@ -1,132 +1,113 @@
 local WindowListView = require("osu_ui.views.SelectView.Lists.WindowListView")
 
-local ui = require("osu_ui.ui")
-
 local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 
+---@alias ChartListViewParams { game: sphere.GameController, assets: osu.ui.OsuAssets }
+
 ---@class osu.ui.ChartListView : osu.ui.WindowListView
----@operator call: osu.ui.ChartListView
+---@overload fun(params: ChartListViewParams): osu.ui.ChartListView
 ---@field window osu.ui.WindowListChartItem[]
+---@field selectApi game.SelectAPI
 local ChartListView = WindowListView + {}
 
----@param game sphere.GameController
----@param assets osu.ui.OsuAssets
-function ChartListView:new(game, assets)
-	WindowListView.new(self)
-	self.game = game
+function ChartListView:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	local assets = scene.assets
+	local star = assets:loadImage("star2")
+
+	self.selectApi = scene.ui.selectApi
 	self.assets = assets
-	self.config = self.game.configModel.configs.osu_ui
+
+	local iw, ih = star:getDimensions()
+	if iw * ih > 1 then
+		local p = love.graphics.newParticleSystem(star, 200)
+		p:setParticleLifetime(0.4, 0.9)
+		p:setEmissionRate(50)
+		p:setDirection(math.pi)
+		p:setRadialAcceleration(400, 1700)
+		p:setSpin(-math.pi, math.pi)
+		p:setColors(1, 1, 1, 0.7, 1, 1, 1, 0)
+		p:setSpeed(1000)
+		p:setEmissionArea("normal", 20, 10, math.pi * 2, false)
+		self.particles = p
+	end
+
 	self.itemClass = ChartListItem
-
-	self.creationTime = love.timer.getTime()
-	self.unwrapStartTime = -math.huge
-	self.nextAutoScrollTime = 0
-	self.previewIcon = false
-
-	self.mouseAllowedArea = {
-		w = 908,
-		h = 598,
-		x = 502,
-		y = 82,
+	self.itemParams = {
+		background = assets:loadImage("menu-button-background"),
+		maniaIcon = assets:loadImage("mode-mania-small-for-charts"),
+		star = assets:loadImage("star"),
+		titleFont = fonts:loadFont("Regular", 22),
+		infoFont = fonts:loadFont("Regular", 16),
+		hoverSound = assets:loadAudio("menuclick"),
+		list = self
 	}
+	self.clickSound = assets:loadAudio("select-expand")
 
-	self.font = self.assets.localization.fontGroups.chartSetList
+	self.width, self.height = self.parent:getDimensions()
+	self:loadItems()
+end
 
-	local img = self.assets.images
-	local snd = self.assets.sounds
-	self.panelImage = img.listButtonBackground
-	self.maniaIcon = img.maniaSmallIconForCharts
-	self.starImage = img.star
-	self.hoverSound = snd.hoverMenu
-	self.selectSound = snd.selectChart
-	self:reloadItems()
+function ChartListView:loadItems()
+	local chartviews_table = self.selectApi:getConfigs().settings.select.chartviews_table
+	self.showScoreDate = chartviews_table == "chartplayviews"
+
+	WindowListView.loadItems(self)
 end
 
 function ChartListView:getSelectedItemIndex()
-	return self.game.selectModel.chartview_set_index
+	return self.selectApi:getSelectedNoteChartSetIndex()
 end
 
 function ChartListView:getItems()
-	return self.game.selectModel.noteChartSetLibrary.items
+	return self.selectApi:getNotechartSets()
 end
 
-function ChartListView:getChildSelectedItemIndex()
-	return 1
+function ChartListView:getStateCounter()
+	return self.selectApi:getNotechartSetStateCounter()
 end
 
-function ChartListView:getChildItemsCount()
-	return 1
-end
+function ChartListView:selectItem(child)
+	self.playSound(self.clickSound)
 
-function ChartListView:selectItem(visual_index)
-	if self.state == "locked" then
-		return
+	if self:getSelectedItemIndex() == child.visualIndex then
+		self.parent:playChart()
 	end
-
-	ui.playSound(self.selectSound)
-
-	if visual_index == self.selectedVisualItemIndex then
-		self.state = "item_selected"
-		return
-	end
-
-	self.game.selectModel:scrollNoteChartSet(nil, visual_index)
+	self.selectApi:setNotechartSetIndex(child.visualIndex)
+	self.parent:scrollToPosition(self.y + self:getSelectedItemIndex() * self.panelHeight, 0)
 end
 
 function ChartListView:replaceItem(window_index, visual_index)
 	local chart_set = self.items[visual_index]
 	local item = self.window[window_index]
-
 	item:replaceWith(chart_set)
 	item.visualIndex = visual_index
 end
 
----@param item osu.ui.WindowListChartItem
-function ChartListView:justHoveredOver(item)
-	ui.playSound(self.hoverSound)
-	item.flashColorT = 1
+function ChartListView:calcTotalHeight()
+	if not self.parentList then
+		WindowListView.calcTotalSize(self)
+		return
+	end
+	self.height = self.panelHeight * #self:getItems() * self.parentList.wrapProgress
 end
 
 function ChartListView:update(dt)
-	if self.windowSize == 0 then
-		return
+	if self.particles then
+		self.particles:setPosition(self.width, self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2)
+		self.particles:update(dt)
 	end
 
 	WindowListView.update(self, dt)
-	self:iterOverWindow(ChartListItem.applySetEffects, dt)
-	self.mouseOverIndex = -1
-
-	self.previewIcon = self.config.songSelect.previewIcon
 end
 
-local gfx = love.graphics
-
-function ChartListView:drawPanels(item, w, h)
-	local slide_in = ui.easeOutCubic(self.creationTime, 0.7)
-	local x, y = w - item.x - (540 * slide_in), item.y
-
-	local panel_w = ChartListItem.panelW
-	local panel_h = ChartListItem.panelH
-
-	if y < -panel_h or y > 768 then
-		return
-	end
-
-	self:checkForMouseActions(item, x, y, panel_w, panel_h)
-
-	gfx.push()
-	gfx.translate(x, y)
-	item:draw(self)
-	gfx.pop()
-end
-
-function ChartListView:draw(w, h)
-	if self.windowSize == 0 then
-		return
-	end
-
-	for i, item in ipairs(self.window) do
-		self:drawPanels(item, w, h)
+function ChartListView:draw()
+	WindowListView.draw(self)
+	if self.particles and self.parentList and self.parentList.wrapProgress ~= 0 then
+		local r, g, b, a = love.graphics.getColor()
+		love.graphics.setColor(r, g, b, a * self.parentList.wrapProgress)
+		love.graphics.draw(self.particles)
 	end
 end
 

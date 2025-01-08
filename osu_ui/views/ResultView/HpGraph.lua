@@ -1,13 +1,24 @@
-local class = require("class")
+local Component = require("ui.Component")
 
-local HpGraph = class()
+---@alias HpGraphParams { points: table, hpScoreSystem: table }
+
+---@class osu.ui.HpGraph : ui.Component
+---@overload fun(params: HpGraphParams): osu.ui.HpGraph
+---@field points table
+---@field hpScoreSystem table
+local HpGraph = Component + {}
 
 local colors = {
-	green = { 0.6, 0.8, 0.2 },
-	red = { 1, 0, 0 }
+	green = { 0.6, 0.8, 0.2, 1},
+	red = { 1, 0, 0, 1 }
 }
 
-function HpGraph:new(w, h, points, hp_score_system)
+function HpGraph:load()
+	local w = self.width
+	local h = self.height
+	local points = self.points
+	local hp_score_system = self.hpScoreSystem
+
 	local low_res = {}
 
 	for i, v in ipairs(points) do
@@ -59,8 +70,6 @@ function HpGraph:new(w, h, points, hp_score_system)
 			})
 		end
 	end
-
-	self.startTime = love.timer.getTime()
 end
 
 local gfx = love.graphics
@@ -68,6 +77,11 @@ local gfx = love.graphics
 function HpGraph:draw()
 	gfx.setLineWidth(4)
 	gfx.setLineStyle("smooth")
+	gfx.setLineJoin("miter")
+
+	local r, g, b, a = gfx.getColor()
+	colors.green[4] = a
+	colors.red[4] = a
 
 	local first = self.lines[1]
 	gfx.setColor(colors[first.color])
@@ -75,9 +89,7 @@ function HpGraph:draw()
 
 	for _, v in ipairs(self.lines) do
 		gfx.setColor(colors[v.color])
-		gfx.circle("fill", v.p1.x, v.p1.y, 2)
 		gfx.line(v.p1.x, v.p1.y, v.p2.x, v.p2.y)
-		gfx.circle("fill", v.p2.x, v.p2.y, 2)
 	end
 end
 

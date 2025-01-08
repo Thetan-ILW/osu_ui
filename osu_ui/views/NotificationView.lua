@@ -1,67 +1,52 @@
-local class = require("class")
+local Component = require("ui.Component")
+local Rectangle = require("ui.Rectangle")
+local Label = require("ui.Label")
 local flux = require("flux")
-local ui = require("osu_ui.ui")
-local Layout = require("osu_ui.views.OsuLayout")
 
----@class osu.ui.NotificationView
+---@class osu.ui.NotificationView : ui.Component
 ---@operator call: osu.ui.NotificationView
-local NotificationView = class()
+---@field assets osu.ui.OsuAssets
+local NotificationView = Component + {}
 
----@param assets osu.ui.OsuAssets
-function NotificationView:load(assets)
-	self.fonts = assets.localization.fontGroups.misc
-	self.animation = 0
-end
+function NotificationView:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.width = self.parent.width
+	self.height = self.height == 0 and 48 or self.height
+	self.origin = self.origin or { x = 0, y = 0.5 }
+	self.y = self.parent.height / 2
+	self.alpha = 0
 
-function NotificationView:createTween()
-	self.tween = flux.to(self, 0.6, { animation = 1 }):ease("elasticout"):oncomplete(function()
-		self.tween = flux.to(self, 0.3, { animation = 0 }):ease("quadout"):delay(1):oncomplete(function()
-			self.tween = nil
-		end)
-	end)
+	self.label = self:addChild("label", Label({
+		text = "",
+		font = scene.fontManager:loadFont("Regular", 24),
+		boxWidth = self.width,
+		boxHeight = self.height,
+		alignX = "center",
+		alignY = "center",
+		z = 0.1,
+	}))
+
+	self:addChild("rectangle", Rectangle({
+		width = self.width,
+		height = self.height,
+		color = { 0, 0, 0, 0.7 },
+		update = function(this)
+			local h = self.height * self.alpha
+			this.y = (self.height - h) / 2
+			this.height = h
+		end
+	}))
 end
 
 ---@param message string
----@param dont_stop_tween boolean?
-function NotificationView:show(message, dont_stop_tween)
-	dont_stop_tween = dont_stop_tween == nil and false or dont_stop_tween
-	if self.tween and not dont_stop_tween then
+function NotificationView:show(message)
+	if self.tween then
 		self.tween:stop()
-		self.tween = flux.to(self, 0.1, { animation = 0 }):ease("cubicout"):oncomplete(function()
-			self.text = message
-			self:createTween()
-		end)
-	else
-		if self.tween then
-			self.tween:stop()
-		end
-		self.text = message
-		self:createTween()
 	end
-end
-
-local gfx = love.graphics
-
-function NotificationView:draw()
-	if not self.text then
-		return
-	end
-
-	gfx.push()
-	Layout:draw()
-
-	local animation = self.animation
-
-	local w, h = Layout:move("base")
-	local rh = 48 * animation
-	local y = h / 2 - rh / 2
-	gfx.setColor(0, 0, 0, math.min(0.7 * animation, 0.7))
-	gfx.rectangle("fill", 0, y, w, rh)
-
-	gfx.setColor(1, 1, 1, animation)
-	gfx.setFont(self.fonts.notification)
-	ui.frame(self.text, 0, y, w, rh, "center", "center")
-	gfx.pop()
+	self.tween = flux.to(self, 0.6, { alpha = 1 }):ease("elasticout"):oncomplete(function()
+		self.tween = flux.to(self, 0.3, { alpha = 0 }):ease("quadout"):delay(1)
+	end)
+	self.label:replaceText(message)
 end
 
 return NotificationView

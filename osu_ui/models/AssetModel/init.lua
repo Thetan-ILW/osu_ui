@@ -16,7 +16,7 @@ function AssetModel:new(config_model, mount_path)
 	self.localizationsDir = path_util.join(mount_path, "osu_ui/localization")
 
 	self.fields = {}
-	self:loadLocalizationList()
+	--self:loadLocalizationList()
 end
 
 ---@param name string

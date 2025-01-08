@@ -1,68 +1,192 @@
-local UiElement = require("osu_ui.ui.UiElement")
-local HoverState = require("osu_ui.ui.HoverState")
+local Component = require("ui.Component")
+local HoverState = require("ui.HoverState")
+local Label = require("ui.Label")
+local DynamicLabel = require("ui.DynamicLabel")
+local Rectangle = require("ui.Rectangle")
 
-local ui = require("osu_ui.ui")
 local flux = require("flux")
 
----@class osu.ui.Combo : osu.ui.UiElement
----@operator call: osu.ui.Combo
----@field label love.Text?
----@field font love.Font
----@field labelColor number[]
+---@alias osu.ui.ComboParams { hoverColor: number[]?, borderColor: number[]?, items: any[], setValue: (fun(index: integer)), getValue: (fun(): any), format: (fun(value: any): string) }
+
+---@class osu.ui.Combo : ui.Component
+---@overload fun(params: osu.ui.ComboParams): osu.ui.Combo
+---@field font ui.Font?
+---@field items any[]
+---@field itemsText osu.ui.DynamicText[]
+---@field selectedText osu.ui.DynamicText
+---@field iconDown love.Text
+---@field iconRight love.Text
 ---@field hoverColor number[]
 ---@field borderColor number[]
----@field private defaultValue any?
----@field private valueChanged boolean
----@field private totalW number
----@field private totalH number
----@field private hover boolean
----@field private hoverIndex integer
----@field private onChange function
----@field private getValue fun(): any, table
----@field private format? fun(any): string
----@field private selected string
----@field private items any[]
----@field private icon love.Image
----@field private state "hidden" | "fade_in" | "open" | "fade_out"
----@field private visibility number
----@field private visibilityTween table?
----@field private headHoverState osu.ui.HoverState
----@field private headAnimation number
-local Combo = UiElement + {}
+---@field cellHeight number
+---@field minCellHeight number
+---@field setValue fun(index: integer)
+---@field getValue fun(): any
+---@field format? fun(any): string
+---@field state "hidden" | "fade_in" | "open" | "fade_out"
+---@field visibility number
+---@field visibilityTween table?
+local Combo = Component + {}
 
----@param assets osu.ui.OsuAssets
----@param params { label: string, font: love.Font, pixelWidth: number, pixelHeight: number, hoverColor: number[]?, borderColor: number[]?, defaultValue: any?, tip: string? }
----@param get_value function
----@param on_change function
----@param format function?
-function Combo:new(assets, params, get_value, on_change, format)
-	self.assets = assets
+local border_size = 2
+local black = { 0, 0, 0, 1 }
 
-	if params.label then
-		self.label = love.graphics.newText(params.font, params.label)
-	end
+function Combo:load()
+	self:assert(self.items, "No items provided")
+	self.cellHeight = self.height == 0 and 37 or self.height
 
-	self.font = params.font
-	self.totalW = params.pixelWidth
-	self.totalH = params.pixelHeight
-	self.hoverColor = params.hoverColor or { 0.72, 0.06, 0.46, 1 }
-	self.borderColor = params.borderColor or { 0, 0, 0, 1 }
-	self.defaultValue = params.defaultValue
-	self.valueChanged = false
-	self.tip = params.tip
-	self.onChange = on_change
-	self.getValue = get_value
-	self.format = format
-	self.selected = "! broken getValue() !"
-	self.icon = assets.images.dropdownArrow
+	local _, _, h = self:getPosAndSize()
+	self.minCellHeight = h + border_size * 2
+	self.height = self.minCellHeight
+
+	self.hoverColor = self.hoverColor or { 0.72, 0.06, 0.46, 1 }
+	self.borderColor = self.borderColor or { 0, 0, 0, 1 }
 	self.state = "hidden"
 	self.visibility = 0
-	self.changeTime = -math.huge
-	self.headHoverState = HoverState("quadout", 0.12)
-	self.headAnimation = 0
+
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	local assets = scene.assets
+
+	self.hoverSound = assets:loadAudio("click-short")
+	self.expandSound = assets:loadAudio("select-expand")
+	self.clickSound = assets:loadAudio("click-short-confirm")
+
+	local font = self.font or fonts:loadFont("Regular", 16)
+	local awesome_regular = fonts:loadFont("Awesome", 18)
+
+	self.fonts = fonts
+	self.font = font
+
+	local main = self:addChild("mainCell", Component({
+		width = self.width,
+		height = self.minCellHeight,
+		z = 0.2,
+	}))
+	main:addChild("mainCellLabel", DynamicLabel({
+		x = 3,
+		font = font,
+		height = main:getHeight(),
+		alignY = "center",
+		z = 1,
+		value = function ()
+			local value = self.getValue()
+			return self.format and self.format(value) or value
+		end
+	}))
+	main:addChild("mainCellArrow", Label({
+		boxWidth = main:getWidth() - 8,
+		boxHeight = main:getHeight(),
+		text = "",
+		font = awesome_regular,
+		alignX = "right",
+		alignY = "center",
+		z = 1,
+	}))
+	main:addChild("mainCellBackground", Rectangle({
+		width = main:getWidth(),
+		height = main:getHeight(),
+		color = { 0, 0, 0, 1 },
+		rounding = 4,
+		blockMouseFocus = true,
+		hoverState = HoverState("quadout", 0.12),
+		setMouseFocus = function(this, mx, my)
+			this.mouseOver = this.hoverState:checkMouseFocus(this.width, this.height, mx, my)
+		end,
+		noMouseFocus = function(this)
+			this.hoverState:loseFocus()
+			this.mouseOver = false
+		end,
+		update = function(this)
+			local h_color = self.hoverColor
+			this.color[1] = h_color[1] * this.hoverState.progress
+			this.color[2] = h_color[2] * this.hoverState.progress
+			this.color[3] = h_color[3] * this.hoverState.progress
+		end,
+		mouseClick = function(this)
+			if this.mouseOver then
+				self:processState("toggle")
+				return true
+			end
+			return false
+		end
+	}))
+	main:addChild("mainCellBorder", Rectangle({
+		width = main:getWidth(),
+		height = main:getHeight(),
+		rounding = 4,
+		mode = "line",
+		color = self.borderColor,
+		z = 1
+	}))
+
+	self:addItems()
 end
 
-local gfx = love.graphics
+function Combo:addItems()
+	local awesome_small = self.fonts:loadFont("Awesome", 15)
+
+	self:removeChild("items")
+	local items = self:addChild("items", Component({
+		width = self.width,
+		alpha = 0,
+		z = 0,
+		disabled = true,
+	}))
+
+	for i, v in ipairs(self.items) do
+		local cell = items:addChild("comboCell" .. i, Component({
+			width = items:getWidth(),
+			height = self.minCellHeight,
+			update = function(this)
+				this.y = self.visibility * (self.minCellHeight * i)
+			end
+		}))
+		cell:addChild("comboCellBackground", Rectangle({
+			width = cell:getWidth(),
+			height = cell:getHeight(),
+			rounding = 4,
+			color = black,
+			blockMouseFocus = true,
+			update = function(this)
+				this.color = (this.mouseOver and self.state ~= "fade_out") and self.hoverColor or black
+			end,
+			mouseClick = function(this)
+				if this.mouseOver then
+					self.playSound(self.clickSound)
+					self.setValue(i)
+					self:processState("close")
+					return true
+				end
+				return false
+			end
+		}))
+		cell:addChild("comboCellLabel", Label({
+			x = 15,
+			boxHeight = cell:getHeight(),
+			text = self.format and self.format(v) or tostring(v),
+			alignY = "center",
+			font = self.font,
+			z = 0.1,
+		}))
+		cell:addChild("mainCellArrow", Label({
+			x = 4,
+			boxHeight = self.minCellHeight,
+			text = "",
+			font = awesome_small,
+			alignY = "center",
+			color = black,
+			z = 0.1,
+		}))
+	end
+end
+
+function Combo:mousePressed()
+	if not self.mouseOver then
+		self:processState("close")
+	end
+	return false
+end
 
 ---@private
 function Combo:open()
@@ -71,8 +195,7 @@ function Combo:open()
 	end
 	self.visibilityTween = flux.to(self, 0.35, { visibility = 1 }):ease("cubicout")
 	self.state = "fade_in"
-	local sound = self.assets.sounds.selectExpand
-	ui.playSound(sound)
+	self.playSound(self.expandSound)
 end
 
 function Combo:close()
@@ -93,6 +216,7 @@ function Combo:processState(event)
 
 	if state == "hidden" then
 		if event == "open" then
+			self.children.items.disabled = false
 			self:open()
 		end
 	elseif state == "fade_in" then
@@ -109,6 +233,7 @@ function Combo:processState(event)
 	elseif state == "fade_out" then
 		if self.visibility == 0 then
 			self.state = "hidden"
+			self.children.items.disabled = true
 		end
 		if event == "open" then
 			self:open()
@@ -116,135 +241,40 @@ function Combo:processState(event)
 	end
 end
 
+function Combo:justHovered()
+	self.playSound(self.hoverSound)
+end
+
 function Combo:getPosAndSize()
 	local x = 0
-
-	if self.label then
-		x = self.label:getWidth() * math.min(ui.getTextScale(), 1)
-	end
-
-	local w = self.totalW - x - 24
-	local h = math.floor(self.totalH / 1.5)
-
+	local w = self.width - x - (border_size * 2)
+	local h = math.floor(self.cellHeight / 1.5)
 	return x, w, h
 end
 
-function Combo:update(has_focus)
-	self:processState()
-	local selected, items = self.getValue()
-	self.selected = self.format and self.format(selected) or tostring(selected)
-	self.items = items
-
-	local just_hovered = false
-	self.hover, self.headAnimation, just_hovered = self.headHoverState:check(self.totalW, self.totalH, 0, 0, has_focus)
-
-	if not has_focus then
-		return
-	end
-
-	if self.defaultValue ~= nil then
-		self.valueChanged = selected ~= self.defaultValue
-	end
-
-	self.hoverIndex = 0
-
-	if self.state ~= "hidden" then
-		local x, w, h = self:getPosAndSize()
-		for i, _ in ipairs(self.items) do
-			self.hoverIndex = ui.isOver(w, h, x, (self.totalH - h) + h * i) and i or self.hoverIndex
-		end
-	end
-
+function Combo:loseFocus()
 	if self.state == "open" or self.state == "fade_in" then
-		if self.hoverIndex ~= 0 and ui.mousePressed(1) then
-			self.onChange(self.items[self.hoverIndex])
-			self.changeTime = love.timer.getTime()
-			ui.resetJust()
-			self:processState("close")
-		end
-	end
-
-	if self.hover then
-		ui.tooltip = self.tip
-	end
-
-	if self.hover and ui.mousePressed(1) then
-		self:processState("toggle")
-	elseif not self.hover and ui.mousePressed(1) then
 		self:processState("close")
 	end
+end
 
-	if just_hovered then
-		ui.playSound(self.assets.sounds.hoverOverRect)
+function Combo:mouseClick()
+	if not self.mouseOver and (self.state == "open" or self.state == "fade_in") then
+		self:processState("close")
+		return false
 	end
+	return false
 end
 
-function Combo:isFocused()
-	return self.hoverIndex ~= 0
-end
+function Combo:update()
+	self:processState()
 
-local black = { 0, 0, 0, 1 }
-local mix = { 0, 0, 0, 1 }
+	local height = math.max(self.minCellHeight, (#self.items + 1) * (self.minCellHeight * self.visibility))
+	self.height = height
 
-function Combo:draw()
-	gfx.setColor(1, 1, 1)
-	if self.label then
-		ui.textFrame(self.label, 0, 0, self.totalW, self.totalH, "left", "center")
-	end
-	self:drawHead()
-end
-
-function Combo:drawHead()
-	gfx.setFont(self.font)
-	gfx.push()
-
-	local x, w, h = self:getPosAndSize()
-	gfx.translate(x + 12, 0)
-
-	local y = self.totalH / 2 - h / 2
-
-	gfx.setLineWidth(2)
-	gfx.setColor(self.borderColor)
-	gfx.rectangle("line", 0, y, w, h, 4)
-
-	local color = self.hoverColor
-	mix[1] = color[1] * self.headAnimation
-	mix[2] = color[2] * self.headAnimation
-	mix[3] = color[3] * self.headAnimation
-	gfx.setColor(mix)
-	gfx.rectangle("fill", 0, y, w, h, 4)
-
-	gfx.setColor(1, 1, 1)
-	ui.frame(self.selected, 2, y, w, h, "left", "center")
-
-	y = self.totalH / 2 - self.icon:getHeight() / 2
-	gfx.translate(w - 25, y)
-	gfx.draw(self.icon)
-
-	gfx.pop()
-
-	gfx.translate(0, self.totalH)
-end
-
-function Combo:drawBody()
-	gfx.setFont(self.font)
-	gfx.push()
-	local x, w, h = self:getPosAndSize()
-	gfx.translate(x + 12, (self.totalH - h) / 2 + 2)
-
-	for i, v in ipairs(self.items) do
-		gfx.translate(0, h * self.visibility)
-		local color = self.hoverIndex == i and self.hoverColor or black
-		gfx.setColor(color[1], color[2], color[3], self.visibility)
-		gfx.rectangle("fill", 0, 0, w, h, 4)
-		gfx.setColor(0, 0, 0, self.visibility)
-		gfx.draw(self.icon, 8, h / 2, -math.pi / 2, 0.7, 0.7, self.icon:getWidth() / 2, self.icon:getHeight() / 2)
-		gfx.setColor(1, 1, 1, self.visibility)
-		ui.frame(self.format and self.format(v) or tostring(v), 15, 0, w, h, "left", "center")
-	end
-	gfx.pop()
-
-	self:drawHead()
+	local items_container = self.children.items
+	items_container.alpha = self.visibility
+	items_container.height = height
 end
 
 return Combo

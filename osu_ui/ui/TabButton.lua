@@ -1,70 +1,74 @@
-local UiElement = require("osu_ui.ui.UiElement")
-local HoverState = require("osu_ui.ui.HoverState")
+local Component = require("ui.Component")
+local Label = require("ui.Label")
+local Image = require("ui.Image")
 
-local ui = require("osu_ui.ui")
+---@alias osu.ui.TabButtonParams { text: string, font: love.Font?, image: love.Image, tabColor: number[] }
 
----@class osu.ui.TabButton : osu.ui.UiElement
----@operator call: osu.ui.TabButton
----@field private transform love.Transform
----@field private image love.Image
----@field private hoverSound audio.Source
----@field private clickSound audio.Source
----@field private label love.Text
----@field private onClick function
----@field private hoverState osu.ui.HoverState
+---@class osu.ui.TabButton : ui.Component
+---@overload fun(params: osu.ui.TabButtonParams): osu.ui.TabButton
+---@field text string
+---@field onClick function
 ---@field active boolean
-local TabButton = UiElement + {}
+---@field tabColor number[]
+local TabButton = Component + {}
 
----@param assets osu.ui.OsuAssets
----@param params { label: string, font: love.Font, transform: love.Transform }
----@param on_click function
-function TabButton:new(assets, params, on_click)
-	self.transform = params.transform
-	self.image = assets.images.tab
-	self.label = love.graphics.newText(params.font, params.label)
-	self.hoverSound =  assets.sounds.hoverOverRect
-	self.clickSound =  assets.sounds.clickShortConfirm
-	self.totalW, self.totalH = self.image:getDimensions()
-	self.hoverState = HoverState("quadout", 0.3)
-	self.active = false
-	self.onClick = on_click
+function TabButton:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	local assets = scene.assets
+
+	local image = assets:loadImage("selection-tab")
+	self.width = 143
+	self.height = image:getHeight()
+	self.active = self.active or false
+	self.tabColor = self.tabColor or { 0.86, 0.08, 0.23, 1 }
+	self.blockMouseFocus = true
+	self.hoverSound = assets:loadAudio("click-short")
+	self.clickSound = assets:loadAudio("click-short-confirm")
+
+	self.image = self:addChild("image", Image({
+		image = image
+	}))
+
+	self.font = self.font or fonts:loadFont("Regular", 13)
+	self.label = self:addChild("label", Label({
+		boxWidth = self.width,
+		boxHeight = self.height,
+		alignX = "center",
+		alignY = "center",
+		text = self.text,
+		font = self.font,
+		z = 1,
+	}))
 end
 
-local gfx = love.graphics
+function TabButton:justHovered()
+	self.playSound(self.hoverSound)
+end
 
-function TabButton:mouse()
-	gfx.push()
-	gfx.applyTransform(self.transform)
-	local hover ---@type boolean
-	local alpha
-	local just_hovered ---@type boolean
-	hover, alpha, just_hovered = self.hoverState:check(self.totalW, self.totalH)
-	gfx.pop()
-
-	if just_hovered then
-		ui.playSound(self.hoverSound)
-	end
-
-	if hover and ui.mousePressed(1) then
-		ui.playSound(self.clickSound)
+function TabButton:mousePressed()
+	if self.mouseOver then
+		self.playSound(self.clickSound)
 		self.onClick()
 		return true
 	end
-
 	return false
 end
 
-local inactive = { 0.86, 0.08, 0.23 }
-local active = { 1, 1, 1 }
+local active = { 1, 1, 1, 1 }
+local text_inactive = { 1, 1, 1, 1 }
+local text_active = { 0, 0, 0, 1 }
 
-function TabButton:draw()
-	gfx.push()
-	gfx.applyTransform(self.transform)
-	gfx.setColor(self.active and active or inactive)
-	gfx.draw(self.image)
-	gfx.setColor(1, 1, 1)
-	ui.textFrameShadow(self.label, 0, 2, 137, 21, "center", "center")
-	gfx.pop()
+function TabButton:update()
+	if self.active then
+		self.label.color = text_active
+		self.label.shadow = self.font.dpiScale == 2
+		self.image.color = active
+	else
+		self.label.color = text_inactive
+		self.label.shadow = false
+		self.image.color = self.tabColor
+	end
 end
 
 return TabButton

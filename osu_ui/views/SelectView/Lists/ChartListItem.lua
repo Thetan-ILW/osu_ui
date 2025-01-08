@@ -1,6 +1,5 @@
 local ListItem = require("osu_ui.views.SelectView.Lists.ListItem")
 
-local ui = require("osu_ui.ui")
 local math_util = require("math_util")
 local Format = require("sphere.views.Format")
 local getModifierString = require("osu_ui.views.modifier_string")
@@ -13,19 +12,23 @@ local getModifierString = require("osu_ui.views.modifier_string")
 ---@field stars number
 ---@field isChart boolean
 ---@field chartIndex number?
+---@field maniaIcon love.Image
+---@field lamp boolean
 local ChartItem = ListItem + {}
-
-function ChartItem:new(chart)
-	if chart then
-		self:replaceWith(chart)
-	end
-end
 
 ---@param chart table
 function ChartItem:replaceWith(chart)
 	ListItem.replaceWith(self)
 
-	self.title = chart.title or "Invalid title"
+	self.title = chart.title
+
+	if not self.title then
+		self.title = ("%s | %s"):format(chart.chartfile_name or "", chart.set_name or "")
+		self.secondRow = "PRESS F5, this chart is not cached for some reason"
+		self.thirdRow = chart.dir
+		self.stars = 0
+		return
+	end
 
 	if chart.format == "sm" then
 		self.secondRow = ("%s // %s"):format(chart.artist, chart.set_dir)
@@ -46,97 +49,50 @@ function ChartItem:replaceWith(chart)
 		self.thirdRow = ("%s (%s)"):format(chart.name, Format.inputMode(chart.inputmode))
 	end
 
-	self.stars = math.min(chart.osu_diff or 0, 10)
-	self.isChart = false
-	self.chartIndex = -1
-end
-
----@param list osu.ui.ChartListView
----@param dt number
-function ChartItem:applySetEffects(list, dt)
-	local panel_h = ListItem.panelH
-
-	local selected_visual_index = list.selectedVisualItemIndex
-	local set_items_count = list:getChildItemsCount() - 1
-
-	local smooth_scroll = list.smoothScroll
-	local window_size = list.windowSize
-
-	local unwrap = ListItem.getUnwrap(list.unwrapStartTime)
-
-	local actual_visual_index = self.visualIndex
-	if self.visualIndex > list.selectedVisualItemIndex then
-		actual_visual_index = actual_visual_index + (set_items_count * unwrap)
+	if self.list.showScoreDate and chart.score_time then
+		self.thirdRow = ("%s %s"):format(self.thirdRow, os.date("%d.%m.%Y", chart.score_time))
 	end
 
-	local hover = self:applyHover(dt)
-	local slide = self:applySlide(actual_visual_index, list.smoothScroll + list.windowSize / 2, dt)
-	local selected = self:applySelect(self.visualIndex == selected_visual_index, dt)
-	self:applyFlash(dt)
-
-	local x = hover * 20 - slide
-	self.x = x + selected * 84
-
-	local scroll = (actual_visual_index - (smooth_scroll + window_size / 2)) * panel_h
-	scroll = scroll + panel_h * (window_size / (window_size / 4)) - panel_h / 3
-
-	self.y = scroll
-end
-
----@param list osu.ui.ChartListView
----@param dt number
-function ChartItem:applyChartEffects(list, dt)
-	local panel_h = ListItem.panelH
-
-	local smooth_scroll = list.smoothScroll
-	local window_size = list.windowSize
-
-	local unwrap = ListItem.getUnwrap(list.unwrapStartTime)
-	local actual_visual_index = list.selectedVisualItemIndex + ((self.chartIndex - 1) * unwrap)
-
-	local hover = self:applyHover(dt)
-	local slide = self:applySlide(actual_visual_index, list.smoothScroll + list.windowSize / 2, dt)
-	local selected = self:applySelect(true, dt)
-	self:applyColor(self.chartIndex == list.game.selectModel.chartview_index, dt)
-	self:applyFlash(dt)
-
-	local x = hover * 20 - slide
-	self.x = x + selected * 84
-
-	local scroll = (actual_visual_index - (smooth_scroll + window_size / 2)) * panel_h
-	scroll = scroll + panel_h * (window_size / (window_size / 4)) - panel_h / 3
-
-	self.y = scroll
+	self.stars = math.min(chart.osu_diff or 0, 10)
+	self.lamp = chart.lamp
 end
 
 local gfx = love.graphics
+local lamp_color = { 0.99, 0.98, 0.44, 1 }
 
-function ChartItem:drawChartPanel(list, panel_color, text_color)
+function ChartItem:drawChartPanel(pc, tc)
+	local r, g, b, a = gfx.getColor()
+
 	gfx.push()
-	gfx.setColor(panel_color)
-	gfx.draw(list.panelImage, 0, 52, 0, 1, 1, 0, list.panelImage:getHeight() / 2)
+	gfx.setColor(pc[1], pc[2], pc[3], pc[4] * a)
+	gfx.draw(self.background, 0, self.height / 2, 0, 1, 1, 0, self.background:getHeight() / 2)
 
-	local preview_icon_w = list.previewIcon and 115 or 0
-	gfx.setColor(text_color)
-	gfx.translate(20 + preview_icon_w, 12)
-	gfx.draw(list.maniaIcon)
+	local preview_icon_w = self.list.previewIcon and 115 or 0
+	gfx.setColor(tc[1], tc[2], tc[3], tc[4] * a)
+	gfx.translate(20 + preview_icon_w, 5)
+	gfx.draw(self.maniaIcon)
 
+	local ts = 1 / self.titleFont.dpiScale
 	gfx.translate(40, -4)
-	gfx.setFont(list.font.title)
-	ui.text(self.title)
+	gfx.setFont(self.titleFont.instance)
+	gfx.print(self.title, 0, 0, 0, ts, ts)
 
-	gfx.setFont(list.font.secondRow)
-	gfx.translate(0, -2)
-	ui.text(self.secondRow)
-	gfx.translate(0, -2)
-	gfx.setFont(list.font.thirdRow)
-	ui.text(self.thirdRow)
+
+	gfx.setFont(self.infoFont.instance)
+	gfx.translate(0, 22)
+	gfx.print(self.secondRow, 0, 0, 0, ts, ts)
+	gfx.translate(0, 18)
+	gfx.print(self.thirdRow, 0, 0, 0, ts, ts)
 	gfx.pop()
 
-	local star = list.starImage
+	local star = self.star
 	local iw, ih = star:getDimensions()
 
-	gfx.translate(80 + preview_icon_w, ListItem.panelH - 10)
+	gfx.translate(80 + preview_icon_w, self.height - 17)
+
+	if self.lamp then
+		gfx.setColor(lamp_color)
+	end
 
 	for si = 0, 10, 1 do
 		if si >= self.stars then
@@ -147,42 +103,35 @@ function ChartItem:drawChartPanel(list, panel_color, text_color)
 
 		gfx.draw(star, 0, 0, 0, scale, scale, iw / 2, ih / 2)
 		gfx.translate(iw * 0.6, 0)
-		gfx.setColor(text_color)
 	end
 end
 
----@param list osu.ui.ChartSetListView | osu.ui.ChartListView
-function ChartItem:draw(list)
+
+function ChartItem:draw()
+	if not self:isVisible() then
+		return
+	end
+
 	local inactive_panel = ChartItem.inactivePanel
-	local inactive_chart = ChartItem.InactiveChart
 	local active_panel = ChartItem.activePanel
-	local inactive_text = list.assets.params.songSelectInactiveText
-	local active_text = list.assets.params.songSelectActiveText
+	local inactive_text = self.list.assets.params.songSelectInactiveText
+	local active_text = self.list.assets.params.songSelectActiveText
 
 	local main_color = inactive_panel
 
-	local ct = self.isChart and 1 - math.pow(1 - math.min(1, self.colorT), 3) or self.selectedT
+	local ct = self.selectedT
 
-	if self.isChart then
-		local unwrap = 1
-		if self.chartIndex ~= 1 then
-			unwrap = math.min(1, love.timer.getTime() - list.unwrapStartTime)
-			unwrap = 1 - math.pow(1 - math.min(1, unwrap), 4)
-		end
-
-		main_color = self.mixColors(inactive_chart, inactive_panel, ct)
-		main_color[4] = unwrap
-	end
-
-	local panel_color = self.mixColors(main_color, active_panel, ct)
+	local panel_color = self.mixTwoColors(main_color, active_panel, ct)
+	panel_color[4] = panel_color[4] * self.alpha
 
 	if self.flashColorT ~= 0 then
 		panel_color = self.lighten(panel_color, self.flashColorT * 0.3)
 	end
 
-	local text_color = self.mixColors(inactive_text, active_text, ct)
+	local text_color = self.mixTwoColors(inactive_text, active_text, ct)
+	text_color[4] = text_color[4] * self.alpha
 
-	self:drawChartPanel(list, panel_color, text_color)
+	self:drawChartPanel(panel_color, text_color)
 end
 
 return ChartItem

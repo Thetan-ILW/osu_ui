@@ -5,13 +5,14 @@ local t = {
 	originalMetadata = false,
 	scoreSystem = "soundsphere",
 	judgement = 0,
+	copyScreenshotToClipboard = true,
 	cursor = {
 		size = 1,
 		showTrail = true,
-		trailLifetime = 3,
-		trailDensity = 10,
-		trailMaxImages = 60,
-		trailStyle = "Vanishing"
+		trailLifetime = 6,
+		trailDensity = 27,
+		trailMaxImages = 210,
+		trailStyle = "Shrinking"
 	},
 	mainMenu = {
 		disableIntro = false,
@@ -33,8 +34,12 @@ local t = {
 		nativeResY = 0.5
 		--nativeResSize is defined in the gameplay settings!!!
 	},
+	graphics = {
+		blur = true,
+		blurQuality = 0.2,
+	},
 	uiVolume = 0.4,
-	vimMotions = false,
+	--[[vimMotions = false,
 	keybinds = {
 		quit = "escape",
 		increaseVolume = { mod = { "alt", "up" } },
@@ -112,7 +117,7 @@ local t = {
 		down10 = { mod = { "ctrl", "d" } },
 		toStart = { op = { "g", "g" } },
 		toEnd = { mod = { "shift", "g" } },
-	},
+	},]]
 	gucci = {
 		installed = false,
 		osuSkinsPath = "",

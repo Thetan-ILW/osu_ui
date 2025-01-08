@@ -1,20 +1,26 @@
-local class = require("class")
+local Component = require("ui.Component")
 
----@class osu.ui.CursorView
----@operator call: osu.ui.CursorView
----@field alpha number
-local CursorView = class()
+---@alias CursorViewParams { assets: osu.ui.OsuAssets, osuConfig: osu.ui.OsuConfig }
 
----@param osu_config osu.ui.OsuConfig
-function CursorView:new(osu_config)
+---@class osu.ui.CursorView : ui.Component
+---@overload fun(CursorViewParams): osu.ui.CursorView
+---@field osuConfig osu.ui.OsuConfig
+---@field cursorImage love.Image
+---@field cursorMiddleImage love.Image
+---@field cursorTrailImage love.Image
+local CursorView = Component + {}
+
+function CursorView:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.alpha = 1
-	self.config = osu_config.cursor
-end
 
----@param assets osu.ui.OsuAssets
-function CursorView:load(assets)
-	self.assets = assets
+	local assets = scene.assets
 	self.params = assets.params
+	self.cursorImage = assets:loadImage("cursor")
+	self.cursorMiddleImage = assets:loadImage("cursormiddle")
+	self.cursorTrailImage = assets:loadImage("cursortrail")
+
+	self.config = scene.game.configModel.configs.osu_ui.cursor
 
 	self.lastX, self.lastY = love.mouse.getPosition()
 	self:updateSpriteBatch()
@@ -22,7 +28,7 @@ end
 
 function CursorView:updateSpriteBatch()
 	self.trailImageCount = self.config.trailMaxImages
-	self.trailSpriteBatch = love.graphics.newSpriteBatch(self.assets.images.cursorTrail)
+	self.trailSpriteBatch = love.graphics.newSpriteBatch(self.cursorTrailImage)
 
 	self.trailIndex = 1
 	self.trailData = {}
@@ -54,7 +60,7 @@ function CursorView:update(dt)
 	local cfg = self.config
 	local size = cfg.size
 
-	local trail = self.assets.images.cursorTrail
+	local trail = self.cursorTrailImage
 	local tw, th = trail:getDimensions()
 	local txo, tyo = tw / 2, th / 2
 
@@ -114,9 +120,8 @@ function CursorView:draw()
 
 	local x, y = love.mouse.getPosition()
 
-	local img = self.assets.images
-	local cursor = img.cursor
-	local middle = img.cursorMiddle
+	local cursor = self.cursorImage
+	local middle = self.cursorMiddleImage
 	local cw, ch = cursor:getDimensions()
 	local mw, mh = middle:getDimensions()
 

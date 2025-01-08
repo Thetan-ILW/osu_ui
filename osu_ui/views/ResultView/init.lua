@@ -1,235 +1,965 @@
-local ScreenView = require("osu_ui.views.ScreenView")
-local thread = require("thread")
+local Screen = require("osu_ui.views.Screen")
+local Component = require("ui.Component")
+local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 
-local OsuLayout = require("osu_ui.views.OsuLayout")
-local ViewConfig = require("osu_ui.views.ResultView.ViewConfig")
-local GaussianBlurView = require("sphere.views.GaussianBlurView")
-local BackgroundView = require("sphere.views.BackgroundView")
+local math_util = require("math_util")
+local flux = require("flux")
+local ImageButton = require("osu_ui.ui.ImageButton")
+local ImageValueView = require("osu_ui.ui.ImageValueView")
+local Button = require("osu_ui.ui.Button")
+local BackButton = require("osu_ui.ui.BackButton")
+local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
+local PlayerInfo = require("osu_ui.views.PlayerInfoView")
 
-local InputMap = require("osu_ui.views.ResultView.InputMap")
-local actions = require("osu_ui.actions")
+local thread = require("thread")
+local Rectangle = require("ui.Rectangle")
+local Image = require("ui.Image")
+local Label = require("ui.Label")
+local ScrollBar = require("osu_ui.ui.ScrollBar")
 
-local Soundsphere = require("sphere.models.RhythmModel.ScoreEngine.SoundsphereScoring")
-local OsuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
-local OsuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScoring")
-local Etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
-local Lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
-local Quaver = require("sphere.models.RhythmModel.ScoreEngine.QuaverScoring")
+local DisplayInfo = require("osu_ui.views.ResultView.DisplayInfo")
 
----@class osu.ui.ResultView: osu.ui.ScreenView
----@operator call: osu.ui.ResultView
----@field judgeName string
----@field judgements table
----@field noScore boolean
----@field viewConfig osu.ui.ResultViewConfig
-local ResultView = ScreenView + {}
+local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 
-local dim = 0
-local background_blur = 0
+---@class osu.ui.ResultViewContainer : osu.ui.Screen
+---@operator call: osu.ui.ResultViewContainer
+local View = Screen + {}
 
-local loading = false
-local canDraw = false
-ResultView.load = thread.coro(function(self)
-	if loading then
+function View:presentScore()
+	flux.to(self.scene.cursor, 0.4, { alpha = 1 }):ease("quadout")
+	flux.to(self.scene.background, 0.4, { dim = 0.3, parallax = 0.01 }):ease("quadout")
+	self.transitionTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
+	self.scoreReveal = 0
+	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
+
+	self:clearTree()
+	self:load(true)
+end
+
+function View:transitIn()
+	self.y = 0
+	self.resultApi:loadController()
+	Screen.transitIn(self)
+
+	if self.scene.previousScreenId == "gameplay" then
+		self.selectApi:loadController()
+	elseif self.scene.previousScreenId == "select" then
+		local f = thread.coro(function()
+			self.resultApi:replayNotechartAsync("result")
+			self:presentScore()
+		end)
+		f()
 		return
 	end
 
-	loading = true
+	self:presentScore()
+end
 
-	self.game.resultController:load()
-
-	self.inputMap = InputMap(self)
-
-	local is_after_gameplay = self.prevView == self.ui.gameplayView
-
-	if is_after_gameplay then
-		local audio_engine = self.game.rhythmModel.audioEngine
-		local music_volume = (audio_engine.volume.master * audio_engine.volume.music) * 0.3
-		local effects_volume = (audio_engine.volume.master * audio_engine.volume.effects) * 0.3
-
-		audio_engine.backgroundContainer:setVolume(music_volume)
-		audio_engine.foregroundContainer:setVolume(effects_volume)
+function View:transitOut()
+	self:receive({ name = "loseFocus" })
+	self.handleEvents = false
+	if self.transitionTween then
+		self.transitionTween:stop()
 	end
 
-	if self.prevView == self.ui.selectView then
-		self.game.resultController:replayNoteChartAsync("result", self.game.selectModel.scoreItem)
+	self.resultApi:unloadController()
+	self.transitionTween = flux.to(self, 0.5, { alpha = 0, y = 100 }):ease("quadout"):oncomplete(function ()
+		self:clearTree()
+		self:kill()
+	end)
+	self.scene:transitInScreen("select")
+end
+
+function View:keyPressed(event)
+	if event[2] == "escape" then
+		self:transitOut()
+		return true
+	elseif event[2] == "f2" then
+		local chart = self.resultApi:getChart()
+		if chart then
+			self.resultApi:exportOsuReplay(chart)
+		end
+	elseif event[2] == "f6" then
+		self.scene:addChild("videoExporterModal", VideoExporterModal({
+			z = 0.5
+		}))
+	end
+end
+
+function View:reload()
+	self:clearTree()
+	self:load(true)
+end
+
+function View:load(score_loaded)
+	self.width, self.height = self.parent:getDimensions()
+	self:getViewport():listenForResize(self)
+
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.scene = scene
+
+	self.resultApi = scene.ui.resultApi
+	self.selectApi = scene.ui.selectApi
+
+	if not score_loaded then
+		return
 	end
 
-	self.viewConfig = ViewConfig(self.game, self.assets, is_after_gameplay, self)
+	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.minacalc, scene.ui.pkgs.manipFactor)
+	display_info:load()
 
-	self:setJudge()
+	local assets = scene.assets
+	local fonts = scene.fontManager
+	local text = scene.localization.text
+	self.fonts = fonts
 
-	local success, result = pcall(self.viewConfig.loadScore, self.viewConfig, self)
+	local width, height = self.width, self.height
 
-	if not success then
-		print(result)
-		self.popupView:add("Failed to load the score.\nCheck the console for the details.", "error")
-		self:changeScreen("selectView", true)
+	local area = self:addChild("scrollArea", ScrollAreaContainer({
+		scrollLimit = 768 - 96,
+		width = width,
+		height = height * 2
+	}))
+	---@cast area osu.ui.ScrollAreaContainer
+	self.area = area
+
+	self:addChild("scrollBar", ScrollBar({
+		x = width - 13, startY = 99,
+		width = 10,
+		container = area,
+		windowHeight = 768 - 96 - 6,
+		z = 1,
+	}))
+
+	---- HEADER ----
+	self:addChild("headerBackground", Rectangle({
+		width = width,
+		height = 96,
+		color = { 0, 0, 0, 0.8 },
+		z = 0.9
+	}))
+
+	self:addChild("chartName", Label( {
+		x = 5,
+		text = display_info.chartName,
+		font = fonts:loadFont("Light", 30),
+		z = 1,
+	}))
+
+	self:addChild("chartSource", Label({
+		x = 5, y = 33,
+		text = display_info.chartSource,
+		font = fonts:loadFont("Regular", 22),
+		z = 1,
+	}))
+
+	self:addChild("playInfo", Label({
+		x = 5, y = 54,
+		text = display_info.playInfo,
+		font = fonts:loadFont("Regular", 22),
+		z = 1,
+	}))
+
+	self:addChild("titleImage", Image({
+		x = width - 32,
+		origin = { x = 1, y = 0 },
+		image = assets:loadImage("ranking-title"),
+		z = 0.98,
+	}))
+
+	---- PANEL ----
+	area:addChild("statsPanel", Image({
+		y = 102,
+		image = assets:loadImage("ranking-panel"),
+		z = 0.5,
+	}))
+
+	local ppy = 1.6
+
+	local score_x = 220 * ppy
+	local score_y = 94 * ppy
+
+	local img_x1 = 40 * ppy
+	local img_x2 = 240 * ppy
+	local text_x1 = 80 * ppy
+	local text_x2 = 280 * ppy
+
+	local row1 = 160 * ppy
+	local row2 = 220 * ppy
+	local row3 = 280 * ppy
+	local row4 = 320 * ppy
+
+	local combo_x = text_x1 - 65 * ppy
+	local combo_y = row4 + 38
+	local acc_x = text_x2 - 86 * ppy
+	local acc_y = row4 + 38
+
+	local overlap = assets.params.scoreOverlap
+	local score_font = assets.imageFonts.scoreFont
+	local judge_format = "%ix"
+	---@cast overlap number
+
+	area:addChild("score", ImageValueView({
+		x = score_x, y = score_y,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 1.3,
+		files = score_font,
+		overlap = overlap,
+		format = "%08d",
+		z = 0.55,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.score)
+		end
+	}))
+
+	area:addChild("marvelousImage", Image({
+		x = img_x2, y = row1,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.5,
+		image = assets:loadImage("mania-hit300g"),
+		z = 0.54,
+	}))
+
+	area:addChild("marvelousCount", ImageValueView({
+		x = text_x2, y = row1,
+		origin = { x = 0, y = 0.5 },
+		scale = 1.1,
+		files = score_font,
+		overlap = overlap,
+		format = judge_format,
+		z = 0.55,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.marvelous)
+		end
+	}))
+
+	area:addChild("perfectImage", Image({
+		x = img_x1, y = row1,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.5,
+		image = assets:loadImage("mania-hit300"),
+		z = 0.54,
+	}))
+
+	area:addChild("perfectCount", ImageValueView({
+		x = text_x1, y = row1,
+		origin = { x = 0, y = 0.5 },
+		scale = 1.1,
+		files = score_font,
+		overlap = overlap,
+		format = judge_format,
+		z = 0.55,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.perfect)
+		end
+	}))
+
+	if display_info.great then
+		area:addChild("greatImage", Image({
+			x = img_x1, y = row2,
+			origin = { x = 0.5, y = 0.5 },
+			scale = 0.5,
+			image = assets:loadImage("mania-hit200"),
+			z = 0.54,
+		}))
+
+		area:addChild("greatCount", ImageValueView({
+			x = text_x1, y = row2,
+			origin = { x = 0, y = 0.5 },
+			scale = 1.1,
+			files = score_font,
+			overlap = overlap,
+			format = judge_format,
+			z = 0.55,
+			value = function ()
+				return math.ceil(self.scoreReveal * display_info.great)
+			end
+		}))
 	end
 
-	self.hpGraph = HpGraph(300, 135,
-		self.game.rhythmModel.scoreEngine.scoreSystem.sequence,
-		self.game.rhythmModel.scoreEngine.scoreSystem.hp
-	)
+	if display_info.good then
+		area:addChild("goodImage", Image({
+			x = img_x2, y = row2,
+			origin = { x = 0.5, y = 0.5 },
+			scale = 0.5,
+			image = assets:loadImage("mania-hit100"),
+			z = 0.54,
+		}))
 
-	canDraw = true
-	loading = false
+		area:addChild("goodCount", ImageValueView({
+			x = text_x2, y = row2,
+			origin = { x = 0, y = 0.5 },
+			scale = 1.1,
+			files = score_font,
+			overlap = overlap,
+			format = judge_format,
+			z = 0.55,
+			value = function ()
+				return math.ceil(self.scoreReveal * display_info.good)
+			end
+		}))
+	end
 
-	love.mouse.setVisible(false)
-	self.cursor.alpha = 1
-	actions.enable()
-end)
+	if display_info.bad then
+		area:addChild("badImage", Image({
+			x = img_x1, y = row3,
+			origin = { x = 0.5, y = 0.5 },
+			scale = 0.5,
+			image = assets:loadImage("mania-hit50"),
+			z = 0.54,
+		}))
 
-local scoring = {
-	["osu!legacy"] = OsuLegacy,
-	["osu!mania"] = OsuMania,
-	["Etterna"] = Etterna,
-	["Quaver"] = Quaver,
-	["Lunatic rave 2"] = Lr2,
-	["soundsphere"] = Soundsphere,
+		area:addChild("badCount", ImageValueView({
+			x = text_x1, y = row3,
+			origin = { x = 0, y = 0.5 },
+			files = score_font,
+			overlap = overlap,
+			format = judge_format,
+			z = 0.55,
+			value = function ()
+				return math.ceil(self.scoreReveal * display_info.bad)
+			end
+		}))
+	end
+
+	area:addChild("missImage", Image({
+		x = img_x2, y = row3,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.5,
+		image = assets:loadImage("mania-hit0"),
+		z = 0.54,
+	}))
+
+	area:addChild("missCount", ImageValueView({
+		x = text_x2, y = row3,
+		origin = { x = 0, y = 0.5 },
+		depth = 0.55,
+		files = score_font,
+		overlap = overlap,
+		format = judge_format,
+		z = 1.1,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.miss)
+		end
+	}))
+
+	area:addChild("combo", ImageValueView({
+		x = combo_x, y = combo_y,
+		origin = { x = 0, y = 0.5 },
+		scale = 1.1,
+		files = score_font,
+		overlap = overlap,
+		format = judge_format,
+		z = 0.55,
+		value = function ()
+			return math.ceil(self.scoreReveal * display_info.combo)
+		end
+	}))
+
+	if display_info.accuracy then
+		area:addChild("accuracy", ImageValueView({
+			x = acc_x , y = acc_y,
+			origin = { x = 0, y = 0.5 },
+			scale = 1.1,
+			files = score_font,
+			overlap = overlap,
+			format = "%0.02f%%",
+			multiplier = 100,
+			z = 0.55,
+			value = function ()
+				return self.scoreReveal * display_info.accuracy
+			end
+		}))
+
+		area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), z = 0.54 }))
+	end
+
+
+	area:addChild("comboText", Image({ x = 8, y = 480, image = assets:loadImage("ranking-maxcombo"), z = 0.54 }))
+
+	---- GRAPH ----
+	local score_system = self.resultApi:getScoreSystem()
+	area:addChild("graph", Image({ x = 256, y = 608, image = assets:loadImage("ranking-graph"), z = 0.5 }))
+
+	if score_system.sequence then
+		area:addChild("hpGraph", HpGraph({
+			x = 265, y = 617,
+			width = 300,
+			height = 135,
+			points = score_system.sequence,
+			hpScoreSystem = score_system.hp,
+			z = 0.55,
+		}))
+	end
+
+	---- GRADE ----
+	local overlay = area:addChild("backgroundOverlay", Image({
+		x = width - 200, y = 320,
+		origin = { x = 0.5, y = 0.5 },
+		image = assets:loadImage("ranking-background-overlay"),
+		z = 0,
+	}))
+	function overlay:update(dt)
+		overlay.angle = (overlay.angle + love.timer.getDelta() * 0.5) % (math.pi * 2)
+		Image.update(overlay, dt)
+	end
+
+	local grade = area:addChild("grade", Image({
+		x = width - 192, y = 320,
+		origin = { x = 0.5, y = 0.5 },
+		image = assets:loadImage(("ranking-%s"):format(display_info.grade)),
+		z = 0.6,
+	}))
+	function grade.update(this, dt)
+		grade.scale = 1 + (1 - self.scoreReveal) * 0.2
+		Image.update(grade, dt)
+	end
+
+	---- BUTTONS ----
+	area:addChild("retryButton", ImageButton({
+		x = width, y = 576,
+		origin = { x = 1, y = 0.5 },
+		idleImage = assets:loadImage("pause-retry"),
+		alpha = 0.5,
+		z = 0.6,
+		onClick = function()
+			result_view:play("retry")
+		end
+	}))
+
+	area:addChild("watchReplayButton", ImageButton({
+		x = width, y = 672,
+		origin = { x = 1, y = 0.5 },
+		idleImage = assets:loadImage("pause-replay"),
+		alpha = 0.5,
+		z = 0.6,
+		onClick = function ()
+			result_view:play("replay")
+		end
+	}))
+
+	self.modIcons = area:addChild("modIconsContainer", Component({
+		x = width - 32,
+		y = 448,
+		origin = { x = 1 },
+		z = 0.7
+	}))
+	local added_mods = 0
+
+	local function addModIcon(image)
+		self.modIcons:addChild(tostring(added_mods), Image({
+			x = added_mods * -34,
+			origin = { x = 0.5, y = 0.5 },
+			image = image,
+		}))
+		added_mods = added_mods + 1
+	end
+
+	local mods = self.selectApi:getPlayContext().modifiers
+	local empty_image = assets.emptyImage()
+	for i, mod in ipairs(mods) do
+		local id = mod.id
+		local img_path ---@type string?
+
+		if id == 9 then
+			img_path = "selection-mod-nln"
+		elseif id == 11 then
+			img_path = ("selection-mod-key%i"):format(mod.value)
+		elseif id == 16 then
+			img_path = ("selection-mod-mirror")
+		elseif id == 17 then
+			img_path = ("selection-mod-random")
+		elseif id == 19 and mod.value == 3 then
+			img_path = ("selection-mod-fln3")
+		end
+
+		if img_path then
+			local image = assets:loadImage(img_path)
+			if image ~= empty_image then
+				addModIcon(image)
+			end
+		end
+	end
+
+	if display_info.timeRate == 1.5 then
+		addModIcon(assets:loadImage("selection-mod-doubletime"))
+	elseif display_info.timeRate == (1.5 * 1.5) then
+		local dt = assets:loadImage("selection-mod-doubletime")
+		addModIcon(dt)
+		addModIcon(dt)
+	elseif display_info.timeRate == 0.75 then
+		addModIcon(assets:loadImage("selection-mode-halftime"))
+	end
+
+	local judge_name = display_info.judgeName
+	if judge_name == "Etterna J4" then
+		addModIcon(assets:loadImage("selection-mod-j4"))
+	elseif judge_name == "Etterna J7" then
+		addModIcon(assets:loadImage("selection-mod-j7"))
+	elseif judge_name:find("osu!mania") then
+		addModIcon(assets:loadImage("selection-mod-scorev2"))
+	end
+
+	self.modIcons:autoSize()
+
+	---- FAKE BUTTONS ----
+	self:addChild("showChat", ImageButton({
+		x = width - 3, y = height + 1,
+		origin = { x = 1, y = 1 },
+		idleImage = assets:loadImage("overlay-show"),
+		z = 0.4,
+		onClick = function ()
+			result_view.notificationView:show("Not implemented")
+		end
+	}))
+
+	self:addChild("onlineUsers", ImageButton({
+		x = width - 99, y = height + 1,
+		origin = { x = 1, y = 1 },
+		idleImage = assets:loadImage("overlay-online"),
+		alpha = 0.5,
+		z = 0.4,
+		onClick = function ()
+			result_view.notificationView:show("Not implemented")
+		end
+	}))
+
+	local online_ranking = area:addChild("onlineRanking", Button({
+		x = width / 2 - 160, y = height - 41.6,
+		label = "▼ Online Ranking ▼",
+		font = fonts:loadFont("Regular", 32),
+		width = 320,
+		height = 48,
+		color = { 0.46, 0.09, 0.8, 1 },
+		z = 0.95,
+		onClick = function ()
+			area:scrollToPosition(768 - 96, 0)
+		end
+	}))
+	---@cast online_ranking osu.ui.Button
+	function online_ranking:update(dt)
+		local position = area.scrollPosition
+		local alpha = 1 - math_util.clamp((position / area.height * 16), 0, 1)
+		self.alpha = alpha
+		return Button.update(self, dt)
+	end
+
+	if #assets.menuBackFrames == 0 then
+		self:addChild("backButton", BackButton({
+			y = height - 58,
+			assets = assets,
+			text = "back",
+			hoverWidth = 93,
+			hoverHeight = 58,
+			z = 1,
+			onClick = function ()
+				self:transitOut()
+			end
+		}))
+	else
+		area:addChild("backButton", MenuBackAnimation({
+			y = height,
+			origin = { x = 0, y = 1 },
+			onClick = function ()
+				self:transitOut()
+			end,
+			z = 1
+		}))
+	end
+
+	local rd_left = area:addChild("rankingDialogLeft", Image({
+		image = assets:loadImage("ranking-dialog-left"),
+		y = 768,
+		color = { 1, 1, 1, 0.9 }
+	}))
+
+	local rd_right = area:addChild("rankingDialogRight", Image({
+		image = assets:loadImage("ranking-dialog-right"),
+		origin = { x = 1 },
+		x = width,
+		y = 768,
+		color = { 1, 1, 1, 0.9 }
+	}))
+
+	local rd_middle_image = assets:loadImage("ranking-dialog-middle")
+	area:addChild("rankingDialogMiddle", Image({
+		x = rd_left:getWidth(),
+		y = 768,
+		image = rd_middle_image,
+		scaleX = (width - rd_left:getWidth() - rd_right:getWidth()) / rd_middle_image:getWidth(),
+		color = { 1, 1, 1, 0.9 }
+	}))
+
+	area:addChild("rankingRank", Label({
+		x = 408,
+		y = 768 + 12,
+		font = fonts:loadFont("Light", 30),
+		text = ("You achieved the #%i score on local rankings!"):format(display_info.rank),
+		shadow = true,
+		color = { 0.98, 0.8, 0.26, 1 },
+		z = 0.05,
+	}))
+
+	area:addChild("playerInfo", PlayerInfo({
+		x = 557, y = 768 + 102,
+		z = 0.05,
+		onClick = function ()
+		end
+	}))
+
+	area:addChild("exportOsuReplay", Button({
+		x = width - 20,
+		y = 768 + 10,
+		origin = { x = 1 },
+		width = 250,
+		height = 30,
+		font = fonts:loadFont("Regular", 17),
+		label = text.RankingDialog_ExportOsuReplay,
+		color = { 0.05, 0.52, 0.65, 1 },
+		z = 0.02,
+		onClick = function()
+			local chart = self.resultApi:getChart()
+			if chart then
+				self.resultApi:exportOsuReplay(chart)
+				scene.notification:show("Exported")
+			else
+				scene.notification:show("Failed to export osu! replay")
+			end
+		end
+	}))
+
+	area:addChild("submitReplay", Button({
+		x = width - 20,
+		y = 768 + 45,
+		origin = { x = 1 },
+		width = 250,
+		height = 30,
+		font = fonts:loadFont("Regular", 17),
+		label = text.RankingDialog_SubmitReplay,
+		color = { 0.05, 0.52, 0.65, 1 },
+		z = 0.02,
+		onClick = function()
+			self.resultApi:submitReplay()
+		end
+	}))
+
+	self.accuracyTable = area:addChild("accuracyTable", Component({
+		x = 50,
+		y = 768 + 270,
+		z = 0.02,
+	}))
+	self:addAccuracyColumn("osu!legacy", "OD", 0, 6, { 1, 0.95, 0.9, 0.8, 0.7 } )
+	self:addAccuracyColumn("osu!mania", "OD",  154, 6, { 1, 0.95, 0.9, 0.8, 0.7 } )
+	self:addAccuracyColumn("Etterna", "J",  (154 * 2), 3, { 1, 0.93, 0.85, 0.8, 0.7 } )
+	self:addAccuracyColumn("LR2", {"Easy", "Normal", "Hard", "Very hard" }, (154 * 3), 0, { 1, 0.93, 0.85, 0.8, 0.7 } )
+
+	self.statTable = area:addChild("statTable", Component({
+		x = width - 50,
+		y = 768 + 325,
+		origin = { x = 1 },
+		z = 0.01,
+	}))
+	self:addStat("pp", 0, "Performance", ("%i PP"):format(display_info.pp))
+	self:addStat("spam", -114, "Spam", ("%ix\n%i%%"):format(display_info.spam, display_info.spamPercent * 100))
+	self:addStat("normalScore", -(114 * 2), "NS", ("%0.02f"):format(display_info.normalScore * 1000))
+
+	if display_info.manipFactorPercent ~= 0 then
+		self:addStat("manip", -(114 * 3), "Manip", ("%0.02f%%"):format(display_info.manipFactorPercent * 100))
+	else
+		self:addStat("mean", -(114 * 3), "Mean", ("%0.02fms"):format(display_info.mean * 1000))
+	end
+
+	self:addStat("keyMode", -(114 * 4), "Key Mode", display_info.keyMode)
+	self.statTable:autoSize()
+
+	self.msdTable = area:addChild("msdTable", Component({
+		x = 50,
+		y = 768 + 550,
+		z = 0.02
+	}))
+	if display_info.msds then
+		self:addMsdTable(display_info.msds, display_info.keyMode)
+	end
+
+	self.beatmapInfoTable = area:addChild("beatmapInfoTable", Component({
+		x = width - 50,
+		y = 768 + 550,
+		origin = { x = 1 },
+		z = 0.01,
+	}))
+	self:addBeatmapInfo("enps", 0, "ENPS", ("%0.02f"):format(display_info.enpsDiff))
+	self:addBeatmapInfo("stars", -114, "Stars", ("%0.02f*"):format(display_info.osuDiff))
+	self:addBeatmapInfo("ln", -114 * 2, "LN", ("%i%%"):format(display_info.lnPercent * 100))
+	self.beatmapInfoTable:autoSize()
+end
+
+function View:update()
+	if self.area then
+		local tables_in_view = self.area.scrollPosition < 260
+		self.accuracyTable.disabled = tables_in_view
+		self.statTable.disabled = tables_in_view
+		self.msdTable.disabled = tables_in_view
+		self.beatmapInfoTable.disabled = tables_in_view
+	end
+end
+
+local table_colors = {
+	{ 0.6, 0.8, 1, 1 },
+	{ 0.95, 0.796, 0.188, 1 },
+	{ 0.07, 0.8, 0.56, 1 },
+	{ 0, 0.7, 0.32, 1 },
+	{ 0.1, 0.7, 1, 1 },
+	{ 1, 0.1, 0.7, 1 },
 }
 
-function ResultView:setJudge()
-	local score_system = self.game.rhythmModel.scoreEngine.scoreSystem
+local score_system_name_alias = {
+	["osu!legacy"] = "osu!mania",
+	["osu!mania"] = "osu!mania V2",
+	["LR2"] = "Lunatic Rave 2"
+}
+
+local function getAccuracyColor(x, ranges)
+	for i, v in ipairs(ranges) do
+		if x >= v then
+			return table_colors[i]
+		end
+	end
+
+	return table_colors[#table_colors]
+end
+
+---@param score_system_name string
+---@param score_system_postfix string | string[]
+---@param x number
+---@param judge_start number
+---@param accuracy_ranges number[]
+function View:addAccuracyColumn(score_system_name, score_system_postfix, x, judge_start, accuracy_ranges)
+	local score_system = self.resultApi:getScoreSystem()
 	local judgements = score_system.judgements
 
 	if not judgements then
-		self.noScore = true
-		self.gameView.popupView:add("Can't load score! You probably have no replay on the disk.", "error")
 		return
 	end
 
-	local configs = self.game.configModel.configs
-	local osu = configs.osu_ui
-	local ss = osu.scoreSystem
-	local judge = osu.judgement
+	local spacing_y = 2
+	local panel_h = 36
 
-	local range_alias = scoring[ss].metadata.rangeValueAlias
-	if range_alias then
-		judge = range_alias[judge]
-	end
+	local scale = self.width / 1366
+	x = x * scale
+	local w = 150 * scale
 
-	local judge_name = scoring[ss].metadata.name:format(judge)
+	self.accuracyTable:addChild(score_system_name .. "Label", Label({
+		x = x,
+		boxWidth = w,
+		alignX = "center",
+		font = self.fonts:loadFont("Bold", 15),
+		text = score_system_name_alias[score_system_name] or score_system_name,
+		z = 0.02
+	}))
 
-	self.judgement = judgements[judge_name]
-	self.judgements = judgements
-	self.judgeName = judge_name
-	self.noScore = false
-end
+	local start_y = 25
 
-function ResultView:unload()
-	self.viewConfig:unload()
-end
+	for i = 1, 4, 1 do
+		local y = start_y + ((panel_h + spacing_y) * (i - 1))
+		self.accuracyTable:addChild("bg" .. score_system_name .. i, Rectangle({
+			x = x, y = y,
+			width = w,
+			height = panel_h,
+			color = { 0.16, 0.16, 0.16, 1 },
+			z = 0.01
+		}))
 
-function ResultView:update()
-	if loading then
-		return
-	end
+		local judge = i + judge_start
+		local postfix ---@type string
 
-	local configs = self.game.configModel.configs
-	local graphics = configs.settings.graphics
+		if type(score_system_postfix) == "table" then
+			postfix = score_system_postfix[judge]
+		else
+			postfix = score_system_postfix .. judge
+		end
 
-	dim = graphics.dim.result
-	background_blur = graphics.blur.result
+		---@type number
+		local accuracy = judgements[("%s %s"):format(score_system_name, postfix)].accuracy
 
-	self.assets:updateVolume(self.game.configModel)
-	self.game.previewModel:update()
-end
-
-function ResultView:resolutionUpdated()
-	self.viewConfig:resolutionUpdated(self)
-end
-
-function ResultView:draw()
-	if not self.viewConfig then
-		return
-	end
-
-	if not canDraw then
-		return
-	end
-
-	OsuLayout:draw()
-	local w, h = OsuLayout:move("base")
-
-	GaussianBlurView:draw(background_blur)
-	BackgroundView:draw(w, h, dim, 0.01)
-	GaussianBlurView:draw(background_blur)
-
-	self.viewConfig:draw(self)
-	self.ui.screenOverlayView:draw()
-end
-
-function ResultView:receive(event)
-	if event.name == "keypressed" then
-		self.inputMap:call("view")
-	end
-
-	if event.name == "mousepressed" then
-		self.viewConfig:stopAnimations()
+		self.accuracyTable:addChild("od" .. score_system_name .. i, Label({
+			x = x + 5, y = y,
+			boxWidth = w,
+			boxHeight = panel_h,
+			alignX = "left",
+			alignY = "center",
+			font = self.fonts:loadFont("Regular", 15),
+			text = postfix,
+			shadow = true,
+			z = 0.02,
+		}))
+		self.accuracyTable:addChild("accuracy".. score_system_name .. i, Label({
+			x = x - 5, y = y,
+			boxWidth = w,
+			boxHeight = panel_h,
+			alignX = "right",
+			alignY = "center",
+			font = self.fonts:loadFont("Regular", 15),
+			text = ("%0.02f%%"):format(accuracy * 100),
+			shadow = true,
+			color = getAccuracyColor(accuracy, accuracy_ranges),
+			z = 0.02,
+		}))
 	end
 end
 
-function ResultView:submitScore()
-	local scoreItem = self.game.selectModel.scoreItem
-	self.game.onlineModel.onlineScoreManager:submit(self.game.selectModel.chartview, scoreItem.replay_hash)
+---@param id string
+---@param x number
+---@param label string
+---@param value string
+function View:addStat(id, x, label, value)
+	local scale = self.width / 1366
+	x = x * scale
+	self.statTable:addChild(id .. "Bg", Rectangle({
+		x = x, y = 20,
+		width = 110 * scale,
+		height = 45,
+		color = { 0.16, 0.16, 0.16, 1 },
+		z = 0.01
+	}))
+
+	self.statTable:addChild(id .. "label", Label({
+		x = x,
+		boxWidth = 110 * scale,
+		alignX = "center",
+		alignY = "center",
+		font = self.fonts:loadFont("Bold", 15),
+		text = label,
+		shadow = true,
+		z = 0.02,
+	}))
+
+	self.statTable:addChild(id .. "value", Label({
+		x = x, y = 20,
+		boxWidth = 110 * scale,
+		boxHeight = 45,
+		alignX = "center",
+		alignY = "center",
+		font = self.fonts:loadFont("Regular", 15),
+		text = value,
+		shadow = true,
+		z = 0.02,
+	}))
 end
 
-function ResultView:quit()
-	self.game.rhythmModel.audioEngine:unload()
+local msd_order = {
+	"overall",
+	"stream",
+	"jumpstream",
+	"handstream",
+	"stamina",
+	"jackspeed",
+	"chordjack",
+	"technical"
+}
 
-	if self.assets.sounds.menuBack then
-		self.assets.sounds.menuBack:play()
+local msd_4k_alias = {
+	overall = "ALL",
+	stream = "STR",
+	jumpstream = "JS",
+	handstream = "HS",
+	stamina = "STMN",
+	jackspeed = "JACK",
+	chordjack = "CJ",
+	technical = "TECH"
+}
+
+local msd_alias = {
+	overall = "ALL",
+	stream = "STR",
+	jumpstream = "CHSTR",
+	handstream = "BRKT",
+	stamina = "STMN",
+	jackspeed = "JACK",
+	chordjack = "CJ",
+	technical = "TECH"
+}
+
+---@param msds {[string]: number}
+---@param key_mode string
+function View:addMsdTable(msds, key_mode)
+	local scale = self.width / 1366
+	local w = 75 * scale
+	for i, k in ipairs(msd_order) do
+		local value = msds[k]
+		local label = key_mode == "4K" and msd_4k_alias[k] or msd_alias[k]
+
+		local x = ((i - 1) * (w + 2)) * scale
+		self.msdTable:addChild(k .. "Bg", Rectangle({
+			x = x, y = 20,
+			width = w,
+			height = 36,
+			color = { 0.16, 0.16, 0.16, 1 },
+			z = 0.01
+		}))
+
+		self.msdTable:addChild(k .. "label", Label({
+			x = x,
+			boxWidth = w,
+			alignX = "center",
+			alignY = "center",
+			font = self.fonts:loadFont("Bold", 15),
+			text = label,
+			shadow = true,
+			z = 0.02,
+		}))
+
+		self.msdTable:addChild(k .. "value", Label({
+			x = x, y = 20,
+			boxWidth = w,
+			boxHeight = 36,
+			alignX = "center",
+			alignY = "center",
+			font = self.fonts:loadFont("Regular", 15),
+			text = tostring(value),
+			shadow = true,
+			z = 0.02,
+		}))
 	end
-
-	self:changeScreen("selectView")
 end
 
-ResultView.loadScore = thread.coro(function(self, itemIndex)
-	if loading then
-		return
-	end
+---@param id string
+---@param x number
+---@param label string
+---@param value string
+function View:addBeatmapInfo(id, x, label, value)
+	local scale = self.width / 1366
+	x = x * scale
+	self.beatmapInfoTable:addChild(id .. "Bg", Rectangle({
+		x = x, y = 20,
+		width = 110 * scale,
+		height = 36,
+		color = { 0.16, 0.16, 0.16, 1 },
+		z = 0.01
+	}))
 
-	loading = true
+	self.beatmapInfoTable:addChild(id .. "label", Label({
+		x = x,
+		boxWidth = 110 * scale,
+		alignX = "center",
+		alignY = "center",
+		font = self.fonts:loadFont("Bold", 15),
+		text = label,
+		shadow = true,
+		z = 0.02,
+	}))
 
-	local scoreEntry = self.game.selectModel.scoreItem
-	if itemIndex then
-		scoreEntry = self.game.selectModel.scoreLibrary.items[itemIndex]
-	end
-	self.game.resultController:replayNoteChartAsync("result", scoreEntry)
+	self.beatmapInfoTable:addChild(id .. "value", Label({
+		x = x, y = 20,
+		boxWidth = 110 * scale,
+		boxHeight = 36,
+		alignX = "center",
+		alignY = "center",
+		font = self.fonts:loadFont("Regular", 15),
+		text = value,
+		shadow = true,
+		z = 0.02,
+	}))
+end
 
-	if itemIndex then
-		self.game.selectModel:scrollScore(nil, itemIndex)
-	end
-
-	self.viewConfig:loadScore(self)
-
-	loading = false
-end)
-
-local playing = false
-ResultView.play = thread.coro(function(self, mode)
-	if playing then
-		return
-	end
-
-	self.game.rhythmModel.audioEngine:unload()
-
-	playing = true
-	local scoreEntry = self.game.selectModel.scoreItem
-	local isResult = self.game.resultController:replayNoteChartAsync(mode, scoreEntry)
-
-	if isResult then
-		return self.view:reload()
-	end
-
-	if self.assets.sounds.switchScreen then
-		self.assets.sounds.switchScreen:play()
-	end
-
-	self:changeScreen("gameplayView")
-	playing = false
-end)
-
-return ResultView
+return View

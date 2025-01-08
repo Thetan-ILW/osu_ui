@@ -1,49 +1,62 @@
-local ListView = require("osu_ui.views.ListView")
-local ui = require("osu_ui.ui")
-local math_util = require("math_util")
-local time_util = require("time_util")
+local Component = require("ui.Component")
+local StencilComponent = require("ui.StencilComponent")
+local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
+local Image = require("ui.Image")
+
+local ScoreEntryView = require("osu_ui.views.SelectView.ScoreEntryView")
+local Scoring = require("osu_ui.Scoring")
 
 local getModifierString = require("osu_ui.views.modifier_string")
+local math_util = require("math_util")
+local flux = require("flux")
 
----@type table<string, string>
-local text
+---@alias osu.ui.ScoreListViewParams { game: sphere.GameController }
 
-local ScoreListView = ListView + {}
+---@class osu.ui.ScoreListView : ui.Component
+---@overload fun(params: osu.ui.ScoreListViewParams): osu.ui.ScoreListView
+---@field scores osu.ui.ScrollAreaContainer
+---@field selectApi game.SelectAPI
+local ScoreListView = Component + {}
 
-ScoreListView.rows = 8
-ScoreListView.selectedScoreIndex = 1
-ScoreListView.selectedScore = nil
-ScoreListView.openResult = false
-ScoreListView.oneClickOpen = true
-ScoreListView.modLines = {}
-ScoreListView.focus = false
----@type number[]
-ScoreListView.animations = {}
-ScoreListView.scoreUpdateTime = -math.huge
+ScoreListView.panelHeight = 58
+ScoreListView.panelSpacing = 53
+ScoreListView.panelSlideInDelay = 0.08
 
----@param game sphere.GameController
----@param assets osu.OsuAssets
-function ScoreListView:new(game, assets)
-	self.game = game
-	self.assets = assets
-	self.playerProfile = self.game.ui.playerProfile
+function ScoreListView:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.scene = scene
+	self.selectApi = scene.ui.selectApi
+	self.playerProfile = scene.ui.pkgs.playerProfile
 
-	text, self.font = assets.localization:get("scoreList")
-	assert(text and self.font)
-end
+	self:addChild("noScores", Image({
+		x = self.width / 2, y = self.height / 2,
+		origin = { x = 0.5, y = 0.5 },
+		image = scene.assets:loadImage("selection-norecords")
+	}))
 
-function ScoreListView:getTooltip(score, mod_line)
-	if mod_line == "" then
-		mod_line = "No mods"
-	end
+	local stencil = self:addChild("stencil", StencilComponent({
+		stencilFunction = function ()
+			love.graphics.rectangle("fill", 0, -64, self.width + 80, self.height + 64)
+		end
+	}))
 
-	local judges = ("Perfect:%i NotPerfect:%i Miss:%i"):format(score["perfect"], score["not_perfect"], score["miss"])
-	return text.tooltip:format(
-		os.date("%d/%m/%Y %H:%M:%S.", score.time),
-		judges,
-		score.accuracy,
-		mod_line
-	)
+	local min_x = -80
+	local max_x = self.height
+	self.scores = stencil:addChild("scores", ScrollAreaContainer({
+		width = self.width,
+		height = self.height,
+		drawChildren = function(this)
+			love.graphics.translate(0, -this.scrollPosition)
+			for i = #this.childrenOrder, 1, -1 do
+				local child = this.children[this.childrenOrder[i]]
+				if child.y > this.scrollPosition + min_x and child.y < this.scrollPosition + max_x then
+					love.graphics.push("all")
+					child:drawTree()
+					love.graphics.pop()
+				end
+			end
+		end
+	}))
 end
 
 local function commaValue(n) -- credit http://richard.warburton.it
@@ -51,298 +64,174 @@ local function commaValue(n) -- credit http://richard.warburton.it
 	return left..(num:reverse():gsub('(%d%d%d)','%1,'):reverse())..right
 end
 
-function ScoreListView:getProfileScore(score_index, score, source)
+local grade_images = {
+	SS = "ranking-X-small",
+	S = "ranking-S-small",
+	A = "ranking-A-small",
+	B = "ranking-B-small",
+	C = "ranking-C-small",
+	D = "ranking-D-small"
+}
+
+---@param score_index integer
+---@param score table
+---@param source string
+---@return boolean added
+function ScoreListView:addProfileScore(score_index, score, source)
 	local player_score = self.playerProfile:getScore(score.id)
 
 	if not player_score then
-		return
+		return false
 	end
 
 	local mods_line = getModifierString(score.modifiers)
-	local tooltip = self:getTooltip(score, mods_line)
 
 	if score.rate ~= 1 and score.rate ~= 0 then
-		mods_line = ("%s [%0.02fx]"):format(mods_line, score.rate)
+		mods_line = ("%s %0.02fx"):format(mods_line, score.rate)
 	end
 
-	local img = self.assets.images
-	local grade = img.smallGradeD
+	---@type string
+	local score_str = ("Score: %s (%ix)"):format(commaValue(math.floor(player_score.osuScore)), score.max_combo)
 
 	local acc = 0
-
+	local grade ---@type string
 	if source == "osuv1" then
 		acc = player_score.osuAccuracy
+		grade = Scoring.getGrade("osuLegacy", acc)
 	elseif source == "osuv2" then
 		acc = player_score.osuv2Accuracy
+		grade = Scoring.getGrade("osuMania", acc)
 	elseif source == "etterna" then
 		acc = player_score.etternaAccuracy
+		grade = Scoring.getGrade("etterna", acc)
 	elseif source == "quaver" then
 		acc = player_score.quaverAccuracy
+		grade = Scoring.getGrade("quaver", acc)
 	end
 
-	if acc == 1 then
-		grade = img.smallGradeX
-	elseif acc >= 0.95 then
-		grade = img.smallGradeS
-	elseif acc >= 0.9 then
-		grade = img.smallGradeA
-	elseif acc >= 0.8 then
-		grade = img.smallGradeB
-	elseif acc >= 0.7 then
-		grade = img.smallGradeC
-	end
-
-	return {
-		scoreIndex = score_index,
-		scoreNum = player_score.osuScore,
-		secondRow = ("Score: %s (%ix)"):format(commaValue(math.floor(player_score.osuScore)), score.max_combo),
+	self.scores:addChild(tostring(score_index), ScoreEntryView({
+		y = self.panelSpacing * (score_index - 1),
+		rank = score_index,
+		gradeImageName = grade_images[Scoring.convertGradeToOsu(grade)],
+		username = "Player",
+		score = score_str,
 		accuracy = ("%0.02f%%"):format(acc * 100),
-		modsRow = mods_line,
-		tooltip = tooltip,
+		mods = mods_line,
+		improvement = "-",
+		slideInDelay = self.panelSlideInDelay * (score_index - 1),
+		z = 1 - (score_index * 0.0001),
 		time = score.time,
-		timeSince = 0,
-		gradeImg = grade,
-		username = "You"
-	}
+		onClick = function()
+			self:openScore(score_index)
+		end
+	}))
+
+	return true
 end
 
+---@param score_index integer
+---@param score table
+---@return boolean added
 function ScoreListView:getSoundsphereScore(score_index, score)
 	local mods_line = getModifierString(score.modifiers)
-	local tooltip = self:getTooltip(score, mods_line)
 
 	if score.rate ~= 1 and score.rate ~= 0 then
-		mods_line = ("%s [%0.02fx]"):format(mods_line, score.rate)
+		mods_line = ("%s,%0.02fx"):format(mods_line, score.rate)
 	end
 
-	local img = self.assets.images
-	local grade = img.smallGradeD
+	local grade = grade_images.D
 
 	local score_num = score.score
 	if score_num > 9800 then
-		grade = img.smallGradeX
+		grade = grade_images.SS
 	elseif score_num > 8000 then
-		grade = img.smallGradeS
+		grade = grade_images.S
 	elseif score_num > 7000 then
-		grade = img.smallGradeA
+		grade = grade_images.A
 	elseif score_num > 6000 then
-		grade = img.smallGradeB
+		grade = grade_images.B
 	elseif score_num > 5000 then
-		grade = img.smallGradeC
+		grade = grade_images.C
 	end
 
-	return {
-		scoreIndex = score_index,
-		scoreNum = score_num,
-		secondRow = ("Score: %i (%ix)"):format(score_num, score.max_combo),
-		accuracy = ("%0.02f%%"):format(score.accuracy * 1000),
-		modsRow = mods_line,
-		tooltip = tooltip,
+	self.scores:addChild(tostring(score_index), ScoreEntryView({
+		y = self.panelSpacing * (score_index - 1),
+		rank = score_index,
+		gradeImageName = grade,
+		username = "Player",
+		score = ("Score: %s (%ix)"):format(commaValue(math_util.round(score_num, 1)), score.max_combo),
+		accuracy = ("%0.02fNS"):format(score.accuracy * 100),
+		mods = mods_line,
+		improvement = "-",
+		slideInDelay = self.panelSlideInDelay * (score_index - 1),
+		z = 1 - (score_index * 0.0001),
 		time = score.time,
-		timeSince = 0,
-		gradeImg = grade,
-		username = score.user and score.user.name or "You"
-	}
+		onClick = function()
+			self:openScore(score_index)
+		end
+	}))
+
+	return true
 end
 
----@param source string
-function ScoreListView:reloadItems(source)
-	self.stateCounter = self.game.selectModel.scoreStateCounter
+function ScoreListView:update(dt)
+	self:loadScores()
+end
 
-	if self.scores == self.game.selectModel.scoreLibrary.items then
+function ScoreListView:loadScores()
+	local items = self.selectApi:getScores()
+	if self.items == items then
 		return
 	end
 
-	self.scores = self.game.selectModel.scoreLibrary.items
-	self.items = {}
+	self.items = items
 
-	for i, score in ipairs(self.scores) do
-		local item
+	local score_container = self.scores
+	score_container.children = {}
+	score_container.childrenOrder = {}
+	score_container.scrollPosition = 0
 
+	local source = self.selectApi:getScoreSource()
+
+	local score_index = 1
+	for _, score in ipairs(self.items) do
+		local added = false
 		if source == "local" or source == "online" then
-			item = self:getSoundsphereScore(i, score)
+			added = self:getSoundsphereScore(score_index, score)
 		else
-			item = self:getProfileScore(i, score, source)
+			added = self:addProfileScore(score_index, score, source)
 		end
 
-		if item then
-			table.insert(self.items, item)
-		end
-	end
-
-	self.updateTime = love.timer.getTime()
-	self.nextTimeUpdateTime = -1
-	self:updateTimeSinceScore()
-
-	local i = self.game.selectModel.scoreItemIndex
-	self.targetItemIndex = 1
-end
-
-function ScoreListView:scrollScore(delta)
-	local i = self.selectedScoreIndex + delta
-	local score = self.items[i]
-
-	if not score then
-		return
-	end
-
-	self:scroll(delta)
-	self.openResult = true
-end
-
-local panel_w = 378
-
-function ScoreListView:mouseClick(w, h, i)
-	if not self.focus then
-		return
-	end
-
-	if ui.isOver(panel_w, h, 0, 0) then
-		if ui.mousePressed(1) then
-			if not self.items[i] then
-				return
-			end
-			self.game.selectModel:scrollScore(nil, self.items[i].scoreIndex)
-			self.openResult = true
-		end
-	end
-end
-
-function ScoreListView:input(w, h)
-	if not self.focus then
-		return
-	end
-	local delta = ui.wheelOver(self, ui.isOver(panel_w, h))
-	if delta then
-		self:scroll(-delta)
-		return
-	end
-end
-
-local gfx = love.graphics
-
-function ScoreListView:updateAnimations()
-	for i, v in pairs(self.animations) do
-		v = v - 0.009
-
-		self.animations[i] = v
-
-		if v < 0 then
-			self.animations[i] = 0
-		end
-	end
-end
-
----@param time {[string]: number}
----@return string?
-local function formatTime(time)
-	local days = time.days
-	local hours = time.hours
-	local minutes = time.minutes
-	local seconds = time.seconds
-
-	if days then
-		if days > 3 then
-			return
-		end
-		return ("%id"):format(days)
-	elseif hours then
-		return ("%ih"):format(hours)
-	elseif minutes then
-		return ("%im"):format(minutes)
-	elseif seconds then
-		return ("%is"):format(seconds)
-	end
-end
-
-function ScoreListView:updateTimeSinceScore()
-	local current_time = love.timer.getTime()
-	if current_time < self.nextTimeUpdateTime then
-		return
-	end
-
-	self.nextTimeUpdateTime = current_time + 1
-	self.timeUpdateTime = love.timer.getTime()
-	for i, score in ipairs(self.items) do
-		local time = time_util.date_diff(os.time(), score.time)
-		score.timeSince = formatTime(time)
-	end
-end
-
----@param i number
----@param w number
----@param h number
-function ScoreListView:drawItem(i, w, h)
-	local img = self.assets.images
-	local item = self.items[i]
-
-	local username = item.username
-	local avatar = img.avatar
-
-	username = ("#%i %s"):format(i, username)
-
-	local a = self.animations[i] or 0
-
-	if ui.isOver(panel_w, h) and self.focus then
-		self.animations[i] = math_util.clamp(a + 0.05, 0, 0.5)
-		ui.tooltip = item.tooltip
-	end
-
-	local background_color = { 0 + a * 0.5, 0 + a * 0.5, 0 + a * 0.5, 0.3 + a * 0.2 }
-
-	gfx.translate((1 - ui.easeOutCubic(self.scoreUpdateTime, 0.3 + (i / 16))) * -w, 0)
-
-	gfx.setColor(background_color)
-	gfx.rectangle("fill", 0, 0, panel_w, 50)
-
-	gfx.setColor(1, 1, 1, 1)
-	if avatar then
-		local ih = avatar:getHeight()
-		local s = (h - 6) / ih
-		gfx.draw(avatar, 2, 2, 0, s, s)
-	end
-
-	gfx.push()
-
-	local grade = item.gradeImg
-
-	gfx.push()
-	gfx.translate(-grade:getWidth() / 2 + 67, h / 2 - (grade:getHeight() / 2) - 1)
-	gfx.draw(grade)
-	gfx.pop()
-
-	gfx.translate(94, 0)
-	gfx.setFont(self.font.username)
-	ui.textWithShadow(username)
-	gfx.setFont(self.font.score)
-	ui.textWithShadow(item.secondRow)
-	gfx.pop()
-
-	gfx.setFont(self.font.rightSide)
-	ui.frameWithShadow(item.modsRow, -4, 0, panel_w, 50, "right", "top")
-	ui.frameWithShadow(item.accuracy, -4, 0, panel_w, 50, "right", "center")
-
-	local improvement = "-"
-
-	if self.items[i + 1] then
-		---@type number
-		local difference = item.scoreNum - self.items[i + 1].scoreNum
-
-		if difference > 0 then
-			improvement = ("+%i"):format(difference)
+		if added then
+			score_index = score_index + 1
 		end
 	end
 
-	ui.frameWithShadow(improvement, -4, 0, panel_w, 50, "right", "bottom")
+	local prev_score_count = self.scoreCount
+	self.scoreCount = score_index - 1
 
-	local time_since = item.timeSince
-	if time_since then
-		gfx.translate(panel_w + 16, 0)
-		local icon = self.assets.images.recentScore
-		local iw, ih = icon:getDimensions()
-		gfx.setColor(1, 1, 1)
-		gfx.draw(self.assets.images.recentScore, 0, h / 2, 0, 1, 1, iw / 2, ih / 2)
-		ui.frameWithShadow(time_since, 16, 0, 100, h, "left", "center")
+	if prev_score_count ~= self.scoreCount then
+		local no_scores_img = self.children.noScores
+		if self.noScoresTween then
+			self.noScoresTween:stop()
+		end
+		if self.scoreCount > 0 then
+			self.noScoresTween = flux.to(no_scores_img, 0.5, { alpha = 0 }):ease("quadout")
+		else
+			self.noScoresTween = flux.to(no_scores_img, 0.5, { alpha = 1 }):ease("quadout")
+		end
 	end
+
+	local h = self.panelHeight
+	self.scores.scrollLimit = math.max(0, (self.scoreCount - 8) * h)
+end
+
+function ScoreListView:openScore(id)
+	self.selectApi:setScoreIndex(id)
+	local select = self:findComponent("select")
+	self:assert(select, "No select screen? Why?")
+	---@cast select osu.ui.SelectViewContainer
+	select:transitToResult()
 end
 
 return ScoreListView

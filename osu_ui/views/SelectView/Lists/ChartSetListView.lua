@@ -10,12 +10,7 @@ local ChartListItem = require("osu_ui.views.SelectView.Lists.ChartListItem")
 ---@field window osu.ui.WindowListChartItem[]
 local ChartSetListView = WindowListView + {}
 
----@param game sphere.GameController
----@param assets osu.ui.OsuAssets
-function ChartSetListView:new(game, assets)
-	WindowListView.new(self)
-	self.game = game
-	self.assets = assets
+function ChartSetListView:load()
 	self.config = self.game.configModel.configs.osu_ui
 	self.itemClass = ChartListItem
 
@@ -24,22 +19,16 @@ function ChartSetListView:new(game, assets)
 	self.nextAutoScrollTime = 0
 	self.previewIcon = false
 
-	self.mouseAllowedArea = {
-		w = 908,
-		h = 598,
-		x = 502,
-		y = 82,
+	self.maniaIcon = self.assets:loadImage("mode-mania-small")
+	self.starImage = self.assets:loadImage("star")
+	self.hoverSound = self.assets:loadAudio("menuclick")
+	self.selectSound = self.assets:loadAudio("select-difficulty")
+
+	self.itemParams = {
+		background = self.assets:loadImage("menu-button-background"),
+		titleFont = self.assets:loadFont("Regular", 22),
+		infoFont = self.assets:loadFont("Regular", 16)
 	}
-
-	self.font = self.assets.localization.fontGroups.chartSetList
-
-	local img = self.assets.images
-	local snd = self.assets.sounds
-	self.panelImage = img.listButtonBackground
-	self.maniaIcon = img.maniaSmallIconForCharts
-	self.starImage = img.star
-	self.hoverSound = snd.hoverMenu
-	self.selectSound = snd.selectChart
 
 	self:reloadItems()
 end
@@ -224,7 +213,9 @@ function ChartSetListView:drawPanels(item, w, h)
 		return
 	end
 
-	self:checkForMouseActions(item, x, y, panel_w, panel_h)
+	if self.mouseOver then
+		self:checkForMouseActions(item, x, y, panel_w, panel_h)
+	end
 
 	gfx.push()
 	gfx.translate(x, y)

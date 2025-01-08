@@ -1,129 +1,167 @@
 local WindowListView = require("osu_ui.views.SelectView.Lists.WindowListView")
-
-local ui = require("osu_ui.ui")
+local Image = require("ui.Image")
 
 local CollectionItem = require("osu_ui.views.SelectView.Lists.CollectionItem")
+local ChartListView = require("osu_ui.views.SelectView.Lists.ChartListView")
+
+local flux = require("flux")
 
 ---@class osu.ui.CollectionsListView : osu.ui.WindowListView
 ---@operator call: osu.ui.CollectionsListView
 ---@field window osu.ui.CollectionItem[]
+---@field state "closed" | "loading" | "opening" | "open" | "closing"
+---@field selectApi game.SelectAPI
 local CollectionsListView = WindowListView + {}
 
----@param game sphere.GameController
----@param assets osu.ui.OsuAssets
-function CollectionsListView:new(game, assets)
-	WindowListView.new(self)
-	self.game = game
+function CollectionsListView:load()
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	local assets = scene.assets
+
+	self.selectApi = scene.ui.selectApi
 	self.assets = assets
+
+	self.width, self.height = self.parent:getDimensions()
+	self.holeSize = 0
+	self.wrapProgress = 0
+	self.state = "loading"
 	self.itemClass = CollectionItem
-
-	self.creationTime = love.timer.getTime()
-	self.unwrapStartTime = -math.huge
-	self.nextAutoScrollTime = 0
-	self.state = "idle"
-
-	self.mouseAllowedArea = {
-		w = 908,
-		h = 598,
-		x = 502,
-		y = 82,
+	self.itemParams = {
+		background = assets:loadImage("menu-button-background"),
+		titleFont = fonts:loadFont("Regular", 32),
+		infoFont = fonts:loadFont("Regular", 16),
+		hoverSound = assets:loadAudio("menu-click"),
+		list = self
 	}
+	self.clickSound = assets:loadAudio("select-expand")
+	self:loadItems()
 
-	self.font = self.assets.localization.fontGroups.chartSetList
-
-	local img = self.assets.images
-	local snd = self.assets.sounds
-	self.panelImage = img.listButtonBackground
-	self.hoverSound = snd.hoverMenu
-	self.selectSound = snd.selectChart
-	self:reloadItems()
+	local img = assets:loadImage("loading")
+	local scale = 0.7
+	self:addChild("loading", Image({
+		x = self.width - img:getWidth() * scale,
+		origin = { x = 0.5, y = 0.5 },
+		scale = scale,
+		image = img,
+		alpha = 0,
+		z = 1,
+		update = function(this, dt)
+			this.alpha = 0
+			if self.state == "loading" then
+				this.angle = this.angle + dt * 3
+				this.y = self:getSelectedItemIndex() * self.panelHeight - self.panelHeight / 2
+				this.alpha = 1
+			end
+		end
+	}))
 end
 
 function CollectionsListView:getSelectedItemIndex()
-	local tree = self.game.selectModel.collectionLibrary.tree
-	return tree.selected
+	return self.selectApi:getCollectionLibrary().tree.selected
 end
 
 function CollectionsListView:getItems()
-	return self.game.selectModel.collectionLibrary.tree.items
+	return self.selectApi:getCollectionLibrary().tree.items
 end
 
-function CollectionsListView:getChildSelectedItemIndex()
-	return 1
+function CollectionsListView:update()
+	if self.state == "loading" then
+		if self.lastStateCounter ~= self.selectApi:getNotechartSetStateCounter() then
+			self:collectionLoaded()
+		end
+	end
 end
 
-function CollectionsListView:getChildItemsCount()
-	return 1
+function CollectionsListView:getChildItemCount()
+	return #self.childList:getItems()
 end
 
-function CollectionsListView:selectItem(visual_index)
-	if self.state == "locked" then
+function CollectionsListView:childUpdated()
+	self:stopWrapTween()
+	local size = self:getChildItemCount() * self.panelHeight
+	self.wrapTween = flux.to(self, 0.4, { holeSize = size, wrapProgress = 1 }):ease("cubicout")
+end
+
+function CollectionsListView:collectionLoaded()
+	self.parent:removeChild("charts")
+	self.childList = ChartListView({
+		parentList = self,
+		depth = 0.9,
+	})
+
+	self.parent:addChild("charts", self.childList)
+
+	if self.parent.teleportScrollPosition then
+		self.holeSize = self:getChildItemCount() * self.panelHeight
+		self.wrapProgress = 1
+		self.state = "open"
+		self.childList:calcTotalHeight()
 		return
 	end
 
-	ui.playSound(self.selectSound)
+	self.state = "opening"
+	self.holeSize = 0
+	self.wrapProgress = 0
+	self:childUpdated()
+end
 
-	if visual_index == self.selectedVisualItemIndex then
-		self.state = "item_selected"
+function CollectionsListView:stopWrapTween()
+	if self.wrapTween then
+		self.wrapTween:stop()
+	end
+end
+
+---@param child osu.ui.CollectionItem
+function CollectionsListView:selectItem(child)
+	self.playSound(self.clickSound)
+
+	if child.visualIndex == self:getSelectedItemIndex() then
+		if self.state == "opening" or self.state == "open" then
+			self.state = "closing"
+			self:stopWrapTween()
+			local h = (self.windowSize / 2) * self.panelHeight
+			if self.holeSize > h then
+				self.holeSize = h
+			end
+			self.wrapTween = flux.to(self, 0.3, { holeSize = 0, wrapProgress = 0 }):ease("cubicout")
+		elseif self.state == "closing" or self.state == "closed" then
+			self.state = "opening"
+			self:stopWrapTween()
+			local size = self:getChildItemCount() * self.panelHeight
+			self.wrapTween = flux.to(self, 0.4, { holeSize = size, wrapProgress = 1 }):ease("cubicout")
+		end
 		return
 	end
 
-	self.game.selectModel:scrollCollection(nil, visual_index)
+	local prev_index = self:getSelectedItemIndex()
+	local prev_charts = self.parent:getChild("charts")
+	local prev_size = 0
+	if prev_charts then
+		prev_size = prev_charts.height * self.wrapProgress
+		self.parent:removeChild("charts")
+		self.parent:build()
+	end
+
+	self.lastStateCounter = self.selectApi:getNotechartSetStateCounter()
+	self.selectApi:setCollectionIndex(child.visualIndex)
+	self.state = "loading"
+	self:stopWrapTween()
+	self.holeSize = 0
+	self.wrapProgress = 0
+
+	if self:getSelectedItemIndex() > prev_index then
+		self.parent.scrollPosition = self.parent.scrollPosition - prev_size
+	end
+
+	self.parent:scrollToPosition(self:getSelectedItemIndex() * self.panelHeight, 0)
 end
 
 function CollectionsListView:replaceItem(window_index, visual_index)
 	local collection = self.items[visual_index]
 	local item = self.window[window_index]
-	local tree = self.game.selectModel.collectionLibrary.tree
+	local tree = self.selectApi:getCollectionLibrary().tree
 	item:replaceWith(collection, tree)
 	item.visualIndex = visual_index
-end
-
----@param item osu.ui.WindowListChartItem
-function CollectionsListView:justHoveredOver(item)
-	ui.playSound(self.hoverSound)
-	item.flashColorT = 1
-end
-
-function CollectionsListView:update(dt)
-	if self.windowSize == 0 then
-		return
-	end
-
-	WindowListView.update(self, dt)
-	self:iterOverWindow(CollectionItem.applyItemEffects, dt)
-	self.mouseOverIndex = -1
-end
-
-local gfx = love.graphics
-
-function CollectionsListView:drawPanels(item, w, h)
-	local slide_in = ui.easeOutCubic(self.creationTime, 0.7)
-	local x, y = w - item.x - (540 * slide_in), item.y
-
-	local panel_w = CollectionItem.panelW
-	local panel_h = CollectionItem.panelH
-
-	if y < -panel_h or y > 768 then
-		return
-	end
-
-	self:checkForMouseActions(item, x, y, panel_w, panel_h)
-
-	gfx.push()
-	gfx.translate(x, y)
-	item:draw(self)
-	gfx.pop()
-end
-
-function CollectionsListView:draw(w, h)
-	if self.windowSize == 0 then
-		return
-	end
-
-	for i, item in ipairs(self.window) do
-		self:drawPanels(item, w, h)
-	end
 end
 
 return CollectionsListView

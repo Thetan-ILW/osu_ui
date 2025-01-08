@@ -180,7 +180,7 @@ l.textGroups = {
 		from = "From %s",
 		chartInfoFirstRow = "Length: %s BPM: %s Objects: %s",
 		chartInfoSecondRow = "Circles: %s Sliders: %s Spinners: %s",
-		chartInfoThirdRow = "Keys: %s OD: %s HP: %s Star rating: %s",
+		chartInfoThirdRow = "Keys:%s OD:%s HP:%s Star rating: %s",
 		--
 		localRanking = "Local ranking",
 		onlineRankin = "Online ranking",
@@ -190,7 +190,7 @@ l.textGroups = {
 		recent = "Recently played",
 		artist = "By Artist",
 		difficulty = "By Difficulty",
-		noGrouping = "No grouping",
+		noGrouping = "No Grouping",
 		--
 		group = "Group",
 		sort = "Sort",
@@ -362,9 +362,9 @@ l.fontGroups = {
 		chartedBy = { "Aller", 16, "ZenMaruGothic-Regular" },
 		infoTop = { "Aller-Bold", 16 },
 		infoCenter = { "Aller", 16 },
-		infoBottom = { "Aller", 12 },
+		infoBottom = { "Aller", 11 },
 		dropdown = { "Aller", 18 },
-		groupSort = { "Aller-Light", 30 },
+		groupSort = { "Aller-Light", 29 },
 		username = { "Aller", 20, "ZenMaruGothic-Medium" },
 		belowUsername = { "Aller", 14 },
 		rank = { "Aller-Light", 50 },
@@ -430,6 +430,7 @@ l.fontGroups = {
 		playInfo = { "Aller", 22, "ZenMaruGothic-Regular" },
 		graphInfo = { "ZenMaruGothic-Regular", 18 },
 		pp = { "ZenMaruGothic-Medium", 36 },
+		onlineRanking = { "Aller", 32, "ZenMaruGothic-Regular" },
 	},
 	playerStats = {
 		activity = { "Aller", 18, "ZenMaruGothic-Regular" },

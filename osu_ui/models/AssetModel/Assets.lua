@@ -15,9 +15,12 @@ local path_util = require("path_util")
 ---@field defaultsFileList {[string]: string}
 ---@field images table<string, love.Image>
 ---@field sounds table<string, audio.Source?>
+---@field fonts {[string]: love.Font}
 ---@field shaders table<string, love.Shader>
 ---@field params table<string, number|string|boolean>
 ---@field errors string[]
+---@field screenHeight number
+---@field nativeHeight number
 local Assets = class()
 
 Assets.errors = {}
@@ -71,6 +74,7 @@ function Assets:setPaths(directory, defaults_directory)
 end
 
 function Assets:setFileList()
+	assert(self.directory)
 	self.fileList = {}
 
 	if self.directory ~= "" then
@@ -89,6 +93,9 @@ end
 ---@param file_list {[string]: string}
 ---@return string?
 function Assets.findImage(name, file_list)
+	if not file_list then
+		print(debug.traceback())
+	end
 	for _, format in ipairs(image_extensions) do
 		local double = file_list[(name .. "@2x" .. format):lower()]
 		if double then
@@ -115,11 +122,18 @@ function Assets.findAudio(name, file_list)
 	end
 end
 
+---@param name string
+---@param file_list {[string]: string}
+---@return string?
+function Assets.findFile(name, file_list)
+	return file_list[name:lower()]
+end
+
 ---@param root string
 ---@param file_name string
 ---@param file_list {[string]: string}
 ---@return love.Image?
-function Assets.loadImage(root, file_name, file_list)
+function Assets.newImage(root, file_name, file_list)
 	local path = Assets.findImage(file_name, file_list)
 
 	if path then
@@ -147,7 +161,7 @@ end
 ---@param use_sound_data boolean?
 ---@return audio.Source?
 --- Note: use_sound_data for loading audio from mounted directories (moddedgame/charts)
-function Assets.loadAudio(root, file_name, file_list, use_sound_data)
+function Assets.newAudio(root, file_name, file_list, use_sound_data)
 	local path = Assets.findAudio(file_name, file_list)
 
 	if not path then
@@ -221,8 +235,8 @@ function Assets.emptyAudio()
 end
 
 ---@param name string
-function Assets:loadDefaultImage(name)
-	local image = Assets.loadImage(self.defaultsDirectory, name, self.defaultsFileList)
+function Assets:newDefaultImage(name)
+	local image = Assets.newImage(self.defaultsDirectory, name, self.defaultsFileList)
 
 	if image then
 		return image
@@ -234,54 +248,52 @@ end
 
 ---@param name string
 ---@return love.Image
-function Assets:loadImageOrDefault(name)
-	local image = Assets.loadImage(self.directory, name, self.fileList)
+function Assets:loadImage(name)
+	if self.images[name] then
+		return self.images[name]
+	end
+
+	local image = Assets.newImage(self.directory, name, self.fileList)
 
 	if image then
+		self.images[name] = image
 		return image
 	end
 
-	return Assets.loadDefaultImage(self, name)
+	local default = Assets.newDefaultImage(self, name)
+	self.images[name] = default
+	return default
 end
 
 ---@param name string
 ---@return audio.Source
-function Assets:loadAudioOrDefault(name)
-	local sound = Assets.loadAudio(self.directory, name, self.fileList)
+function Assets:loadAudio(name)
+	if self.sounds[name] then
+		return self.sounds[name]
+	end
+
+	local sound = Assets.newAudio(self.directory, name, self.fileList)
 
 	if sound then
+		self.sounds[name] = sound
+		sound:setVolume(self.volume)
 		return sound
 	end
 
-	sound = Assets.loadAudio(self.defaultsDirectory, name, self.defaultsFileList, true)
+	sound = Assets.newAudio(self.defaultsDirectory, name, self.defaultsFileList, true)
 
 	if sound then
+		self.sounds[name] = sound
+		sound:setVolume(self.volume)
 		return sound
 	end
 
 	table.insert(self.errors, ("Audio not found %s"):format(name))
+	self.sounds[name] = self.emptyAudio()
 	return self.emptyAudio()
 end
 
----@param src {[string]: string}
----@param destination {[string]: love.Image}
-function Assets:populateImages(src, destination)
-	for k, file_name in pairs(src) do
-		destination[k] = self:loadImageOrDefault(file_name)
-	end
-end
-
----@param src {[string]: string}
----@param destination {[string]: audio.Source}
-function Assets:populateSounds(src, destination)
-	for k, file_name in pairs(src) do
-		destination[k] = self:loadAudioOrDefault(file_name)
-	end
-end
-
----@param config_model sphere.ConfigModel
-function Assets:updateVolume(config_model)
-	local configs = config_model.configs
+function Assets:updateVolume(configs)
 	local settings = configs.settings
 	local osu = configs.osu_ui
 	local a = settings.audio
@@ -289,6 +301,7 @@ function Assets:updateVolume(config_model)
 
 	---@type number
 	local volume = osu.uiVolume * v.master
+	self.volume = volume
 
 	for _, item in pairs(self.sounds) do
 		item:setVolume(volume)

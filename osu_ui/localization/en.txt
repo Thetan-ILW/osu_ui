@@ -1,0 +1,178 @@
+# You can use comments like in python
+-- Lua comments are also supported if you like them
+
+General_Cancel=Cancel
+General_Back=Back
+General_Apply=Apply
+General_Reset=Reset
+General_Yes=Yes
+General_No=No
+
+UserProfile_Guest=Guest
+
+Options_Options=Options
+Options_HeaderBlurb=Change the way soundsphere behaves
+Options_HeaderBlurbGucci=Change the way gucci!mania behaves
+Options_General=General
+Options_Gameplay=Gameplay
+Options_Graphics=Graphics
+Options_TabInput=Input
+Options_TabMaintenance=Maintenance
+
+Options_Screen=Screen
+Options_Graphics_SelectResolution=Resolution:
+Options_Graphics_Letterboxing=Gameplay letterboxing
+Options_Graphics_Letterboxing_Tooltip=Always use the full native resolution but display gameplay in a smaller centered portion of the screen.\nUseful to get the low latency of full screen with a smaller game resolution.
+Options_Graphics_LetterboxPositionX=Horizontal position:
+Options_Graphics_LetterboxPositionY=Vertical position:
+Options_Graphics_EnableBlur=Enable blur
+Options_Graphics_BlurQuality=Blur quality
+Options_Graphics_UISkin=UI Skin:
+Options_Graphics_CopyScreenshot=Copy screenshots to clipboard
+
+FunSpoiler_BackgroundDim=Background dim:
+Options_Gameplay_ScrollSpeed=Scroll Speed
+Options_Gameplay_ScrollSpeedLol=Scroll Speed:
+Options_Gameplay_ScrollSpeedType=Scroll speed type:
+Options_Gameplay_TempoFactor=Tempo factor
+Options_Gameplay_Average=Average
+Options_Gameplay_Primary=Primary
+Options_Gameplay_Minimum=Minimum
+Options_Gameplay_Maximum=Maximum
+Options_Gameplay_PrimaryTempo=Primary tempo:
+Options_Gameplay_ConstantScrollSpeed=Constant scroll speed
+Options_Gameplay_ScaleScrollSpeedWithRate=Scale scroll speed with rate
+
+Options_Gameplay_Scoring=Scoring
+Options_Gameplay_ScoreSystem=Score system:
+Options_Gameplay_Judgement=Judgement:
+Options_Gameplay_NearestInput=Nearest input
+
+Options_Gameplay_Health=Health
+Options_Gameplay_ActionOnFail=Action on fail:
+Options_Gameplay_ActionNone=None
+Options_Gameplay_ActionPause=Pause
+Options_Gameplay_ActionQuit=Quit
+Options_Gameplay_MaxHealth=Max health:
+Options_Gameplay_AutoShift=Auto shift
+
+Options_Audio_Volume=Volume
+Options_Audio_Effect=Effect:
+Options_Audio_Master=Master:
+Options_Audio_Music=Music:
+Options_Audio_UserInterface=User Interface:
+Options_Audio_RateChangesPitch=Rate chages pitch
+Options_Audio_RateChangesPitch_Tooltip=Changing the speed of the music will also change the pitch of the music.
+Options_Audio_AutoKeySound=Auto Key Sound
+Options_Audio_AutoKeySound_Tooltip=Hitsound will play in perfect sync with the music, no matter how early/late you press a note.
+Options_Audio_MidiConstantVolume=MIDI constant volume
+Options_Audio_MuteOnUnfocus=Mute game when game window is not focused
+
+Options_Audio_Device=Device
+Options_Audio_UpdatePeriod=Update period:
+Options_Audio_BufferLength=Buffer length:
+Options_Audio_AdjustRate=Adjust rate:
+
+Options_Audio_Offset=Offset Adjustment
+Options_Audio_ChartFormatOffsets=Offset adjustment for chart formats
+OptionsOffsetWizard_UniversalOffset=Universal offset:
+
+Options_Skin=Skin
+Options_SkinSelect=Current skin:
+Options_SkinPreview=Preview gameplay
+Options_SkinSettings=Change skin settings
+Options_OpenSkinFolder=Open current skin folder
+Options_LongNoteShortening=LN shortening:
+
+Options_Cursor=Cursor
+Options_CursorSize=Cursor size:
+Options_TrailDensity=Trail density:
+Options_TrailQuality=Trail quality:
+Options_TrailLifetime=Trail lifetime:
+Options_TrailStyle=Trail style:
+Options_ShowTrail=Show trail 
+Options_CameraInstructions=Controls:\nF9 - enter camera mode.\nF10 - reset\nWASD - forward/left/right/back.\nSHIFT/SPACE - up/down.\nLeft mouse button - rotate
+
+Options_Camera=3D Camera
+Options_EnableCamera=Enable 3D camera
+Options_CameraXRotation = Allow rotation of X coordinate
+Options_CameraYRotation = Allow rotation of Y coordinate
+
+Options_Input_InputOffset=Input offset:
+Options_Input_VisualOffset=Offset offset:
+Options_Input_MultiplyInputOffsetByRate=Multiply input offset by music speed
+Options_Input_MultiplyVisualOffsetByRate=Multiply visual offset by music speed
+Options_Input_Other=Other
+Options_Input_ThreadedInput=Threaded input
+Options_Input_TaikoNoteHandler=[DO NOT ENABLE] Taiko note handler
+
+Options_SwitchToLegacyUI=Switch to legacy UI
+Options_UISwitchConfirm=Are you sure you want to switch back to the old UI? Do you even know how to get back?
+
+SongSelection_BeatmapInfoCreator=Mapped by %s
+SongSelection_BeatmapInfoPack=From %s
+SongSelection_BeatmapInfo=Length: %s BPM: %i Objects: %i
+SongSelection_BeatmapInfo2=Circles: %i Sliders: %i Spinners: %i
+SongSelection_NoGrouping=No Grouping
+SongSelection_ByArtist=By Artist
+SongSelection_ByBPM=By BPM
+SongSelection_ByCreator=By Creator
+SongSelection_ByDateAdded=By Date Added
+SongSelection_ByDifficulty=By Difficulty
+SongSelection_ByLength=By Length
+SongSelection_ByTitle=By Title
+SongSelection_ByLevel=By Level
+SongSelection_ByRecentlyPlayed=By Recently Played
+SongSelection_ByBeatmaps=By Beatmaps
+SongSelection_ByGames=By Games
+SongSelection_ByFolders=By Folders
+SongSelection_Collections=Collections
+SongSelection_RankedStatus=Ranked Status
+SongSelection_RecentlyPlayed=Recently Played
+SongSelection_Group=Group
+SongSelection_Sort=Sort
+SongSelection_Rank_Local=Normalscore
+SongSelection_Rank_Top=Global Ranking
+SongSelection_TypeToBegin=Type to search!
+SongSelection_Search=Search:
+SongSelection_Searching=Searching...
+
+SongSelection_ThisBeatmap=%s\nWhat do you want to do with this beatmap?
+SongSelection_Collection=Manage Collections
+SongSelection_ExportToOsu=Export to .osu
+SongSelection_Filters=Filters
+SongSelection_Edit=Edit
+SongSelection_OpenInFileManager=Open in file manager
+SongSelection_OsuExported=Exported to "userdata/export"
+
+RankingDialog_PlayedBy=Played by %s %s
+RankingDialog_ExportOsuReplay=Export osu! replay
+RankingDialog_SubmitReplay=Submit Replay
+
+ModSelection_Title=Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun.
+ModSelection_Reset=Reset All Mods
+
+LocationsModal_Title=Add new songs from your hard drive by specifying the path. The game will read directly from these directories without copying anything.
+LocationsModal_UpdateAll=Update all locations
+LocationsModal_Update=Update
+LocationsModal_OpenFolder=Open folder
+LocationsModal_HoldShiftToRemove=Hold shift key before clicking on the remove button!
+LocationsModal_CantRemoveInternal=You can't delete internal locations.
+LocationsModal_DropFolderHere=Drop a folder with songs here!
+LocationsModal_ChangeName=Change name:
+
+FiltersModal_Title=Use filters to display only the charts you want to play.
+FiltersModal_OriginalMode=Original Mode
+FiltersModal_ActualMode=Actual Mode
+FiltersModal_Format=Format
+FiltersModal_Scratch=Scratch
+FiltersModal_Played=Played
+FiltersModal_ResetFilters=Reset All Filters
+FiltersModal_DisplayMode=Display mode:
+FiltersModal_BeatmapsMode=Beatmaps
+FiltersModal_ModdedMode=Modded Beatmaps
+FiltersModal_PlayedMode=Played Beatmaps
+FiltersModal_Lamp=Lamp:
+
+ChartImport_Preparation=Status: Preparation for processing
+ChartImport_Processing=Status: Processing
