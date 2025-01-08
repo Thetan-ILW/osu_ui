@@ -55,6 +55,10 @@ function DisplayInfo:load()
 	self.normalScore = 0
 	self.keyMode = "None"
 	self.mean = 0
+	self.msds = { 0, 0, 0, 0, 0, 0, 0, 0 }
+	self.enpsDiff = 0
+	self.osuDiff = 0
+	self.lnPercent = 0
 
 	if self.chartview and self.chartdiff and self.scoreItem then
 		self:getDifficulty()
@@ -80,15 +84,22 @@ function DisplayInfo:getDifficulty()
 
 	self.difficulty = ("[%0.02f*]"):format(difficulty)
 
-	if diff_column == "msd_diff" and chartview.msd_diff_data then
-		local minacalc = self.minacalc
-		local msd = minacalc.getMsdFromData(chartview.msd_diff_data, rate)
+	local minacalc = self.minacalc
+	local msd = minacalc.getMsdFromData(chartview.msd_diff_data, rate)
 
+	if msd then
+		self.msds = msd
+	end
+
+	self.enpsDiff = chartdiff.enps_diff
+	self.osuDiff = chartdiff.osu_diff
+	self.lnPercent = chartdiff.long_notes_count / chartdiff.notes_count
+
+	if diff_column == "msd_diff" and chartview.msd_diff_data then
 		if msd then
 			difficulty = msd.overall
 			patterns = minacalc.getFirstFromMsd(msd)
 		end
-
 		patterns = minacalc.simplifySsr(patterns, chartdiff.inputmode)
 		self.difficulty = ("[%0.02f %s]"):format(difficulty, patterns)
 	elseif diff_column == "enps_diff" then

@@ -542,7 +542,7 @@ function View:load(score_loaded)
 	self.accuracyTable = area:addChild("accuracyTable", Component({
 		x = 50,
 		y = 768 + 270,
-		z = 0.02
+		z = 0.02,
 	}))
 	self:addAccuracyColumn("osu!legacy", "OD", 0, 6, { 1, 0.95, 0.9, 0.8, 0.7 } )
 	self:addAccuracyColumn("osu!mania", "OD",  154, 6, { 1, 0.95, 0.9, 0.8, 0.7 } )
@@ -561,6 +561,33 @@ function View:load(score_loaded)
 	self:addStat("mean", -(114 * 3), "Mean", ("%0.02fms"):format(display_info.mean * 1000))
 	self:addStat("keyMode", -(114 * 4), "Key Mode", display_info.keyMode)
 	self.statTable:autoSize()
+
+	self.msdTable = area:addChild("msdTable", Component({
+		x = 50,
+		y = 768 + 550,
+		z = 0.02
+	}))
+	self:addMsdTable(display_info.msds, display_info.keyMode)
+
+	self.beatmapInfoTable = area:addChild("beatmapInfoTable", Component({
+		x = width - 50,
+		y = 768 + 550,
+		origin = { x = 1 },
+		z = 0.01,
+	}))
+	self:addBeatmapInfo("enps", 0, "ENPS", ("%0.02f"):format(display_info.enpsDiff))
+	self:addBeatmapInfo("stars", -114, "Stars", ("%0.02f*"):format(display_info.osuDiff))
+	self:addBeatmapInfo("ln", -114 * 2, "LN", ("%i%%"):format(display_info.lnPercent * 100))
+	self.beatmapInfoTable:autoSize()
+end
+
+function View:update()
+	if self.area then
+		local tables_in_view = self.area.scrollPosition < 260
+		self.accuracyTable.disabled = tables_in_view
+		self.statTable.disabled = tables_in_view
+		self.msdTable.disabled = tables_in_view
+	end
 end
 
 local table_colors = {
@@ -697,6 +724,121 @@ function View:addStat(id, x, label, value)
 		x = x, y = 20,
 		boxWidth = 110 * scale,
 		boxHeight = 45,
+		alignX = "center",
+		alignY = "center",
+		font = self.fonts:loadFont("Regular", 15),
+		text = value,
+		shadow = true,
+		z = 0.02,
+	}))
+end
+
+local msd_order = {
+	"overall",
+	"stream",
+	"jumpstream",
+	"handstream",
+	"stamina",
+	"jackspeed",
+	"chordjack",
+	"technical"
+}
+
+local msd_4k_alias = {
+	overall = "ALL",
+	stream = "STR",
+	jumpstream = "JS",
+	handstream = "HS",
+	stamina = "STMN",
+	jackspeed = "JACK",
+	chordjack = "CJ",
+	technical = "TECH"
+}
+
+local msd_alias = {
+	overall = "ALL",
+	stream = "STR",
+	jumpstream = "CHSTR",
+	handstream = "BRKT",
+	stamina = "STMN",
+	jackspeed = "JACK",
+	chordjack = "CJ",
+	technical = "TECH"
+}
+
+---@param msds {[string]: number}
+---@param key_mode string
+function View:addMsdTable(msds, key_mode)
+	local scale = self.width / 1366
+	local w = 75 * scale
+	for i, k in ipairs(msd_order) do
+		local value = msds[k]
+		local label = key_mode == "4K" and msd_4k_alias[k] or msd_alias[k]
+
+		local x = ((i - 1) * (w + 2)) * scale
+		self.msdTable:addChild(k .. "Bg", Rectangle({
+			x = x, y = 20,
+			width = w,
+			height = 36,
+			color = { 0.16, 0.16, 0.16, 1 },
+			z = 0.01
+		}))
+
+		self.msdTable:addChild(k .. "label", Label({
+			x = x,
+			boxWidth = w,
+			alignX = "center",
+			alignY = "center",
+			font = self.fonts:loadFont("Bold", 15),
+			text = label,
+			shadow = true,
+			z = 0.02,
+		}))
+
+		self.msdTable:addChild(k .. "value", Label({
+			x = x, y = 20,
+			boxWidth = w,
+			boxHeight = 36,
+			alignX = "center",
+			alignY = "center",
+			font = self.fonts:loadFont("Regular", 15),
+			text = tostring(value),
+			shadow = true,
+			z = 0.02,
+		}))
+	end
+end
+
+---@param id string
+---@param x number
+---@param label string
+---@param value string
+function View:addBeatmapInfo(id, x, label, value)
+	local scale = self.width / 1366
+	x = x * scale
+	self.beatmapInfoTable:addChild(id .. "Bg", Rectangle({
+		x = x, y = 20,
+		width = 110 * scale,
+		height = 36,
+		color = { 0.16, 0.16, 0.16, 1 },
+		z = 0.01
+	}))
+
+	self.beatmapInfoTable:addChild(id .. "label", Label({
+		x = x,
+		boxWidth = 110 * scale,
+		alignX = "center",
+		alignY = "center",
+		font = self.fonts:loadFont("Bold", 15),
+		text = label,
+		shadow = true,
+		z = 0.02,
+	}))
+
+	self.beatmapInfoTable:addChild(id .. "value", Label({
+		x = x, y = 20,
+		boxWidth = 110 * scale,
+		boxHeight = 36,
 		alignX = "center",
 		alignY = "center",
 		font = self.fonts:loadFont("Regular", 15),
