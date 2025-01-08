@@ -357,22 +357,26 @@ function View:load(score_loaded)
 		end
 	}))
 
-	area:addChild("accuracy", ImageValueView({
-		x = acc_x , y = acc_y,
-		origin = { x = 0, y = 0.5 },
-		scale = 1.1,
-		files = score_font,
-		overlap = overlap,
-		format = "%0.02f%%",
-		multiplier = 100,
-		z = 0.55,
-		value = function ()
-			return self.scoreReveal * display_info.accuracy
-		end
-	}))
+	if display_info.accuracy then
+		area:addChild("accuracy", ImageValueView({
+			x = acc_x , y = acc_y,
+			origin = { x = 0, y = 0.5 },
+			scale = 1.1,
+			files = score_font,
+			overlap = overlap,
+			format = "%0.02f%%",
+			multiplier = 100,
+			z = 0.55,
+			value = function ()
+				return self.scoreReveal * display_info.accuracy
+			end
+		}))
+
+		area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), z = 0.54 }))
+	end
+
 
 	area:addChild("comboText", Image({ x = 8, y = 480, image = assets:loadImage("ranking-maxcombo"), z = 0.54 }))
-	area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), z = 0.54 }))
 
 	---- GRAPH ----
 	local score_system = self.resultApi:getScoreSystem()
@@ -674,7 +678,9 @@ function View:load(score_loaded)
 		y = 768 + 550,
 		z = 0.02
 	}))
-	self:addMsdTable(display_info.msds, display_info.keyMode)
+	if display_info.msds then
+		self:addMsdTable(display_info.msds, display_info.keyMode)
+	end
 
 	self.beatmapInfoTable = area:addChild("beatmapInfoTable", Component({
 		x = width - 50,

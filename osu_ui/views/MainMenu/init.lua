@@ -170,7 +170,7 @@ function View:introSequence()
 	welcome.disabled = false
 	spectrum.color = {love.math.colorFromBytes(0, 78, 155, 255)}
 
-	flux.to(self, --[[2]]0.1, { introPercent = 1 }):ease("linear"):oncomplete(function ()
+	flux.to(self, 2, { introPercent = 1 }):ease("linear"):oncomplete(function ()
 		flux.to(logo, 0.2, { alpha = 1 }):ease("quadout"):oncomplete(function ()
 			stencil.compareValue = 1
 		end)

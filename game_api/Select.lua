@@ -394,4 +394,13 @@ function Select:applyNoteChartFilters()
 	self.game.selectModel:noDebouncePullNoteChartSet()
 end
 
+---@return boolean
+function Select:notechartExists()
+	return self.game.selectModel:notechartExists()
+end
+
+function Select:openWebNotechart()
+	self.game.selectController:openWebNotechart()
+end
+
 return Select

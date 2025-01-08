@@ -131,6 +131,10 @@ function View:transitIn()
 end
 
 function View:transitToGameplay()
+	if not self.selectApi:notechartExists() then
+		return
+	end
+
 	self.playSound(self.gameplaySound)
 
 	local showcase = self.scene:getChild("chartShowcase")
@@ -228,15 +232,6 @@ function View:load()
 		container.y = (1 - self.alpha) * 160
 		Component.update(container, dt)
 	end
-
-	self:addChild("screenshot", Image({
-		image = love.graphics.newImage("screenshot229.png"),
-		alpha = 0,
-		z = 1,
-		update = function(this)
-			--this.alpha = love.mouse.getX() / love.graphics.getWidth()
-		end
-	}))
 
 	self.searchFormat = { { 0.68, 1, 0.18, 1 }, text.SongSelection_Search .. " ", { 1, 1, 1, 1 }, text.SongSelection_TypeToBegin }
 	self.search = self.selectApi:getSearchText()
@@ -384,8 +379,10 @@ function View:load()
 		z = 0.5,
 		mouseClick = function(this)
 			if this.mouseOver then
-				select_view.game.selectController:openWebNotechart()
-				--view.notificationView:show("Opening the link. Check your browser.")
+				if self.selectApi:notechartExists() then
+					self.selectApi:openWebNotechart()
+					scene.notification:show("Opening the link. Check your browser.")
+				end
 				return true
 			end
 			return false

@@ -34,6 +34,10 @@ return function(section)
 	local text = scene.localization.text
 
 	section:group(text.Options_Skin, function(group)
+		if not select_api:notechartExists() then
+			return
+		end
+
 		local current_input_mode ---@type string?
 		local selected_note_skin ---@type sphere.NoteSkin
 		local skins ---@type table

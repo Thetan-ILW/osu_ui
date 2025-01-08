@@ -56,7 +56,7 @@ function DisplayInfo:load()
 	self.normalScore = 0
 	self.keyMode = "None"
 	self.mean = 0
-	self.msds = { 0, 0, 0, 0, 0, 0, 0, 0 }
+	self.msds = nil ---@type {[string]: number}?
 	self.enpsDiff = 0
 	self.osuDiff = 0
 	self.lnPercent = 0
