@@ -106,11 +106,12 @@ function View:load(score_loaded)
 		return
 	end
 
-	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.minacalc)
+	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.minacalc, scene.ui.pkgs.manipFactor)
 	display_info:load()
 
 	local assets = scene.assets
 	local fonts = scene.fontManager
+	local text = scene.localization.text
 	self.fonts = fonts
 
 	local width, height = self.width, self.height
@@ -539,6 +540,42 @@ function View:load(score_loaded)
 		end
 	}))
 
+	area:addChild("exportOsuReplay", Button({
+		x = width - 20,
+		y = 768 + 10,
+		origin = { x = 1 },
+		width = 250,
+		height = 30,
+		font = fonts:loadFont("Regular", 17),
+		label = text.RankingDialog_ExportOsuReplay,
+		color = { 0.05, 0.52, 0.65, 1 },
+		z = 0.02,
+		onClick = function()
+			local chart = self.resultApi:getChart()
+			if chart then
+				self.resultApi:exportOsuReplay(chart)
+				scene.notification:show("Exported")
+			else
+				scene.notification:show("Failed to export osu! replay")
+			end
+		end
+	}))
+
+	area:addChild("submitReplay", Button({
+		x = width - 20,
+		y = 768 + 45,
+		origin = { x = 1 },
+		width = 250,
+		height = 30,
+		font = fonts:loadFont("Regular", 17),
+		label = text.RankingDialog_SubmitReplay,
+		color = { 0.05, 0.52, 0.65, 1 },
+		z = 0.02,
+		onClick = function()
+			self.resultApi:submitReplay()
+		end
+	}))
+
 	self.accuracyTable = area:addChild("accuracyTable", Component({
 		x = 50,
 		y = 768 + 270,
@@ -558,7 +595,13 @@ function View:load(score_loaded)
 	self:addStat("pp", 0, "Performance", ("%i PP"):format(display_info.pp))
 	self:addStat("spam", -114, "Spam", ("%ix\n%i%%"):format(display_info.spam, display_info.spamPercent * 100))
 	self:addStat("normalScore", -(114 * 2), "NS", ("%0.02f"):format(display_info.normalScore * 1000))
-	self:addStat("mean", -(114 * 3), "Mean", ("%0.02fms"):format(display_info.mean * 1000))
+
+	if display_info.manipFactorPercent ~= 0 then
+		self:addStat("manip", -(114 * 3), "Manip", ("%0.02f%%"):format(display_info.manipFactorPercent * 100))
+	else
+		self:addStat("mean", -(114 * 3), "Mean", ("%0.02fms"):format(display_info.mean * 1000))
+	end
+
 	self:addStat("keyMode", -(114 * 4), "Key Mode", display_info.keyMode)
 	self.statTable:autoSize()
 
@@ -587,6 +630,7 @@ function View:update()
 		self.accuracyTable.disabled = tables_in_view
 		self.statTable.disabled = tables_in_view
 		self.msdTable.disabled = tables_in_view
+		self.beatmapInfoTable.disabled = tables_in_view
 	end
 end
 

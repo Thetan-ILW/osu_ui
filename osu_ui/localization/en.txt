@@ -111,6 +111,8 @@ SongSelection_OpenInFileManager=Open in file manager
 SongSelection_OsuExported=Exported to "userdata/export"
 
 RankingDialog_PlayedBy=Played by %s %s
+RankingDialog_ExportOsuReplay=Export osu! replay
+RankingDialog_SubmitReplay=Submit Replay
 
 ModSelection_Title=Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun.
 ModSelection_Reset=Reset All Mods

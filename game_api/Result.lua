@@ -68,4 +68,8 @@ function Result:exportOsuReplay(chart)
 	self.game.replayModel:saveOsr(chart.chartmeta)
 end
 
+function Result:submitReplay()
+	self.game.onlineModel.onlineScoreManager:submit(self.game.selectModel.chartview, self:getScoreItem().replay_hash)
+end
+
 return Result

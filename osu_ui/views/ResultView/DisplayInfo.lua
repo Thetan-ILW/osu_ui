@@ -20,11 +20,12 @@ local DisplayInfo = class()
 ---@param select_api game.SelectAPI
 ---@param result_api game.ResultAPI
 ---@param minacalc table
-function DisplayInfo:new(localization, select_api, result_api, minacalc)
+function DisplayInfo:new(localization, select_api, result_api, minacalc, manip_factor)
 	self.text = localization.text
 	self.selectApi = select_api
 	self.resultApi = result_api
 	self.minacalc = minacalc
+	self.manipFactor = manip_factor
 	self.configs = select_api:getConfigs()
 end
 
@@ -59,6 +60,7 @@ function DisplayInfo:load()
 	self.enpsDiff = 0
 	self.osuDiff = 0
 	self.lnPercent = 0
+	self.manipFactorPercent = 0
 
 	if self.chartview and self.chartdiff and self.scoreItem then
 		self:getDifficulty()
@@ -236,6 +238,10 @@ function DisplayInfo:getStats()
 	local normalscore = score_system["normalscore"]
 	self.normalScore = normalscore.accuracyAdjusted
 	self.mean = normalscore.normalscore.mean
+
+	if self.manipFactor then
+		self.manipFactorPercent = self.manipFactor(score_system.hits)
+	end
 end
 
 return DisplayInfo

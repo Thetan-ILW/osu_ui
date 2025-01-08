@@ -51,7 +51,7 @@ end
 ---@param s number
 ---@param v number
 ---@return number[]
-function HSV(h, s, v)
+local function HSV(h, s, v)
 	if s <= 0 then return { v, v, v, 1 } end
 	h = h*6
 	local c = v*s
