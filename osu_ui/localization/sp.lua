@@ -9,22 +9,22 @@ l.textGroups = {
 	},
 	settings = {
 		-------------- General
-		general = "GENERAL",
+		general = "",
 		-- Language
-		language = "IDIOMA",
-		selectLanguage = "Seleccionar idioma:",
+		language = "",
+		selectLanguage = "",
 		originalMetadata = "Preferir metadatos en su idioma original",
 		-- Updates
-		updates = "ACTUALIZACIONES",
-		autoUpdate = "Actualizar el juego automáticamente",
+		updates = "",
+		autoUpdate = "",
 		gitVersion = "Versión git del juego.",
 		upToDate = "Tu gucci!mania está actualizado",
 		notUpToDate = "No se sabe si el juego está actualizado.",
-		openSoundsphereFolder = "Abrir archivos de gucci!mania",
+		openSoundsphereFolder = "",
 		--- Main menu
-		mainMenu = "MENU PRINCIPAL",
-		hideGameTips = "Ocultar consejos",
-		disableIntro = "Deshabilitar introducción",
+		mainMenu = "",
+		hideGameTips = "",
+		disableIntro = "",
 		--- Song select
 		songSelect = "SELECTOR DE CANCIONES",
 		difficultyCalculator = "Sistema de dificultad:",
@@ -41,39 +41,39 @@ l.textGroups = {
 		showHitGraph = "Mostrar gráfico de pulsaciones",
 		showPP = "Mostrar PP",
 		-------------- Graphics
-		graphics = "GRÁFICOS",
+		graphics = "",
 		-- Renderer
-		renderer = "RENDERIZADO",
+		renderer = "",
 		vsyncType = "Tipo de Vsync:",
-		fpsLimit = "Limite de FPS:",
-		unlimitedFps = "FPS ilimitados",
-		showFPS = "Mostrar FPS",
+		fpsLimit = "",
+		unlimitedFps = "",
+		showFPS = "",
 		showProfiler = "Mostrar rendimiento",
 		vsyncInSongSelect = "Vsync en el selector de canciones",
-		adaptive = "Adaptativo",
-		enabled = "Habilitado",
-		disabled = "Deshabilitado",
+		adaptive = "",
+		enabled = "",
+		disabled = "",
 		msaaTip = "Antialiasing. Ajusta a 2 o 4 para suavizar bordes. Requiere reiniciar el juego.",
 		dwmFlushTip = "Actúa como el Vsync, pero puede causar errores gráficos",
 		-- Layout
 		layout = "LAYOUT",
 		uiSkin = "UI skin:",
-		fullscreenType = "Tipo de pantalla completa:",
+		fullscreenType = "",
 		windowResolution = "Resolución:",
-		desktop = "Escritorio",
-		exclusive = "Exclusivo",
-		fullscreen = "Pantalla completa",
+		desktop = "",
+		exclusive = "",
+		fullscreen = "",
 		-- Details
-		details = "AJUSTES DE DETALLE",
-		backgroundVideos = "Videos de fondo",
-		backgroundImages = "Imágenes de fondo",
+		details = "",
+		backgroundVideos = "",
+		backgroundImages = "",
 		-------------- Gameplay
 		gameplay = "GAMEPLAY",
 		-- Screen
-		screen = "PANTALLA",
-		screenResolution = "Resolución de la pantalla:",
-		positionX = "Posición horizontal:",
-		positionY = "Posición vertical:",
+		screen = "",
+		screenResolution = "",
+		positionX = "",
+		positionY = "",
 		renderAtNativeRes = "Renderizar a resolución nativa",
 		-- Scroll speed
 		scrollSpeed = "VELOCIDAD DE DESPLAZAMIENTO",
@@ -158,7 +158,7 @@ l.textGroups = {
 		cameraY = "Permitir rotación en el eje Y",
 		-------------- Input
 		-- Keyboard
-		input = "Entrada",
+		input = "",
 		keyboard = "TECLADO",
 		maniaLayout = "Disposición de teclas en Osu!mania",
 		-- Offset adjustment
@@ -173,7 +173,7 @@ l.textGroups = {
 		taikoNoteHandler = "2K VSRG como Mapas Taiko",
 		taikoNoteHandlerTip = "Alternan para jugar Mapas de Taiko.",
 		-------------- MAINTENANCE
-		maintenance = "MANTENIMIENTO",
+		maintenance = "",
 	},
 	songSelect = {
 		mappedBy = "Mapeado por %s",

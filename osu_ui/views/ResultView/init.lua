@@ -27,8 +27,9 @@ local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 local View = Screen + {}
 
 function View:presentScore()
+	local result_dim =  self.selectApi:getConfigs().settings.graphics.dim.result
 	flux.to(self.scene.cursor, 0.4, { alpha = 1 }):ease("quadout")
-	flux.to(self.scene.background, 0.4, { dim = 0.3, parallax = 0.01 }):ease("quadout")
+	flux.to(self.scene.background, 0.4, { dim = result_dim, parallax = 0.01 }):ease("quadout")
 	self.transitionTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
 	self.scoreReveal = 0
 	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")

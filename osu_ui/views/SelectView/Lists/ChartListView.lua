@@ -33,6 +33,8 @@ function ChartListView:load()
 		self.particles = p
 	end
 
+	self.config = self.selectApi:getConfigs().osu_ui ---@type osu.OsuConfig
+	self.previewIcon = false
 	self.itemClass = ChartListItem
 	self.itemParams = {
 		background = assets:loadImage("menu-button-background"),
@@ -99,6 +101,7 @@ function ChartListView:update(dt)
 		self.particles:update(dt)
 	end
 
+	self.previewIcon = self.config.songSelect.previewIcon
 	WindowListView.update(self, dt)
 end
 

@@ -16,7 +16,7 @@ function AssetModel:new(config_model, mount_path)
 	self.localizationsDir = path_util.join(mount_path, "osu_ui/localization")
 
 	self.fields = {}
-	--self:loadLocalizationList()
+	self:loadLocalizationList()
 end
 
 ---@param name string
@@ -34,11 +34,6 @@ end
 function AssetModel:loadLocalizationList()
 	---@type {name: string, filepath: string}[]
 	local list = love.filesystem.load(path_util.join(self.localizationsDir, "list.lua"))()
-
-	for _, v in ipairs(list) do
-		v.filepath = path_util.join(self.localizationsDir, v.filepath)
-	end
-
 	self.localization = list
 end
 

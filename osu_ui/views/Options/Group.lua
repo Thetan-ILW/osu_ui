@@ -185,7 +185,6 @@ function Group:label(params)
 	if not self:canAdd(params.label) then
 		return
 	end
-	params.height = params.height or 37
 
 	local container = self:addChild("label_container" .. self.labels, Component({
 		x = self.indent, y = self:getCurrentY(),
@@ -221,6 +220,10 @@ function Group:label(params)
 		boxWidth = container:getWidth(),
 		boxHeight = params.height
 	}))
+
+	if not params.height then
+		container:autoSize()
+	end
 	---@cast label ui.Label
 	self.height = self.height + container:getHeight()
 	self.labels = self.labels + 1

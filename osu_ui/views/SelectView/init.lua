@@ -64,10 +64,10 @@ function View:keyPressed(event)
 		self.scene:openModal("locations")
 	elseif key == "f6" then
 		self.selectApi:addTimeRate(-1)
-		self:updateModsLine()
+		self:updateInfo()
 	elseif key == "f7" then
 		self.selectApi:addTimeRate(1)
-		self:updateModsLine()
+		self:updateInfo()
 	elseif key == "f8" then
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5
@@ -119,6 +119,16 @@ function View:stopTransitionTween()
 	end
 end
 
+---@return number
+function View:getBackgroundDim()
+	return self.selectApi:getConfigs().settings.graphics.dim.select
+end
+
+---@return number
+function View:getBackgroundBrightness()
+	return 1 - self:getBackgroundDim()
+end
+
 function View:transitIn()
 	self.disabled = false
 	self.handleEvents = true
@@ -126,7 +136,7 @@ function View:transitIn()
 	self:stopTransitionTween()
 	self.transitionTween = flux.to(self, 0.7, { alpha = 1 }):ease("cubicout")
 
-	self.scene:showOverlay(0.4, 0.3)
+	self.scene:showOverlay(0.4, self:getBackgroundDim())
 	self.selectApi:loadController()
 end
 
@@ -154,7 +164,7 @@ function View:transitToGameplay()
 		self.selectApi:getBackgroundImages()[1]
 	)
 
-	self.scene:hideOverlay(0.5, 0.5)
+	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
 		time = 0.5,
 		ease = "quadout",
@@ -165,7 +175,7 @@ function View:transitToGameplay()
 end
 
 function View:transitToResult()
-	self.scene:hideOverlay(0.5, 0.5)
+	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
 		time = 0.5,
 		ease = "quadout",
@@ -183,8 +193,13 @@ function View:transitToMainMenu()
 	self.scene:transitInScreen("mainMenu")
 end
 
-function View:event_modsChanged()
+function View:updateInfo()
+	self.displayInfo:updateInfo()
 	self:updateModsLine()
+end
+
+function View:event_modsChanged()
+	self:updateInfo()
 end
 
 function View:load()
@@ -204,8 +219,7 @@ function View:load()
 	self.modLineString = ""
 
 	self.selectApi:listenForNotechartChanges(function()
-		self.displayInfo:updateInfo()
-		self:updateModsLine()
+		self:updateInfo()
 		self.notechartChangeTime = love.timer.getTime()
 	end)
 

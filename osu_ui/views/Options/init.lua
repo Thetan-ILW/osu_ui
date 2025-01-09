@@ -39,6 +39,8 @@ function Options:fade(target_value)
 	self.fadeTween = flux.to(self, 0.5, { alpha = target_value }):ease("quadout")
 	self.state = target_value == 0 and "closed" or "open"
 
+	self.panel:loseFocus()
+
 	if target_value > 0 then
 		self.alpha = 0.01
 		self.disabled = false
@@ -142,27 +144,27 @@ function Options:load()
 	self.hoverSound = assets:loadAudio("click-short")
 
 	self:newSection(
-		self.text.Options_General:upper(),
+		self.text.Options_TabGeneral:upper(),
 		"",
 		require("osu_ui.views.Options.sections.general")
 	)
 	self:newSection(
-		self.text.Options_Gameplay:upper(),
+		self.text.Options_TabGameplay:upper(),
 		"",
 		require("osu_ui.views.Options.sections.gameplay")
 	)
 	self:newSection(
-		self.text.Options_Graphics:upper(),
+		self.text.Options_TabGraphics:upper(),
 		"",
 		require("osu_ui.views.Options.sections.graphics")
 	)
 	self:newSection(
-		("audio"):upper(),
+		self.text.Options_TabAudio:upper(),
 		"",
 		require("osu_ui.views.Options.sections.audio")
 	)
 	self:newSection(
-		self.text.Options_Skin:upper(),
+		self.text.Options_TabSkin:upper(),
 		"",
 		require("osu_ui.views.Options.sections.skin")
 	)

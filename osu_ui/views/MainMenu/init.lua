@@ -95,11 +95,12 @@ function View:toNextView(screen_name)
 		return true
 	end
 
+	local menus_dim = self.selectApi:getConfigs().settings.graphics.dim.select
 	local background = self.scene.background
 	background.parallax = 0
-	background.dim = 0.3
+	background.dim = menus_dim
 
-	scene:hideOverlay(0.4)
+	scene:hideOverlay(0.4, menus_dim)
 	self:transitOut({
 		onComplete = function ()
 			scene:transitInScreen(screen_name)
@@ -527,8 +528,16 @@ function View:load()
 	end
 
 	if play_intro then
-		self:introSequence()
 		play_intro = false
+
+		local config = self.selectApi:getConfigs().osu_ui ---@type osu.OsuConfig
+
+		if config.mainMenu.disableIntro then
+			self.selectApi:loadController()
+			return
+		else
+			self:introSequence()
+		end
 	end
 end
 
