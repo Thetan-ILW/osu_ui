@@ -8,11 +8,13 @@ local text_input = require("ui.text_input")
 local flux = require("flux")
 local Rectangle = require("ui.Rectangle")
 local Label = require("ui.Label")
+local BackButton = require("osu_ui.ui.BackButton")
+local Image = require("ui.Image")
 
 local Section = require("osu_ui.views.Options.Section")
 
 ---@alias OptionsParams { assets: osu.ui.OsuAssets, localization: Localization, game: sphere.GameController }
----@alias SectionParams { name: string, icon: love.Text, buildFunction: fun(section: osu.ui.OptionsSection) }
+---@alias SectionParams { name: string, icon: ui.Label, buildFunction: fun(section: osu.ui.OptionsSection) }
 
 ---@class osu.ui.OptionsView : ui.CanvasComponent
 ---@overload fun(params: OptionsParams): osu.ui.OptionsView
@@ -83,6 +85,7 @@ function Options:searchUpdated()
 	self.panel:renameChild("newTree", "tree")
 	self.tree = new_tree
 	self:recalcPositions()
+	self:addTabs()
 
 	local label = self.children.searchLabel
 	---@cast label osu.ui.Label
@@ -105,7 +108,7 @@ function Options:newSection(name, icon, build_function)
 
 	Options.sections[name] = {
 		name = name,
-		--icon = self.assets:awesomeIcon(icon, 36),
+		icon = icon,
 		buildFunction = build_function
 	}
 	table.insert(Options.sectionsOrder, name)
@@ -127,6 +130,7 @@ function Options:load()
 	local assets = scene.assets
 	local osu_cfg = self:getConfigs().osu_ui
 	self.viewportScale = viewport:getInnerScale()
+	self.assets = assets
 
 	viewport:listenForResize(self)
 
@@ -141,6 +145,7 @@ function Options:load()
 	self:createCanvas(self.width, self.height)
 
 	self.hoverSound = assets:loadAudio("click-short")
+	self.fontAwesome = fonts:loadFont("Awesome", 24)
 
 	self:newSection(
 		self.text.Options_TabGeneral:upper(),
@@ -148,33 +153,33 @@ function Options:load()
 		require("osu_ui.views.Options.sections.general")
 	)
 	self:newSection(
-		self.text.Options_TabGameplay:upper(),
-		"",
-		require("osu_ui.views.Options.sections.gameplay")
-	)
-	self:newSection(
 		self.text.Options_TabGraphics:upper(),
-		"",
+		"",
 		require("osu_ui.views.Options.sections.graphics")
 	)
 	self:newSection(
+		self.text.Options_TabGameplay:upper(),
+		"",
+		require("osu_ui.views.Options.sections.gameplay")
+	)
+	self:newSection(
 		self.text.Options_TabAudio:upper(),
-		"",
+		"",
 		require("osu_ui.views.Options.sections.audio")
 	)
 	self:newSection(
 		self.text.Options_TabSkin:upper(),
-		"",
+		"",
 		require("osu_ui.views.Options.sections.skin")
 	)
 	self:newSection(
 		self.text.Options_TabInput:upper(),
-		"",
+		"",
 		require("osu_ui.views.Options.sections.input")
 	)
 	self:newSection(
 		self.text.Options_TabMaintenance:upper(),
-		"",
+		"",
 		require("osu_ui.views.Options.sections.maintenance")
 	)
 
@@ -302,11 +307,30 @@ function Options:load()
 	}))
 	self.koolRectangleHoverTargetY = self.koolRectangle.y
 
+	self:addChild("backButton", BackButton({
+		y = height - 58,
+		font = fonts:loadFont("Regular", 20),
+		text = "back",
+		hoverWidth = 93,
+		hoverHeight = 58,
+		onClick = function ()
+			self:fade(0)
+		end,
+		z = 0.9,
+	}))
+
+	self.tabButtons = self:addChild("tabButtonsContainer", Component({
+		y = height / 2,
+		origin = { y = 0.5 },
+		z = 0.1,
+	}))
+
 	self.panel = panel
 	self.sectionSpacing = 0
 	self.tree = self:buildTree()
 	self.panel:renameChild("newTree", "tree")
 	self:recalcPositions()
+	self:addTabs()
 	panel.scrollLimit = self.tree:getHeight()
 
 	self:addChild("searchEvents", Component({
@@ -338,6 +362,77 @@ function Options:load()
 		end
 	}))
 end
+
+function Options:addTabs()
+	self.tabButtons:clearTree()
+
+	local hover_sound = self.assets:loadAudio("click-short")
+	local click_sound = self.assets:loadAudio("click-short-confirm")
+
+	local added = 0
+	for i, v in ipairs(self.sectionsOrder) do
+		local section = self.tree:getChild(v)
+
+		if section then
+			self.tabButtons:addChild(v, Label({
+				y = added * 64,
+				boxWidth = 64,
+				boxHeight = 64,
+				text = self.sections[v].icon,
+				font = self.fontAwesome,
+				alignX = "center",
+				alignY = "center",
+				alpha = 0.6,
+				update = function(this, dt)
+					local scroll_position = math_util.clamp(self.panel.scrollPosition, 0, self.tree:getHeight() - 20)
+					local y = section.y - 20
+					local h = section:getHeight()
+
+					if scroll_position >= y and scroll_position <= y + h then
+						this.alpha = math.min(1, this.alpha + dt * 5)
+					else
+						this.alpha = math.max(0.6, this.alpha - dt * 5)
+					end
+
+					this.alpha = math.min(1, this.alpha + (this.mouseOver and 1 or 0))
+				end,
+				mousePressed = function(this)
+					if this.mouseOver then
+						self.panel:scrollToPosition(section.y, 0)
+						self.playSound(click_sound)
+						return true
+					end
+				end,
+				justHovered = function()
+					self.playSound(hover_sound)
+				end
+			}))
+			self.tabButtons:addChild(i .. "rect", Rectangle({
+				x = self.tabsContrainerWidth,
+				y = added * 64,
+				width = 6,
+				height = 64,
+				origin = { x = 1 },
+				color = { 0.92, 0.46, 0.55, 1 },
+				alpha = 0,
+				update = function(this, dt)
+					local scroll_position = math_util.clamp(self.panel.scrollPosition, 0, self.tree:getHeight() - 20)
+					local y = section.y - 20
+					local h = section:getHeight()
+					if scroll_position >= y and scroll_position <= y + h then
+						this.alpha = math.min(1, this.alpha + dt * 5)
+					else
+						this.alpha = math.max(0, this.alpha - dt * 5)
+					end
+				end
+			}))
+			added = added + 1
+		end
+	end
+
+	self.tabButtons:autoSize()
+end
+
 
 ---@param height number
 function Options:addAdditionalScrollLimit(height)
@@ -385,7 +480,6 @@ function Options:buildTree()
 	for i, v in ipairs(self.sectionsOrder) do
 		local section_params = self.sections[v]
 		local name = section_params.name
-		local icon = section_params.icon
 		local build = section_params.buildFunction
 
 		local section = tree:addChild(name, Section({
@@ -393,7 +487,6 @@ function Options:buildTree()
 			options = self,
 			assets = self.assets,
 			name = name,
-			icon = icon,
 			buildFunction = build,
 			z = z - i * 0.000001,
 		}))

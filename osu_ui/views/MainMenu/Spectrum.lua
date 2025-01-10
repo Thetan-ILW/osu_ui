@@ -70,7 +70,9 @@ function Spectrum:update(dt)
 end
 
 function Spectrum:draw()
+	love.graphics.setBlendMode("add")
 	love.graphics.draw(self.spriteBatch)
+	love.graphics.setBlendMode("alpha")
 end
 
 
