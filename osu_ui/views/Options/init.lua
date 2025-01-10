@@ -69,21 +69,20 @@ function Options:update(dt)
 end
 
 function Options:searchUpdated()
-	--[[local new_tree = self:buildTree()
+	local new_tree = self:buildTree()
+	new_tree:build()
 
 	if #new_tree.childrenOrder == 0 then
 		self.search = text_input.removeChar(self.search)
-		return
 	end
 
-	if self.panel:getChild("tree") then
-		self.panel:removeChild("tree")
-	end
-
+	self.panel:scrollToPosition(0, 0)
+	self.koolRectangleHoverTargetY = -1000
+	self.koolRectangle.alpha = 0
+	self.panel:removeChild("tree")
+	self.panel:renameChild("newTree", "tree")
 	self.tree = new_tree
-	self.panel:addChild("tree", new_tree, true)
-	self.panel:build()
-	]]
+	self:recalcPositions()
 
 	local label = self.children.searchLabel
 	---@cast label osu.ui.Label
@@ -306,6 +305,7 @@ function Options:load()
 	self.panel = panel
 	self.sectionSpacing = 0
 	self.tree = self:buildTree()
+	self.panel:renameChild("newTree", "tree")
 	self:recalcPositions()
 	panel.scrollLimit = self.tree:getHeight()
 
@@ -374,7 +374,8 @@ end
 
 ---@return ui.Component
 function Options:buildTree()
-	local tree = self.panel:addChild("tree", Component({
+	self.panel:removeChild("newTree")
+	local tree = self.panel:addChild("newTree", Component({
 		y = 270,
 		width = self.panelWidth,
 		z = 0.5,

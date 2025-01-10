@@ -50,6 +50,7 @@ function UserInterface:load()
 	self.scene = scene
 
 	love.mouse.setVisible(false)
+	love.keyboard.setKeyRepeat(true)
 end
 
 function UserInterface:unload()
