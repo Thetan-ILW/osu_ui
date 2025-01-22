@@ -110,6 +110,24 @@ function ChartList:update(dt)
 	end
 end
 
+function ChartList:drawChildren()
+	for i = 1, #self.childrenOrder do
+		local child = self.children[self.childrenOrder[i]]
+		love.graphics.push("all")
+		child:drawTree()
+		love.graphics.pop()
+
+		if child.debug then
+			love.graphics.push("all")
+			love.graphics.applyTransform(child.transform)
+			love.graphics.setColor(1, 0, 0, 1)
+			love.graphics.rectangle("line", 0, 0, child.width, child.height)
+			love.graphics.pop()
+		end
+	end
+end
+
+
 function ChartList:justHoveredOver(index)
 	self.hoverTime[index] = love.timer.getTime()
 	self.playSound(self.hoverSound)

@@ -432,6 +432,7 @@ function View:load()
 			return self.selectApi:getSortFunction()
 		end,
 		setValue = function (index)
+			self.chartTree:fadeOut()
 			self.selectApi:setSortFunction(index)
 		end,
 		format = function (value)
@@ -469,6 +470,7 @@ function View:load()
 			return group
 		end,
 		setValue = function(index)
+			self.chartTree:fadeOut()
 			group = self.selectApi.groups[index]
 			if group == "charts" then
 				osu.songSelect.groupCharts = false
@@ -725,6 +727,7 @@ function View:load()
 
 	local chart_tree = center:addChild("tree", ChartTree())
 	---@cast chart_tree osu.ui.ChartTree
+	self.chartTree = chart_tree
 
 	function chart_tree.update(container, dt)
 		ChartTree.update(container, dt)

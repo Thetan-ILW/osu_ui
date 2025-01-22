@@ -31,12 +31,6 @@ function OsuWindowList:load()
 	self.groupSets = self.groupSets == nil and false or self.groupSets
 	WindowList.load(self)
 
-	self.wrap = 1
-
-	if self.itemCount == 0 then
-		return
-	end
-
 	self.yPositions = {} ---@type number[]
 	self.yDestinations = {} ---@type number[]
 	self.xDestinations = {} ---@type number[]
@@ -45,6 +39,11 @@ function OsuWindowList:load()
 	self.setSelectT = {} ---@type number[]
 	self.setIndex = {} ---@type number[]
 	self.selectedItemHole = self.selectedItemHole or 16
+	self.wrap = 1
+
+	if self.itemCount == 0 then
+		return
+	end
 
 	if self.charts then
 		self.selectedSetIndex = self:getSelectedItemSetIndex()
@@ -67,6 +66,9 @@ end
 
 ---@return number
 function OsuWindowList:getHeight()
+	if self.itemCount == 0 then
+		return 0
+	end
 	if self.childList then
 		return (self.itemCount * self.panelHeight + self.childList:getHeight()) * self.wrap
 	end

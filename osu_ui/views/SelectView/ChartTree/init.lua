@@ -2,6 +2,8 @@ local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 local ChartList = require("osu_ui.views.SelectView.ChartTree.ChartList")
 local GroupList = require("osu_ui.views.SelectView.ChartTree.GroupList")
 
+local flux = require("flux")
+
 ---@class osu.ui.ChartTree : osu.ui.ScrollAreaContainer
 ---@operator call: osu.ui.ChartTree
 ---@field children {[string]: osu.ui.WindowList}
@@ -20,6 +22,8 @@ function ChartTree:load()
 	local configs = select_api:getConfigs()
 	local osu = configs.osu_ui ---@type osu.ui.OsuConfig
 	local group_charts = osu.songSelect.groupCharts
+
+	self.groupCharts = group_charts
 
 	if not group_charts then
 		local sort = select_api:getSortFunction()
@@ -55,11 +59,24 @@ function ChartTree:load()
 	self.stateCounter = self.selectApi:getNotechartSetStateCounter()
 end
 
+function ChartTree:fadeOut()
+	flux.to(self, 0.15, { alpha = 0 }):ease("cubicout")
+end
+
 function ChartTree:update()
 	local new_state = self.selectApi:getNotechartSetStateCounter()
 	if self.stateCounter ~= new_state then
+		flux.to(self, 0.3, { alpha = 1 }):ease("cubicin")
 		self.stateCounter = new_state
-		self:reload()
+
+		if self.groupCharts then
+			local list = self.list ---@cast list osu.ui.GroupList	
+			if not list.loadingGroup then
+				self:reload()
+			end
+		else
+			self:reload()
+		end
 	end
 
 	self.list.scrollPosition = self.scrollPosition
@@ -73,11 +90,7 @@ function ChartTree:update()
 		return true
 	end
 
-	if self.list.itemCount ~= 0 then
-		self.scrollLimit = self.list:getHeight()
-	else
-		self.scrollLimit = 0
-	end
+	self.scrollLimit = self.list:getHeight()
 end
 
 return ChartTree

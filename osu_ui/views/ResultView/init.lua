@@ -604,6 +604,7 @@ function View:load(score_loaded)
 	area:addChild("playerInfo", PlayerInfo({
 		x = 557, y = 768 + 102,
 		z = 0.05,
+		handleEvents = false,
 		onClick = function ()
 		end
 	}))
