@@ -725,7 +725,7 @@ function View:load()
 	self.searchLabel = search_label
 	self:searchUpdated()
 
-	local chart_tree = center:addChild("tree", ChartTree())
+	local chart_tree = center:addChild("tree", ChartTree({}))
 	---@cast chart_tree osu.ui.ChartTree
 	self.chartTree = chart_tree
 

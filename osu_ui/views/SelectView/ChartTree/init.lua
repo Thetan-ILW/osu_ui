@@ -23,6 +23,12 @@ function ChartTree:load()
 	local osu = configs.osu_ui ---@type osu.ui.OsuConfig
 	local group_charts = osu.songSelect.groupCharts
 
+	if not configs.settings.select.collapse then
+		self:fadeOut()
+		configs.settings.select.collapse = true
+		self.selectApi:debouncePullNoteChartSet()
+	end
+
 	self.groupCharts = group_charts
 
 	if not group_charts then
@@ -82,7 +88,7 @@ function ChartTree:update()
 	self.list.scrollPosition = self.scrollPosition
 	self.list.scrollVelocity = self.scrollVelocity
 
-	if love.mouse.isDown(2) and self.mouseOver then
+	if love.mouse.isDown(2) then
 		local scale = 768 / love.graphics.getHeight()
 		local my = love.mouse.getY() * scale
 		local y = math.min(math.max(0, my - 117) / 560, 1)

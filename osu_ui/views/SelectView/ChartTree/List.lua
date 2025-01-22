@@ -1,12 +1,15 @@
 local Component = require("ui.Component")
 local ArrayContainer = require("osu_ui.views.SelectView.ChartTree.ArrayContainer")
 
+local math_util = require("math_util")
+
 ---@class osu.ui.WindowList : ui.Component
 ---@operator call: osu.ui.WindowList
 ---@field scrollPosition number
 ---@field scrollVelocity number
 ---@field relativeScrollPosition number
 ---@field scrollToPosition fun(position: number)
+---@field childList? osu.ui.WindowList
 local WindowList = Component + {}
 
 WindowList.NOT_HOVERING = -1
@@ -61,6 +64,21 @@ function WindowList:scrollPositionFromIndex(index)
 	return self.panelHeight * index
 end
 
+function WindowList:getCurrentVisualIndex()
+	local visual_index = math.floor(math.max(0, self.scrollPosition - self.y) / self.panelHeight)
+
+	if self.childList then
+		local child_index = math.ceil(self.childList.y / self.panelHeight - self.windowSize / 2)
+		local height = self.childList.itemCount
+		local skip = math_util.clamp(visual_index - child_index, 0, height)
+		visual_index = math.max(0, visual_index - skip)
+	end
+
+	visual_index = math.min(visual_index, self.itemCount - self.windowSize)
+
+	return visual_index
+end
+
 ---@param dt number
 function WindowList:update(dt)
 	if self.itemCount == 0 then
@@ -77,16 +95,7 @@ function WindowList:update(dt)
 		end
 	end
 
-	local current_visual_index = math.min(
-		math.floor(math.max(0, self.scrollPosition - self.y) / self.panelHeight),
-		self.itemCount - self.windowSize
-	)
-
-	-- this code can cause UNFORESEEN CONSEQUENCES
-	local hi = self.holeY / self.panelHeight
-	local a = math.ceil(current_visual_index + (self.windowSize / 2))
-	local hsi = math.ceil(self.holeSize / self.panelHeight)
-	current_visual_index = math.max(0, current_visual_index + math.max(-hsi, math.min(0, hi - a)))
+	local current_visual_index = self:getCurrentVisualIndex()
 
 	if current_visual_index ~= self.visualIndex then
 		self.previousVisualIndex = self.visualIndex

@@ -13,7 +13,6 @@ function GroupList:load()
 	OsuList.load(self)
 
 	for i = 1, self.windowSize do
-
 		local panel = self.panelContainer:insertChild(i, GroupEntry({
 			list = self,
 		})) ---@cast panel osu.ui.ChartEntry
@@ -26,6 +25,7 @@ function GroupList:load()
 
 	local list = self:addChild("mainChartList", ChartList({
 		y = self:getSelectedItemIndex() * self.panelHeight,
+		maxWindowSize = 14,
 		groupSets = self.selectApi.sets[sort],
 		scrollToPosition = function(position)
 			self.scrollToPosition(position + self.y)
@@ -84,7 +84,7 @@ function GroupList:groupLoaded()
 	self.childList.xDestinations[1] = x_dest
 
 	if self.childList.itemCount > 1 then
-		for i = 2, self.childList.itemCount do
+		for i = 2, math.min(self.childList.windowSize, self.childList.itemCount) do
 			self.childList.xDestinations[i] = x_dest
 			self.childList.yDestinations[i] = 0
 		end
@@ -94,7 +94,6 @@ end
 ---@param index integer
 function GroupList:selectItem(index)
 	self.playSound(self.expandSound)
-	self.scrollToPosition(self.y + (index - 4) * self.panelHeight)
 
 	if index == self:getSelectedItemIndex() then
 		if self.selectedGroupExpanded then
@@ -106,8 +105,24 @@ function GroupList:selectItem(index)
 		return
 	end
 
+	local item_y = self.yDestinations[index]
+
 	self:collapse()
 	self.childList.wrap = 0
+
+	local scroll_dest = self.y + (index - 4) * self.panelHeight
+	if self.scrollPosition > index * self.panelHeight + 1000 then
+		local s = self:getSelectedItemIndex()
+		local delta = self.scrollPosition - item_y
+
+		for i = s, math.min(s + self.windowSize, self.itemCount) do
+			self.yDestinations[i] = i * self.panelHeight
+		end
+		self.teleportToPosition(self.yDestinations[index] + delta)
+	else
+		self.scrollToPosition(scroll_dest)
+	end
+
 	self.loadingGroup = true
 	self.stateCounter = self.selectApi:getNotechartSetStateCounter()
 	self.selectApi:setCollectionIndex(index)
