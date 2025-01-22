@@ -5,7 +5,6 @@ local class = require("class")
 ---@field id string
 ---@field parent ui.Component
 ---@field children {[string]: ui.Component}
----@field shared {[string]: any}
 ---@field killed boolean
 local Component = class()
 
@@ -25,7 +24,6 @@ function Component:new(params)
 
 	self.children = {}
 	self.childrenOrder = {}
-	self.shared = self.shared or {}
 
 	self.mouseOver = false
 	self.blockMouseFocus = self.blockMouseFocus or false
@@ -91,7 +89,6 @@ function Component:updateTree(state)
 		return
 	end
 
-	self.transform:setTransformation(self.x, self.y, self.angle, self.scaleX, self.scaleY, self:getOrigin())
 	love.graphics.applyTransform(self.transform)
 
 	if
@@ -113,6 +110,8 @@ function Component:updateTree(state)
 
 	self:update(state.deltaTime)
 	self:updateChildren(state)
+
+	self.transform:setTransformation(self.x, self.y, self.angle, self.scaleX, self.scaleY, self:getOrigin())
 end
 
 function Component:draw() end
@@ -179,7 +178,6 @@ function Component:addChild(id, child)
 	end
 	child.id = id
 	child.parent = self
-	child.shared = self.shared
 	child:load()
 	child.killed = false
 	self.children[id] = child
@@ -269,7 +267,11 @@ function Component:justHovered() end
 
 function Component:error(message)
 	message = ("%s :: %s"):format(self.id, message)
-	self.parent:error(message)
+	if self.parent then
+		self.parent:error(message)
+	else
+		error(message)
+	end
 end
 
 function Component:assert(thing, message)

@@ -16,11 +16,10 @@ local PlayerInfoView = require("osu_ui.views.PlayerInfoView")
 local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
 local ScrollBar = require("osu_ui.ui.ScrollBar")
 local Rectangle = require("ui.Rectangle")
-local ListContainer = require("osu_ui.views.SelectView.Lists.ListContainer")
-local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
 local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
 local BottomButton = require("osu_ui.views.SelectView.BottomButton")
 local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
+local ChartTree = require("osu_ui.views.SelectView.ChartTree")
 
 local getModifierString = require("osu_ui.views.modifier_string")
 
@@ -450,6 +449,11 @@ function View:load()
 		z = 0.5,
 	}))
 
+	local configs = self.selectApi:getConfigs()
+	local osu = configs.osu_ui ---@type osu.ui.OsuConfig
+	local group_charts = osu.songSelect.groupCharts
+	local group = self.selectApi:getGroup(group_charts)
+
 	local group_combo = top:addChild("groupCombo", Combo({
 		x = sort_text.x - sort_text.width - 18, y = 30,
 		origin = { x = 1, y = 0 },
@@ -458,14 +462,25 @@ function View:load()
 		font = fonts:loadFont("Regular", 17),
 		borderColor = { 0.57, 0.76, 0.9, 1 },
 		hoverColor = { 0.57, 0.76, 0.9, 1 },
-		items = self.selectApi:getGroups(),
+		items = self.selectApi.groups,
 		assets = assets,
 		z = 0.9,
 		getValue = function ()
-			return self.selectApi:getGroup()
+			return group
 		end,
-		setValue = function (index)
-			self.selectApi:setGroup(index)
+		setValue = function(index)
+			group = self.selectApi.groups[index]
+			if group == "charts" then
+				osu.songSelect.groupCharts = false
+			elseif group == "locations" then
+				configs.settings.select.locations_in_collections = true
+				osu.songSelect.groupCharts = true
+			elseif group == "directories" then
+				configs.settings.select.locations_in_collections = false
+				osu.songSelect.groupCharts = true
+			end
+			self.selectApi:reloadCollections()
+			self.selectApi:debouncePullNoteChartSet()
 		end,
 		format = function (value)
 			return sort_group_format[value] or value
@@ -708,23 +723,12 @@ function View:load()
 	self.searchLabel = search_label
 	self:searchUpdated()
 
-	local root = CollectionsListView({
-		z = 1,
-	})
+	local chart_tree = center:addChild("tree", ChartTree())
+	---@cast chart_tree osu.ui.ChartTree
 
-	local list = center:addChild("list", ListContainer({
-		x = width,
-		origin = { x = 1, y = 0 },
-		width = 600,
-		height = height,
-		root = root,
-		selectView = self,
-		z = 0,
-	}))
-
-	function list.update(container, dt)
-		ListContainer.update(list, dt)
-		container.x = width + ((1 - self.alpha) * 640)
+	function chart_tree.update(container, dt)
+		ChartTree.update(container, dt)
+		container.x = (1 - self.alpha) * 640
 	end
 
 	center:addChild("scrollBarBackground", Rectangle({
@@ -738,7 +742,7 @@ function View:load()
 	center:addChild("scrollBar", ScrollBar({
 		x = width - 5, startY = 117,
 		width = 5,
-		container = list,
+		container = chart_tree,
 		windowHeight = 561,
 		z = 0.1,
 	}))

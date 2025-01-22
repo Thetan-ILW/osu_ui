@@ -379,14 +379,17 @@ function View:load()
 	self:addChild("spectrum", Spectrum({
 		alpha = 0.2,
 		z = 0.02,
-		update = function(this, dt)
+		updateTree = function(this, state)
 			this.audio = self.selectApi:getPreviewAudioSource()
 			if self.playingIntro then
 				this.audio = self.welcomeSound
 			end
-			this.transform = self.logo.transform:clone()
-			this.transform:translate(logo_w / 2, logo_h / 2)
-			Spectrum.update(this, dt)
+			this.x = self.logo.x
+			this.y = self.logo.y
+			this.angle = self.logo.angle
+			this.scaleX = self.logo.scaleX
+			this.scaleY = self.logo.scaleY
+			Spectrum.updateTree(this, state)
 		end,
 	}))
 

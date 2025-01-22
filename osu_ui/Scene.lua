@@ -74,7 +74,7 @@ function Scene:load()
 		lobbyList = LobbyList({ z = 0.08, alpha = 0 }),
 		select = Select({ z = 0.09, alpha = 0 }),
 		gameplay = Gameplay({ z = 0.07, alpha = 0 }),
-		result = Result({ z = 0.08, alpha = 0 })
+		result = Result({ z = 0.08, alpha = 0 }),
 	}
 
 	self.screens = {}

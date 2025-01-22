@@ -335,7 +335,6 @@ function View:load(score_loaded)
 	area:addChild("missCount", ImageValueView({
 		x = text_x2, y = row3,
 		origin = { x = 0, y = 0.5 },
-		depth = 0.55,
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
@@ -630,9 +629,24 @@ function View:load(score_loaded)
 		end
 	}))
 
+	area:addChild("videoExport", Button({
+		x = width - 20,
+		y = 768 + 40,
+		origin = { x = 1 },
+		width = 250,
+		height = 30,
+		font = fonts:loadFont("Regular", 17),
+		label = text.RankingDialog_ExportVideoGif,
+		color = { 0.05, 0.52, 0.65, 1 },
+		z = 0.02,
+		onClick = function()
+			scene:openModal("videoExport")
+		end
+	}))
+
 	area:addChild("submitReplay", Button({
 		x = width - 20,
-		y = 768 + 45,
+		y = 768 + 70,
 		origin = { x = 1 },
 		width = 250,
 		height = 30,

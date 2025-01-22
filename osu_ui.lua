@@ -20,8 +20,10 @@ local t = {
 	},
 	songSelect = {
 		previewIcon = false,
+		groupCharts = false,
 		scoreSource = "local",
-		preciseRates = false
+		preciseRates = false,
+		spaceBetweenPanels = 77
 	},
 	result = {
 		hitGraph = false,
