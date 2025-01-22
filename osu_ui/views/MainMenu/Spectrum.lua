@@ -1,10 +1,5 @@
 local Component = require("ui.Component")
 
-local ffi = require("ffi")
-local fft = require("aqua.bass.fft")
-
-local beatValue = require("osu_ui.views.beat_value")
-
 ---@class osu.ui.Spectrum : ui.Component
 ---@operator call: osu.ui.Spectrum
 ---@field emptyFft number[]
@@ -13,8 +8,8 @@ local beatValue = require("osu_ui.views.beat_value")
 local Spectrum = Component + {}
 
 local radius = 253
-local smoothing_factor = 0.2
 local fft_size = 64
+local smoothing_factor = 0.12
 local repeats = 4
 local bars = fft_size * repeats
 
@@ -24,8 +19,8 @@ function Spectrum:load()
 
 	self.spriteBatch = love.graphics.newSpriteBatch(img)
 	self.rotation = 0
-	self.fft = ffi.new("float[?]", 1024)
-	self.fftFlag = fft.BASS_DATA_FFT2048
+
+	self.musicFft = scene.musicFft
 
 	self.smoothedFft = {}
 	self.emptyFft = {}
@@ -52,20 +47,19 @@ function Spectrum:update(dt)
 
 	next_time = love.timer.getTime() + 0.012
 
-	local audio = self.audio
 	local bar_h = self.barHeight
 
-	local current_fft = self.emptyFft
+	local current_fft =  self.emptyFft
+	local beat = 0
 
-	if audio and audio.getFft then
-		audio:getFft(self.fft, self.fftFlag)
-		current_fft = self.fft
+	if self.musicFft.available then
+		current_fft = self.musicFft.fft
+		beat = self.musicFft.beat
 	end
 
-	local beat = beatValue(current_fft)
 	local smoothed_fft = self.smoothedFft
 
-	local rotation = self.rotation + (beat * 100) * dt
+	local rotation = self.rotation + (beat * 30) * dt
 	self.rotation = rotation
 
 	for i = 1, fft_size do

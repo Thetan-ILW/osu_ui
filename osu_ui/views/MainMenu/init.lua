@@ -376,6 +376,22 @@ function View:load()
 		end
 	}))
 
+	local music_fft = scene.musicFft
+
+	self:addChild("logo2", Image({
+		origin = { x = 0.5, y = 0.5, },
+		image = logo_img,
+		alpha = 0.4,
+		z = 0.15,
+		update = function(this)
+			local logo = self.logo
+			this.x = logo.x
+			this.y = logo.y
+			this.scaleX = logo.scaleX + (music_fft.beat * 3)
+			this.scaleY = logo.scaleY + (music_fft.beat * 3)
+		end
+	}))
+
 	self:addChild("spectrum", Spectrum({
 		alpha = 0.2,
 		z = 0.02,

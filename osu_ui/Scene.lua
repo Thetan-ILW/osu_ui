@@ -23,6 +23,8 @@ local LocationsModal = require("osu_ui.views.modals.Locations")
 local BeatmapOptionsModal = require("osu_ui.views.modals.BeatmapOptions")
 local FiltersModal = require("osu_ui.views.modals.Filters")
 
+local MusicFft = require("osu_ui.MusicFft")
+
 local flux = require("flux")
 local path_util = require("path_util")
 
@@ -138,6 +140,10 @@ function Scene:load()
 	self.options = options
 	self.chat = chat
 	self.background = background
+
+	local music_fft = self:addChild("musicFft", MusicFft())
+	---@cast music_fft osu.ui.MusicFft
+	self.musicFft = music_fft
 
 	self.currentScreenId = ""
 	self.previousScreenId = ""

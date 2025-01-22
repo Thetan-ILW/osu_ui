@@ -20,6 +20,7 @@ local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
 local BottomButton = require("osu_ui.views.SelectView.BottomButton")
 local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local ChartTree = require("osu_ui.views.SelectView.ChartTree")
+local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
 
 local getModifierString = require("osu_ui.views.modifier_string")
 
@@ -683,6 +684,29 @@ function View:load()
 		scale = 0.4,
 		image = assets:loadImage("menu-osu-logo"),
 		z = 0.1
+	}))
+
+	local music_fft = scene.musicFft
+
+	bottom:addChild("osuLogo2", Image({
+		x = width - 64, y = height - 49,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.4,
+		image = assets:loadImage("menu-osu-logo"),
+		alpha = 0.3,
+		z = 0.11,
+		update = function(this)
+			this.scaleX = 0.4 + music_fft.beat * 1.5
+			this.scaleY = 0.4 + music_fft.beat * 1.5
+		end
+	}))
+
+	bottom:addChild("spectrum", Spectrum({
+		x = width - 64, y = height - 49,
+		scale = 0.4,
+		alpha = 0.2,
+		radius = 253 * 0.4,
+		z = 0.09,
 	}))
 
 	self.modsLine = bottom:addChild("modsLine", Label({
