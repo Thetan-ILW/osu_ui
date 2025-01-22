@@ -33,7 +33,7 @@ return function(section)
 	local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
 	local text = scene.localization.text
 
-	section:group(text.Options_Skin, function(group)
+	section:group(text.Options_TabSkin, function(group)
 		if not select_api:notechartExists() then
 			return
 		end
@@ -205,7 +205,6 @@ return function(section)
 	section:group(text.Options_Camera, function(group)
 		group:label({
 			label = text.Options_CameraInstructions,
-			height = 120,
 		})
 		group:checkbox({
 			label = text.Options_EnableCamera,

@@ -1,5 +1,9 @@
+local version = require("version")
+
 local wait_for_login = false
 local wait_for_logout = false
+
+local game_updated = nil
 
 ---@param group osu.ui.OptionsGroup
 local function login(group)
@@ -24,7 +28,7 @@ end
 local function loggedIn(group)
 	local username = group.game.configModel.configs.online.user.name
 	group:label({
-		totalH = 100,
+		height = 100,
 		label = ("You are logged in as %s"):format(username or "?"),
 		onClick = function ()
 			group.game.onlineModel.authManager:logout()
@@ -35,6 +39,16 @@ end
 
 ---@param section osu.ui.OptionsSection
 return function(section)
+	local configs = section.options:getConfigs()
+	local osu = configs.osu_ui ---@cast osu osu.ui.OsuConfig
+	local m = configs.settings.miscellaneous
+	local ss = configs.settings.select
+	local gf = configs.settings.graphics
+	local dim = gf.dim
+
+	local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
+	local text = scene.localization.text
+
 	section:group("SIGN IN", function(group)
 		local active = next(group.game.configModel.configs.online.session)
 
@@ -67,5 +81,157 @@ return function(section)
 		else
 			login(group)
 		end
+	end)
+
+	section:group(text.Options_Graphics_Language, function(group)
+		local localization_list = scene.ui.assetModel:getLocalizationNames()
+		group:combo({
+			label = text.Options_Graphics_SelectLanguage,
+			items = localization_list,
+			getValue = function()
+				return osu.language
+			end,
+			setValue = function(index)
+				local lang = localization_list[index]
+				osu.language = lang.name
+				scene:load()
+			end,
+			format = function(v)
+				return v.name
+			end
+		})
+	end)
+
+	section:group(text.Options_Updates, function(group)
+		group:checkbox({
+			label = text.Options_Updates_AutoUpdate,
+			key = { m, "autoUpdate" }
+		})
+
+		if game_updated == nil then
+			game_updated = m.autoUpdate
+		end
+
+		local git = love.filesystem.getInfo(".git")
+		local version_label = git and text.Update_Git or (game_updated and text.Update_Complete:format(version.commit:sub(1, 6)) or text.Update_NotComplete)
+
+		group:label({
+			label = version_label,
+			alignX = "left"
+		})
+
+		group:button({
+			label = text.Options_OpenOsuFolder,
+			onClick = function()
+				love.system.openURL(love.filesystem.getSource())
+			end
+		})
+	end)
+
+	section:group(text.Options_MainMenu, function(group)
+		group:checkbox({
+			label = text.Options_Menu_DisableIntro,
+			key = { osu.mainMenu, "disableIntro" }
+		})
+
+		group:checkbox({
+			label = text.Options_Menu_ShowTips,
+			key = { osu.mainMenu, "hideGameTips" }
+		})
+	end)
+
+	section:group(text.Options_SongSelect, function(group)
+		local diff_columns = {
+			"enps_diff",
+			"osu_diff",
+			"msd_diff",
+			"user_diff",
+		}
+
+		local diff_columns_names = {
+			enps_diff = "ENPS",
+			osu_diff = "OSU",
+			msd_diff = "MSD",
+			user_diff = "USER",
+		}
+
+		group:combo({
+			label = text.Options_DifficultyCalculator,
+			items = diff_columns,
+			getValue = function()
+				return ss.diff_column
+			end,
+			setValue = function(index)
+				ss.diff_column = diff_columns[index]
+			end,
+			format = function(v)
+				return diff_columns_names[v]
+			end
+		})
+
+		group:slider({
+			label = text.FunSpoiler_BackgroundDim,
+			min = 0,
+			max = 1,
+			step = 0.01,
+			getValue = function()
+				return dim.select
+			end,
+			setValue = function(v)
+				dim.select = v
+				if scene.currentScreenId == "select" then
+					scene.background.dim = v
+				end
+			end,
+			format = function(v)
+				return ("%i%%"):format(v * 100)
+			end
+		})
+
+		group:checkbox({
+			label = text.Options_SongSelect_Thumbnails,
+			key = { osu.songSelect, "previewIcon" }
+		})
+
+		group:checkbox({
+			label = text.Options_SongSelect_BeatmapPreview,
+			key = { ss, "chart_preview" }
+		})
+
+		group:checkbox({
+			label = text.Options_SongSelect_PreciseRates,
+			key = { osu.songSelect, "preciseRates" }
+		})
+	end)
+
+	section:group(text.Options_Result, function(group)
+		group:slider({
+			label = text.FunSpoiler_BackgroundDim,
+			min = 0,
+			max = 1,
+			step = 0.01,
+			getValue = function()
+				return dim.result
+			end,
+			setValue = function(v)
+				dim.select = v
+				if scene.currentScreenId == "result" then
+					scene.background.dim = v
+				end
+			end,
+			format = function(v)
+				return ("%i%%"):format(v * 100)
+			end
+		})
+
+		group:checkbox({
+			label = text.Options_Result_DisplayDifficultyAndRate,
+			key = { osu.result, "difficultyAndRate" }
+		})
+
+		group:checkbox({
+			label = text.Options_Result_DisplayHitGraph,
+			key = { osu.result, "hitGraph" }
+		})
 	end)
 end

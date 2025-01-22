@@ -26,6 +26,8 @@ function Modifiers:load()
 	local select_api = scene.ui.selectApi
 	local play_context = select_api:getPlayContext()
 
+	local precise_rates = select_api:getConfigs().osu_ui.songSelect.preciseRates
+
 	local lists_width = 400
 	local lists_spacing = 20
 
@@ -92,13 +94,20 @@ function Modifiers:load()
 		width = lists_width - music_speed_label:getWidth() - 5,
 		min = 0.5,
 		max = 2,
-		step = 0.05,
+		step = precise_rates and 0.025 or 0.05,
 		getValue = function ()
 			return select_api:getTimeRate()
 		end,
 		setValue = function(v)
 			select_api:setTimeRate(v)
 			viewport:triggerEvent("event_modsChanged")
+		end,
+		format = function(v)
+			if precise_rates then
+				return ("%0.03fx"):format(v)
+			else
+				return ("%0.02fx"):format(v)
+			end
 		end
 	}))
 

@@ -55,9 +55,11 @@ function View:transitIn()
 	self.disabled = false
 	self.handleEvents = true
 	self.introSkipped = false
+	love.keyboard.setKeyRepeat(false)
 end
 
 function View:quit()
+	love.keyboard.setKeyRepeat(true)
 	self.uiLayer.pause:quit()
 
 	local select_api = self.scene.ui.selectApi

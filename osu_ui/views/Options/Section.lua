@@ -8,7 +8,6 @@ local Label = require("ui.Label")
 ---@class osu.ui.OptionsSection : ui.Component
 ---@overload fun(params: OptionsSectionParams): osu.ui.OptionsSection
 ---@field name string
----@field icon love.Text
 ---@field options osu.ui.OptionsView
 ---@field isEmpty boolean
 ---@field buildFunction fun(section: osu.ui.OptionsSection)

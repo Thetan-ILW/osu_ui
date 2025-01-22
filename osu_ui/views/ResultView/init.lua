@@ -27,8 +27,9 @@ local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 local View = Screen + {}
 
 function View:presentScore()
+	local result_dim =  self.selectApi:getConfigs().settings.graphics.dim.result
 	flux.to(self.scene.cursor, 0.4, { alpha = 1 }):ease("quadout")
-	flux.to(self.scene.background, 0.4, { dim = 0.3, parallax = 0.01 }):ease("quadout")
+	flux.to(self.scene.background, 0.4, { dim = result_dim, parallax = 0.01 }):ease("quadout")
 	self.transitionTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
 	self.scoreReveal = 0
 	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
@@ -334,7 +335,6 @@ function View:load(score_loaded)
 	area:addChild("missCount", ImageValueView({
 		x = text_x2, y = row3,
 		origin = { x = 0, y = 0.5 },
-		depth = 0.55,
 		files = score_font,
 		overlap = overlap,
 		format = judge_format,
@@ -604,6 +604,7 @@ function View:load(score_loaded)
 	area:addChild("playerInfo", PlayerInfo({
 		x = 557, y = 768 + 102,
 		z = 0.05,
+		handleEvents = false,
 		onClick = function ()
 		end
 	}))
@@ -629,9 +630,24 @@ function View:load(score_loaded)
 		end
 	}))
 
+	area:addChild("videoExport", Button({
+		x = width - 20,
+		y = 768 + 40,
+		origin = { x = 1 },
+		width = 250,
+		height = 30,
+		font = fonts:loadFont("Regular", 17),
+		label = text.RankingDialog_ExportVideoGif,
+		color = { 0.05, 0.52, 0.65, 1 },
+		z = 0.02,
+		onClick = function()
+			scene:openModal("videoExport")
+		end
+	}))
+
 	area:addChild("submitReplay", Button({
 		x = width - 20,
-		y = 768 + 45,
+		y = 768 + 70,
 		origin = { x = 1 },
 		width = 250,
 		height = 30,

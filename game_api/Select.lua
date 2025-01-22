@@ -11,6 +11,13 @@ Select.groups = {
 	"directories",
 }
 
+Select.sets = {
+	id = true,
+	title = true,
+	artist = true,
+	["set modtime"] = true,
+}
+
 function Select:new(game)
 	self.game = game
 	assert(self.game)
@@ -21,7 +28,6 @@ function Select:new(game)
 	self.controllerLoaded = false
 	self.prevChartViewIndex = -1
 	self.prevChartViewSetIndex = -1
-	self.selectedGroup = self.groups[1]
 
 	self.notechartChangeListeners = {}
 end
@@ -77,6 +83,10 @@ function Select:updateSearch(text)
 		config.filterString = text
 		self.selectModel:debouncePullNoteChartSet()
 	end
+end
+
+function Select:debouncePullNoteChartSet()
+	self.selectModel:debouncePullNoteChartSet()
 end
 
 ---@return string
@@ -137,6 +147,21 @@ end
 
 function Select:setNotechartSetIndex(index)
 	self.selectModel:scrollNoteChartSet(nil, index)
+end
+
+---@return rdb.ModelRow[]
+function Select:getNotechartSetChildren()
+	return self.game.selectModel.noteChartLibrary.items
+end
+
+---@return integer
+function Select:getNotechartSetChildrenIndex()
+	return self.game.selectModel.chartview_index
+end
+
+---@param index integer
+function Select:setNotechartSetChildrenIndex(index)
+	self.game.selectModel:scrollNoteChart(nil, index)
 end
 
 function Select:setScoreIndex(index)
@@ -212,17 +237,21 @@ function Select:setSortFunction(index)
 	end
 end
 
+---@param group_charts boolean
 ---@return string
-function Select:getGroup()
-	return self.selectedGroup
-end
----@return string[]
-function Select:getGroups()
-	return self.groups
-end
----@param index integer
-function Select:setGroup(index)
-	self.selectedGroup = self.groups[index]
+function Select:getGroup(group_charts)
+	if not group_charts then
+		return self.groups[1]
+	end
+
+	local config = self.game.configModel.configs.settings.select
+	local locations_in_collections = config.locations_in_collections
+
+	if locations_in_collections then
+		return self.groups[2]
+	else
+		return self.groups[3]
+	end
 end
 
 ---@return "enps_diff" | "osu_diff" | "msd_diff" | "user_diff"

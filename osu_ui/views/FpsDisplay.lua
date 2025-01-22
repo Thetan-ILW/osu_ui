@@ -3,6 +3,7 @@ local Image = require("ui.Image")
 local Label = require("ui.Label")
 
 local loop = require("loop")
+local flux = require("flux")
 
 ---@class osu.ui.FpsDisplayView : ui.Component
 ---@operator call: osu.ui.FpsDisplayView
@@ -21,6 +22,14 @@ function FpsDisplay:load()
 	local fonts = scene.fontManager
 
 	self.nextUpdate = 0
+	self.slide = 1
+	self.config = scene.ui.selectApi:getConfigs().settings.miscellaneous ---@type osu.OsuConfig
+
+	if not self.config.showFPS then
+		self.disabled = true
+		self.slide = 0
+		self.x = 9999
+	end
 
 	self:getViewport():listenForResize(self)
 
@@ -80,10 +89,27 @@ function FpsDisplay:load()
 	self.checks = 0
 end
 
+function FpsDisplay:fade()
+	if self.tween then
+		self.tween:stop()
+	end
+
+	if self.config.showFPS then
+		self.disabled = false
+		self.tween = flux.to(self, 0.4, { slide = 1 })
+	else
+		self.tween = flux.to(self, 0.4, { slide = 0 }):oncomplete(function ()
+			self.disabled = true
+		end)
+	end
+end
+
 ---@param dt number
 function FpsDisplay:update(dt)
 	self.dts[self.checks] = dt
 	self.checks = (self.checks + 1) % 7 + 1
+
+	self.x = (1 - self.slide) * 69
 
 	if love.timer.getTime() < self.nextUpdate then
 		return

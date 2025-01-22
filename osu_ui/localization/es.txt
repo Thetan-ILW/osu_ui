@@ -15,67 +15,65 @@ Options_HeaderBlurb=Change the way soundsphere behaves
 Options_HeaderBlurbGucci=Change the way gucci!mania behaves
 Options_TabGeneral=General
 Options_TabGameplay=Gameplay
-Options_TabGraphics=Graphics
+Options_TabGraphics=Gráficos
 Options_TabAudio=Audio
 Options_TabSkin=Skin
-Options_TabInput=Input
-Options_TabMaintenance=Maintenance
+Options_TabInput=Entrada
+Options_TabMaintenance=Mantenimiento
 
-Options_Graphics_Language=Language
-Options_Graphics_SelectLanguage=Select language:
+Options_Graphics_Language=Idioma
+Options_Graphics_SelectLanguage=Seleccionar idioma:
 
-Options_Updates=Updates
-Options_Updates_AutoUpdate=Auto update
+Options_Updates=Actualizaciones
+Options_Updates_AutoUpdate=Actualizar el juego automáticamente
 Update_Git=Git version of the game. You won't receive new updates.
 Update_Complete=gucci!mania is up-to-date!\nYou are now running %s.
 Update_NotComplete=gucci!mania is not up-to-date. Enable automatic updates and restart the game to apply new updates.
-Options_OpenOsuFolder=Open gucci!mania folder
+Options_OpenOsuFolder=Abrir archivos de gucci!mania
 
-Options_MainMenu=Main menu
-Options_Menu_DisableIntro=Disable intro
-Options_Menu_ShowTips=Menu tips
+Options_MainMenu=MENU PRINCIPAL
+Options_Menu_DisableIntro=Deshabilitar introducción
+Options_Menu_ShowTips=Ocultar consejos
 
 Options_SongSelect=Song select
 Options_DifficultyCalculator=Difficulty calculator
 Options_SongSelect_Thumbnails=Show thumbnails (Only shifts text)
-Options_SongSelect_BeatmapPreview=Beatmap preview
-Options_SongSelect_PreciseRates=Precise rates (0.025x)
 
 Options_Result=Result screen
 Options_Result_DisplayDifficultyAndRate=Display difficulty and rate
 Options_Result_DisplayHitGraph=Display hit graph
 
-Options_Screen=Screen
-Options_Graphics_Renderer=Renderer
+Options_Screen=Pantalla
+Options_Graphics_Renderer=Renderizado
 Options_Graphics_Vsync=Vsync:
 Options_Graphics_VsyncInMenus=Vsync in menus
-Options_Graphics_Enabled=Enabled
-Options_Graphics_Disabled=Disabled
-Options_Graphics_Adaptive=Adaptive
-Options_Graphics_FrameLimiter=Frame limiter:
-Options_Graphics_FrameLimiter_Unlim=Unlimited FPS
-Options_Graphics_FpsCounter=Show FPS counter
+Options_Graphics_Enabled=Habilitado
+Options_Graphics_Disabled=Deshabilitado
+Options_Graphics_Adaptive=Adaptativo
+Options_Graphics_FrameLimiter=Limite de FPS:
+Options_Graphics_FrameLimiter_Unlim=FPS ilimitados
+Options_Graphics_FpsCounter=Mostrar contador de FPS
 
 Options_Graphics_ScreenResolution=Layout
-Options_Graphics_SelectResolution=Resolution:
-Options_Graphics_Fullscreen=Fullscreen mode
-Options_Graphics_FullscreenType=Fullscreen type
-Options_Graphics_FullscreenDesktop=Desktop
-Options_Graphics_FullscreenExclusive=Exclusive
+Options_Graphics_SelectResolution=Resolución de la pantalla:
+Options_Graphics_Fullscreen=Pantalla completa
+Options_Graphics_FullscreenType=Tipo de pantalla completa:
+Options_Graphics_FullscreenDesktop=Escritorio
+Options_Graphics_FullscreenExclusive=Exclusivo
 
 Options_Graphics_SelectResolution=Resolution:
 Options_Graphics_Letterboxing=Gameplay letterboxing
 Options_Graphics_Letterboxing_Tooltip=Always use the full native resolution but display gameplay in a smaller centered portion of the screen.\nUseful to get the low latency of full screen with a smaller game resolution.
-Options_Graphics_LetterboxPositionX=Horizontal position:
-Options_Graphics_LetterboxPositionY=Vertical position:
+Options_Graphics_LetterboxPositionX=Posición horizontal:
+Options_Graphics_LetterboxPositionY=Posición vertical:
 Options_Graphics_EnableBlur=Enable blur
 Options_Graphics_BlurQuality=Blur quality
 Options_Graphics_UISkin=UI Skin:
 Options_Graphics_CopyScreenshot=Copy screenshots to clipboard
 
-Options_Graphics_Details=Details
-Options_Graphics_Image=Background image
-Options_Graphics_Video=Background video
+Options_Graphics_Details=Ajustes de detalle
+Options_Graphics_Image=Imágenes de fondo
+Options_Graphics_Video=Videos de fondo
 
 FunSpoiler_BackgroundDim=Background dim:
 Options_Gameplay_ScrollSpeed=Scroll Speed

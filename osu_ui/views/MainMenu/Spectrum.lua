@@ -1,5 +1,8 @@
 local Component = require("ui.Component")
 
+local ffi = require("ffi")
+local fft = require("aqua.bass.fft")
+
 local beatValue = require("osu_ui.views.beat_value")
 
 ---@class osu.ui.Spectrum : ui.Component
@@ -21,6 +24,9 @@ function Spectrum:load()
 
 	self.spriteBatch = love.graphics.newSpriteBatch(img)
 	self.rotation = 0
+	self.fft = ffi.new("float[?]", 1024)
+	self.fftFlag = fft.BASS_DATA_FFT2048
+
 	self.smoothedFft = {}
 	self.emptyFft = {}
 	self.emptyFft[0] = 0
@@ -49,7 +55,13 @@ function Spectrum:update(dt)
 	local audio = self.audio
 	local bar_h = self.barHeight
 
-	local current_fft = (audio and audio.getFft) and audio:getFft() or self.emptyFft
+	local current_fft = self.emptyFft
+
+	if audio and audio.getFft then
+		audio:getFft(self.fft, self.fftFlag)
+		current_fft = self.fft
+	end
+
 	local beat = beatValue(current_fft)
 	local smoothed_fft = self.smoothedFft
 
@@ -58,7 +70,7 @@ function Spectrum:update(dt)
 
 	for i = 1, fft_size do
 		smoothed_fft[i] = smoothed_fft[i] * (1 - smoothing_factor)
-		smoothed_fft[i] = smoothed_fft[i] + current_fft[(i - math.floor(rotation * 70)) % fft_size] * smoothing_factor * 2
+		smoothed_fft[i] = smoothed_fft[i] + current_fft[(i - math.floor(rotation * 100)) % fft_size] * smoothing_factor * 2
 
 		for r = 0, repeats - 1 do
 			local angle = (r * fft_size + i - 1) * (2 * math.pi / bars)
@@ -70,7 +82,9 @@ function Spectrum:update(dt)
 end
 
 function Spectrum:draw()
+	love.graphics.setBlendMode("add")
 	love.graphics.draw(self.spriteBatch)
+	love.graphics.setBlendMode("alpha")
 end
 
 

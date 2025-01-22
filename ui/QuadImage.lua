@@ -22,6 +22,16 @@ function QuadImage:replaceImage(image, quad)
 	self:load()
 end
 
+---@param x number
+---@param y number
+---@param w number
+---@param h number
+function QuadImage:setViewport(x, y, w, h)
+	self.quad:setViewport(x, y, w, h)
+	local _, _, w, h = self.quad:getViewport()
+	self.width, self.height = w, h
+end
+
 function QuadImage:draw()
 	love.graphics.draw(self.image, self.quad)
 end

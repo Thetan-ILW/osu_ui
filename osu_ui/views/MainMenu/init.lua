@@ -95,11 +95,12 @@ function View:toNextView(screen_name)
 		return true
 	end
 
+	local menus_dim = self.selectApi:getConfigs().settings.graphics.dim.select
 	local background = self.scene.background
 	background.parallax = 0
-	background.dim = 0.3
+	background.dim = menus_dim
 
-	scene:hideOverlay(0.4)
+	scene:hideOverlay(0.4, menus_dim)
 	self:transitOut({
 		onComplete = function ()
 			scene:transitInScreen(screen_name)
@@ -378,14 +379,17 @@ function View:load()
 	self:addChild("spectrum", Spectrum({
 		alpha = 0.2,
 		z = 0.02,
-		update = function(this, dt)
+		updateTree = function(this, state)
 			this.audio = self.selectApi:getPreviewAudioSource()
 			if self.playingIntro then
 				this.audio = self.welcomeSound
 			end
-			this.transform = self.logo.transform:clone()
-			this.transform:translate(logo_w / 2, logo_h / 2)
-			Spectrum.update(this, dt)
+			this.x = self.logo.x
+			this.y = self.logo.y
+			this.angle = self.logo.angle
+			this.scaleX = self.logo.scaleX
+			this.scaleY = self.logo.scaleY
+			Spectrum.updateTree(this, state)
 		end,
 	}))
 
@@ -527,8 +531,16 @@ function View:load()
 	end
 
 	if play_intro then
-		self:introSequence()
 		play_intro = false
+
+		local config = self.selectApi:getConfigs().osu_ui ---@type osu.OsuConfig
+
+		if config.mainMenu.disableIntro then
+			self.selectApi:loadController()
+			return
+		else
+			self:introSequence()
+		end
 	end
 end
 

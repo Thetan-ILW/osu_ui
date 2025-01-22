@@ -74,7 +74,7 @@ function Scene:load()
 		lobbyList = LobbyList({ z = 0.08, alpha = 0 }),
 		select = Select({ z = 0.09, alpha = 0 }),
 		gameplay = Gameplay({ z = 0.07, alpha = 0 }),
-		result = Result({ z = 0.08, alpha = 0 })
+		result = Result({ z = 0.08, alpha = 0 }),
 	}
 
 	self.screens = {}
@@ -91,9 +91,9 @@ function Scene:load()
 	self.height = self.viewport.scaledHeight
 	self:getViewport():listenForResize(self)
 
-	self:loadAssets()
 	self.localization:load()
-	self.localization:loadFile("en.txt")
+	self:loadAssets()
+
 	self.fontManager:setVieportHeight(self.viewport.height)
 
 	local cursor = self:addChild("cursor", CursorView({
@@ -124,7 +124,7 @@ function Scene:load()
 		backgroundModel = self.game.backgroundModel,
 		z = 0,
 	}))
-	self:addChild("fpsDisplay", FpsDisplay({
+	local fps_display = self:addChild("fpsDisplay", FpsDisplay({
 		z = 0.9,
 	}))
 
@@ -132,6 +132,8 @@ function Scene:load()
 	---@cast options osu.ui.OptionsView
 	---@cast chat osu.ui.ChatView
 	---@cast background osu.ui.ParallaxBackground
+	---@cast fps_display osu.ui.FpsDisplayView
+	self.fpsDisplay = fps_display
 	self.cursor = cursor
 	self.options = options
 	self.chat = chat
@@ -166,6 +168,8 @@ function Scene:loadAssets()
 	end
 
 	self.assets:updateVolume(self.game.configModel.configs)
+
+	self.localization:loadFile(self.ui.assetModel:getLocalizationFileName(osu.language))
 
 	local custom_views = self.assets.customViews
 	for k, v in pairs(self.defaultScreens) do

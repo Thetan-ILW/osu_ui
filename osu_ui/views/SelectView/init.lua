@@ -16,11 +16,10 @@ local PlayerInfoView = require("osu_ui.views.PlayerInfoView")
 local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
 local ScrollBar = require("osu_ui.ui.ScrollBar")
 local Rectangle = require("ui.Rectangle")
-local ListContainer = require("osu_ui.views.SelectView.Lists.ListContainer")
-local CollectionsListView = require("osu_ui.views.SelectView.Lists.CollectionsListView")
 local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
 local BottomButton = require("osu_ui.views.SelectView.BottomButton")
 local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
+local ChartTree = require("osu_ui.views.SelectView.ChartTree")
 
 local getModifierString = require("osu_ui.views.modifier_string")
 
@@ -64,10 +63,10 @@ function View:keyPressed(event)
 		self.scene:openModal("locations")
 	elseif key == "f6" then
 		self.selectApi:addTimeRate(-1)
-		self:updateModsLine()
+		self:updateInfo()
 	elseif key == "f7" then
 		self.selectApi:addTimeRate(1)
-		self:updateModsLine()
+		self:updateInfo()
 	elseif key == "f8" then
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5
@@ -119,6 +118,16 @@ function View:stopTransitionTween()
 	end
 end
 
+---@return number
+function View:getBackgroundDim()
+	return self.selectApi:getConfigs().settings.graphics.dim.select
+end
+
+---@return number
+function View:getBackgroundBrightness()
+	return 1 - self:getBackgroundDim()
+end
+
 function View:transitIn()
 	self.disabled = false
 	self.handleEvents = true
@@ -126,7 +135,7 @@ function View:transitIn()
 	self:stopTransitionTween()
 	self.transitionTween = flux.to(self, 0.7, { alpha = 1 }):ease("cubicout")
 
-	self.scene:showOverlay(0.4, 0.3)
+	self.scene:showOverlay(0.4, self:getBackgroundDim())
 	self.selectApi:loadController()
 end
 
@@ -154,7 +163,7 @@ function View:transitToGameplay()
 		self.selectApi:getBackgroundImages()[1]
 	)
 
-	self.scene:hideOverlay(0.5, 0.5)
+	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
 		time = 0.5,
 		ease = "quadout",
@@ -165,7 +174,7 @@ function View:transitToGameplay()
 end
 
 function View:transitToResult()
-	self.scene:hideOverlay(0.5, 0.5)
+	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
 		time = 0.5,
 		ease = "quadout",
@@ -183,8 +192,13 @@ function View:transitToMainMenu()
 	self.scene:transitInScreen("mainMenu")
 end
 
-function View:event_modsChanged()
+function View:updateInfo()
+	self.displayInfo:updateInfo()
 	self:updateModsLine()
+end
+
+function View:event_modsChanged()
+	self:updateInfo()
 end
 
 function View:load()
@@ -204,8 +218,7 @@ function View:load()
 	self.modLineString = ""
 
 	self.selectApi:listenForNotechartChanges(function()
-		self.displayInfo:updateInfo()
-		self:updateModsLine()
+		self:updateInfo()
 		self.notechartChangeTime = love.timer.getTime()
 	end)
 
@@ -419,6 +432,7 @@ function View:load()
 			return self.selectApi:getSortFunction()
 		end,
 		setValue = function (index)
+			self.chartTree:fadeOut()
 			self.selectApi:setSortFunction(index)
 		end,
 		format = function (value)
@@ -436,6 +450,11 @@ function View:load()
 		z = 0.5,
 	}))
 
+	local configs = self.selectApi:getConfigs()
+	local osu = configs.osu_ui ---@type osu.ui.OsuConfig
+	local group_charts = osu.songSelect.groupCharts
+	local group = self.selectApi:getGroup(group_charts)
+
 	local group_combo = top:addChild("groupCombo", Combo({
 		x = sort_text.x - sort_text.width - 18, y = 30,
 		origin = { x = 1, y = 0 },
@@ -444,14 +463,26 @@ function View:load()
 		font = fonts:loadFont("Regular", 17),
 		borderColor = { 0.57, 0.76, 0.9, 1 },
 		hoverColor = { 0.57, 0.76, 0.9, 1 },
-		items = self.selectApi:getGroups(),
+		items = self.selectApi.groups,
 		assets = assets,
 		z = 0.9,
 		getValue = function ()
-			return self.selectApi:getGroup()
+			return group
 		end,
-		setValue = function (index)
-			self.selectApi:setGroup(index)
+		setValue = function(index)
+			self.chartTree:fadeOut()
+			group = self.selectApi.groups[index]
+			if group == "charts" then
+				osu.songSelect.groupCharts = false
+			elseif group == "locations" then
+				configs.settings.select.locations_in_collections = true
+				osu.songSelect.groupCharts = true
+			elseif group == "directories" then
+				configs.settings.select.locations_in_collections = false
+				osu.songSelect.groupCharts = true
+			end
+			self.selectApi:reloadCollections()
+			self.selectApi:debouncePullNoteChartSet()
 		end,
 		format = function (value)
 			return sort_group_format[value] or value
@@ -694,23 +725,13 @@ function View:load()
 	self.searchLabel = search_label
 	self:searchUpdated()
 
-	local root = CollectionsListView({
-		z = 1,
-	})
+	local chart_tree = center:addChild("tree", ChartTree())
+	---@cast chart_tree osu.ui.ChartTree
+	self.chartTree = chart_tree
 
-	local list = center:addChild("list", ListContainer({
-		x = width,
-		origin = { x = 1, y = 0 },
-		width = 600,
-		height = height,
-		root = root,
-		selectView = self,
-		z = 0,
-	}))
-
-	function list.update(container, dt)
-		ListContainer.update(list, dt)
-		container.x = width + ((1 - self.alpha) * 640)
+	function chart_tree.update(container, dt)
+		ChartTree.update(container, dt)
+		container.x = (1 - self.alpha) * 640
 	end
 
 	center:addChild("scrollBarBackground", Rectangle({
@@ -724,7 +745,7 @@ function View:load()
 	center:addChild("scrollBar", ScrollBar({
 		x = width - 5, startY = 117,
 		width = 5,
-		container = list,
+		container = chart_tree,
 		windowHeight = 561,
 		z = 0.1,
 	}))

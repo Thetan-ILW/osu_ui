@@ -160,7 +160,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		gradeImageName = grade,
 		username = "Player",
 		score = ("Score: %s (%ix)"):format(commaValue(math_util.round(score_num, 1)), score.max_combo),
-		accuracy = ("%0.02fNS"):format(score.accuracy * 100),
+		accuracy = ("%0.02fNS"):format(score.accuracy * 1000),
 		mods = mods_line,
 		improvement = "-",
 		slideInDelay = self.panelSlideInDelay * (score_index - 1),
