@@ -144,6 +144,7 @@ function OsuAssets:load()
 	self.params = {
 		songSelectActiveText = strToColor(skin_ini.Colours.SongSelectActiveText),
 		songSelectInactiveText = strToColor(skin_ini.Colours.SongSelectInactiveText),
+		menuGlow = strToColor(skin_ini.Colours.MenuGlow),
 
 		cursorCenter = skin_ini.General.CursorCentre,
 		cursorExpand = skin_ini.General.CursorExpand,

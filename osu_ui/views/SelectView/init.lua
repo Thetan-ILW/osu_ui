@@ -228,6 +228,8 @@ function View:load()
 	local fonts = scene.fontManager
 	local text = scene.localization.text
 
+	local music_fft = scene.musicFft
+
 	self.gameplaySound = assets:loadAudio("menuhit")
 
 	local width, height = self.width, self.height
@@ -622,6 +624,21 @@ function View:load()
 		assets:loadImage("mode-mania-small"),
 	}
 
+	local large_icons = {
+		assets:loadImage("mode-osu"),
+		assets:loadImage("mode-taiko"),
+		assets:loadImage("mode-fruits"),
+		assets:loadImage("mode-mania"),
+	}
+
+	local mode_logo = center:addChild("modeLogo", Image({
+		x = width / 2, y = height / 2,
+		origin = { x = 0.5, y = 0.5 },
+		image = large_icons[selected_mode_index],
+		alpha = 0.1,
+	}))
+	---@cast mode_logo ui.Image
+
 	local mode_icon = bottom:addChild("modeSelectionIcon", Image({
 		x = 224 + 46, y = height - 56,
 		origin = { x = 0.5, y = 0.5 },
@@ -639,6 +656,7 @@ function View:load()
 		onClick = function ()
 			selected_mode_index = 1 + (selected_mode_index % #small_icons)
 			mode_icon:replaceImage(small_icons[selected_mode_index])
+			mode_logo:replaceImage(large_icons[selected_mode_index])
 		end
 	}))
 
@@ -686,7 +704,6 @@ function View:load()
 		z = 0.1
 	}))
 
-	local music_fft = scene.musicFft
 
 	bottom:addChild("osuLogo2", Image({
 		x = width - 64, y = height - 49,
@@ -696,15 +713,15 @@ function View:load()
 		alpha = 0.3,
 		z = 0.11,
 		update = function(this)
-			this.scaleX = 0.4 + music_fft.beat * 1.5
-			this.scaleY = 0.4 + music_fft.beat * 1.5
+			this.scaleX = 0.4 + music_fft.beatValue * 1.5
+			this.scaleY = 0.4 + music_fft.beatValue * 1.5
 		end
 	}))
 
 	bottom:addChild("spectrum", Spectrum({
 		x = width - 64, y = height - 49,
 		scale = 0.4,
-		alpha = 0.2,
+		alpha = 0.6,
 		radius = 253 * 0.4,
 		z = 0.09,
 	}))

@@ -8,70 +8,72 @@ local Component = require("ui.Component")
 local Spectrum = Component + {}
 
 local radius = 253
-local fft_size = 64
-local smoothing_factor = 0.12
-local repeats = 4
-local bars = fft_size * repeats
 
 function Spectrum:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	local img = scene.assets:loadImage("menu-vis")
 
 	self.spriteBatch = love.graphics.newSpriteBatch(img)
+	self.color = scene.assets.params.menuGlow
+
+	self.velocityAdjustment = 1
+	self.musicFft = scene.musicFft
+	self.angles = {} ---@type number[]
+	self.angularDirX = {} ---@type number[]
+	self.angularDirY = {} ---@type number[]
+
+	self.vectorScaleX = {} ---@type number[]
 	self.rotation = 0
 
-	self.musicFft = scene.musicFft
+	local width = 1
+	local overshoot = 8
+	local sample_size = self.musicFft.sampleSize
 
-	self.smoothedFft = {}
-	self.emptyFft = {}
-	self.emptyFft[0] = 0
-
-	for _ = 1, bars do
+	for i = 0, sample_size - 1 do
+		local angle = (math.pi * 2) * (0.4 + (i / sample_size * (overshoot * width)))
+		table.insert(self.angles, angle)
+		table.insert(self.angularDirX, math.cos(angle))
+		table.insert(self.angularDirY, math.sin(angle))
+		table.insert(self.vectorScaleX, 0)
 		self.spriteBatch:add(0, 0)
 	end
-
-	for i = 1, 64 do
-		self.smoothedFft[i] = 0
-		self.emptyFft[i] = 0
-	end
-
-	self.barWidth, self.barHeight = img:getDimensions()
 end
 
-local next_time = -math.huge
+local sixty_frame_time = 1 / 60
+local max_alpha = 0.4
+local cutoff = 0.1
+local max_velocity = 4
 
 function Spectrum:update(dt)
-	if love.timer.getTime() < next_time then
-		return
-	end
+	local data = self.musicFft.data
 
-	next_time = love.timer.getTime() + 0.012
+	self.velocityAdjustment = self.velocityAdjustment * 0.97 + 0.03 * math.max(0,  1 - math.max(0, (math.pow(dt / sixty_frame_time, 4) - 1)))
 
-	local bar_h = self.barHeight
+	local frame_ratio = dt / sixty_frame_time
+	local decay_factor = math.pow(self.musicFft.decay, frame_ratio)
+	local sample_size = self.musicFft.sampleSize
 
-	local current_fft =  self.emptyFft
-	local beat = 0
+	for i = 1, sample_size do
+		local new_value = data[i - 1] * self.velocityAdjustment * max_velocity
+		---@cast new_value number
 
-	if self.musicFft.available then
-		current_fft = self.musicFft.fft
-		beat = self.musicFft.beat
-	end
-
-	local smoothed_fft = self.smoothedFft
-
-	local rotation = self.rotation + (beat * 30) * dt
-	self.rotation = rotation
-
-	for i = 1, fft_size do
-		smoothed_fft[i] = smoothed_fft[i] * (1 - smoothing_factor)
-		smoothed_fft[i] = smoothed_fft[i] + current_fft[(i - math.floor(rotation * 100)) % fft_size] * smoothing_factor * 2
-
-		for r = 0, repeats - 1 do
-			local angle = (r * fft_size + i - 1) * (2 * math.pi / bars)
-			local x = radius * math.cos(angle)
-			local y = radius * math.sin(angle)
-			self.spriteBatch:set(r * fft_size + i, x, y, angle, smoothed_fft[i], 0.5, 0, bar_h)
+		if new_value <= self.vectorScaleX[i] then
+			new_value = self.vectorScaleX[i] * decay_factor
+		elseif new_value < self.musicFft.decayCutoff then
+			new_value = 0
 		end
+
+		self.vectorScaleX[i] = new_value
+
+		local alpha = math.max(0, max_alpha * math.min(1, (self.vectorScaleX[i] - cutoff) / (cutoff * 2)))
+		self.spriteBatch:setColor(1, 1, 1, alpha)
+		self.spriteBatch:set(i,
+			self.angularDirX[i] * radius,
+			self.angularDirY[i] * radius,
+			self.angles[i],
+			self.vectorScaleX[i],
+			1
+		)
 	end
 end
 
@@ -80,6 +82,5 @@ function Spectrum:draw()
 	love.graphics.draw(self.spriteBatch)
 	love.graphics.setBlendMode("alpha")
 end
-
 
 return Spectrum

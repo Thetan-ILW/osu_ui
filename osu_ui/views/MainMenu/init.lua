@@ -387,19 +387,15 @@ function View:load()
 			local logo = self.logo
 			this.x = logo.x
 			this.y = logo.y
-			this.scaleX = logo.scaleX + (music_fft.beat * 3)
-			this.scaleY = logo.scaleY + (music_fft.beat * 3)
+			this.scaleX = logo.scaleX + (music_fft.beatValue * 3)
+			this.scaleY = logo.scaleY + (music_fft.beatValue * 3)
 		end
 	}))
 
 	self:addChild("spectrum", Spectrum({
-		alpha = 0.2,
+		alpha = 0.4,
 		z = 0.02,
 		updateTree = function(this, state)
-			this.audio = self.selectApi:getPreviewAudioSource()
-			if self.playingIntro then
-				this.audio = self.welcomeSound
-			end
 			this.x = self.logo.x
 			this.y = self.logo.y
 			this.angle = self.logo.angle
