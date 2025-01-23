@@ -47,17 +47,18 @@ function ChartEntry:load()
 		color = self.backgroundColor
 	}))
 
-	local y = 2
-	local preview_icon_w = 115 -- or 0
+	local y = 5
+	local preview_icon_w = 108 -- or 0
 	self.icon = self:addChild("icon", Image({
 		x = 20 + preview_icon_w, y = y + 2,
 		image = assets:loadImage("mode-mania-small-for-charts"),
+		scale = 0.8,
 		color = self.infoColor,
 		z = 0.1
 	}))
 
 	local title = self:addChild("title", Label({
-		x = preview_icon_w + 20 + 40, y = y,
+		x = preview_icon_w + 15 + 40, y = y,
 		font = fonts:loadFont("Regular", 22),
 		text = "",
 		color = self.infoColor,
@@ -65,7 +66,7 @@ function ChartEntry:load()
 	})) ---@cast title ui.Label
 
 	local second_row = self:addChild("secondRow", Label({
-		x = preview_icon_w + 20 + 40, y = y + 22,
+		x = preview_icon_w + 15 + 40, y = y + 22,
 		font = fonts:loadFont("Regular", 16),
 		text = "",
 		color = self.infoColor,
@@ -73,21 +74,21 @@ function ChartEntry:load()
 	})) ---@cast second_row ui.Label
 
 	local third_row = self:addChild("thirdRow", Label({
-		x = preview_icon_w + 20 + 40, y = y + 22 + 18,
+		x = preview_icon_w + 15 + 40, y = y + 22 + 18,
 		font = fonts:loadFont("Regular", 16),
 		text = "",
 		color = self.infoColor,
 		z = 1
 	})) ---@cast third_row ui.Label
 
-	local star_image = assets:loadImage("star")
+	local star_image = assets.specialKids.star
 	star_image:setWrap("repeat")
 	local stars = self:addChild("stars", QuadImage({
-		x = preview_icon_w + 20 + 40, y = 88,
-		origin = { x = 0, y = 1 },
+		x = preview_icon_w + 17 + 40, y = 74,
+		origin = { x = 0, y = 0.5 },
+		scale = 0.35,
 		image = star_image,
-		quad = love.graphics.newQuad(0, 0, star_image:getWidth(), star_image:getHeight(), star_image),
-		scale = 0.6,
+		quad = love.graphics.newQuad(0, 0, star_image:getWidth() * 2, star_image:getHeight(), star_image:getWidth(), star_image:getHeight()),
 		color = self.infoColor,
 		z = 0.5,
 	})) ---@cast stars ui.QuadImage
@@ -185,7 +186,8 @@ function ChartEntry:setInfo(chart)
 	local third_row = ("%s (%s)"):format(chart.name, Format.inputMode(chart.inputmode))
 
 	self.thirdRow:replaceText(third_row)
-	self.stars:setViewport(0, 0, chart.osu_diff * self.stars.image:getHeight(), self.stars.image:getWidth())
+	local iw, ih = self.stars.image:getDimensions()
+	self.stars:setViewport(0, 0, chart.osu_diff * iw, ih)
 	self.stars.color = chart.lamp and lamp_color or self.infoColor
 end
 

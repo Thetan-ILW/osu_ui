@@ -68,7 +68,7 @@ function WindowList:getCurrentVisualIndex()
 	local visual_index = math.floor(math.max(0, self.scrollPosition - self.y) / self.panelHeight)
 
 	if self.childList then
-		local child_index = math.ceil(self.childList.y / self.panelHeight - self.windowSize / 2)
+		local child_index = math.ceil(self.childList.y / self.panelHeight)
 		local height = self.childList.itemCount
 		local skip = math_util.clamp(visual_index - child_index, 0, height)
 		visual_index = math.max(0, visual_index - skip)

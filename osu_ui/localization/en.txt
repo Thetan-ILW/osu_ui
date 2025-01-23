@@ -10,9 +10,10 @@ General_No=No
 
 UserProfile_Guest=Guest
 
+Menu_GeneralInformation=You have %i beatmaps available!\nsoundsphere has been running for %s.\nIt is currently %s.
+
 Options_Options=Options
 Options_HeaderBlurb=Change the way soundsphere behaves
-Options_HeaderBlurbGucci=Change the way gucci!mania behaves
 Options_TabGeneral=General
 Options_TabGameplay=Gameplay
 Options_TabGraphics=Graphics

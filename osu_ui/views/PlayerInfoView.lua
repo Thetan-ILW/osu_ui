@@ -169,31 +169,9 @@ function PlayerInfoView:setMouseFocus(mx, my)
 	self.mouseOver = self.hoverState:checkMouseFocus(self.width, self.height, mx, my)
 end
 
---[[
-function PlayerInfoView:draw()
-	local a = self.hoverState.progress
-	gfx.setColor(hover * a, hover * a, hover * a, self.alpha)
-	gfx.draw(self.panel)
-	gfx.draw(self.border)
-
-	gfx.setColor(1, 1, 1, self.alpha * 0.15)
-	gfx.draw(self.modeIcon, self.totalW - 45, 6)
-
-	gfx.push()
-	gfx.translate(0, 17)
-	self.rankLabel:draw()
-	gfx.pop()
-
-	gfx.setColor(1, 1, 1, self.alpha)
-	gfx.draw(self.avatar, 6, 6, 0, self.avatarScaleX, self.avatarScaleY)
-
-	gfx.setColor(1, 1, 1, 0.5)
-	gfx.translate(40, 27)
-	gfx.draw(self.levelbarBackground)
-
-	gfx.setColor(levelbar_color)
-	gfx.draw(self.levelbar, self.levelBarQuad)
+function PlayerInfoView:noMouseFocus()
+	self.mouseOver = false
+	self.hoverState:loseFocus()
 end
-]]
 
 return PlayerInfoView

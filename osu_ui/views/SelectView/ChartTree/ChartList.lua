@@ -130,7 +130,6 @@ function ChartList:drawChildren()
 	end
 end
 
-
 function ChartList:justHoveredOver(index)
 	self.hoverTime[index] = love.timer.getTime()
 	self.playSound(self.hoverSound)

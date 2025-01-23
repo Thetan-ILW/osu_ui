@@ -35,7 +35,7 @@ function ChartTree:load()
 		local sort = select_api:getSortFunction()
 
 		local list = self:addChild("root", ChartList({
-			x = self.width - 500,
+			x = self.width - 544,
 			y = self.height / 2,
 			groupSets = select_api.sets[sort],
 			z = 0.1,
@@ -49,7 +49,7 @@ function ChartTree:load()
 		self.list = list
 	else
 		local list = self:addChild("root", GroupList({
-			x = self.width - 500,
+			x = self.width - 544,
 			y = self.height / 2,
 			z = 0.1,
 			scrollToPosition = function(position)

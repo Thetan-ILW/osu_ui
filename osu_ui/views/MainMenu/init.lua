@@ -7,9 +7,14 @@ local Image = require("ui.Image")
 local Label = require("ui.Label")
 local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
 local LogoButton = require("osu_ui.views.MainMenu.LogoButton")
+local PlayerInfoView = require("osu_ui.views.PlayerInfoView")
+local MusicControl = require("osu_ui.views.MainMenu.MusicControl")
+local HoverState = require("ui.HoverState")
 
 local flux = require("flux")
 local math_util = require("math_util")
+local time_util = require("time_util")
+local loop = require("loop")
 
 ---@class osu.ui.MainMenuView : osu.ui.Screen
 ---@operator call: osu.ui.MainMenuView
@@ -198,6 +203,7 @@ function View:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	local assets = scene.assets
 	local fonts = scene.fontManager
+	local text = scene.localization.text
 	self.scene = scene
 	self.selectApi = scene.ui.selectApi
 
@@ -234,14 +240,78 @@ function View:load()
 		end
 	}))
 
-	local top = self:addChild("topLayer", Component({ z = 0.5 }))
+	local top = self:addChild("topLayer", Component({
+		z = 0.5,
+		update = function(this)
+			this.alpha = self.alpha
+			this.y = -40 * (1 - self.alpha)
+		end
+	}))
+
+	local bottom = self:addChild("bottomLayer", Component({
+		z = 0.5,
+		update = function(this)
+			this.alpha = self.alpha
+			this.y = 40 * (1 - self.alpha)
+		end
+	}))
+
 	top:addChild("header", Rectangle({
 		width = self.width,
 		height = 86,
 		color = { 0, 0, 0, 0.4 }
 	}))
 
-	top:addChild("footer", Rectangle({
+	top:addChild("playerInfo", PlayerInfoView({
+		x = 0, y = 0,
+		z = 0.1,
+		onClick = function () end
+	}))
+
+	top:addChild("topInfo", Label({
+		x = 340,
+		font = fonts:loadFont("Regular", 19),
+		shadow = true,
+		z = 0.1,
+		update = function(this)
+			local beatmaps = #self.selectApi:getNotechartSets()
+			local running = time_util.format(love.timer.getTime() - loop.startTime)
+			local time = os.date("%H:%M")
+			this:replaceText(text.Menu_GeneralInformation:format(beatmaps, running, time))
+		end
+	}))
+
+	top:addChild("musicControl", MusicControl({
+		x = self.width - 16, y = 39,
+		origin = { x = 1 },
+		z = 0.098
+	}))
+
+	local np_background = top:addChild("nowPlaying", Image({
+		x = self.width,
+		image = assets:loadImage("menu-np"),
+		z = 0.1,
+	}))
+
+	local song_name = np_background:addChild("songName", Label({
+		x = 103, y = 1,
+		font = fonts:loadFont("Regular", 19),
+	})) ---@cast song_name ui.Label
+
+	local function setSongName()
+		local chartview = self.selectApi:getChartview()
+		if chartview then
+			song_name:replaceText(("%s - %s"):format(chartview.artist or "", chartview.title or ""))
+		end
+		np_background.x = self.width
+		np_background.alpha = 0
+		flux.to(np_background, 1, { x = math.max(700, self.width - song_name:getWidth() - 20 - 103), alpha = 1 }):ease("cubicout")
+	end
+
+	setSongName()
+	self.selectApi:listenForNotechartChanges(setSongName)
+
+	bottom:addChild("footer", Rectangle({
 		y = self.height,
 		origin = { y = 1 },
 		width = self.width,
@@ -249,9 +319,41 @@ function View:load()
 		color = { 0, 0, 0, 0.4 }
 	}))
 
+	bottom:addChild("copyright", Image({
+		x = 4,
+		y = self.height - 3,
+		origin = { y = 1 },
+		image = assets:loadImage("menu-copyright"),
+		z = 0.1,
+		hoverState = HoverState("elasticout", 1),
+		---@param this ui.Image
+		setMouseFocus = function(this, mx, my)
+			this.mouseOver = this.hoverState:checkMouseFocus(this.width, this.height, mx, my)
+		end,
+		---@param this ui.Image
+		noMouseFocus = function(this)
+			this.mouseOver = false
+			this.hoverState:loseFocus()
+		end,
+		update = function(this)
+			local p = this.hoverState.progress
+			local scale = 1 + p * 0.15
+			this.scaleX = scale
+			this.scaleY = scale
+			this.color[2] = 1 - p * 0.3
+			this.color[3] = 1 - p * 0.77
+		end,
+		mousePressed = function(this)
+			if this.mouseOver then
+				love.system.openURL("https://www.youtube.com/watch?v=dQw4w9WgXcQ")
+				return true
+			end
+		end
+	}))
+
 	local secret = "LOVE YOURSELF LOVE YOUR PARENTS LOVE YOUR FRIENDS LOVE EVERYONE HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME HATE ME"
 	local char_set = [[abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*()_+{}|:./"]]
-	top:addChild("heart", Image({
+	bottom:addChild("heart", Image({
 		x = self.width - 32, y = self.height - 48,
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage("menu-subscriber"),
@@ -311,7 +413,7 @@ function View:load()
 		end
 	}))
 
-	top:addChild("bat", Image({
+	bottom:addChild("bat", Image({
 		x = self.width - 90, y = self.height - 48,
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage("menu-bat"),
@@ -381,7 +483,7 @@ function View:load()
 	self:addChild("logo2", Image({
 		origin = { x = 0.5, y = 0.5, },
 		image = logo_img,
-		alpha = 0.4,
+		alpha = 0.25,
 		z = 0.15,
 		update = function(this)
 			local logo = self.logo
