@@ -20,13 +20,13 @@ local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
 local BottomButton = require("osu_ui.views.SelectView.BottomButton")
 local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local ChartTree = require("osu_ui.views.SelectView.ChartTree")
+local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
 
 local getModifierString = require("osu_ui.views.modifier_string")
 
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 
 local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
-local LaserChart = require("osu_ui.views.LaserChart")
 
 ---@class osu.ui.SelectViewContainer : osu.ui.Screen
 ---@operator call: osu.ui.SelectViewContainer
@@ -36,6 +36,7 @@ local View = Screen + {}
 function View:textInput(event)
 	self.search = self.search .. event[1]
 	self:searchUpdated()
+	self.chartTree:fadeOut()
 	return true
 end
 
@@ -68,11 +69,12 @@ function View:keyPressed(event)
 		self.selectApi:addTimeRate(1)
 		self:updateInfo()
 	elseif key == "f8" then
+		if not self.selectApi:notechartExists() then
+			return
+		end
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5
 		}))
-	elseif key == "f10" then
-		LaserChart(self.selectApi:getChart(), self.selectApi:getChartview())
 	elseif key == "o" then
 		if love.keyboard.isDown("lctrl") then
 			self.scene.options:fade(1)
@@ -87,7 +89,11 @@ function View:keyPressed(event)
 		return false
 	end
 
+	local prev = self.search
 	self.search = text_input.removeChar(self.search)
+	if prev ~= self.search then
+		self.chartTree:fadeOut()
+	end
 	self:searchUpdated()
 	return true
 end
@@ -226,6 +232,8 @@ function View:load()
 	local assets = scene.assets
 	local fonts = scene.fontManager
 	local text = scene.localization.text
+
+	local music_fft = scene.musicFft
 
 	self.gameplaySound = assets:loadAudio("menuhit")
 
@@ -621,6 +629,21 @@ function View:load()
 		assets:loadImage("mode-mania-small"),
 	}
 
+	local large_icons = {
+		assets:loadImage("mode-osu"),
+		assets:loadImage("mode-taiko"),
+		assets:loadImage("mode-fruits"),
+		assets:loadImage("mode-mania"),
+	}
+
+	local mode_logo = center:addChild("modeLogo", Image({
+		x = width / 2, y = height / 2,
+		origin = { x = 0.5, y = 0.5 },
+		image = large_icons[selected_mode_index],
+		alpha = 0.1,
+	}))
+	---@cast mode_logo ui.Image
+
 	local mode_icon = bottom:addChild("modeSelectionIcon", Image({
 		x = 224 + 46, y = height - 56,
 		origin = { x = 0.5, y = 0.5 },
@@ -638,6 +661,7 @@ function View:load()
 		onClick = function ()
 			selected_mode_index = 1 + (selected_mode_index % #small_icons)
 			mode_icon:replaceImage(small_icons[selected_mode_index])
+			mode_logo:replaceImage(large_icons[selected_mode_index])
 		end
 	}))
 
@@ -685,6 +709,28 @@ function View:load()
 		z = 0.1
 	}))
 
+
+	bottom:addChild("osuLogo2", Image({
+		x = width - 64, y = height - 49,
+		origin = { x = 0.5, y = 0.5 },
+		scale = 0.4,
+		image = assets:loadImage("menu-osu-logo"),
+		alpha = 0.3,
+		z = 0.11,
+		update = function(this)
+			this.scaleX = 0.4 + music_fft.beatValue * 1.5
+			this.scaleY = 0.4 + music_fft.beatValue * 1.5
+		end
+	}))
+
+	bottom:addChild("spectrum", Spectrum({
+		x = width - 64, y = height - 49,
+		scale = 0.4,
+		alpha = 0.6,
+		radius = 253 * 0.4,
+		z = 0.09,
+	}))
+
 	self.modsLine = bottom:addChild("modsLine", Label({
 		x = 104, y = 633,
 		font = fonts:loadFont("Regular", 41),
@@ -725,7 +771,7 @@ function View:load()
 	self.searchLabel = search_label
 	self:searchUpdated()
 
-	local chart_tree = center:addChild("tree", ChartTree())
+	local chart_tree = center:addChild("tree", ChartTree({}))
 	---@cast chart_tree osu.ui.ChartTree
 	self.chartTree = chart_tree
 

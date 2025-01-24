@@ -10,9 +10,10 @@ General_No=No
 
 UserProfile_Guest=Guest
 
+Menu_GeneralInformation=You have %i beatmaps available!\nsoundsphere has been running for %s.\nIt is currently %s.
+
 Options_Options=Options
 Options_HeaderBlurb=Change the way soundsphere behaves
-Options_HeaderBlurbGucci=Change the way gucci!mania behaves
 Options_TabGeneral=General
 Options_TabGameplay=Gameplay
 Options_TabGraphics=Graphics
@@ -151,6 +152,9 @@ Options_Input_MultiplyVisualOffsetByRate=Multiply visual offset by music speed
 Options_Input_Other=Other
 Options_Input_ThreadedInput=Threaded input
 Options_Input_TaikoNoteHandler=[DO NOT ENABLE] Taiko note handler
+Options_TabSkin_CustonKey=Press the key/button on your keyboard/joystick for the corresponding column. Hit ESC to go back.
+Options_Input_Keyboard=Keyboard
+Options_OsuManiaLayout=gucci!mania layout
 
 Options_SwitchToLegacyUI=Switch to legacy UI
 Options_UISwitchConfirm=Are you sure you want to switch back to the old UI? Do you even know how to get back?

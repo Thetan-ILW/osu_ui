@@ -13,6 +13,7 @@ function Blur:load()
 	local image = self.image or self.viewport.canvas
 	local w, h = math.ceil(image:getWidth() * self.percent), math.ceil(image:getHeight() * self.percent)
 	self.lowResCanvas = love.graphics.newCanvas(w, h)
+	self.drawBlurredImage = self.drawBlurredImage or true
 end
 
 function Blur:draw()
@@ -27,8 +28,11 @@ function Blur:draw()
 	love.graphics.draw(self.image and self.image or self.viewport.canvas)
 	GaussianBlurView:draw(3)
 	love.graphics.pop()
-	love.graphics.scale(1 / self.percent)
-	love.graphics.draw(self.lowResCanvas)
+
+	if self.drawBlurredImage then
+		love.graphics.scale(1 / self.percent)
+		love.graphics.draw(self.lowResCanvas)
+	end
 end
 
 return Blur

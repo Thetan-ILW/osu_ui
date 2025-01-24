@@ -8,6 +8,8 @@ local Button = require("osu_ui.ui.Button")
 local Combo = require("osu_ui.ui.Combo")
 local Checkbox = require("osu_ui.ui.Checkbox")
 
+local flux = require("flux")
+
 ---@class osu.ui.OptionsGroup : ui.Component
 ---@field section osu.ui.OptionsSection
 ---@field assets osu.ui.OsuAssets
@@ -64,6 +66,15 @@ function Group:load()
 		text = self.name,
 		font = self.fonts:loadFont("Bold", 16)
 	}))
+end
+
+function Group:reload()
+	Component.reload(self)
+	if self.alphaTween then
+		self.alphaTween:stop()
+	end
+	self.alpha = 0
+	self.alphaTween = flux.to(self, 0.5, { alpha = 1 }):ease("cubicout")
 end
 
 function Group:showTooltip(text)
@@ -148,6 +159,10 @@ end
 function Group:button(params)
 	if not self:canAdd(params.label) then
 		return
+	end
+
+	if params.text then
+		error("dumbass, specify 'label', not 'text'")
 	end
 
 	local container = self:addChild("button_container" .. self.buttons, Component({

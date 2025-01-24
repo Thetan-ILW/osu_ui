@@ -22,6 +22,9 @@ local ModifiersModal = require("osu_ui.views.modals.Modifiers")
 local LocationsModal = require("osu_ui.views.modals.Locations")
 local BeatmapOptionsModal = require("osu_ui.views.modals.BeatmapOptions")
 local FiltersModal = require("osu_ui.views.modals.Filters")
+local InputsModal = require("osu_ui.views.modals.Inputs")
+
+local MusicFft = require("osu_ui.MusicFft")
 
 local flux = require("flux")
 local path_util = require("path_util")
@@ -83,7 +86,8 @@ function Scene:load()
 		modifiers = ModifiersModal({ z = 0.5 }),
 		locations = LocationsModal({ z = 0.5 }),
 		beatmapOptions = BeatmapOptionsModal({ z = 0.5 }),
-		filters = FiltersModal({ z = 0.5 })
+		filters = FiltersModal({ z = 0.5 }),
+		inputsModal = InputsModal({ z = 0.5 })
 	}
 
 	self.viewport = self:getViewport()
@@ -138,6 +142,10 @@ function Scene:load()
 	self.options = options
 	self.chat = chat
 	self.background = background
+
+	local music_fft = self:addChild("musicFft", MusicFft())
+	---@cast music_fft osu.ui.MusicFft
+	self.musicFft = music_fft
 
 	self.currentScreenId = ""
 	self.previousScreenId = ""
@@ -201,6 +209,7 @@ function Scene:transitInScreen(screen_name)
 	self.previousScreenId = self.currentScreenId
 	self.currentScreenId = screen_name
 	screen:transitIn()
+	love.mouse.setVisible(false)
 end
 
 ---@param name string

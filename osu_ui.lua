@@ -38,7 +38,7 @@ local t = {
 	},
 	graphics = {
 		blur = true,
-		blurQuality = 0.2,
+		blurQuality = 0.5,
 	},
 	uiVolume = 0.4,
 	--[[vimMotions = false,

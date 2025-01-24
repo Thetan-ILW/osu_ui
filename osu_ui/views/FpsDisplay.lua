@@ -25,6 +25,8 @@ function FpsDisplay:load()
 	self.slide = 1
 	self.config = scene.ui.selectApi:getConfigs().settings.miscellaneous ---@type osu.OsuConfig
 
+	self.screens = scene.screens
+
 	if not self.config.showFPS then
 		self.disabled = true
 		self.slide = 0
@@ -36,7 +38,7 @@ function FpsDisplay:load()
 	local box_width, box_height = 65, 20
 
 	self.latencyBox = self:addChild("latencyBox", Image({
-		x = self.parent:getWidth() - 4, y = self.parent:getHeight() - 6,
+		x = self.parent:getWidth() - 5, y = self.parent:getHeight() - 6,
 		width = box_width,
 		height = box_height,
 		origin = { x = 1, y = 1 },
@@ -45,7 +47,7 @@ function FpsDisplay:load()
 	}))
 
 	self.fpsBox = self:addChild("fpsBox", Image({
-		x = self.parent:getWidth() - 4, y = self.parent:getHeight() - 10 - self.latencyBox:getHeight(),
+		x = self.parent:getWidth() - 5, y = self.parent:getHeight() - 10 - self.latencyBox:getHeight(),
 		width = box_width,
 		height = box_height,
 		origin = { x = 1, y = 1 },
@@ -110,6 +112,7 @@ function FpsDisplay:update(dt)
 	self.checks = (self.checks + 1) % 7 + 1
 
 	self.x = (1 - self.slide) * 69
+	self.y = self.screens.result.alpha * -19
 
 	if love.timer.getTime() < self.nextUpdate then
 		return
@@ -124,12 +127,14 @@ function FpsDisplay:update(dt)
 
 	avg_dt = avg_dt / 7
 
-
 	local _, _, flags = love.window.getMode()
 	local max_fps = loop.fpslimit
 
 	if loop.fpslimit > 999 then
 		max_fps = flags.refreshrate
+		self.maxFps:replaceText(("/%ihz"):format(max_fps))
+	elseif loop.fpslimit <= 0 then
+		max_fps = 240
 		self.maxFps:replaceText(("/%ihz"):format(max_fps))
 	else
 		self.maxFps:replaceText(("/%ifps"):format(max_fps))

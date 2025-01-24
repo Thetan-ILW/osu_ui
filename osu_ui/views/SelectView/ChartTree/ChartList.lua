@@ -36,6 +36,9 @@ function ChartList:load()
 				self.selectedSetIndex = self:getSelectedItemSetIndex()
 				self.scrollToPosition(self.y + (self:getSelectedItemIndex() - 5 + index) * self.panelHeight)
 			end,
+			getHeight = function(this)
+				return this.height - this.panelHeight
+			end
 		})) ---@cast list osu.ui.ChartList
 		self.childList = list
 		self:createHole()
@@ -126,7 +129,6 @@ function ChartList:drawChildren()
 		end
 	end
 end
-
 
 function ChartList:justHoveredOver(index)
 	self.hoverTime[index] = love.timer.getTime()

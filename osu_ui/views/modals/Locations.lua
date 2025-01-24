@@ -226,6 +226,9 @@ function Locations:load()
 end
 
 function Locations:close()
+	if not self.mouseOver then
+		return
+	end
 	Modal.close(self)
 
 	if self.locationsUpdated then

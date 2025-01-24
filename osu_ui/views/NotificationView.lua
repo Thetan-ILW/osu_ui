@@ -16,6 +16,8 @@ function NotificationView:load()
 	self.y = self.parent.height / 2
 	self.alpha = 0
 
+	self:getViewport():listenForResize(self)
+
 	self.label = self:addChild("label", Label({
 		text = "",
 		font = scene.fontManager:loadFont("Regular", 24),

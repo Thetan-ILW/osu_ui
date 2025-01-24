@@ -41,6 +41,8 @@ function OsuWindowList:load()
 	self.selectedItemHole = self.selectedItemHole or 16
 	self.wrap = 1
 
+	self.height = self.itemCount * self.panelHeight
+
 	if self.itemCount == 0 then
 		return
 	end
@@ -66,13 +68,11 @@ end
 
 ---@return number
 function OsuWindowList:getHeight()
-	if self.itemCount == 0 then
-		return 0
-	end
+	local h = self.height * self.wrap
 	if self.childList then
-		return (self.itemCount * self.panelHeight + self.childList:getHeight()) * self.wrap
+		h = h + self.childList:getHeight()
 	end
-	return (self.yDestinations[self.itemCount] + self.panelHeight) * self.wrap
+	return h
 end
 
 ---@return number

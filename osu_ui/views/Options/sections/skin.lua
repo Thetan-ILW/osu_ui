@@ -34,81 +34,72 @@ return function(section)
 	local text = scene.localization.text
 
 	section:group(text.Options_TabSkin, function(group)
-		if not select_api:notechartExists() then
-			return
+		local current_input_mode = select_api:getCurrentInputMode()
+
+		function group:update()
+			if select_api:getCurrentInputMode() ~= current_input_mode then
+				group:reload()
+			end
 		end
 
-		local current_input_mode ---@type string?
-		local selected_note_skin ---@type sphere.NoteSkin
-		local skins ---@type table
+		if select_api:notechartExists() then
+			local str_im = tostring(current_input_mode)
+			local selected_note_skin = select_api:getNoteSkin(str_im)
+			local skins = select_api:getNoteSkinInfos(str_im)
 
-		local skins_combo = group:combo({
-			label = text.Options_SkinSelect,
-			items = {},
-			setValue = function(index)
-				if not current_input_mode then
-					return
-				end
-				local skin = skins[index]
-				select_api:setNoteSkin(current_input_mode, skin:getPath())
-				current_input_mode = tostring(select_api:getCurrentInputMode()) -- what is the point of this line? I don't remember
-			end,
-			format = function(v)
-				return formatSkinName(v, current_input_mode)
-			end
-		})
-		if skins_combo then
-			skins_combo.getValue = function ()
-				local im = select_api:getCurrentInputMode()
-				if im ~= current_input_mode then
-					current_input_mode = im
-					local str_im = tostring(im)
+			group:combo({
+				label = text.Options_SkinSelect,
+				items = skins,
+				getValue = function()
+					return selected_note_skin
+				end,
+				setValue = function(index)
+					local skin = skins[index]
+					select_api:setNoteSkin(str_im, skin:getPath())
 					selected_note_skin = select_api:getNoteSkin(str_im)
-					skins = select_api:getNoteSkinInfos(str_im)
-					skins_combo.items = skins
-					skins_combo:addItems()
+				end,
+				format = function(v)
+					return formatSkinName(v, str_im)
 				end
-				return selected_note_skin
-			end
-			skins_combo:update()
+			})
+
+			group:button({
+				label = text.Options_SkinPreview,
+				color = { 0.84, 0.38, 0.47, 1 },
+				onClick = function()
+					local current_screen = scene:getChild(scene.currentScreenId)
+					if current_screen then
+						---@cast current_screen osu.ui.Screen
+						scene:hideOverlay()
+						section.options:fade(0)
+						current_screen:transitOut({
+							onComplete = function ()
+								select_api:setAutoplay(true)
+								scene:transitInScreen("gameplay")
+							end
+						})
+					end
+				end
+			})
+
+			group:button({
+				label = text.Options_SkinSettings,
+				onClick = function()
+					scene.notification:show("Not implemented")
+				end
+			})
+
+			group:button({
+				label = text.Options_OpenSkinFolder,
+				onClick = function ()
+					local im = select_api:getCurrentInputMode()
+					local path = settings.gameplay[("noteskin%s"):format(tostring(im))]
+					if path and type(path) == "string" then
+						love.system.openURL(path_util.join(love.filesystem.getSource(), path:match("^(.*/)")))
+					end
+				end
+			})
 		end
-
-		group:button({
-			label = text.Options_SkinPreview,
-			color = { 0.84, 0.38, 0.47, 1 },
-			onClick = function()
-				local current_screen = scene:getChild(scene.currentScreenId)
-				if current_screen then
-					---@cast current_screen osu.ui.Screen
-					scene:hideOverlay()
-					section.options:fade(0)
-					current_screen:transitOut({
-						onComplete = function ()
-							select_api:setAutoplay(true)
-							scene:transitInScreen("gameplay")
-						end
-					})
-				end
-			end
-		})
-
-		group:button({
-			label = text.Options_SkinSettings,
-			onClick = function()
-				scene.notification:show("Not implemented")
-			end
-		})
-
-		group:button({
-			label = text.Options_OpenSkinFolder,
-			onClick = function ()
-				local im = select_api:getCurrentInputMode()
-				local path = settings.gameplay[("noteskin%s"):format(tostring(im))]
-				if path and type(path) == "string" then
-					love.system.openURL(path_util.join(love.filesystem.getSource(), path:match("^(.*/)")))
-				end
-			end
-		})
 
 		group:slider({
 			label = text.Options_LongNoteShortening,
