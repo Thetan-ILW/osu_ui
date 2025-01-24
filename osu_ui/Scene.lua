@@ -209,6 +209,7 @@ function Scene:transitInScreen(screen_name)
 	self.previousScreenId = self.currentScreenId
 	self.currentScreenId = screen_name
 	screen:transitIn()
+	love.mouse.setVisible(false)
 end
 
 ---@param name string

@@ -51,6 +51,7 @@ function View:transitIn()
 	self.transitInTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
 	flux.to(self.scene.background, 1, { dim = self.backgroundDim }):ease("quadout")
 
+	self:reload()
 	self.gameplayApi:start()
 	self.disabled = false
 	self.handleEvents = true

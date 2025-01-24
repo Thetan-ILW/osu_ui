@@ -42,66 +42,64 @@ return function(section)
 			end
 		end
 
-		if not select_api:notechartExists() then
-			return
+		if select_api:notechartExists() then
+			local str_im = tostring(current_input_mode)
+			local selected_note_skin = select_api:getNoteSkin(str_im)
+			local skins = select_api:getNoteSkinInfos(str_im)
+
+			group:combo({
+				label = text.Options_SkinSelect,
+				items = skins,
+				getValue = function()
+					return selected_note_skin
+				end,
+				setValue = function(index)
+					local skin = skins[index]
+					select_api:setNoteSkin(str_im, skin:getPath())
+					selected_note_skin = select_api:getNoteSkin(str_im)
+				end,
+				format = function(v)
+					return formatSkinName(v, str_im)
+				end
+			})
+
+			group:button({
+				label = text.Options_SkinPreview,
+				color = { 0.84, 0.38, 0.47, 1 },
+				onClick = function()
+					local current_screen = scene:getChild(scene.currentScreenId)
+					if current_screen then
+						---@cast current_screen osu.ui.Screen
+						scene:hideOverlay()
+						section.options:fade(0)
+						current_screen:transitOut({
+							onComplete = function ()
+								select_api:setAutoplay(true)
+								scene:transitInScreen("gameplay")
+							end
+						})
+					end
+				end
+			})
+
+			group:button({
+				label = text.Options_SkinSettings,
+				onClick = function()
+					scene.notification:show("Not implemented")
+				end
+			})
+
+			group:button({
+				label = text.Options_OpenSkinFolder,
+				onClick = function ()
+					local im = select_api:getCurrentInputMode()
+					local path = settings.gameplay[("noteskin%s"):format(tostring(im))]
+					if path and type(path) == "string" then
+						love.system.openURL(path_util.join(love.filesystem.getSource(), path:match("^(.*/)")))
+					end
+				end
+			})
 		end
-
-		local str_im = tostring(current_input_mode)
-		local selected_note_skin = select_api:getNoteSkin(str_im)
-		local skins = select_api:getNoteSkinInfos(str_im)
-
-		group:combo({
-			label = text.Options_SkinSelect,
-			items = skins,
-			getValue = function()
-				return selected_note_skin
-			end,
-			setValue = function(index)
-				local skin = skins[index]
-				select_api:setNoteSkin(str_im, skin:getPath())
-				selected_note_skin = select_api:getNoteSkin(str_im)
-			end,
-			format = function(v)
-				return formatSkinName(v, str_im)
-			end
-		})
-
-		group:button({
-			label = text.Options_SkinPreview,
-			color = { 0.84, 0.38, 0.47, 1 },
-			onClick = function()
-				local current_screen = scene:getChild(scene.currentScreenId)
-				if current_screen then
-					---@cast current_screen osu.ui.Screen
-					scene:hideOverlay()
-					section.options:fade(0)
-					current_screen:transitOut({
-						onComplete = function ()
-							select_api:setAutoplay(true)
-							scene:transitInScreen("gameplay")
-						end
-					})
-				end
-			end
-		})
-
-		group:button({
-			label = text.Options_SkinSettings,
-			onClick = function()
-				scene.notification:show("Not implemented")
-			end
-		})
-
-		group:button({
-			label = text.Options_OpenSkinFolder,
-			onClick = function ()
-				local im = select_api:getCurrentInputMode()
-				local path = settings.gameplay[("noteskin%s"):format(tostring(im))]
-				if path and type(path) == "string" then
-					love.system.openURL(path_util.join(love.filesystem.getSource(), path:match("^(.*/)")))
-				end
-			end
-		})
 
 		group:slider({
 			label = text.Options_LongNoteShortening,

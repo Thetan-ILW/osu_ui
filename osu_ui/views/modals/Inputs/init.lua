@@ -34,7 +34,13 @@ function Inputs:load()
 	local input_model = scene.ui.selectApi:getInputModel()
 
 	local mode = select_api:getCurrentInputMode()
-	local inputs = input_model:getInputs(tostring(mode))
+	local mode_str = tostring(mode)
+
+	if tostring(mode_str) == "" then
+		mode_str = "4key"
+	end
+
+	local inputs = input_model:getInputs(mode_str)
 
 	self:initModal(text.Options_TabSkin_CustonKey)
 
@@ -43,7 +49,7 @@ function Inputs:load()
 		origin = { x = 0.5, y = 0.5 },
 		inputs = inputs,
 		inputModel = input_model,
-		mode = tostring(mode),
+		mode = mode_str,
 		z = 0.5
 	}))
 

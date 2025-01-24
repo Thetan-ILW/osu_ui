@@ -27,7 +27,6 @@ local getModifierString = require("osu_ui.views.modifier_string")
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 
 local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
-local LaserChart = require("osu_ui.views.LaserChart")
 
 ---@class osu.ui.SelectViewContainer : osu.ui.Screen
 ---@operator call: osu.ui.SelectViewContainer
@@ -70,11 +69,12 @@ function View:keyPressed(event)
 		self.selectApi:addTimeRate(1)
 		self:updateInfo()
 	elseif key == "f8" then
+		if not self.selectApi:notechartExists() then
+			return
+		end
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5
 		}))
-	elseif key == "f10" then
-		LaserChart(self.selectApi:getChart(), self.selectApi:getChartview())
 	elseif key == "o" then
 		if love.keyboard.isDown("lctrl") then
 			self.scene.options:fade(1)

@@ -88,7 +88,7 @@ function ChartTree:update()
 	self.list.scrollPosition = self.scrollPosition
 	self.list.scrollVelocity = self.scrollVelocity
 
-	if love.mouse.isDown(2) then
+	if self.mouseOver and love.mouse.isDown(2) then
 		local scale = 768 / love.graphics.getHeight()
 		local my = love.mouse.getY() * scale
 		local y = math.min(math.max(0, my - 117) / 560, 1)
