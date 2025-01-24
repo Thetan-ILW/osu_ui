@@ -34,44 +34,37 @@ return function(section)
 	local text = scene.localization.text
 
 	section:group(text.Options_TabSkin, function(group)
+		local current_input_mode = select_api:getCurrentInputMode()
+
+		function group:update()
+			if select_api:getCurrentInputMode() ~= current_input_mode then
+				group:reload()
+			end
+		end
+
 		if not select_api:notechartExists() then
 			return
 		end
 
-		local current_input_mode ---@type string?
-		local selected_note_skin ---@type sphere.NoteSkin
-		local skins ---@type table
+		local str_im = tostring(current_input_mode)
+		local selected_note_skin = select_api:getNoteSkin(str_im)
+		local skins = select_api:getNoteSkinInfos(str_im)
 
-		local skins_combo = group:combo({
+		group:combo({
 			label = text.Options_SkinSelect,
-			items = {},
+			items = skins,
+			getValue = function()
+				return selected_note_skin
+			end,
 			setValue = function(index)
-				if not current_input_mode then
-					return
-				end
 				local skin = skins[index]
-				select_api:setNoteSkin(current_input_mode, skin:getPath())
-				current_input_mode = tostring(select_api:getCurrentInputMode()) -- what is the point of this line? I don't remember
+				select_api:setNoteSkin(str_im, skin:getPath())
+				selected_note_skin = select_api:getNoteSkin(str_im)
 			end,
 			format = function(v)
-				return formatSkinName(v, current_input_mode)
+				return formatSkinName(v, str_im)
 			end
 		})
-		if skins_combo then
-			skins_combo.getValue = function ()
-				local im = select_api:getCurrentInputMode()
-				if im ~= current_input_mode then
-					current_input_mode = im
-					local str_im = tostring(im)
-					selected_note_skin = select_api:getNoteSkin(str_im)
-					skins = select_api:getNoteSkinInfos(str_im)
-					skins_combo.items = skins
-					skins_combo:addItems()
-				end
-				return selected_note_skin
-			end
-			skins_combo:update()
-		end
 
 		group:button({
 			label = text.Options_SkinPreview,
