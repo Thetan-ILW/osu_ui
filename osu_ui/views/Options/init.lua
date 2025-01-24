@@ -76,6 +76,8 @@ function Options:searchUpdated()
 
 	if #new_tree.childrenOrder == 0 then
 		self.search = text_input.removeChar(self.search)
+		self.panel:removeChild("newTree")
+		return
 	end
 
 	self.panel:scrollToPosition(0, 0)
@@ -101,17 +103,17 @@ function Options:searchUpdated()
 	label:replaceText(self.searchFormat)
 end
 
-function Options:newSection(name, icon, build_function)
-	if Options.sections[name] then
+function Options:newSection(id, name, icon, build_function)
+	if Options.sections[id] then
 		return
 	end
 
-	Options.sections[name] = {
+	Options.sections[id] = {
 		name = name,
 		icon = icon,
 		buildFunction = build_function
 	}
-	table.insert(Options.sectionsOrder, name)
+	table.insert(Options.sectionsOrder, id)
 end
 
 function Options:reload()
@@ -148,36 +150,43 @@ function Options:load()
 	self.fontAwesome = fonts:loadFont("Awesome", 24)
 
 	self:newSection(
+		"general",
 		self.text.Options_TabGeneral:upper(),
 		"",
 		require("osu_ui.views.Options.sections.general")
 	)
 	self:newSection(
+		"graphics",
 		self.text.Options_TabGraphics:upper(),
 		"",
 		require("osu_ui.views.Options.sections.graphics")
 	)
 	self:newSection(
+		"gameplay",
 		self.text.Options_TabGameplay:upper(),
 		"",
 		require("osu_ui.views.Options.sections.gameplay")
 	)
 	self:newSection(
+		"audio",
 		self.text.Options_TabAudio:upper(),
 		"",
 		require("osu_ui.views.Options.sections.audio")
 	)
 	self:newSection(
+		"skin",
 		self.text.Options_TabSkin:upper(),
 		"",
 		require("osu_ui.views.Options.sections.skin")
 	)
 	self:newSection(
+		"input",
 		self.text.Options_TabInput:upper(),
 		"",
 		require("osu_ui.views.Options.sections.input")
 	)
 	self:newSection(
+		"maintenance",
 		self.text.Options_TabMaintenance:upper(),
 		"",
 		require("osu_ui.views.Options.sections.maintenance")
@@ -482,7 +491,7 @@ function Options:buildTree()
 		local name = section_params.name
 		local build = section_params.buildFunction
 
-		local section = tree:addChild(name, Section({
+		local section = tree:addChild(v, Section({
 			width = self.panelWidth,
 			options = self,
 			assets = self.assets,
@@ -492,7 +501,7 @@ function Options:buildTree()
 		}))
 		---@cast section osu.ui.OptionsSection
 		if section.isEmpty then
-			tree:removeChild(name)
+			tree:removeChild(v)
 		end
 	end
 
@@ -504,8 +513,7 @@ function Options:recalcPositions()
 
 	for _, v in ipairs(self.sectionsOrder) do
 		local section_params = self.sections[v]
-		local name = section_params.name
-		local section = self.tree:getChild(name)
+		local section = self.tree:getChild(v)
 		---@cast section osu.ui.OptionsSection
 		if section then
 			section.y = height
