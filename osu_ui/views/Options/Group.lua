@@ -150,6 +150,10 @@ function Group:button(params)
 		return
 	end
 
+	if params.text then
+		error("dumbass, specify 'label', not 'text'")
+	end
+
 	local container = self:addChild("button_container" .. self.buttons, Component({
 		x = self.indent - 5, y = self:getCurrentY(),
 		width = self:getWidth(),

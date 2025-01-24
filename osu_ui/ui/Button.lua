@@ -55,7 +55,7 @@ function Button:noMouseFocus()
 end
 
 function Button:justHovered()
-	ui.playSound(self.hoverSound)
+	self.playSound(self.hoverSound)
 end
 
 function Button:update()

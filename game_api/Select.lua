@@ -432,4 +432,9 @@ function Select:openWebNotechart()
 	self.game.selectController:openWebNotechart()
 end
 
+---@return sphere.InputModel
+function Select:getInputModel()
+	return self.game.inputModel
+end
+
 return Select

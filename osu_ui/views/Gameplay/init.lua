@@ -48,7 +48,7 @@ function View:transitIn()
 	end
 
 	self.alpha = 0
-	flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
+	self.transitInTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
 	flux.to(self.scene.background, 1, { dim = self.backgroundDim }):ease("quadout")
 
 	self.gameplayApi:start()
@@ -61,6 +61,10 @@ end
 function View:quit()
 	love.keyboard.setKeyRepeat(true)
 	self.uiLayer.pause:quit()
+
+	if self.transitInTween then
+		self.transitInTween:stop()
+	end
 
 	local select_api = self.scene.ui.selectApi
 	select_api:playPreview()
@@ -107,6 +111,7 @@ end
 function View:load()
 	self.width, self.height = self.parent:getDimensions()
 	self:createCanvas(self.width, self.height)
+
 	self:getViewport():listenForResize(self)
 
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene

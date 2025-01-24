@@ -8,6 +8,21 @@ return function(section)
 	local text = scene.localization.text
 	local play_context = scene.ui.selectApi:getPlayContext()
 
+	section:group(text.Options_Input_Keyboard, function(group)
+		group:button({
+			label = text.Options_OsuManiaLayout,
+			onClick = function()
+				scene:openModal("inputsModal")
+			end
+		})
+
+		group:checkbox({
+			label = text.Options_Input_ThreadedInput,
+			key = { g, "asynckey" }
+		})
+
+	end)
+
 	section:group(text.Options_Audio_Offset, function(group)
 		group:slider({
 			label = text.Options_Input_InputOffset,
@@ -37,11 +52,6 @@ return function(section)
 	end)
 
 	section:group(text.Options_Input_Other, function(group)
-		group:checkbox({
-			label = text.Options_Input_ThreadedInput,
-			key = { g, "asynckey" }
-		})
-
 		group:checkbox({
 			label = text.Options_Input_TaikoNoteHandler,
 			key = { play_context, "single" }

@@ -151,6 +151,10 @@ function ChartShowcase:show(chart_name, length, difficulty, diff_level, mods, im
 	self.mods = mods
 	self.image = image
 
+	if mods == "" then
+		self.mods = "No modifiers"
+	end
+
 	if length < 120 then
 		self.lengthColor = { 0.4, 1, 0.38, 1}
 	elseif length < 240 then

@@ -37,6 +37,7 @@ local View = Screen + {}
 function View:textInput(event)
 	self.search = self.search .. event[1]
 	self:searchUpdated()
+	self.chartTree:fadeOut()
 	return true
 end
 
@@ -88,7 +89,11 @@ function View:keyPressed(event)
 		return false
 	end
 
+	local prev = self.search
 	self.search = text_input.removeChar(self.search)
+	if prev ~= self.search then
+		self.chartTree:fadeOut()
+	end
 	self:searchUpdated()
 	return true
 end

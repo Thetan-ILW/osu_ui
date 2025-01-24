@@ -131,9 +131,12 @@ end
 
 function ChartEntry:update()
 	local t = self.selectedT
-	self.infoColor[1] = t
-	self.infoColor[2] = t
-	self.infoColor[3] = t
+
+	local active_text = self.activeText
+	local inactive_text = self.inactiveText
+	self.infoColor[1] = active_text[1] * (1 - t) + inactive_text[1] * t
+	self.infoColor[2] = active_text[2] * (1 - t) + inactive_text[2] * t
+	self.infoColor[3] = active_text[3] * (1 - t) + inactive_text[3] * t
 
 	local st = self.selectedSetT
 	local bg = self.backgroundColor

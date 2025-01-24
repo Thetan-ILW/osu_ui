@@ -505,7 +505,7 @@ function View:load(score_loaded)
 
 	---- FAKE BUTTONS ----
 	self:addChild("showChat", ImageButton({
-		x = width - 3, y = height + 1,
+		x = width - 4, y = height + 3,
 		origin = { x = 1, y = 1 },
 		idleImage = assets:loadImage("overlay-show"),
 		z = 0.4,
@@ -515,7 +515,7 @@ function View:load(score_loaded)
 	}))
 
 	self:addChild("onlineUsers", ImageButton({
-		x = width - 99, y = height + 1,
+		x = width - 100, y = height + 3,
 		origin = { x = 1, y = 1 },
 		idleImage = assets:loadImage("overlay-online"),
 		alpha = 0.5,

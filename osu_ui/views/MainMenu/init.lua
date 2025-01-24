@@ -160,11 +160,13 @@ function View:introSequence()
 	self.playingIntro = true
 	self.playSound(self.welcomeSound)
 	self.playSound(self.welcomePianoSound)
+	self.musicFft.customSource = self.welcomePianoSound
 	self.introPercent = 0
 
 	local logo = self.logo
 	local stencil = self.stencil ---@cast stencil ui.StencilComponent
 	local top = self:getChild("topLayer")
+	local bottom = self:getChild("bottomLayer")
 	local rect = self:getChild("blackRect")
 	local welcome = self.welcomeText
 	local spectrum = self:getChild("spectrum")
@@ -172,6 +174,7 @@ function View:introSequence()
 	logo.alpha = 0
 	stencil.compareValue = 2
 	top.alpha = 0
+	bottom.alpha = 0
 	rect.alpha = 1
 	welcome.disabled = false
 	spectrum.color = {love.math.colorFromBytes(0, 78, 155, 255)}
@@ -181,11 +184,13 @@ function View:introSequence()
 			stencil.compareValue = 1
 		end)
 		flux.to(top, 0.2, { alpha = 1 }):ease("quadout")
+		flux.to(bottom, 0.2, { alpha = 1 }):ease("quadout")
 		flux.to(rect, 0.4, { alpha = 0 }):ease("quadout")
 		spectrum.color = { 1, 1, 1, 1 }
 		self.locked = false
 		self.playingIntro = false
 		self.handleEvents = true
+		self.musicFft.customSource = nil
 		self.selectApi:loadController()
 	end)
 	flux.to(welcome, 2, { scaleX = 1, scaleY = 1, alpha = 1 }):ease("sineout"):oncomplete(function ()
@@ -206,6 +211,9 @@ function View:load()
 	local text = scene.localization.text
 	self.scene = scene
 	self.selectApi = scene.ui.selectApi
+
+	local music_fft = scene.musicFft
+	self.musicFft = music_fft
 
 	self.width, self.height = self.parent:getDimensions()
 	self:getViewport():listenForResize(self)
@@ -242,16 +250,18 @@ function View:load()
 
 	local top = self:addChild("topLayer", Component({
 		z = 0.5,
+		---@param this ui.Component
 		update = function(this)
-			this.alpha = self.alpha
+			this.color[4] = self.alpha
 			this.y = -40 * (1 - self.alpha)
 		end
 	}))
 
 	local bottom = self:addChild("bottomLayer", Component({
 		z = 0.5,
+		---@param this ui.Component
 		update = function(this)
-			this.alpha = self.alpha
+			this.color[4] = self.alpha
 			this.y = 40 * (1 - self.alpha)
 		end
 	}))
@@ -319,12 +329,12 @@ function View:load()
 		color = { 0, 0, 0, 0.4 }
 	}))
 
-	bottom:addChild("copyright", Image({
+	self:addChild("copyright", Image({
 		x = 4,
 		y = self.height - 3,
 		origin = { y = 1 },
 		image = assets:loadImage("menu-copyright"),
-		z = 0.1,
+		z = 0.6,
 		hoverState = HoverState("elasticout", 1),
 		---@param this ui.Image
 		setMouseFocus = function(this, mx, my)
@@ -336,6 +346,7 @@ function View:load()
 			this.hoverState:loseFocus()
 		end,
 		update = function(this)
+			this.y = self.height - 3 + bottom.y
 			local p = this.hoverState.progress
 			local scale = 1 + p * 0.15
 			this.scaleX = scale
@@ -478,8 +489,6 @@ function View:load()
 		end
 	}))
 
-	local music_fft = scene.musicFft
-
 	self:addChild("logo2", Image({
 		origin = { x = 0.5, y = 0.5, },
 		image = logo_img,
@@ -491,6 +500,7 @@ function View:load()
 			this.y = logo.y
 			this.scaleX = logo.scaleX + (music_fft.beatValue * 3)
 			this.scaleY = logo.scaleY + (music_fft.beatValue * 3)
+			this.alpha = logo.alpha * 0.25
 		end
 	}))
 

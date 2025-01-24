@@ -21,7 +21,7 @@ function Slider:load()
 	self.height = self.height == 0 and 37 or self.height
 	self.dragging = false
 	self.value = self.getValue()
-	self.target = 0
+	self.target = self.value
 	self.tooltip = scene.tooltip
 
 	self.mouseOrigin = { x = 0, y = 0 }

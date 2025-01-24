@@ -5,6 +5,7 @@ local fft = require("aqua.bass.fft")
 
 ---@class osu.ui.MusicFft : ui.EmptyComponent
 ---@operator call: osu.ui.MusicFft
+---@field customSource audio.Source?
 local MusicFft = EmptyComponent + {}
 
 local frame_aim_time = 1 / 60
@@ -59,7 +60,14 @@ end
 
 ---@param dt number
 function MusicFft:update(dt)
-	local audio = self.selectApi:getPreviewAudioSource()
+	---@type audio.Source?
+	local audio
+
+	if self.customSource then
+		audio = self.customSource
+	else
+		audio = self.selectApi:getPreviewAudioSource()
+	end
 
 	self:calcBeat()
 
