@@ -133,6 +133,9 @@ function FpsDisplay:update(dt)
 	if loop.fpslimit > 999 then
 		max_fps = flags.refreshrate
 		self.maxFps:replaceText(("/%ihz"):format(max_fps))
+	elseif loop.fpslimit <= 0 then
+		max_fps = 240
+		self.maxFps:replaceText(("/%ihz"):format(max_fps))
 	else
 		self.maxFps:replaceText(("/%ifps"):format(max_fps))
 	end
