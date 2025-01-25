@@ -8,9 +8,6 @@ local ui = require("osu_ui.ui")
 ---@class osu.ui.ImageButton : ui.Component
 ---@overload fun(table: osu.ui.ImageButtonParams): osu.ui.ImageButton
 ---@field private idleImage love.Image?
----@field private animationImage love.Image[]?
----@field private frameCount number?
----@field private framerate number?
 ---@field private hoverImage love.Image?
 ---@field private imageType "image" | "animation"
 ---@field private hoverWidth number
@@ -21,35 +18,20 @@ local ui = require("osu_ui.ui")
 local ImageButton = Component + {}
 
 function ImageButton:load()
+	self:assert(self.idleImage, "No idle image was provided to ImageButton")
 	self.onClick = self.onClick or function ()
 		print("Useless button: " .. self.id)
 	end
+
+	self.blockMouseFocus = true
 	self.hoverState = HoverState("quadout", 0.15)
-	self.imageType = self.animationImage and "animation" or "image"
 
-	if self.imageType == "image" then
-		if not self.idleImage then
-			error(debug.traceback("No idle image was provided to ImageButton"))
-		end
+	self.width, self.height = self.idleImage:getDimensions()
 
-		self.width, self.height = self.idleImage:getDimensions()
-
-		if self.hoverImage then
-			local w, h = self.hoverImage:getDimensions()
-			self.width, self.height = math.max(w, self.width), math.max(h, self.height)
-		end
-
-		self.draw = self.drawImage
-	else
-		self:assert(self.animationImage[1], "No animation was provided")
-		self.width, self.height = self.animationImage[1]:getDimensions()
-		self.frameCount = #self.animationImage
-		self.framerate = self.framerate == -1 and self.frameCount or self.framerate
-		self.draw = self.drawAnimation
+	if self.hoverImage then
+		local w, h = self.hoverImage:getDimensions()
+		self.width, self.height = math.max(w, self.width), math.max(h, self.height)
 	end
-
-	self.hoverWidth = self.hoverWidth or self.width
-	self.hoverHeight = self.hoverHeight or self.height
 end
 
 function ImageButton:justHovered()
@@ -67,7 +49,7 @@ function ImageButton:mousePressed(event)
 end
 
 function ImageButton:setMouseFocus(mx, my)
-	self.mouseOver = self.hoverState:checkMouseFocus(self.hoverWidth, self.hoverHeight, mx, my)
+	self.mouseOver = self.hoverState:checkMouseFocus(self.width, self.height, mx, my)
 end
 
 function ImageButton:noMouseFocus()
@@ -77,17 +59,9 @@ end
 
 local gfx = love.graphics
 
-function ImageButton:drawAnimation()
+function ImageButton:draw()
 	local r, g, b, a = gfx.getColor()
-	local frame = 1 + math.floor((love.timer.getTime() * self.framerate) % self.frameCount)
-	local img = self.animationImage[frame]
-	local c = ui.lighten({ r, g, b, a }, self.hoverState.progress * 0.3)
-	gfx.setColor(c[1], c[2], c[3], c[4])
-	gfx.draw(img)
-end
 
-function ImageButton:drawImage()
-	local r, g, b, a = gfx.getColor()
 	if self.hoverImage then
 		gfx.draw(self.idleImage)
 		gfx.setColor(r, g, b, a * self.hoverState.progress)
@@ -95,8 +69,9 @@ function ImageButton:drawImage()
 		return
 	end
 
-	local c = ui.lighten({ r, g, b, a }, self.hoverState.progress * 0.3)
-	gfx.setColor(c[1], c[2], c[3], c[4])
+	local p = self.hoverState.progress
+	local c = ui.lighten({ r, g, b }, p * 0.3)
+	gfx.setColor(c[1], c[2], c[3], math.min(1, a + a * (p * 1.2)))
 	gfx.draw(self.idleImage)
 end
 

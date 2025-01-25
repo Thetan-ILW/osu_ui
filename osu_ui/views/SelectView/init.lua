@@ -31,6 +31,7 @@ local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 ---@class osu.ui.SelectViewContainer : osu.ui.Screen
 ---@operator call: osu.ui.SelectViewContainer
 ---@field selectApi game.SelectAPI
+---@field prevPlayContext sphere.PlayContext?
 local View = Screen + {}
 
 function View:textInput(event)
@@ -143,6 +144,11 @@ function View:transitIn()
 	self:stopTransitionTween()
 	self.transitionTween = flux.to(self, 0.7, { alpha = 1 }):ease("cubicout")
 
+	if self.prevPlayContext then
+		self.selectApi:getPlayContext():load(self.prevPlayContext)
+		self.prevPlayContext = nil
+	end
+
 	self.scene:showOverlay(0.4, self:getBackgroundDim())
 	self.selectApi:loadController()
 end
@@ -182,6 +188,9 @@ function View:transitToGameplay()
 end
 
 function View:transitToResult()
+	self.prevPlayContext = {}
+	self.selectApi:getPlayContext():save(self.prevPlayContext)
+
 	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
 		time = 0.5,

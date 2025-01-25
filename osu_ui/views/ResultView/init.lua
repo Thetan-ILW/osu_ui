@@ -57,24 +57,57 @@ function View:transitIn()
 	self:presentScore()
 end
 
-function View:transitOut()
+function View:transitToSelect()
 	self:receive({ name = "loseFocus" })
-	self.handleEvents = false
+	self.resultApi:unloadController()
+
+	self:transitOut({
+		time = 0.5,
+		ease = "quadout",
+		onComplete = function ()
+			self:clearTree()
+			self:kill()
+		end
+	})
+
+	flux.to(self, 0.5, { y = 100 }):ease("quadout")
+	self.scene:transitInScreen("select")
+end
+
+function View:transitToGameplay()
+	if not self.handleEvents then
+		return
+	end
+	self.resultApi:unloadController()
+
+	self.area:scrollToPosition(0, 0.97)
+	flux.to(self.overlay, 0.2, { alpha = 0 }):ease("quadout")
+
 	if self.transitionTween then
 		self.transitionTween:stop()
 	end
 
-	self.resultApi:unloadController()
-	self.transitionTween = flux.to(self, 0.5, { alpha = 0, y = 100 }):ease("quadout"):oncomplete(function ()
-		self:clearTree()
-		self:kill()
+	self.scene:hideOverlay(0.4, 0.5, function ()
+		self.scene:transitInScreen("gameplay")
+
+		self:transitOut({
+			time = 0.5,
+			ease = "quadout",
+			onComplete = function ()
+				self:clearTree()
+				self:kill()
+			end
+		})
+
+		flux.to(self, 0.5, { y = 100 }):ease("quadout")
 	end)
-	self.scene:transitInScreen("select")
+
+
 end
 
 function View:keyPressed(event)
 	if event[2] == "escape" then
-		self:transitOut()
+		self:transitToSelect()
 		return true
 	elseif event[2] == "f2" then
 		local chart = self.resultApi:getChart()
@@ -400,6 +433,7 @@ function View:load(score_loaded)
 		image = assets:loadImage("ranking-background-overlay"),
 		z = 0,
 	}))
+	self.overlay = overlay
 	function overlay:update(dt)
 		overlay.angle = (overlay.angle + love.timer.getDelta() * 0.5) % (math.pi * 2)
 		Image.update(overlay, dt)
@@ -424,7 +458,10 @@ function View:load(score_loaded)
 		alpha = 0.5,
 		z = 0.6,
 		onClick = function()
-			result_view:play("retry")
+			if not self.selectApi:notechartExists() then
+				return
+			end
+			self:transitToGameplay()
 		end
 	}))
 
@@ -435,7 +472,14 @@ function View:load(score_loaded)
 		alpha = 0.5,
 		z = 0.6,
 		onClick = function ()
-			result_view:play("replay")
+			if not self.selectApi:notechartExists() then
+				return
+			end
+			local c = coroutine.create(function ()
+				self.resultApi:replayNotechartAsync("replay")
+			end)
+			coroutine.resume(c)
+			self:transitToGameplay()
 		end
 	}))
 
@@ -510,7 +554,7 @@ function View:load(score_loaded)
 		idleImage = assets:loadImage("overlay-show"),
 		z = 0.4,
 		onClick = function ()
-			result_view.notificationView:show("Not implemented")
+			self.scene.chat:fade(1)
 		end
 	}))
 
@@ -521,7 +565,6 @@ function View:load(score_loaded)
 		alpha = 0.5,
 		z = 0.4,
 		onClick = function ()
-			result_view.notificationView:show("Not implemented")
 		end
 	}))
 
@@ -554,7 +597,7 @@ function View:load(score_loaded)
 			hoverHeight = 58,
 			z = 1,
 			onClick = function ()
-				self:transitOut()
+				self:transitToSelect()
 			end
 		}))
 	else
@@ -562,7 +605,7 @@ function View:load(score_loaded)
 			y = height,
 			origin = { x = 0, y = 1 },
 			onClick = function ()
-				self:transitOut()
+				self:transitToSelect()
 			end,
 			z = 1
 		}))

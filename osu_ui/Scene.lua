@@ -228,13 +228,18 @@ end
 
 ---@param time number?
 ---@param background_dim number?
-function Scene:hideOverlay(time, background_dim)
+---@param on_complete function?
+function Scene:hideOverlay(time, background_dim, on_complete)
 	time = time or 0.4
 	background_dim = background_dim or 0.3
 	self:receive({ name = "loseFocus" })
 	self.options:fade(0)
 	self.chat:fade(0)
-	flux.to(self.cursor, time, { alpha = 0 }):ease("quadout")
+	flux.to(self.cursor, time, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		if on_complete then
+			on_complete()
+		end
+	end)
 	flux.to(self.background, time * 0.6, { dim = background_dim, parallax = 0 }):ease("quadout")
 end
 
