@@ -30,6 +30,7 @@ function BackButton:load()
 	self.height = 45
 	self.hoverWidth = self.hoverWidth or self.width
 	self.hoverHeight = self.hoverHeight or self.height
+	self.musicFft = scene.musicFft
 
 	self:addChild("layerBottom", Image({
 		color = inactive_color,
@@ -52,6 +53,7 @@ function BackButton:load()
 	}))
 
 	self:addChild("label" , Label({
+		x = -1, y = 1,
 		boxHeight = self.height,
 		alignY = "center",
 		text = self.text,
@@ -71,6 +73,10 @@ function BackButton:load()
 		z = 0.9,
 		update = function(this)
 			this.x = 12 * self.hoverState.progress + 14
+			local s = self.musicFft.beatValue * 4
+			this.scaleX = 1 + s
+			this.scaleY = 1 + s
+
 		end
 	}))
 end

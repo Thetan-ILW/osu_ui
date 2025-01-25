@@ -761,6 +761,7 @@ function View:load()
 
 	function score_list.update(container, dt)
 		score_list.x = (1 - self.alpha) * -450
+		score_list.y = 145 + top.y
 		return ScoreListView.update(container, dt)
 	end
 

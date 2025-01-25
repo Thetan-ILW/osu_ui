@@ -6,16 +6,19 @@ local Component = require("ui.Component")
 ---@overload fun(params: osu.ui.ImageValueViewParams): osu.ui.ImageValueView
 ---@field overlap number
 ---@field align AlignX
----@field format string
----@field multiplier number
----@field images love.Image[]
+---@field images table<string, love.Image>
+---@field value string
 local ImageValueView = Component + {}
 
 function ImageValueView:load()
 	self.overlap = self.overlap or 0
 	self.align = self.align or "left"
-	self.format = self.format or "%i"
-	self.multiplier = self.multiplier or 1
+
+	self.constantSpacing = false
+	self.lastMeasureWidth = 0
+	self.lastMeasureHeight = 0
+	self.renderImages = {}
+	self.renderCoordinates = {}
 
 	local images = {}
 	self.images = images
@@ -23,89 +26,88 @@ function ImageValueView:load()
 		return
 	end
 
-	self.maxCharW = 0
-	self.minHeight = math.huge
 	for char, path in pairs(self.files) do
 		images[char] = love.graphics.newImage(path)
-		if tonumber(char) then
-			self.maxCharW = math.max(images[char]:getWidth(), self.maxCharW)
-		end
-
-		self.minHeight = math.min(self.minHeight, images[char]:getHeight())
 	end
+
+	self.text = self.text or ""
+	self.prevValue = ""
+	self:refreshTextures(self.text)
 end
 
----@param value table
----@return number
----@return number
-function ImageValueView:setSize(value)
-	local images = self.images
-	local overlap = self.overlap or 0
+---@param text string
+function ImageValueView:refreshTextures(text)
+	if self.prevValue == text then
+		return
+	end
+	self.prevValue = text
 
-	local width = 0
+	self.renderImages = {} ---@type love.Image[]
+	self.renderCoordinateX = {} ---@type number[]
+	self.renderCoordinateY = {} ---@type number[]
+
+	local current_x = 0
 	local height = 0
-	for i = 1, #value do
-		local char = value:sub(i, i)
-		local image = images[char]
+
+	local text_len = #text
+
+	for i = 0, text_len - 1 do
+		current_x = current_x - ((self.constantSpacing or i == 0) and 0 or self.overlap)
+
+		local x = current_x
+		local c = text:sub(i + 1, i + 1)
+		local image ---@type love.Image?
+		local non_standard = false
+
+		if c == "," then
+			non_standard = true
+		elseif c == "." then
+			non_standard = true
+		elseif c == "%" then
+			non_standard = true
+		end
+
+		image = self.images[c]
+
 		if image then
-			if tonumber(char) then
-				width = width + self.maxCharW - overlap
-			else
-				width = width + image:getWidth() - overlap
+			if not self.constantSpacing or non_standard then
+				current_x = current_x + image:getWidth()
 			end
-			height = math.max(height, image:getHeight())
+
+			if self.constantSpacing then
+				table.insert(self.renderCoordinateX, current_x - x)
+				table.insert(self.renderCoordinateY, 0)
+			else
+				table.insert(self.renderCoordinateX, x)
+				table.insert(self.renderCoordinateY, 0)
+			end
+
+			table.insert(self.renderImages, image)
+
+			if height == 0 then
+				height = image:getHeight()
+			end
 		end
 	end
-	if width > 0 then
-		width = width + overlap
+
+	if self.constantSpacing then
+		error("Not implemented")
 	end
 
-	self.width = width
+	self.lastMeasureWidth = current_x
+	self.lastMeasureHeight = height
+	self.width = current_x
 	self.height = height
 end
 
-function ImageValueView:update()
-	local format = self.format
-	local value = self.value
-	if value then
-		if type(value) == "function" then
-			value = value(self)
-		end
-		if self.multiplier and tonumber(value) then
-			value = value * self.multiplier
-		end
-		if type(format) == "string" then
-			value = format:format(value)
-		elseif type(format) == "function" then
-			value = format(value)
-		end
-	end
-	self.displayValue = tostring(value)
-
-	self:setSize(self.displayValue)
+function ImageValueView:setText(text)
+	self.value = text
+	self:refreshTextures(text)
 end
 
 function ImageValueView:draw()
-	local images = self.images
-	local overlap = self.overlap or 0
-
-	local x = 0
-	local value = self.displayValue
-	local y = self.height
-	local oy = self.minHeight
-
-	for i = 1, #value do
-		local char = value:sub(i, i)
-		local image = images[char]
-		if image then
-			if tonumber(char) then
-				love.graphics.draw(image, x + (self.maxCharW - image:getWidth()) / 2, y, 0, 1, 1, 0, oy)
-				x = x + (self.maxCharW - overlap)
-			else
-				love.graphics.draw(image, x, y, 0, 1, 1, 0, oy)
-				x = x + (image:getWidth() - overlap)
-			end
-		end
+	for i, image in ipairs(self.renderImages) do
+		love.graphics.draw(image, self.renderCoordinateX[i], self.renderCoordinateY[i])
 	end
 end
 

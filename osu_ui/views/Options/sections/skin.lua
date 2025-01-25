@@ -39,6 +39,7 @@ return function(section)
 		function group:update()
 			if select_api:getCurrentInputMode() ~= current_input_mode then
 				group:reload()
+				section.options:recalcPositions()
 			end
 		end
 

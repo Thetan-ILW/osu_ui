@@ -240,10 +240,9 @@ function View:load(score_loaded)
 		scale = 1.3,
 		files = score_font,
 		overlap = overlap,
-		format = "%08d",
 		z = 0.55,
-		value = function ()
-			return math.ceil(self.scoreReveal * display_info.score)
+		update = function(this)
+			this:setText(("%08d"):format(math.ceil(self.scoreReveal * display_info.score)))
 		end
 	}))
 
@@ -261,10 +260,9 @@ function View:load(score_loaded)
 		scale = 1.1,
 		files = score_font,
 		overlap = overlap,
-		format = judge_format,
 		z = 0.55,
-		value = function ()
-			return math.ceil(self.scoreReveal * display_info.marvelous)
+		update = function(this)
+			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.marvelous)))
 		end
 	}))
 
@@ -282,10 +280,9 @@ function View:load(score_loaded)
 		scale = 1.1,
 		files = score_font,
 		overlap = overlap,
-		format = judge_format,
 		z = 0.55,
-		value = function ()
-			return math.ceil(self.scoreReveal * display_info.perfect)
+		update = function(this)
+			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.perfect)))
 		end
 	}))
 
@@ -304,10 +301,9 @@ function View:load(score_loaded)
 			scale = 1.1,
 			files = score_font,
 			overlap = overlap,
-			format = judge_format,
 			z = 0.55,
-			value = function ()
-				return math.ceil(self.scoreReveal * display_info.great)
+			update = function(this)
+				this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.great)))
 			end
 		}))
 	end
@@ -327,10 +323,9 @@ function View:load(score_loaded)
 			scale = 1.1,
 			files = score_font,
 			overlap = overlap,
-			format = judge_format,
 			z = 0.55,
-			value = function ()
-				return math.ceil(self.scoreReveal * display_info.good)
+			update = function(this)
+				this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.good)))
 			end
 		}))
 	end
@@ -349,10 +344,9 @@ function View:load(score_loaded)
 			origin = { x = 0, y = 0.5 },
 			files = score_font,
 			overlap = overlap,
-			format = judge_format,
 			z = 0.55,
-			value = function ()
-				return math.ceil(self.scoreReveal * display_info.bad)
+			update = function(this)
+				this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.bad)))
 			end
 		}))
 	end
@@ -370,10 +364,9 @@ function View:load(score_loaded)
 		origin = { x = 0, y = 0.5 },
 		files = score_font,
 		overlap = overlap,
-		format = judge_format,
 		z = 1.1,
-		value = function ()
-			return math.ceil(self.scoreReveal * display_info.miss)
+		update = function(this)
+			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.miss)))
 		end
 	}))
 
@@ -383,10 +376,9 @@ function View:load(score_loaded)
 		scale = 1.1,
 		files = score_font,
 		overlap = overlap,
-		format = judge_format,
 		z = 0.55,
-		value = function ()
-			return math.ceil(self.scoreReveal * display_info.combo)
+		update = function(this)
+			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.combo)))
 		end
 	}))
 
@@ -397,11 +389,9 @@ function View:load(score_loaded)
 			scale = 1.1,
 			files = score_font,
 			overlap = overlap,
-			format = "%0.02f%%",
-			multiplier = 100,
 			z = 0.55,
-			value = function ()
-				return self.scoreReveal * display_info.accuracy
+			update = function(this)
+				this:setText(("%0.02f%%"):format(math.ceil(self.scoreReveal * display_info.accuracy * 100)))
 			end
 		}))
 
@@ -484,8 +474,8 @@ function View:load(score_loaded)
 	}))
 
 	self.modIcons = area:addChild("modIconsContainer", Component({
-		x = width - 32,
-		y = 448,
+		x = width + 6,
+		y = 416,
 		origin = { x = 1 },
 		z = 0.7
 	}))

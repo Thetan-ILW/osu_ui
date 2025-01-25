@@ -101,6 +101,10 @@ function Scene:load()
 
 	self.fontManager:setVieportHeight(self.viewport.height)
 
+	local music_fft = self:addChild("musicFft", MusicFft())
+	---@cast music_fft osu.ui.MusicFft
+	self.musicFft = music_fft
+
 	local cursor = self:addChild("cursor", CursorView({
 		z = 0.98
 	}))
@@ -143,10 +147,6 @@ function Scene:load()
 	self.options = options
 	self.chat = chat
 	self.background = background
-
-	local music_fft = self:addChild("musicFft", MusicFft())
-	---@cast music_fft osu.ui.MusicFft
-	self.musicFft = music_fft
 
 	self.currentScreenId = ""
 	self.previousScreenId = ""
