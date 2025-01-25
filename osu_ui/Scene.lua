@@ -28,6 +28,7 @@ local MusicFft = require("osu_ui.MusicFft")
 
 local flux = require("flux")
 local path_util = require("path_util")
+local math_util = require("math_util")
 
 ---@alias osu.ui.SceneParams { game: sphere.GameController, ui: osu.ui.UserInterface }
 
@@ -274,11 +275,33 @@ function Scene:makeScreenshot()
 	end
 end
 
+function Scene:scrollVolume(delta)
+	local configs = self.ui.selectApi:getConfigs()
+	local v = configs.settings.audio.volume
+	v.master = math_util.clamp(math_util.round(v.master + delta * 0.05, 0.05), 0, 1)
+	self.notification:show(self.localization.text.General_Volume:format(("%i%%"):format(v.master * 100)))
+end
+
 ---@param event table
 function Scene:keyPressed(event)
 	local key = event[2]
 	if key == "f12" and not event[3] then
 		self:makeScreenshot()
+	end
+end
+
+
+function Scene:wheelUp()
+	if love.keyboard.isDown("lalt") or love.keyboard.isDown("ralt") then
+		self:scrollVolume(1)
+		return true
+	end
+end
+
+function Scene:wheelDown()
+	if love.keyboard.isDown("lalt") or love.keyboard.isDown("ralt") then
+		self:scrollVolume(-1)
+		return true
 	end
 end
 

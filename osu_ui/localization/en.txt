@@ -7,6 +7,7 @@ General_Apply=Apply
 General_Reset=Reset
 General_Yes=Yes
 General_No=No
+General_Volume=Volume: %s
 
 UserProfile_Guest=Guest
 
