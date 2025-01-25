@@ -72,6 +72,7 @@ function ChartTree:load()
 	else
 		self.mainChartList = self.list.childList
 	end
+
 end
 
 function ChartTree:fadeOut()

@@ -1,3 +1,4 @@
+local Component = require("ui.Component")
 local OsuList = require("osu_ui.views.SelectView.ChartTree.OsuList")
 local ChartEntry = require("osu_ui.views.SelectView.ChartTree.ChartEntry")
 local math_util = require("math_util")
@@ -10,6 +11,9 @@ local ChartList = OsuList + {}
 function ChartList:load()
 	self.charts = true
 	OsuList.load(self)
+
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	self.musicFft = scene.musicFft
 
 	for i = 1, self.windowSize do
 		local panel = self.panelContainer:insertChild(i, ChartEntry({
@@ -48,6 +52,23 @@ function ChartList:load()
 
 	if self.teleportToPosition then
 		self.teleportToPosition(self.y + (self:getSelectedItemIndex() - 4) * self.panelHeight)
+	end
+
+	if not self.groupSets then
+		local star = scene.assets:loadImage("star2")
+		local iw, ih = star:getDimensions()
+		if iw * ih > 1 then
+			local p = love.graphics.newParticleSystem(star, 200)
+			p:setParticleLifetime(0.4, 0.9)
+			p:setEmissionRate(10)
+			p:setDirection(math.pi)
+			p:setRadialAcceleration(400, 1700)
+			p:setSpin(-math.pi, math.pi)
+			p:setColors(1, 1, 1, 0.7, 1, 1, 1, 0)
+			p:setSpeed(1000)
+			p:setEmissionArea("normal", 0, 15, math.pi * 2, false)
+			self.particles = p
+		end
 	end
 end
 
@@ -136,6 +157,14 @@ function ChartList:update(dt)
 		self.childList.scrollVelocity = self.scrollVelocity
 		self.childList.y = self.yDestinations[s]
 	end
+
+	if self.particles then
+		local beat = self.musicFft.beatValue
+		self.particles:setPosition(550, self.yDestinations[self:getSelectedItemIndex()] + 35)
+		self.particles:setEmissionRate(10 + (800 * beat))
+		self.particles:setSpeed(500 + beat * 50000)
+		self.particles:update(dt)
+	end
 end
 
 function ChartList:drawChildren()
@@ -152,6 +181,12 @@ function ChartList:drawChildren()
 			love.graphics.rectangle("line", 0, 0, child.width, child.height)
 			love.graphics.pop()
 		end
+	end
+
+	if self.particles then
+		love.graphics.setBlendMode("add")
+		love.graphics.draw(self.particles)
+		love.graphics.setBlendMode("alpha")
 	end
 end
 
