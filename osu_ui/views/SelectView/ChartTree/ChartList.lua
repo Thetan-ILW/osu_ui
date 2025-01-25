@@ -54,7 +54,7 @@ function ChartList:load()
 		self.teleportToPosition(self.y + (self:getSelectedItemIndex() - 4) * self.panelHeight)
 	end
 
-	if not self.groupSets then
+	if not self.groupSets and self.itemCount ~= 0 then
 		local star = scene.assets:loadImage("star2")
 		local iw, ih = star:getDimensions()
 		if iw * ih > 1 then

@@ -391,7 +391,7 @@ function View:load(score_loaded)
 			overlap = overlap,
 			z = 0.55,
 			update = function(this)
-				this:setText(("%0.02f%%"):format(math.ceil(self.scoreReveal * display_info.accuracy * 100)))
+				this:setText(("%0.02f%%"):format(self.scoreReveal * display_info.accuracy * 100))
 			end
 		}))
 
