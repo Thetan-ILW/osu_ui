@@ -26,6 +26,7 @@ function GroupList:load()
 	local list = self:addChild("mainChartList", ChartList({
 		y = self:getSelectedItemIndex() * self.panelHeight,
 		maxWindowSize = 14,
+		mainChartList = true,
 		groupSets = self.selectApi.sets[sort],
 		scrollToPosition = function(position)
 			self.scrollToPosition(position + self.y)

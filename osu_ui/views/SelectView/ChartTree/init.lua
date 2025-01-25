@@ -19,6 +19,8 @@ function ChartTree:load()
 	local select_api = scene.ui.selectApi
 	self.selectApi = select_api
 
+	self.randomHistory = {}
+
 	local configs = select_api:getConfigs()
 	local osu = configs.osu_ui ---@type osu.ui.OsuConfig
 	local group_charts = osu.songSelect.groupCharts
@@ -37,6 +39,7 @@ function ChartTree:load()
 		local list = self:addChild("root", ChartList({
 			x = self.width - 544,
 			y = self.height / 2,
+			mainChartList = true,
 			groupSets = select_api.sets[sort],
 			z = 0.1,
 			scrollToPosition = function(position)
@@ -63,6 +66,12 @@ function ChartTree:load()
 	end
 
 	self.stateCounter = self.selectApi:getNotechartSetStateCounter()
+
+	if self.list.mainChartList then
+		self.mainChartList = self.list
+	else
+		self.mainChartList = self.list.childList
+	end
 end
 
 function ChartTree:fadeOut()
@@ -97,6 +106,24 @@ function ChartTree:update()
 	end
 
 	self.scrollLimit = self.list:getHeight()
+end
+
+function ChartTree:random()
+	if love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift") then
+		self:prevRandom()
+		return
+	end
+	table.insert(self.randomHistory, self.mainChartList:getSelectedItemIndex())
+	local i = math.random(1, self.mainChartList.itemCount)
+	self.mainChartList:selectItem(i)
+end
+
+function ChartTree:prevRandom()
+	if #self.randomHistory == 0 then
+		return
+	end
+	local i = table.remove(self.randomHistory)
+	self.mainChartList:selectItem(i)
 end
 
 return ChartTree

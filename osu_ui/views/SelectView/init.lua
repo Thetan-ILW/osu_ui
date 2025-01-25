@@ -60,6 +60,8 @@ function View:keyPressed(event)
 		return true
 	elseif key == "f1" then
 		self.scene:openModal("modifiers")
+	elseif key == "f2" then
+		self.chartTree:random()
 	elseif key == "f5" then
 		self.scene:openModal("locations")
 	elseif key == "f6" then
@@ -681,6 +683,7 @@ function View:load()
 		hoverImage = assets:loadImage("selection-random-over"),
 		z = 0.32,
 		onClick = function()
+			self.chartTree:random()
 		end
 	}))
 

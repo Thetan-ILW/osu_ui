@@ -1,8 +1,10 @@
 local OsuList = require("osu_ui.views.SelectView.ChartTree.OsuList")
 local ChartEntry = require("osu_ui.views.SelectView.ChartTree.ChartEntry")
+local math_util = require("math_util")
 
 ---@class osu.ui.ChartList : osu.ui.OsuWindowList
 ---@operator call: osu.ui.ChartList
+---@field mainChartList boolean?
 local ChartList = OsuList + {}
 
 function ChartList:load()
@@ -94,6 +96,29 @@ function ChartList:selectItem(index)
 	end
 
 	self.scrollToPosition(self.y + (index - 4) * self.panelHeight)
+end
+
+function ChartList:keyPressed(event)
+	local prev_key = "left"
+	local next_key = "right"
+
+	if not self.mainChartList then
+		prev_key = "up"
+		next_key = "down"
+	end
+
+	local delta = 0
+	if event[2] == prev_key then
+		delta = -1
+	elseif event[2] == next_key then
+		delta = 1
+	end
+
+	local i = math_util.clamp(self:getSelectedItemIndex() + delta, 1, self.itemCount)
+	if delta ~= 0 then
+		self:selectItem(i)
+		return true
+	end
 end
 
 function ChartList:createHole()
