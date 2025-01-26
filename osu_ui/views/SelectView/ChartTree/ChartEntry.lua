@@ -169,7 +169,7 @@ function ChartEntry:mouseClick(event)
 	if not self.mouseOver or event.key == 2 then
 		return false
 	end
-	self.list:selectItem(self.index)
+	self.list:selectItem(self.index, true)
 	return true
 end
 

@@ -121,7 +121,7 @@ function ChartShowcase:load()
 		z = 1,
 	}))
 
-	local chart_name_font = fonts:loadFont("Bold", 56)
+	local chart_name_font = fonts:loadFont("Bold", 40)
 	local name_scale = math.min(1, (self.width - 40) / chart_name_font:getWidth(self.chartName))
 	self.chartNameLabel = self:addChild("chartName", Label({
 		x = self.width / 2,
@@ -191,10 +191,11 @@ function ChartShowcase:hide(delay)
 end
 
 function ChartShowcase:update()
-	self.upperContainer.y = (self.height / 2 - 100 + y) * self.alpha
-	self.leftContainer.x = (self.width / 2 - 100) * self.alpha
-	self.rightContainer.x = self.width - ((self.width / 2 - 100) * self.alpha)
-	self.chartNameLabel.y = self.height - (140 * self.alpha)
+	local p = (self.alpha * 0.3) + 0.7
+	self.upperContainer.y = (self.height / 2 - 100 + y) * p
+	self.leftContainer.x = (self.width / 2 - 100) * p
+	self.rightContainer.x = self.width - ((self.width / 2 - 100) * p)
+	self.chartNameLabel.y = self.height - (140 * p)
 end
 
 return ChartShowcase

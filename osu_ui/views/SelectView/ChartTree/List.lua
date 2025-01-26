@@ -53,7 +53,8 @@ end
 function WindowList:getItems() error("Not implemented") end
 
 ---@param index integer
-function WindowList:selectItem(index) error("Not implemented") end
+---@param mouse_click boolean?
+function WindowList:selectItem(index, mouse_click) error("Not implemented") end
 
 ---@return integer
 function WindowList:getSelectedItemIndex() return -9999 end

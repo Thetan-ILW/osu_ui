@@ -29,6 +29,7 @@ function ChartList:load()
 			y = self:getSelectedItemIndex() * self.panelHeight,
 			panelHeight = 88,
 			selectedItemHole = 5,
+			startChart = self.startChart,
 			z = 0.1,
 			getItems = function()
 				return self.selectApi:getNotechartSetChildren()
@@ -36,11 +37,15 @@ function ChartList:load()
 			getSelectedItemIndex = function()
 				return self.selectApi:getNotechartSetChildrenIndex()
 			end,
-			selectItem = function(_, index)
+			selectItem = function(this, index)
+				if index == this:getSelectedItemIndex() then
+					this.startChart()
+					return
+				end
 				self.playSound(self.sameSetClickSound)
 				self.selectApi:setNotechartSetChildrenIndex(index)
 				self.selectedSetIndex = self:getSelectedItemSetIndex()
-				self.scrollToPosition(self.y + (self:getSelectedItemIndex() - 5 + index) * self.panelHeight)
+				self.scrollToPosition(self.y + this:getSelectedItemScrollPosition())
 			end,
 			getHeight = function(this)
 				return this.height - this.panelHeight
@@ -82,11 +87,17 @@ function ChartList:getSelectedItemIndex()
 end
 
 ---@param index integer
-function ChartList:selectItem(index)
+---@param mouse_click boolean?
+function ChartList:selectItem(index, mouse_click)
 	local prev_set_index = self.selectedSetIndex
 
 	if self.groupSets then
 		self.xDestinations[self:getSelectedItemIndex()] = self.childList.xDestinations[1]
+	else
+		if mouse_click and index == self:getSelectedItemIndex() then
+			self.startChart()
+			return
+		end
 	end
 
 	self.selectApi:setNotechartSetIndex(index)
@@ -116,7 +127,7 @@ function ChartList:selectItem(index)
 		end
 	end
 
-	self.scrollToPosition(self.y + (index - 4) * self.panelHeight)
+	self.scrollToPosition(self:getSelectedItemScrollPosition())
 end
 
 function ChartList:keyPressed(event)

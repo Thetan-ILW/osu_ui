@@ -29,6 +29,7 @@ function Select:new(game)
 	self.prevChartViewIndex = -1
 	self.prevChartViewSetIndex = -1
 
+	---@type table<function, function>
 	self.notechartChangeListeners = {}
 end
 

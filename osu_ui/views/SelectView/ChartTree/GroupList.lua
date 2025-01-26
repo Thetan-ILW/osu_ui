@@ -28,6 +28,7 @@ function GroupList:load()
 		maxWindowSize = 14,
 		mainChartList = true,
 		groupSets = self.selectApi.sets[sort],
+		startChart = self.startChart,
 		scrollToPosition = function(position)
 			self.scrollToPosition(position + self.y)
 		end,

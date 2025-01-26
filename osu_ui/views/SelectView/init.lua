@@ -177,10 +177,10 @@ function View:transitToGameplay()
 		self.selectApi:getBackgroundImages()[1]
 	)
 
-	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
+	self.scene:hideOverlay(0.7, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
-		time = 0.5,
-		ease = "quadout",
+		time = 0.8,
+		ease = "cubicout",
 		onComplete = function()
 			self.scene:transitInScreen("gameplay")
 		end
@@ -255,13 +255,13 @@ function View:load()
 	local center = self:addChild("centerContainer", Component({ width = width, height = height, z = 0 }))
 
 	function top.update(container, dt)
-		container.y = (1 - self.alpha) * -160
+		container.y = (1 - self.alpha) * -176
 		top_background.y = container.y
 		Component.update(container, dt)
 	end
 
 	function bottom.update(container, dt)
-		container.y = (1 - self.alpha) * 160
+		container.y = (1 - self.alpha) * 176
 		Component.update(container, dt)
 	end
 
@@ -784,7 +784,11 @@ function View:load()
 	self.searchLabel = search_label
 	self:searchUpdated()
 
-	local chart_tree = center:addChild("tree", ChartTree())
+	local chart_tree = center:addChild("tree", ChartTree({
+		startChart = function()
+			self:transitToGameplay()
+		end
+	}))
 	---@cast chart_tree osu.ui.ChartTree
 	self.chartTree = chart_tree
 
@@ -792,6 +796,14 @@ function View:load()
 		ChartTree.update(container, dt)
 		container.x = (1 - self.alpha) * 640
 	end
+
+	center:addChild("returnBackArea", Component({
+		width = 438 + 64,
+		height = height,
+		justHovered = function()
+			self.chartTree:scrollToSelectedItem()
+		end
+	}))
 
 	center:addChild("scrollBarBackground", Rectangle({
 		x = width - 5, y = 117,

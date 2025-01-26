@@ -8,6 +8,7 @@ local math_util = require("math_util")
 ---@field charts boolean?
 ---@field groups boolean?
 ---@field groupSets boolean?
+---@field startChart function
 local OsuWindowList = WindowList + {}
 
 local DECAY_FACTOR_X_NORMAL = 0.95
@@ -79,6 +80,11 @@ end
 function OsuWindowList:getSelectedItemSetIndex()
 	local items = self:getItems()
 	return items[self:getSelectedItemIndex()].chartfile_set_id
+end
+
+---@return number
+function OsuWindowList:getSelectedItemScrollPosition()
+	return self.y + (self:getSelectedItemIndex() - 4) * self.panelHeight
 end
 
 ---@param index integer

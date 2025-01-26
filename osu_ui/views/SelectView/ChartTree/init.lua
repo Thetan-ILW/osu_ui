@@ -7,6 +7,7 @@ local flux = require("flux")
 ---@class osu.ui.ChartTree : osu.ui.ScrollAreaContainer
 ---@operator call: osu.ui.ChartTree
 ---@field children {[string]: osu.ui.WindowList}
+---@field startChart function
 local ChartTree = ScrollAreaContainer + {}
 
 function ChartTree:load()
@@ -41,6 +42,7 @@ function ChartTree:load()
 			y = self.height / 2,
 			mainChartList = true,
 			groupSets = select_api.sets[sort],
+			startChart = self.startChart,
 			z = 0.1,
 			scrollToPosition = function(position)
 				self:scrollToPosition(position, 0)
@@ -55,6 +57,7 @@ function ChartTree:load()
 			x = self.width - 544,
 			y = self.height / 2,
 			z = 0.1,
+			startChart = self.startChart,
 			scrollToPosition = function(position)
 				self:scrollToPosition(position, 0)
 			end,
@@ -82,6 +85,7 @@ end
 function ChartTree:update()
 	local new_state = self.selectApi:getNotechartSetStateCounter()
 	if self.stateCounter ~= new_state then
+		self.alpha = 0
 		flux.to(self, 0.3, { alpha = 1 }):ease("cubicin")
 		self.stateCounter = new_state
 
@@ -125,6 +129,26 @@ function ChartTree:prevRandom()
 	end
 	local i = table.remove(self.randomHistory)
 	self.mainChartList:selectItem(i)
+end
+
+function ChartTree:scrollToSelectedItem()
+	if self.groupCharts then
+		local groups = self.list
+		---@cast groups osu.ui.GroupList
+
+		if not groups.selectedGroupExpanded then
+			return
+		end
+	end
+
+	local y = self.groupCharts and self.list.y or 0
+	if self.mainChartList.childList then
+		y = y + self.mainChartList.y + self.mainChartList.childList:getSelectedItemScrollPosition()
+	else
+		y = y + self.mainChartList:getSelectedItemScrollPosition()
+	end
+
+	self:scrollToPosition(y, 0)
 end
 
 return ChartTree
