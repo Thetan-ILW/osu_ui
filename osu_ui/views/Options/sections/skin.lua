@@ -185,6 +185,14 @@ return function(section)
 			end,
 			setValue = function(index)
 				osu.cursor.trailStyle = styles[index]
+			end,
+			format = function(v)
+				if v == "Vanishing" then
+					return text.Options_Cursor_Vanishing
+				elseif v == "Shrinking" then
+					return text.Options_Cursor_Shrinking
+				end
+				return v
 			end
 		})
 

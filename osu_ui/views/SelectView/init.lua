@@ -424,7 +424,7 @@ function View:load()
 	}))
 
 	local sort_group_format = {
-		charts = text.SongSelection_ByBeatmaps,
+		charts = text.SongSelection_NoGrouping,
 		locations = text.SongSelection_ByGames,
 		directories = text.SongSelection_ByFolders,
 		id = text.byId,

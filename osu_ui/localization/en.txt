@@ -11,10 +11,10 @@ General_Volume=Volume: %s
 
 UserProfile_Guest=Guest
 
-Menu_GeneralInformation=You have %i beatmaps available!\nsoundsphere has been running for %s.\nIt is currently %s.
+Menu_GeneralInformation=You have %i beatmaps available!\ngucci!mania has been running for %s.\nIt is currently %s.
 
 Options_Options=Options
-Options_HeaderBlurb=Change the way soundsphere behaves
+Options_HeaderBlurb=Change the way gucci!mania behaves
 Options_TabGeneral=General
 Options_TabGameplay=Gameplay
 Options_TabGraphics=Graphics
@@ -38,7 +38,7 @@ Options_Menu_DisableIntro=Disable intro
 Options_Menu_ShowTips=Menu tips
 
 Options_SongSelect=Song select
-Options_DifficultyCalculator=Difficulty calculator
+Options_DifficultyCalculator=Difficulty calculator:
 Options_SongSelect_Thumbnails=Show thumbnails (Only shifts text)
 Options_SongSelect_BeatmapPreview=Beatmap preview
 Options_SongSelect_PreciseRates=Precise rates (0.025x)
@@ -140,6 +140,8 @@ Options_TrailLifetime=Trail lifetime:
 Options_TrailStyle=Trail style:
 Options_ShowTrail=Show trail 
 Options_CameraInstructions=Controls:\nF9 - enter camera mode.\nF10 - reset\nWASD - forward/left/right/back.\nSHIFT/SPACE - up/down.\nLeft mouse button - rotate
+Options_Cursor_Vanishing=Vanishing
+Options_Cursor_Shrinking=Shrinking
 
 Options_Camera=3D Camera
 Options_EnableCamera=Enable 3D camera
@@ -147,7 +149,7 @@ Options_CameraXRotation = Allow rotation of X coordinate
 Options_CameraYRotation = Allow rotation of Y coordinate
 
 Options_Input_InputOffset=Input offset:
-Options_Input_VisualOffset=Offset offset:
+Options_Input_VisualOffset=Visual offset:
 Options_Input_MultiplyInputOffsetByRate=Multiply input offset by music speed
 Options_Input_MultiplyVisualOffsetByRate=Multiply visual offset by music speed
 Options_Input_Other=Other
@@ -164,6 +166,7 @@ SongSelection_BeatmapInfoCreator=Mapped by %s
 SongSelection_BeatmapInfoPack=From %s
 SongSelection_BeatmapInfo=Length: %s BPM: %i Objects: %i
 SongSelection_BeatmapInfo2=Circles: %i Sliders: %i Spinners: %i
+SongSelection_BeatmapInfo3=Keys: %s OD:%s HP:%i Star rate: %s
 SongSelection_NoGrouping=No Grouping
 SongSelection_ByArtist=By Artist
 SongSelection_ByBPM=By BPM
@@ -174,7 +177,6 @@ SongSelection_ByLength=By Length
 SongSelection_ByTitle=By Title
 SongSelection_ByLevel=By Level
 SongSelection_ByRecentlyPlayed=By Recently Played
-SongSelection_ByBeatmaps=By Beatmaps
 SongSelection_ByGames=By Games
 SongSelection_ByFolders=By Folders
 SongSelection_Collections=Collections
