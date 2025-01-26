@@ -69,8 +69,5 @@ return function(game)
 	local manip_factor_pkg = package_manager:getPackage("manip_factor")
 	pkgs.manipFactor = manip_factor_pkg and require("manip_factor") or nil
 
-	local gucci_pkg = package_manager:getPackage("gucci")
-	pkgs.gucci = gucci_pkg and require("gucci_init") or nil
-
 	return pkgs
 end

@@ -220,6 +220,7 @@ LocationsModal_HoldShiftToRemove=Hold shift key before clicking on the remove bu
 LocationsModal_CantRemoveInternal=You can't delete internal locations.
 LocationsModal_DropFolderHere=Drop a folder with songs here!
 LocationsModal_ChangeName=Change name:
+LocationsModal_AddOtherGames=Add other games
 
 FiltersModal_Title=Use filters to display only the charts you want to play.
 FiltersModal_OriginalMode=Modo Original

@@ -152,10 +152,6 @@ function PlayerInfoView:load()
 	self.hoverState = HoverState("quadout", 0.25)
 end
 
-function PlayerInfoView:bindEvents()
-	self:bindEvent("mousePressed")
-end
-
 function PlayerInfoView:mousePressed()
 	if self.mouseOver then
 		self.onClick()

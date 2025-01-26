@@ -89,7 +89,7 @@ function WindowList:update(dt)
 	self.relativeScrollPosition = self.scrollPosition - self.y
 	self.height = self.itemCount * self.panelHeight
 
-	self.hoverIndex = -1
+	self.hoverIndex = self.NOT_HOVERING
 	for _, v in pairs(self.panels) do
 		if v.mouseOver then
 			self.hoverIndex = v.index

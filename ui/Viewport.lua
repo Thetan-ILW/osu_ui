@@ -211,11 +211,26 @@ function Viewport:listenForEvent(component, event_name)
 	table.insert(self.eventListeners[event_name], component)
 end
 
+---@param component ui.Component
+---@param event_name string
+function Viewport:stopListeningForEvent(component, event_name)
+	for i, v in ipairs(self.eventListeners[event_name]) do
+		if v == component then
+			table.remove(self.eventListeners, i)
+			return
+		end
+	end
+end
+
 local killed_children = {}
 
 ---@param event_name string
 ---@param params table?
 function Viewport:triggerEvent(event_name, params)
+	if not self.eventListeners[event_name] then
+		return
+	end
+
 	for i, component in ipairs(self.eventListeners[event_name]) do
 		if component.killed then
 			table.insert(killed_children, i)

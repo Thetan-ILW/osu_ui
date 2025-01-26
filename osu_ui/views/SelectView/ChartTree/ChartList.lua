@@ -160,6 +160,10 @@ end
 
 ---@param dt number
 function ChartList:update(dt)
+	if self.itemCount == 0 then
+		return
+	end
+
 	OsuList.update(self, dt)
 
 	if self.groupSets then
@@ -179,6 +183,10 @@ function ChartList:update(dt)
 end
 
 function ChartList:drawChildren()
+	if self.itemCount == 0 then
+		return
+	end
+
 	for i = 1, #self.childrenOrder do
 		local child = self.children[self.childrenOrder[i]]
 		love.graphics.push("all")

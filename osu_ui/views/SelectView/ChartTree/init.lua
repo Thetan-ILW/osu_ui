@@ -10,6 +10,14 @@ local flux = require("flux")
 ---@field startChart function
 local ChartTree = ScrollAreaContainer + {}
 
+function ChartTree:bindEvents()
+	self:getViewport():listenForEvent(self, "event_locationsUpdated")
+end
+
+function ChartTree:unbindEvents()
+	self:getViewport():stopListeningForEvent(self, "event_locationsUpdated")
+end
+
 function ChartTree:load()
 	self.width, self.height = self.parent:getDimensions()
 	ScrollAreaContainer.load(self)
@@ -75,11 +83,14 @@ function ChartTree:load()
 	else
 		self.mainChartList = self.list.childList
 	end
-
 end
 
 function ChartTree:fadeOut()
 	flux.to(self, 0.15, { alpha = 0 }):ease("cubicout")
+end
+
+function ChartTree:event_locationsUpdated()
+	self:fadeOut()
 end
 
 function ChartTree:update()

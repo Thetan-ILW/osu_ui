@@ -13,11 +13,11 @@ local Viewport = require("ui.Viewport")
 local Scene = require("osu_ui.Scene")
 
 local packages = require("osu_ui.packages")
+local other_games = require("osu_ui.other_games")
 
 ---@class osu.ui.UserInterface
 ---@operator call: osu.ui.UserInterface
 ---@field assets osu.ui.OsuAssets
----@field otherGamesPaths {[string]: string}?
 local UserInterface = class()
 
 ---@param game sphere.GameController
@@ -41,6 +41,11 @@ end
 
 function UserInterface:load()
 	self.pkgs = packages(self.game)
+
+	if love.system.getOS() == "Windows" then
+		other_games:findOtherGames()
+	end
+	self.otherGames = other_games
 
 	self.viewport = Viewport({
 		targetHeight = 768,

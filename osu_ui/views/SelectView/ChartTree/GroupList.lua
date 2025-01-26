@@ -3,6 +3,7 @@ local GroupEntry = require("osu_ui.views.SelectView.ChartTree.GroupEntry")
 local ChartList = require("osu_ui.views.SelectView.ChartTree.ChartList")
 
 local flux = require("flux")
+local math_util = require("math_util")
 
 ---@class osu.ui.GroupList : osu.ui.OsuWindowList
 ---@operator call: osu.ui.GroupList
@@ -39,6 +40,15 @@ function GroupList:load()
 
 	self.childList = list
 	self:createHole()
+
+	local selected_index = self:getSelectedItemIndex()
+	for i = 1, self.itemCount do
+		local y = self.panelHeight * (i - 1)
+		if i > selected_index then
+			y = y + self.holeSize
+		end
+		self.yDestinations[i] = y
+	end
 
 	self.selectedGroupExpanded = true
 	self.stateCounter = self.selectApi:getNotechartSetStateCounter()
@@ -133,6 +143,21 @@ end
 function GroupList:createHole()
 	self.holeSize = self.childList:getHeight() + 45
 	self.holeY = self.panelHeight * self:getSelectedItemIndex() + 30
+end
+
+function GroupList:getCurrentVisualIndex()
+	local visual_index = math.floor(math.max(0, self.scrollPosition - self.y) / self.panelHeight)
+
+	if self.childList and self.selectedGroupExpanded then
+		local child_index = math.ceil(self.childList.y / self.panelHeight)
+		local height = self.childList.itemCount
+		local skip = math_util.clamp(visual_index - child_index, 0, height)
+		visual_index = math.max(0, visual_index - skip)
+	end
+
+	visual_index = math.min(visual_index, self.itemCount - self.windowSize)
+
+	return visual_index
 end
 
 ---@param dt number
