@@ -220,16 +220,11 @@ function Locations:load()
 		scene:addChild("chartImport", ChartImport({ z = 0.6, cacheAll = true }))
 	end)
 
-
-	local has_other_games = false
-	for k, v in pairs(self.otherGames.games) do
-		has_other_games = true
-		break
-	end
-
-	if has_other_games then
+	if self.otherGames.gamesFound > 0 then
 		self:addOption(text.LocationsModal_AddOtherGames, self.buttonColors.purple, function ()
-			self:addOtherGames()
+			scene.ui:mountOtherGamesCharts()
+			self:addItemsToList()
+			self:updateInfo()
 		end)
 	end
 
@@ -238,32 +233,6 @@ function Locations:load()
 	end)
 
 	self:addItemsToList()
-end
-
-function Locations:addOtherGames()
-	local added = 0
-	for game_name, path in pairs(self.otherGames.games) do
-		local items = self.locationsApi:getLocations()
-		local exists = false
-
-		for i, v in ipairs(items) do
-			if path == v.path then
-				exists = true
-				break
-			end
-		end
-
-		if not exists then
-			self.locationsApi:createLocation()
-			self.locationsApi:changeName(game_name)
-			self.locationsApi:changePath(path)
-			added = added + 1
-			self.locationsUpdated = true
-		end
-	end
-
-	self:addItemsToList()
-	self:updateInfo()
 end
 
 function Locations:close()

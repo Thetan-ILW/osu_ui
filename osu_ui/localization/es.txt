@@ -37,6 +37,14 @@ Options_MainMenu=MENU PRINCIPAL
 Options_Menu_DisableIntro=Deshabilitar introducción
 Options_Menu_ShowTips=Ocultar consejos
 
+Options_OtherGames=Other games
+Options_GamesInstalled=%i other rhythm games installed:
+Options_OtherGames_AddSongsFromOtherGames=Add songs from other games
+Options_OtherGames_AddSongsConfirm=It may take a long time to add all the songs. Are you sure?
+Options_OtherGames_CopyOsuSettings=Copy settings from osu!
+Options_OtherGames_CopySettingsConfirm=Are you sure you want to copy the settings?
+Options_OtherGames_DisplayOsuSkins=Display skins from osu!
+
 Options_SongSelect=Selector de canciones
 Options_DifficultyCalculator=Sistema de dificultad:
 Options_SongSelect_Thumbnails=Icono de vista previa (solo desplaza el texto)

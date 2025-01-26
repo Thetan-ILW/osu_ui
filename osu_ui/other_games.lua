@@ -1,10 +1,16 @@
+local path_util = require("path_util")
+
 local other_games = {}
 other_games.games = {}
+other_games.gamesFound = 0
 
 ---@return table?
 function other_games:readOsuConfig()
+	local winapi = require("winapi")
 	local osu_path = self.games["osu!"]
-	local osu_config = winapi.open(osu_path, "r")
+	local user = winapi.getenv("username")
+	local config_path = path_util.join(osu_path, ("osu!.%s.cfg"):format(user))
+	local osu_config = winapi.open(config_path, "r")
 
 	if osu_config == nil then
 		return
@@ -52,7 +58,7 @@ function other_games:findOtherGames()
 
 	local osu_reg_path = winapi.get_reg_value_sz(
 		winapi.hkey.HKEY_CLASSES_ROOT,
-		"osu\\shell\\open\\command"
+		"osustable.File.osz\\shell\\open\\command"
 	)
 
 	if osu_reg_path then
@@ -81,6 +87,10 @@ function other_games:findOtherGames()
 		if #split > 1 then
 			self.games["Quaver"] = split[2]:gsub("Quaver.exe", ""):gsub("\\", "/")
 		end
+	end
+
+	for _, _ in pairs(self.games) do
+		self.gamesFound = self.gamesFound + 1
 	end
 end
 

@@ -96,7 +96,6 @@ end
 function ChartTree:update()
 	local new_state = self.selectApi:getNotechartSetStateCounter()
 	if self.stateCounter ~= new_state then
-		self.alpha = 0
 		flux.to(self, 0.3, { alpha = 1 }):ease("cubicin")
 		self.stateCounter = new_state
 
