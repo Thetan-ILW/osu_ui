@@ -152,6 +152,14 @@ function Scene:load()
 	self.previousScreenId = ""
 	self:preloadScreen("lobbyList")
 	self:transitInScreen("mainMenu")
+
+	flux.to(self.viewport, 0.3, { alpha = 1 }):ease("cubicout")
+end
+
+function Scene:reloadUI()
+	flux.to(self.viewport, 0.3, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
+		self:load()
+	end)
 end
 
 function Scene:update()

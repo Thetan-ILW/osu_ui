@@ -104,7 +104,7 @@ return function(section)
 			end,
 			setValue = function(index)
 				osu.skin = skins[index]
-				scene:load()
+				scene:reloadUI()
 			end,
 			format = function(v)
 				if not v then

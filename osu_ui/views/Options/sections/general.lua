@@ -96,7 +96,7 @@ return function(section)
 			setValue = function(index)
 				local lang = localization_list[index]
 				osu.language = lang.name
-				scene:load()
+				scene:reloadUI()
 			end,
 			format = function(v)
 				return v.name
@@ -171,7 +171,7 @@ return function(section)
 				clicked = function ()
 					osu.dangerous.mountOsuSkins	= not osu.dangerous.mountOsuSkins
 					scene.ui:mountOsuSkins()
-					scene:load()
+					scene:reloadUI()
 				end,
 			})
 		end
