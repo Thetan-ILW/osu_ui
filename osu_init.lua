@@ -48,7 +48,7 @@ function UserInterface:new(game, mount_path)
 	local osu_path = self.otherGames.games["osu!"]
 
 	if osu_cfg.dangerous.mountOsuSkins and osu_path then
-		self:mountOsuSkins(path_util.join(osu_path, "/Skins"))
+		self:mountOsuSkins()
 	end
 
 	require("ui.Component_test")
@@ -57,6 +57,14 @@ end
 function UserInterface:load()
 	self.pkgs = packages(self.game)
 
+	if self.pkgs.gucci then
+		---@type osu.ui.OsuConfig
+		local osu_cfg = self.selectApi:getConfigs().osu_ui
+		if not osu_cfg.dangerous.gucciInstalled then
+			self.pkgs.gucci.setDefaultSettings(self.selectApi:getConfigs())
+			osu_cfg.dangerous.gucciInstalled = true
+		end
+	end
 
 	self.viewport = Viewport({
 		targetHeight = 768,

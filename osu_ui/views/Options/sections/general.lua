@@ -212,6 +212,8 @@ return function(section)
 			end,
 			setValue = function(index)
 				ss.diff_column = diff_columns[index]
+				scene.ui.selectApi:debouncePullNoteChartSet()
+				scene:reloadUI()
 			end,
 			format = function(v)
 				return diff_columns_names[v]

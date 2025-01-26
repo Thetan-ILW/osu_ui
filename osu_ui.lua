@@ -7,7 +7,8 @@ local t = {
 	judgement = 0,
 	copyScreenshotToClipboard = true,
 	dangerous = {
-		mountOsuSkins = false
+		mountOsuSkins = false,
+		gucciInstalled = false
 	},
 	cursor = {
 		size = 1,
