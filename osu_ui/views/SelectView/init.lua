@@ -63,6 +63,8 @@ function View:keyPressed(event)
 		self.scene:openModal("modifiers")
 	elseif key == "f2" then
 		self.chartTree:random()
+	elseif key == "f3" then
+		self.scene:openModal("beatmapOptions")
 	elseif key == "f5" then
 		self.scene:openModal("locations")
 	elseif key == "f6" then
