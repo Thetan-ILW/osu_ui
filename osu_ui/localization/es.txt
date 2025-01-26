@@ -92,6 +92,12 @@ Options_Gameplay_PrimaryTempo=Tempo primario:
 Options_Gameplay_ConstantScrollSpeed=Velocidad de desplazamiento constante
 Options_Gameplay_ScaleScrollSpeedWithRate=Scale scroll speed with rate
 
+Options_Gameplay_Timings=Timings
+Options_Gameplay_PreparationTime=Preparation time
+Options_Gameplay_TimeBeforeRestart=Time before restart
+Options_Gameplay_TimeBeforePause=Time before pause
+Options_Gameplay_TimeFormat=%0.01f segundos
+
 Options_Gameplay_Scoring=Puntuación
 Options_Gameplay_ScoreSystem=Sistema de puntuación:
 Options_Gameplay_Judgement=Juicio:

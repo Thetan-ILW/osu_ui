@@ -92,6 +92,12 @@ Options_Gameplay_PrimaryTempo=Primary tempo:
 Options_Gameplay_ConstantScrollSpeed=Constant scroll speed
 Options_Gameplay_ScaleScrollSpeedWithRate=Scale scroll speed with rate
 
+Options_Gameplay_Timings=Timings
+Options_Gameplay_PreparationTime=Preparation time
+Options_Gameplay_TimeBeforeRestart=Time before restart
+Options_Gameplay_TimeBeforePause=Time before pause
+Options_Gameplay_TimeFormat=%0.01f seconds
+
 Options_Gameplay_Scoring=Scoring
 Options_Gameplay_ScoreSystem=Score system:
 Options_Gameplay_Judgement=Judgement:
