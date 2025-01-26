@@ -1,4 +1,6 @@
 local version = require("version")
+local ConfirmationModal = require("osu_ui.views.modals.Confirmation")
+local ChartImport = require("osu_ui.views.ChartImport")
 
 local wait_for_login = false
 local wait_for_logout = false
@@ -94,7 +96,7 @@ return function(section)
 			setValue = function(index)
 				local lang = localization_list[index]
 				osu.language = lang.name
-				scene:load()
+				scene:reloadUI()
 			end,
 			format = function(v)
 				return v.name
@@ -126,6 +128,53 @@ return function(section)
 				love.system.openURL(love.filesystem.getSource())
 			end
 		})
+	end)
+
+	section:group(text.Options_OtherGames, function(group)
+		local other_games = scene.ui.otherGames
+
+		if other_games.gamesFound == 0 then
+			return
+		end
+
+		local s = text.Options_GamesInstalled:format(other_games.gamesFound)
+		for k, _ in pairs(other_games.games) do
+			s = s .. "\n" .. k
+		end
+
+		group:label({
+			label = s
+		})
+
+		group:button({
+			label = text.Options_OtherGames_AddSongsFromOtherGames,
+			onClick = function ()
+				local modal = scene:addChild("confirmation", ConfirmationModal({
+					text = text.Options_OtherGames_AddSongsConfirm,
+					z = 0.5,
+					onClickYes = function(this)
+						scene.ui:mountOtherGamesCharts()
+						scene:addChild("chartImport", ChartImport({ z = 0.6, cacheAll = true }))
+						this:close()
+					end
+				}))
+				modal:open()
+			end
+		})
+
+		if other_games.games["osu!"] then
+			group:checkbox({
+				label = text.Options_OtherGames_OsuSkins,
+				getValue = function ()
+					return osu.dangerous.mountOsuSkins
+				end,
+				clicked = function ()
+					osu.dangerous.mountOsuSkins	= not osu.dangerous.mountOsuSkins
+					scene.ui:mountOsuSkins()
+					scene:reloadUI()
+				end,
+			})
+		end
 	end)
 
 	section:group(text.Options_MainMenu, function(group)
@@ -163,6 +212,8 @@ return function(section)
 			end,
 			setValue = function(index)
 				ss.diff_column = diff_columns[index]
+				scene.ui.selectApi:debouncePullNoteChartSet()
+				scene:reloadUI()
 			end,
 			format = function(v)
 				return diff_columns_names[v]

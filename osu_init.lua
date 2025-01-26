@@ -13,11 +13,13 @@ local Viewport = require("ui.Viewport")
 local Scene = require("osu_ui.Scene")
 
 local packages = require("osu_ui.packages")
+local other_games = require("osu_ui.other_games")
+local physfs = require("physfs")
+local path_util = require("path_util")
 
 ---@class osu.ui.UserInterface
 ---@operator call: osu.ui.UserInterface
 ---@field assets osu.ui.OsuAssets
----@field otherGamesPaths {[string]: string}?
 local UserInterface = class()
 
 ---@param game sphere.GameController
@@ -36,11 +38,33 @@ function UserInterface:new(game, mount_path)
 	self.resultApi = ResultAPI(game)
 	self.locationsApi = LocationsAPI(game)
 
+	if love.system.getOS() == "Windows" then
+		other_games:findOtherGames()
+	end
+	self.otherGames = other_games
+
+	---@type osu.ui.OsuConfig
+	local osu_cfg = self.selectApi:getConfigs().osu_ui
+	local osu_path = self.otherGames.games["osu!"]
+
+	if osu_cfg.dangerous.mountOsuSkins and osu_path then
+		self:mountOsuSkins()
+	end
+
 	require("ui.Component_test")
 end
 
 function UserInterface:load()
 	self.pkgs = packages(self.game)
+
+	if self.pkgs.gucci then
+		---@type osu.ui.OsuConfig
+		local osu_cfg = self.selectApi:getConfigs().osu_ui
+		if not osu_cfg.dangerous.gucciInstalled then
+			self.pkgs.gucci.setDefaultSettings(self.selectApi:getConfigs())
+			osu_cfg.dangerous.gucciInstalled = true
+		end
+	end
 
 	self.viewport = Viewport({
 		targetHeight = 768,
@@ -83,6 +107,60 @@ function UserInterface:switchTheme(name)
 	self.game.configModel.configs.settings.graphics.userInterface = name
 	self.game.uiModel:switchTheme()
 	love.mouse.setVisible(true)
+end
+
+local osu_skins_mounted = false
+
+---@param unmount boolean?
+function UserInterface:mountOsuSkins(unmount)
+	local osu_path = self.otherGames.games["osu!"]
+	local skins_path = path_util.join(osu_path, "Skins")
+
+	if unmount and osu_skins_mounted then
+		local success, err = physfs.unmount(skins_path)
+		
+		if not success then
+			print(err)
+			return
+		end
+
+		self.game.noteSkinModel:load()
+		osu_skins_mounted = false
+		return
+	end
+
+	if osu_skins_mounted then
+		return
+	end
+
+	local success, err = physfs.mount(skins_path, "/userdata/skins", false)
+	if not success then
+		print(err)
+		return
+	end
+
+	self.game.noteSkinModel:load()
+	osu_skins_mounted = true
+end
+
+function UserInterface:mountOtherGamesCharts()
+	for game_name, path in pairs(self.otherGames.games) do
+		local items = self.locationsApi:getLocations()
+		local exists = false
+
+		for i, v in ipairs(items) do
+			if path == v.path then
+				exists = true
+				break
+			end
+		end
+
+		if not exists then
+			self.locationsApi:createLocation()
+			self.locationsApi:changeName(game_name)
+			self.locationsApi:changePath(path)
+		end
+	end
 end
 
 return UserInterface

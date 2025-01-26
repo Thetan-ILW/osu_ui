@@ -2,7 +2,9 @@ local Component = require("ui.Component")
 local Image = require("ui.Image")
 local QuadImage = require("ui.QuadImage")
 local Label = require("ui.Label")
+local SpriteBatch = require("ui.SpriteBatch")
 local ui = require("osu_ui.ui")
+local math_util = require("math_util")
 
 local Format = require("sphere.views.Format")
 
@@ -81,17 +83,25 @@ function ChartEntry:load()
 		z = 1
 	})) ---@cast third_row ui.Label
 
-	local star_image = assets.specialKids.star
-	star_image:setWrap("repeat")
-	local stars = self:addChild("stars", QuadImage({
+	self.starRate = 0
+
+	local star_image = assets:loadImage("star")
+	local stars = self:addChild("stars", SpriteBatch({
 		x = preview_icon_w + 17 + 40, y = 74,
-		origin = { x = 0, y = 0.5 },
 		scale = 0.35,
 		image = star_image,
-		quad = love.graphics.newQuad(0, 0, star_image:getWidth() * 2, star_image:getHeight(), star_image:getWidth(), star_image:getHeight()),
 		color = self.infoColor,
 		z = 0.5,
-	})) ---@cast stars ui.QuadImage
+		---@param this ui.SpriteBatch
+		updateBatch = function(this)
+			local iw, ih = star_image:getDimensions()
+			this.batch:clear()
+			for i = 1, math.min(10, math.ceil(self.starRate)) do
+				local s = math_util.clamp(self.starRate - i + 1, 0.2, 1) + (i * 0.03)
+				this.batch:add(iw * 1.7 * (i - 1), 0, 0, s, s, 0, ih / 2)
+			end
+		end
+	})) ---@cast stars ui.SpriteBatch
 
 	self.title = title
 	self.secondRow = second_row
@@ -159,7 +169,7 @@ function ChartEntry:mouseClick(event)
 	if not self.mouseOver or event.key == 2 then
 		return false
 	end
-	self.list:selectItem(self.index)
+	self.list:selectItem(self.index, true)
 	return true
 end
 
@@ -189,9 +199,9 @@ function ChartEntry:setInfo(chart)
 	local third_row = ("%s (%s)"):format(chart.name, Format.inputMode(chart.inputmode))
 
 	self.thirdRow:replaceText(third_row)
-	local iw, ih = self.stars.image:getDimensions()
-	self.stars:setViewport(0, 0, chart.osu_diff * iw, ih)
 	self.stars.color = chart.lamp and lamp_color or self.infoColor
+	self.starRate = chart.osu_diff
+	self.stars:updateBatch()
 end
 
 return ChartEntry

@@ -28,6 +28,7 @@ local MusicFft = require("osu_ui.MusicFft")
 
 local flux = require("flux")
 local path_util = require("path_util")
+local math_util = require("math_util")
 
 ---@alias osu.ui.SceneParams { game: sphere.GameController, ui: osu.ui.UserInterface }
 
@@ -100,6 +101,10 @@ function Scene:load()
 
 	self.fontManager:setVieportHeight(self.viewport.height)
 
+	local music_fft = self:addChild("musicFft", MusicFft())
+	---@cast music_fft osu.ui.MusicFft
+	self.musicFft = music_fft
+
 	local cursor = self:addChild("cursor", CursorView({
 		z = 0.98
 	}))
@@ -143,14 +148,18 @@ function Scene:load()
 	self.chat = chat
 	self.background = background
 
-	local music_fft = self:addChild("musicFft", MusicFft())
-	---@cast music_fft osu.ui.MusicFft
-	self.musicFft = music_fft
-
 	self.currentScreenId = ""
 	self.previousScreenId = ""
 	self:preloadScreen("lobbyList")
 	self:transitInScreen("mainMenu")
+
+	flux.to(self.viewport, 0.3, { alpha = 1 }):ease("cubicout")
+end
+
+function Scene:reloadUI()
+	flux.to(self.viewport, 0.3, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
+		self:load()
+	end)
 end
 
 function Scene:update()
@@ -227,13 +236,18 @@ end
 
 ---@param time number?
 ---@param background_dim number?
-function Scene:hideOverlay(time, background_dim)
+---@param on_complete function?
+function Scene:hideOverlay(time, background_dim, on_complete)
 	time = time or 0.4
 	background_dim = background_dim or 0.3
 	self:receive({ name = "loseFocus" })
 	self.options:fade(0)
 	self.chat:fade(0)
-	flux.to(self.cursor, time, { alpha = 0 }):ease("quadout")
+	flux.to(self.cursor, time, { alpha = 0 }):ease("quadout"):oncomplete(function ()
+		if on_complete then
+			on_complete()
+		end
+	end)
 	flux.to(self.background, time * 0.6, { dim = background_dim, parallax = 0 }):ease("quadout")
 end
 
@@ -274,11 +288,33 @@ function Scene:makeScreenshot()
 	end
 end
 
+function Scene:scrollVolume(delta)
+	local configs = self.ui.selectApi:getConfigs()
+	local v = configs.settings.audio.volume
+	v.master = math_util.clamp(math_util.round(v.master + delta * 0.05, 0.05), 0, 1)
+	self.notification:show(self.localization.text.General_Volume:format(("%i%%"):format(v.master * 100)))
+end
+
 ---@param event table
 function Scene:keyPressed(event)
 	local key = event[2]
 	if key == "f12" and not event[3] then
 		self:makeScreenshot()
+	end
+end
+
+
+function Scene:wheelUp()
+	if love.keyboard.isDown("lalt") or love.keyboard.isDown("ralt") then
+		self:scrollVolume(1)
+		return true
+	end
+end
+
+function Scene:wheelDown()
+	if love.keyboard.isDown("lalt") or love.keyboard.isDown("ralt") then
+		self:scrollVolume(-1)
+		return true
 	end
 end
 

@@ -185,6 +185,7 @@ function ScoreEntryView:setMouseFocus(mx, my)
 end
 
 function ScoreEntryView:noMouseFocus()
+	self.mouseOver = false
 	self.hoverState:loseFocus()
 end
 

@@ -18,6 +18,7 @@ function ChartImport:load()
 	local fonts = scene.fontManager
 	self.text = scene.localization.text
 	self.locationsApi = scene.ui.locationsApi
+	self.selectApi = scene.ui.selectApi
 
 	self:addChild("background", Rectangle({
 		width = width,
@@ -102,6 +103,8 @@ function ChartImport:quitting()
 		return
 	end
 	self.locationsApi:loadLocations()
+	self.selectApi:reloadCollections()
+	self.selectApi:debouncePullNoteChartSet()
 	self.goodbye = flux.to(self, 0.2, { alpha = 0 }):ease("quadout"):oncomplete(function ()
 		self:kill()
 	end)

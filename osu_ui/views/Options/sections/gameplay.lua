@@ -89,6 +89,7 @@ return function(section)
 	local g = settings.gameplay
 	local gf = settings.graphics
 	local dim = gf.dim
+	local time= g.time
 	local osu = config.osu_ui ---@type osu.ui.OsuConfig
 
 	local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
@@ -333,6 +334,39 @@ return function(section)
 				key = { play_context.timings, "nearest" },
 			})
 		end
+	end)
+
+	section:group(text.Options_Gameplay_Timings, function(group)
+		local formatTime = function (v)
+			return text.Options_Gameplay_TimeFormat:format(v)
+		end
+		group:slider({
+			label = text.Options_Gameplay_PreparationTime,
+			min = 0.5, max = 3, step = 0.1,
+			key = { time, "prepare" },
+			format = formatTime
+		})
+
+		time.pauseRetry = time.playRetry
+		group:slider({
+			label = text.Options_Gameplay_TimeBeforeRestart,
+			min = 0, max = 3, step = 0.1,
+			format = formatTime,
+			getValue = function ()
+				return time.playRetry
+			end,
+			setValue = function(v)
+				time.playRetry = v
+				time.pauseRetry = v
+			end,
+		})
+
+		group:slider({
+			label = text.Options_Gameplay_TimeBeforePause,
+			min = 0, max = 3, step = 0.1,
+			key = { time, "playPause" },
+			format = formatTime,
+		})
 	end)
 
 	section:group(text.Options_Gameplay_Health, function(group)

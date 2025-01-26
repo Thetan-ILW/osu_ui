@@ -7,7 +7,16 @@ local flux = require("flux")
 ---@class osu.ui.ChartTree : osu.ui.ScrollAreaContainer
 ---@operator call: osu.ui.ChartTree
 ---@field children {[string]: osu.ui.WindowList}
+---@field startChart function
 local ChartTree = ScrollAreaContainer + {}
+
+function ChartTree:bindEvents()
+	self:getViewport():listenForEvent(self, "event_locationsUpdated")
+end
+
+function ChartTree:unbindEvents()
+	self:getViewport():stopListeningForEvent(self, "event_locationsUpdated")
+end
 
 function ChartTree:load()
 	self.width, self.height = self.parent:getDimensions()
@@ -18,6 +27,8 @@ function ChartTree:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	local select_api = scene.ui.selectApi
 	self.selectApi = select_api
+
+	self.randomHistory = {}
 
 	local configs = select_api:getConfigs()
 	local osu = configs.osu_ui ---@type osu.ui.OsuConfig
@@ -37,7 +48,9 @@ function ChartTree:load()
 		local list = self:addChild("root", ChartList({
 			x = self.width - 544,
 			y = self.height / 2,
+			mainChartList = true,
 			groupSets = select_api.sets[sort],
+			startChart = self.startChart,
 			z = 0.1,
 			scrollToPosition = function(position)
 				self:scrollToPosition(position, 0)
@@ -52,6 +65,7 @@ function ChartTree:load()
 			x = self.width - 544,
 			y = self.height / 2,
 			z = 0.1,
+			startChart = self.startChart,
 			scrollToPosition = function(position)
 				self:scrollToPosition(position, 0)
 			end,
@@ -63,10 +77,20 @@ function ChartTree:load()
 	end
 
 	self.stateCounter = self.selectApi:getNotechartSetStateCounter()
+
+	if self.list.mainChartList then
+		self.mainChartList = self.list
+	else
+		self.mainChartList = self.list.childList
+	end
 end
 
 function ChartTree:fadeOut()
 	flux.to(self, 0.15, { alpha = 0 }):ease("cubicout")
+end
+
+function ChartTree:event_locationsUpdated()
+	self:fadeOut()
 end
 
 function ChartTree:update()
@@ -97,6 +121,44 @@ function ChartTree:update()
 	end
 
 	self.scrollLimit = self.list:getHeight()
+end
+
+function ChartTree:random()
+	if love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift") then
+		self:prevRandom()
+		return
+	end
+	table.insert(self.randomHistory, self.mainChartList:getSelectedItemIndex())
+	local i = math.random(1, self.mainChartList.itemCount)
+	self.mainChartList:selectItem(i)
+end
+
+function ChartTree:prevRandom()
+	if #self.randomHistory == 0 then
+		return
+	end
+	local i = table.remove(self.randomHistory)
+	self.mainChartList:selectItem(i)
+end
+
+function ChartTree:scrollToSelectedItem()
+	if self.groupCharts then
+		local groups = self.list
+		---@cast groups osu.ui.GroupList
+
+		if not groups.selectedGroupExpanded then
+			return
+		end
+	end
+
+	local y = self.groupCharts and self.list.y or 0
+	if self.mainChartList.childList then
+		y = y + self.mainChartList.y + self.mainChartList.childList:getSelectedItemScrollPosition()
+	else
+		y = y + self.mainChartList:getSelectedItemScrollPosition()
+	end
+
+	self:scrollToPosition(y, 0)
 end
 
 return ChartTree

@@ -22,8 +22,10 @@ function Locations:load()
 
 	self.width, self.height = self.parent:getDimensions()
 
+	self.selectApi = scene.ui.selectApi
 	self.locationsApi = scene.ui.locationsApi
 	self.locationsUpdated = false
+	self.otherGames = scene.ui.otherGames
 
 	---@type {[integer]: ui.Component}
 	self.locationCells = {}
@@ -218,6 +220,14 @@ function Locations:load()
 		scene:addChild("chartImport", ChartImport({ z = 0.6, cacheAll = true }))
 	end)
 
+	if self.otherGames.gamesFound > 0 then
+		self:addOption(text.LocationsModal_AddOtherGames, self.buttonColors.purple, function ()
+			scene.ui:mountOtherGamesCharts()
+			self:addItemsToList()
+			self:updateInfo()
+		end)
+	end
+
 	self:addOption(text.General_Cancel, self.buttonColors.gray, function ()
 		self:close()
 	end)
@@ -233,6 +243,8 @@ function Locations:close()
 
 	if self.locationsUpdated then
 		self:getViewport():triggerEvent("event_locationsUpdated")
+		self.selectApi:reloadCollections()
+		self.selectApi:debouncePullNoteChartSet()
 	end
 end
 

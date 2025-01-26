@@ -144,7 +144,7 @@ function DisplayInfo:setChartInfo()
 	self.difficulty = difficulty
 	self.chartInfoFirstRow = text.SongSelection_BeatmapInfo:format(self.length, bpm, objects)
 	self.chartInfoSecondRow = text.SongSelection_BeatmapInfo2:format(note_count_str, ln_count_str, "0")
-	self.chartInfoThirdRow = ("Keys: %s OD:%s HP:%i Star rate: %s"):format(columns_str, od, hp, difficulty)
+	self.chartInfoThirdRow = text.SongSelection_BeatmapInfo3:format(columns_str, od, hp, difficulty)
 end
 
 return DisplayInfo

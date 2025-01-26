@@ -213,9 +213,6 @@ function Group:label(params)
 				self.section:hoveringOver(container.y + self.y, container:getHeight())
 			end
 		end,
-		bindEvents = function(this)
-			self:bindEvent("mouseClick")
-		end,
 		mouseClick = function(this)
 			if params.onClick then
 				if this.mouseOver then

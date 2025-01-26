@@ -53,7 +53,8 @@ end
 function WindowList:getItems() error("Not implemented") end
 
 ---@param index integer
-function WindowList:selectItem(index) error("Not implemented") end
+---@param mouse_click boolean?
+function WindowList:selectItem(index, mouse_click) error("Not implemented") end
 
 ---@return integer
 function WindowList:getSelectedItemIndex() return -9999 end
@@ -68,7 +69,7 @@ function WindowList:getCurrentVisualIndex()
 	local visual_index = math.floor(math.max(0, self.scrollPosition - self.y) / self.panelHeight)
 
 	if self.childList then
-		local child_index = math.ceil(self.childList.y / self.panelHeight)
+		local child_index = self:getSelectedItemIndex()--math.ceil(self.childList.y / self.panelHeight)
 		local height = self.childList.itemCount
 		local skip = math_util.clamp(visual_index - child_index, 0, height)
 		visual_index = math.max(0, visual_index - skip)
@@ -88,7 +89,7 @@ function WindowList:update(dt)
 	self.relativeScrollPosition = self.scrollPosition - self.y
 	self.height = self.itemCount * self.panelHeight
 
-	self.hoverIndex = -1
+	self.hoverIndex = self.NOT_HOVERING
 	for _, v in pairs(self.panels) do
 		if v.mouseOver then
 			self.hoverIndex = v.index

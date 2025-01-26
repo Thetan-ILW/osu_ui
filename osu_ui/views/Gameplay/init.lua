@@ -82,17 +82,17 @@ function View:quit()
 	local function quit()
 		preview_audio = self.scene.ui.selectApi:getPreviewAudioSource()
 		if preview_audio and gameplay_audio and gameplay_audio:isPlaying() then
-			gameplay_audio:setVolume(volume * 0.5)
 			preview_audio:setPosition(gameplay_audio:getPosition())
 		end
 		if preview_audio then
-			preview_audio:setVolume(volume * 0.5)
+			preview_audio:setVolume(volume)
 		end
 		self.gameplayApi:stop()
 	end
 
 	if self.gameplayApi:hasResult() then
 		self:transitOut({
+			time = 0.27,
 			onComplete = function ()
 				quit()
 				self.selectApi:unloadController()
@@ -177,7 +177,7 @@ end
 
 function View:keyPressed(event)
 	local key = event[2]
-	local shift = love.keyboard.isScancodeDown("lshift")
+	local shift = love.keyboard.isScancodeDown("lshift") or love.keyboard.isScancodeDown("rshift")
 
 	if key == "escape" and shift then
 		self:quit()
@@ -193,6 +193,24 @@ function View:keyPressed(event)
 			showcase:hide(0)
 		end
 		return
+	elseif key == "f3" then
+		local new_speed = self.gameplayApi:increasePlaySpeed(-1)
+		self.scene.notification:show("Scroll speed: " .. new_speed)
+	elseif key == "f4" then
+		local new_speed = self.gameplayApi:increasePlaySpeed(1)
+		self.scene.notification:show("Scroll speed: " .. new_speed)
+	elseif key == "-" and shift then
+		local new_offset = self.gameplayApi:increaseLocalOffset(-0.001) * 1000
+		self.scene.notification:show(("Local offset: %ims"):format(new_offset))
+	elseif key == "=" and shift then
+		local new_offset = self.gameplayApi:increaseLocalOffset(0.001) * 1000
+		self.scene.notification:show(("Local offset: %ims"):format(new_offset))
+	elseif key == "-" then
+		local new_offset = self.gameplayApi:increaseLocalOffset(-0.005) * 1000
+		self.scene.notification:show(("Local offset: %ims"):format(new_offset))
+	elseif key == "=" then
+		local new_offset = self.gameplayApi:increaseLocalOffset(0.005) * 1000
+		self.scene.notification:show(("Local offset: %ims"):format(new_offset))
 	end
 
 	local state = self.gameplayApi:getPlayState()

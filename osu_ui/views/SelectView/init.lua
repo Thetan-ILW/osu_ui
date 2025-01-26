@@ -31,6 +31,7 @@ local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 ---@class osu.ui.SelectViewContainer : osu.ui.Screen
 ---@operator call: osu.ui.SelectViewContainer
 ---@field selectApi game.SelectAPI
+---@field prevPlayContext sphere.PlayContext?
 local View = Screen + {}
 
 function View:textInput(event)
@@ -60,6 +61,10 @@ function View:keyPressed(event)
 		return true
 	elseif key == "f1" then
 		self.scene:openModal("modifiers")
+	elseif key == "f2" then
+		self.chartTree:random()
+	elseif key == "f3" then
+		self.scene:openModal("beatmapOptions")
 	elseif key == "f5" then
 		self.scene:openModal("locations")
 	elseif key == "f6" then
@@ -141,6 +146,11 @@ function View:transitIn()
 	self:stopTransitionTween()
 	self.transitionTween = flux.to(self, 0.7, { alpha = 1 }):ease("cubicout")
 
+	if self.prevPlayContext then
+		self.selectApi:getPlayContext():load(self.prevPlayContext)
+		self.prevPlayContext = nil
+	end
+
 	self.scene:showOverlay(0.4, self:getBackgroundDim())
 	self.selectApi:loadController()
 end
@@ -169,10 +179,10 @@ function View:transitToGameplay()
 		self.selectApi:getBackgroundImages()[1]
 	)
 
-	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
+	self.scene:hideOverlay(0.7, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
-		time = 0.5,
-		ease = "quadout",
+		time = 0.8,
+		ease = "cubicout",
 		onComplete = function()
 			self.scene:transitInScreen("gameplay")
 		end
@@ -180,6 +190,9 @@ function View:transitToGameplay()
 end
 
 function View:transitToResult()
+	self.prevPlayContext = {}
+	self.selectApi:getPlayContext():save(self.prevPlayContext)
+
 	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
 		time = 0.5,
@@ -244,13 +257,13 @@ function View:load()
 	local center = self:addChild("centerContainer", Component({ width = width, height = height, z = 0 }))
 
 	function top.update(container, dt)
-		container.y = (1 - self.alpha) * -160
+		container.y = (1 - self.alpha) * -176
 		top_background.y = container.y
 		Component.update(container, dt)
 	end
 
 	function bottom.update(container, dt)
-		container.y = (1 - self.alpha) * 160
+		container.y = (1 - self.alpha) * 176
 		Component.update(container, dt)
 	end
 
@@ -411,7 +424,7 @@ function View:load()
 	}))
 
 	local sort_group_format = {
-		charts = text.SongSelection_ByBeatmaps,
+		charts = text.SongSelection_NoGrouping,
 		locations = text.SongSelection_ByGames,
 		directories = text.SongSelection_ByFolders,
 		id = text.byId,
@@ -681,6 +694,7 @@ function View:load()
 		hoverImage = assets:loadImage("selection-random-over"),
 		z = 0.32,
 		onClick = function()
+			self.chartTree:random()
 		end
 	}))
 
@@ -749,6 +763,7 @@ function View:load()
 
 	function score_list.update(container, dt)
 		score_list.x = (1 - self.alpha) * -450
+		score_list.y = 145 + top.y
 		return ScoreListView.update(container, dt)
 	end
 
@@ -771,7 +786,11 @@ function View:load()
 	self.searchLabel = search_label
 	self:searchUpdated()
 
-	local chart_tree = center:addChild("tree", ChartTree({}))
+	local chart_tree = center:addChild("tree", ChartTree({
+		startChart = function()
+			self:transitToGameplay()
+		end
+	}))
 	---@cast chart_tree osu.ui.ChartTree
 	self.chartTree = chart_tree
 
@@ -779,6 +798,14 @@ function View:load()
 		ChartTree.update(container, dt)
 		container.x = (1 - self.alpha) * 640
 	end
+
+	center:addChild("returnBackArea", Component({
+		width = 438 + 64,
+		height = height,
+		justHovered = function()
+			self.chartTree:scrollToSelectedItem()
+		end
+	}))
 
 	center:addChild("scrollBarBackground", Rectangle({
 		x = width - 5, y = 117,

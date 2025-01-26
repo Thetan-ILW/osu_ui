@@ -172,19 +172,6 @@ function OsuAssets:load()
 		self.params.requirePath = skin_ini.Gucci.RequirePath
 		self:loadCustomViews(skin_ini)
 	end
-
-
-	self.specialKids = {}
-
-	local star_image = self:loadImage("star")
-	local star = love.graphics.newCanvas(star_image:getWidth() * 1.75, star_image:getHeight())
-	love.graphics.push("all")
-	love.graphics.origin()
-	love.graphics.setCanvas(star)
-	love.graphics.draw(star_image)
-	love.graphics.pop()
-
-	self.specialKids.star = star
 end
 
 ---@param path string

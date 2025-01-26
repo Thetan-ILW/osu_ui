@@ -123,12 +123,34 @@ end
 
 ---@return boolean
 function Gameplay:isRestarting()
-	return self.game.pauseModel.state == "play-retry"
+	local state = self.game.pauseModel.state
+	if state == "play-retry" then
+		return true
+	elseif state == "pause-retry" then
+		return true
+	end
+	return false
 end
 
 ---@return boolean
 function Gameplay:needRetry()
 	return self.game.pauseModel.needRetry
+end
+
+---@param direction number
+---@return string new_speed
+function Gameplay:increasePlaySpeed(direction)
+	self.game.gameplayController:increasePlaySpeed(direction)
+	local speed_model = self.game.speedModel
+	local gameplay = self.game.configModel.configs.settings.gameplay
+	return speed_model.format[gameplay.speedType]:format(speed_model:get())
+end
+
+---@param delta number
+---@return number new_offset
+function Gameplay:increaseLocalOffset(delta)
+	self.game.gameplayController:increaseLocalOffset(delta)
+	return self.game.selectModel.chartview.offset
 end
 
 return Gameplay

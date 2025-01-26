@@ -169,6 +169,9 @@ function Component:updateTransform()
 	self.transform:setTransformation(self.x, self.y, self.angle, self.scaleX, self.scaleY, self:getOrigin())
 end
 
+function Component:bindEvents() end
+function Component:unbindEvents() end
+
 ---@param id string
 ---@param child ui.Component
 ---@return ui.Component
@@ -179,6 +182,7 @@ function Component:addChild(id, child)
 	child.id = id
 	child.parent = self
 	child:load()
+	child:bindEvents()
 	child.killed = false
 	self.children[id] = child
 	self.deferBuild = true
@@ -188,6 +192,7 @@ end
 function Component:removeChild(id)
 	local child = self.children[id]
 	if child then
+		child:unbindEvents()
 		child.parent = nil
 		child.killed = true
 		self.children[id] = nil

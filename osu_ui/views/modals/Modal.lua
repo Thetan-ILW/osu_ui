@@ -102,7 +102,9 @@ function Modal:addOption(label, color, on_click)
 		font = self.fonts:loadFont("Regular", 42),
 		label = ("%i. %s"):format(self.options + 1, label),
 		color = color,
-		onClick = on_click,
+		onClick = function ()
+			on_click(self)
+		end,
 		key = tostring(self.options + 1),
 		update = function(this)
 			local a = self.buttonsAnimation

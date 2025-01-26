@@ -39,6 +39,7 @@ return function(section)
 		function group:update()
 			if select_api:getCurrentInputMode() ~= current_input_mode then
 				group:reload()
+				section.options:recalcPositions()
 			end
 		end
 
@@ -184,6 +185,14 @@ return function(section)
 			end,
 			setValue = function(index)
 				osu.cursor.trailStyle = styles[index]
+			end,
+			format = function(v)
+				if v == "Vanishing" then
+					return text.Options_Cursor_Vanishing
+				elseif v == "Shrinking" then
+					return text.Options_Cursor_Shrinking
+				end
+				return v
 			end
 		})
 
