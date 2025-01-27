@@ -26,6 +26,8 @@ local HoverState = require("ui.HoverState")
 ---@field time number
 ---@field slideInDelay number
 ---@field onClick function
+---@field recentIconSide "right" | "left"
+---@field slide boolean
 local ScoreEntryView = Component + {}
 
 function ScoreEntryView:load()
@@ -35,7 +37,6 @@ function ScoreEntryView:load()
 	self.blockMouseFocus = true
 
 	self.hoverSound = assets:loadAudio("menuclick")
-	self.clickSound = assets:loadAudio("menuhit")
 
 	self:addChild("background", Image({
 		y = 4,
@@ -141,32 +142,39 @@ function ScoreEntryView:load()
 	self:updateTimeSinceScore()
 
 	if self.timeSince ~= "" then
+		local x = self.recentIconSide == "right" and 390 or -50
 		self:addChild("recentScoreIcon", Label({
-			x = 390, y = 18,
-			text = "",
+			x = x, y = 20,
+			text = "",
 			font = fonts:loadFont("Awesome", 24),
-			shadow = true
+			shadow = true,
+			z = 1,
 		}))
 
 		self:addChild("timeSinceScore", DynamicLabel({
-			x = 390 + 26, y = 18 + 3,
+			x = x + 26, y = 20 + 3,
 			font = fonts:loadFont("Regular", 14),
 			shadow = true,
-			z = 0.1,
+			z = 1,
 			value = function()
 				return self.timeSince
 			end
 		}))
 	end
 
-	local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
+	local ScoreListView = require("osu_ui.views.ScoreListView")
 	self.width, self.height = 440, ScoreListView.panelHeight
 	self.alpha = 0
 
-	self.slideInProgress = 0
-	self.slideInTween = flux.to(self, 1.3, { slideInProgress = 1 }):delay(self.slideInDelay):ease("elasticout")
-	self.slideInAlphaProgress = 0
-	self.slideInAlphaTween = flux.to(self, 0.7, { alpha = 1 }):delay(self.slideInDelay):ease("cubicout")
+	self.slideInProgress = 1
+	self.alpha = 1
+
+	if self.slide then
+		self.slideInProgress = 0
+		self.alpha = 0
+		self.slideInTween = flux.to(self, 1.3, { slideInProgress = 1 }):delay(self.slideInDelay):ease("elasticout")
+		self.slideInAlphaTween = flux.to(self, 0.7, { alpha = 1 }):delay(self.slideInDelay):ease("cubicout")
+	end
 
 	self.hoverState = HoverState("quadout", 0.2)
 end

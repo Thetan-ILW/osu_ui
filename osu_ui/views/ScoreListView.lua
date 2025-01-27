@@ -3,7 +3,7 @@ local StencilComponent = require("ui.StencilComponent")
 local ScrollAreaContainer = require("osu_ui.ui.ScrollAreaContainer")
 local Image = require("ui.Image")
 
-local ScoreEntryView = require("osu_ui.views.SelectView.ScoreEntryView")
+local ScoreEntryView = require("osu_ui.views.ScoreEntryView")
 local Scoring = require("osu_ui.Scoring")
 
 local getModifierString = require("osu_ui.views.modifier_string")
@@ -16,6 +16,8 @@ local flux = require("flux")
 ---@overload fun(params: osu.ui.ScoreListViewParams): osu.ui.ScoreListView
 ---@field scores osu.ui.ScrollAreaContainer
 ---@field selectApi game.SelectAPI
+---@field onOpenScore fun(index: integer)
+---@field screen "select" | "result"
 local ScoreListView = Component + {}
 
 ScoreListView.panelHeight = 58
@@ -28,6 +30,25 @@ function ScoreListView:load()
 	self.selectApi = scene.ui.selectApi
 	self.playerProfile = scene.ui.pkgs.playerProfile
 
+	local stencil_x = 0
+	local stencil_y = 0
+	local stencil_h = 0
+	if self.screen == "select" then
+		self.rows = 8
+		self.recentIconSide = "right"
+		stencil_x = 0
+		stencil_y = -64
+		stencil_h = self.height + 64
+	elseif self.screen == "result" then
+		self.rows = 5
+		self.recentIconSide = "left"
+		stencil_x = -200
+		stencil_y = 0
+		stencil_h = self.height
+	else
+		error("Not implemented")
+	end
+
 	self:addChild("noScores", Image({
 		x = self.width / 2, y = self.height / 2,
 		origin = { x = 0.5, y = 0.5 },
@@ -36,7 +57,7 @@ function ScoreListView:load()
 
 	local stencil = self:addChild("stencil", StencilComponent({
 		stencilFunction = function ()
-			love.graphics.rectangle("fill", 0, -64, self.width + 80, self.height + 64)
+			love.graphics.rectangle("fill", stencil_x, stencil_y, self.width + 300, stencil_h)
 		end
 	}))
 
@@ -121,6 +142,8 @@ function ScoreListView:addProfileScore(score_index, score, source)
 		slideInDelay = self.panelSlideInDelay * (score_index - 1),
 		z = 1 - (score_index * 0.0001),
 		time = score.time,
+		recentIconSide = self.recentIconSide,
+		slide = self.screen == "select",
 		onClick = function()
 			self:openScore(score_index)
 		end
@@ -166,6 +189,8 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		slideInDelay = self.panelSlideInDelay * (score_index - 1),
 		z = 1 - (score_index * 0.0001),
 		time = score.time,
+		recentIconSide = self.recentIconSide,
+		slide = self.screen == "select",
 		onClick = function()
 			self:openScore(score_index)
 		end
@@ -223,15 +248,12 @@ function ScoreListView:loadScores()
 	end
 
 	local h = self.panelHeight
-	self.scores.scrollLimit = math.max(0, (self.scoreCount - 8) * h)
+	self.scores.scrollLimit = math.max(0, (self.scoreCount - self.rows) * h)
 end
 
+---@param id integer
 function ScoreListView:openScore(id)
-	self.selectApi:setScoreIndex(id)
-	local select = self:findComponent("select")
-	self:assert(select, "No select screen? Why?")
-	---@cast select osu.ui.SelectViewContainer
-	select:transitToResult()
+	self.onOpenScore(id)
 end
 
 return ScoreListView

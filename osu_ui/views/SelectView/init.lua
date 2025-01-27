@@ -13,7 +13,7 @@ local Label = require("ui.Label")
 local Combo = require("osu_ui.ui.Combo")
 local TabButton = require("osu_ui.ui.TabButton")
 local PlayerInfoView = require("osu_ui.views.PlayerInfoView")
-local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
+local ScoreListView = require("osu_ui.views.ScoreListView")
 local ScrollBar = require("osu_ui.ui.ScrollBar")
 local Rectangle = require("ui.Rectangle")
 local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
@@ -754,11 +754,18 @@ function View:load()
 	}))
 	self:updateModsLine()
 
+	local open_score_sound = assets:loadAudio("menuhit")
 	local score_list = center:addChild("scoreList", ScoreListView({
 		x = 5, y = 145,
 		width = 385,
 		height = 430,
-		z = 0.1
+		z = 0.1,
+		screen = "select",
+		onOpenScore = function(id)
+			self.selectApi:setScoreIndex(id)
+			self.playSound(open_score_sound)
+			self:transitToResult()
+		end
 	}))
 	---@cast score_list osu.ui.ScoreListView
 

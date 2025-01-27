@@ -11,6 +11,7 @@ local BackButton = require("osu_ui.ui.BackButton")
 local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
 local PlayerInfo = require("osu_ui.views.PlayerInfoView")
+local ResultScores = require("osu_ui.views.ResultView.Scores")
 
 local thread = require("thread")
 local Rectangle = require("ui.Rectangle")
@@ -101,8 +102,6 @@ function View:transitToGameplay()
 
 		flux.to(self, 0.5, { y = 100 }):ease("quadout")
 	end)
-
-
 end
 
 function View:keyPressed(event)
@@ -163,7 +162,7 @@ function View:load(score_loaded)
 		width = 10,
 		container = area,
 		windowHeight = 768 - 96 - 6,
-		z = 1,
+		z = 0.98,
 	}))
 
 	---- HEADER ----
@@ -536,6 +535,38 @@ function View:load(score_loaded)
 	end
 
 	self.modIcons:autoSize()
+
+	---@type number?
+	local prev_scores_x
+	if self.scores then
+		prev_scores_x = self.scores.scoresX
+	end
+	local scores = self:addChild("scores", ResultScores({
+		x = width, y = 145,
+		origin = { x = 1 },
+		width = 400,
+		height = 220,
+		scoresX = prev_scores_x,
+		z = 1,
+		onOpenScore = function(id)
+			self.selectApi:setScoreIndex(id)
+			self:receive({ name = "loseFocus" })
+			self.handleEvents = false
+			scene:hideOverlay(0.2, 0.5)
+			flux.to(self, 0.3, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
+				local f = thread.coro(function()
+					self.resultApi:replayNotechartAsync("result")
+					self:reload()
+					self.handleEvents = true
+					scene:showOverlay(0.2, 0.35)
+					flux.to(self, 0.3, { alpha = 1}):ease("cubicout")
+				end)
+				f()
+			end)
+		end
+	})) ---@cast scores osu.ui.ResultScores
+	self.scores = scores
+
 
 	---- FAKE BUTTONS ----
 	self:addChild("showChat", ImageButton({
