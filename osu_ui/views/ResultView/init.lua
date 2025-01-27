@@ -19,6 +19,7 @@ local Image = require("ui.Image")
 local Label = require("ui.Label")
 local ScrollBar = require("osu_ui.ui.ScrollBar")
 
+local Scoring = require("osu_ui.Scoring")
 local DisplayInfo = require("osu_ui.views.ResultView.DisplayInfo")
 
 local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
@@ -415,6 +416,28 @@ function View:load(score_loaded)
 		}))
 	end
 
+	local judge_name = display_info.judgeName
+	local judge_name_bg = area:addChild("judgeNameBackground", Rectangle({
+		x = 268,
+		y = 722,
+		width = 240,
+		height = 28,
+		rounding = 5,
+		color = { 0, 0, 0, 0.5 },
+		z = 0.9
+	}))
+
+	local judge_name_label = area:addChild("judgeName", Label({
+		x = 273,
+		y = 723,
+		height = 28,
+		alignY = "center",
+		text = judge_name,
+		font = fonts:loadFont("Regular", 20),
+		z = 0.91,
+	}))
+	judge_name_bg.width = judge_name_label:getWidth() + 10
+
 	---- GRADE ----
 	local overlay = area:addChild("backgroundOverlay", Image({
 		x = width - 200, y = 320,
@@ -525,12 +548,7 @@ function View:load(score_loaded)
 		addModIcon(assets:loadImage("selection-mode-halftime"))
 	end
 
-	local judge_name = display_info.judgeName
-	if judge_name == "Etterna J4" then
-		addModIcon(assets:loadImage("selection-mod-j4"))
-	elseif judge_name == "Etterna J7" then
-		addModIcon(assets:loadImage("selection-mod-j7"))
-	elseif judge_name:find("osu!mania") then
+	if judge_name:find("osu!mania") then
 		addModIcon(assets:loadImage("selection-mod-scorev2"))
 	end
 
@@ -596,7 +614,7 @@ function View:load(score_loaded)
 		width = 320,
 		height = 48,
 		color = { 0.46, 0.09, 0.8, 1 },
-		z = 0.95,
+		z = 0.8,
 		onClick = function ()
 			area:scrollToPosition(768 - 96, 0)
 		end
