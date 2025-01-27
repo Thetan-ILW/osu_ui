@@ -173,8 +173,9 @@ function View:transitToGameplay()
 	showcase:show(
 		self.displayInfo.chartName,
 		self.displayInfo.lengthNumber,
-		self.displayInfo.difficulty,
-		self.displayInfo.difficultyLevel,
+		self.displayInfo.lengthColor,
+		self.displayInfo.difficultyShowcase,
+		self.displayInfo.difficultyColor,
 		self.modLineString,
 		self.selectApi:getBackgroundImages()[1]
 	)

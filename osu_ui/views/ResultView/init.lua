@@ -257,7 +257,7 @@ function View:load(score_loaded)
 	area:addChild("marvelousCount", ImageValueView({
 		x = text_x2, y = row1,
 		origin = { x = 0, y = 0.5 },
-		scale = 1.1,
+		scale = 1.12,
 		files = score_font,
 		overlap = overlap,
 		z = 0.55,
@@ -277,7 +277,7 @@ function View:load(score_loaded)
 	area:addChild("perfectCount", ImageValueView({
 		x = text_x1, y = row1,
 		origin = { x = 0, y = 0.5 },
-		scale = 1.1,
+		scale = 1.12,
 		files = score_font,
 		overlap = overlap,
 		z = 0.55,
@@ -298,7 +298,7 @@ function View:load(score_loaded)
 		area:addChild("greatCount", ImageValueView({
 			x = text_x1, y = row2,
 			origin = { x = 0, y = 0.5 },
-			scale = 1.1,
+			scale = 1.12,
 			files = score_font,
 			overlap = overlap,
 			z = 0.55,
@@ -320,7 +320,7 @@ function View:load(score_loaded)
 		area:addChild("goodCount", ImageValueView({
 			x = text_x2, y = row2,
 			origin = { x = 0, y = 0.5 },
-			scale = 1.1,
+			scale = 1.12,
 			files = score_font,
 			overlap = overlap,
 			z = 0.55,
@@ -342,6 +342,7 @@ function View:load(score_loaded)
 		area:addChild("badCount", ImageValueView({
 			x = text_x1, y = row3,
 			origin = { x = 0, y = 0.5 },
+			scale = 1.12,
 			files = score_font,
 			overlap = overlap,
 			z = 0.55,
@@ -364,7 +365,7 @@ function View:load(score_loaded)
 		origin = { x = 0, y = 0.5 },
 		files = score_font,
 		overlap = overlap,
-		z = 1.1,
+		z = 1.12,
 		update = function(this)
 			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.miss)))
 		end
@@ -373,7 +374,7 @@ function View:load(score_loaded)
 	area:addChild("combo", ImageValueView({
 		x = combo_x, y = combo_y,
 		origin = { x = 0, y = 0.5 },
-		scale = 1.1,
+		scale = 1.12,
 		files = score_font,
 		overlap = overlap,
 		z = 0.55,
@@ -386,7 +387,7 @@ function View:load(score_loaded)
 		area:addChild("accuracy", ImageValueView({
 			x = acc_x , y = acc_y,
 			origin = { x = 0, y = 0.5 },
-			scale = 1.1,
+			scale = 1.12,
 			files = score_font,
 			overlap = overlap,
 			z = 0.55,
@@ -397,7 +398,6 @@ function View:load(score_loaded)
 
 		area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), z = 0.54 }))
 	end
-
 
 	area:addChild("comboText", Image({ x = 8, y = 480, image = assets:loadImage("ranking-maxcombo"), z = 0.54 }))
 

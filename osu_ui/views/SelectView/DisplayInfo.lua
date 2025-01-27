@@ -73,6 +73,18 @@ local function HSV(h, s, v)
 	return { r+m, g+m, b+m, 1 }
 end
 
+---@param x number
+---@return number
+local function convertDiffToHue(x)
+	if x <= 0.5 then
+		return 0.5 - x
+	elseif x <= 0.75 then
+		return 1 - (x - 0.5) * (1 - 0.8) / 0.25
+	else
+		return 0.8
+	end
+end
+
 function DisplayInfo:setChartInfoDefaults()
 	self.chartName = "No chart name - No chart name"
 	self.chartSource = "No chart source"
@@ -82,7 +94,9 @@ function DisplayInfo:setChartInfoDefaults()
 	self.lengthNumber = 0
 	self.length = "??:??"
 	self.difficulty = "??*"
-	self.difficultyLevel = 1
+	self.difficultyShowcase = "??"
+	self.difficultyColor = { 1, 1, 1, 1 }
+	self.lengthColor = { 1, 1, 1, 1 }
 end
 
 function DisplayInfo:setChartInfo()
@@ -114,6 +128,7 @@ function DisplayInfo:setChartInfo()
 	---@type string
 	local diff_column = self.selectApi:getSelectedDiffColumn()
 	local difficulty = "-9999"
+	local diff_hue = 0
 
 	if diff_column == "msd_diff" and chartview.msd_diff_data then
 		local minacalc = self.minacalc
@@ -122,26 +137,29 @@ function DisplayInfo:setChartInfo()
 			local overall = msd.overall
 			local pattern = minacalc.simplifySsr(minacalc.getFirstFromMsd(msd), chartview.chartdiff_inputmode)
 			difficulty = ("%0.02f %s"):format(overall, pattern)
+			diff_hue = convertDiffToHue((math.min(msd.overall, 40) / 40) / 1.3)
+			self.difficultyShowcase = difficulty
 		end
 	elseif diff_column == "enps_diff" then
 		difficulty = ("%0.02f ENPS"):format((chartview.enps_diff or 0) * rate)
+		diff_hue = convertDiffToHue(math.min(chartview.enps_diff, 35) / 35)
+		self.difficultyShowcase = difficulty
 	elseif diff_column == "osu_diff" then
 		local osu_diff = (chartview.osu_diff or 0) * rate ---@type number
 		difficulty = ("%0.02f*"):format(osu_diff)
-		if osu_diff < 3 then
-			self.difficultyLevel = 1
-		elseif osu_diff < 5 then
-			self.difficultyLevel = 2
-		else
-			self.difficultyLevel = 3
-		end
+		diff_hue = convertDiffToHue(math.min(10, chartview.osu_diff) / 10)
+		self.difficultyShowcase = ("%0.02f "):format((chartview.osu_diff or 0) * rate)
 	else
 		difficulty = ("%0.02f"):format((chartview.user_diff or 0) * rate)
+		self.difficultyShowcase = ("%0.02f"):format((chartview.user_diff or 0) * rate)
 	end
 
+	local length_hue = convertDiffToHue(math.min(chartview.duration * 0.8, 420) / 420)
 	local od = tostring(getOD(chartview))
 	local hp = tostring(chartview.osu_hp or 8)
 	self.difficulty = difficulty
+	self.difficultyColor = HSV(diff_hue, 0.7, 1)
+	self.lengthColor = HSV(length_hue, 0.7, 1)
 	self.chartInfoFirstRow = text.SongSelection_BeatmapInfo:format(self.length, bpm, objects)
 	self.chartInfoSecondRow = text.SongSelection_BeatmapInfo2:format(note_count_str, ln_count_str, "0")
 	self.chartInfoThirdRow = text.SongSelection_BeatmapInfo3:format(columns_str, od, hp, difficulty)

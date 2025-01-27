@@ -155,6 +155,7 @@ function OsuAssets:load()
 		scoreOverlap = skin_ini.Fonts.ScoreOverlap,
 	}
 
+	self.useNewLayout = true
 	self.images = {}
 	self.sounds = {}
 	self.imageFonts = {}
