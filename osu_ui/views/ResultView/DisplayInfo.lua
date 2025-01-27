@@ -11,6 +11,7 @@ local osuPP = require("osu_ui.osu_pp")
 local Format = require("sphere.views.Format")
 
 local Scoring = require("osu_ui.Scoring")
+local Msd = require("osu_ui.Msd")
 
 ---@class osu.ui.ResultDisplayInfo
 ---@operator call: osu.ui.ResultDisplayInfo
@@ -19,12 +20,10 @@ local DisplayInfo = class()
 ---@param localization Localization
 ---@param select_api game.SelectAPI
 ---@param result_api game.ResultAPI
----@param minacalc table
-function DisplayInfo:new(localization, select_api, result_api, minacalc, manip_factor)
+function DisplayInfo:new(localization, select_api, result_api, manip_factor)
 	self.text = localization.text
 	self.selectApi = select_api
 	self.resultApi = result_api
-	self.minacalc = minacalc
 	self.manipFactor = manip_factor
 	self.configs = select_api:getConfigs()
 end
@@ -56,7 +55,7 @@ function DisplayInfo:load()
 	self.normalScore = 0
 	self.keyMode = "None"
 	self.mean = 0
-	self.msds = nil ---@type {[string]: number}?
+	self.msd = nil ---@type osu.ui.Msd?
 	self.enpsDiff = 0
 	self.osuDiff = 0
 	self.lnPercent = 0
@@ -84,28 +83,26 @@ function DisplayInfo:getDifficulty()
 	local diff_column = self.selectApi:getSelectedDiffColumn()
 
 	local difficulty = (chartview.difficulty or 0) * rate
-	local patterns = chartview.level and "Lv." .. chartview.level or ""
 
 	self.difficulty = ("[%0.02f*]"):format(difficulty)
-
-	local minacalc = self.minacalc
-	local msd = minacalc.getMsdFromData(chartview.msd_diff_data, rate)
-
-	if msd then
-		self.msds = msd
-	end
 
 	self.enpsDiff = chartdiff.enps_diff
 	self.osuDiff = chartdiff.osu_diff
 	self.lnPercent = chartdiff.long_notes_count / chartdiff.notes_count
 
-	if diff_column == "msd_diff" and chartview.msd_diff_data then
-		if msd then
-			difficulty = msd.overall
-			patterns = minacalc.getFirstFromMsd(msd)
-		end
-		patterns = minacalc.simplifySsr(patterns, chartdiff.inputmode)
-		self.difficulty = ("[%0.02f %s]"):format(difficulty, patterns)
+	---@type osu.ui.Msd?
+	local msd
+
+	if chartview.msd_diff_data then
+		msd = Msd(chartview.msd_diff_data)
+		self.msd = msd
+	end
+
+	if diff_column == "msd_diff" and msd then
+		local sorted = msd:getSorted(rate)
+		local overall = msd.getFromTable("overall", sorted)
+		local pattern = msd.simplifyName(sorted[2][1], chartview.chartdiff_inputmode)
+		self.difficulty = ("[%0.02f %s]"):format(overall, pattern)
 	elseif diff_column == "enps_diff" then
 		self.difficulty = ("[%0.02f ENPS]"):format((chartdiff.enps_diff or 0))
 	elseif diff_column == "osu_diff" then
@@ -156,15 +153,6 @@ function DisplayInfo:getChartInfo()
 	self.chartSource = second_row
 	self.playInfo = text.RankingDialog_PlayedBy:format(username, time)
 end
-
-local scoring = {
-	["osu!legacy"] = OsuLegacy,
-	["osu!mania"] = OsuMania,
-	["Etterna"] = Etterna,
-	["Quaver"] = Quaver,
-	["Lunatic rave 2"] = Lr2,
-	["soundsphere"] = Soundsphere,
-}
 
 function DisplayInfo:getJudgement()
 	local score_system = self.resultApi:getScoreSystem()

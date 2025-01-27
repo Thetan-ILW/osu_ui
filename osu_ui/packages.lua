@@ -64,7 +64,7 @@ return function(game)
 
 	local pkgs = {}
 	pkgs.playerProfile = getPlayerProfile(game, package_manager)
-	pkgs.minacalc = getMinaCalc(package_manager)
+	--pkgs.minacalc = getMinaCalc(package_manager)
 
 	local manip_factor_pkg = package_manager:getPackage("manip_factor")
 	pkgs.manipFactor = manip_factor_pkg and require("manip_factor") or nil

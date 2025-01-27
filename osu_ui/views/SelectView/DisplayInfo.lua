@@ -3,6 +3,7 @@ local class = require("class")
 local Scoring = require("osu_ui.Scoring")
 local time_util = require("time_util")
 local Format = require("sphere.views.Format")
+local Msd = require("osu_ui.Msd")
 
 ---@class osu.ui.SelectViewDisplayInfo
 ---@operator call: osu.ui.SelectViewDisplayInfo
@@ -10,11 +11,9 @@ local DisplayInfo = class()
 
 ---@param localization Localization
 ---@param select_api game.SelectAPI
----@param minacalc table
-function DisplayInfo:new(localization, select_api, minacalc)
+function DisplayInfo:new(localization, select_api)
 	self.text = localization.text
 	self.selectApi = select_api
-	self.minacalc = minacalc
 end
 
 function DisplayInfo:updateInfo()
@@ -27,7 +26,6 @@ function DisplayInfo:updateInfo()
 		self:setChartInfoDefaults()
 	end
 end
-
 
 ---@param h number
 ---@param s number
@@ -79,6 +77,48 @@ function DisplayInfo:setChartInfoDefaults()
 	self.difficultyShowcase = "??"
 	self.difficultyColor = { 1, 1, 1, 1 }
 	self.lengthColor = { 1, 1, 1, 1 }
+	self.msd = {
+		first = 0,
+		second = 0,
+	}
+end
+
+---@param msd number
+---@return number
+local function msdHue(msd)
+	return convertDiffToHue((math.min(msd, 40) / 40) / 1.3)
+end
+
+---@param msd osu.ui.Msd
+---@param time_rate number
+function DisplayInfo:setMsd(msd, time_rate)
+	local sorted = msd:getSorted(time_rate)
+
+	local second = false
+	local max = sorted[1][2]
+
+	for i, v in ipairs(sorted) do
+		local pattern = v[1]
+		local num = v[2]
+		if pattern ~= "overall" then
+			if num >= max * 0.93 then
+				if not second then
+					self.msd.first = num
+					self.msd.firstPattern = pattern:upper()
+					self.msd.firstColor = HSV(msdHue(num), 1, 1)
+				else
+					self.msd.second = num
+					self.msd.secondPattern = pattern:upper()
+					self.msd.secondColor = HSV(msdHue(num), 1, 1)
+				end
+			end
+
+			if second then
+				return
+			end
+			second = true
+		end
+	end
 end
 
 function DisplayInfo:setChartInfo()
@@ -112,16 +152,30 @@ function DisplayInfo:setChartInfo()
 	local difficulty = "-9999"
 	local diff_hue = 0
 
-	if diff_column == "msd_diff" and chartview.msd_diff_data then
-		local minacalc = self.minacalc
-		local msd = minacalc.getMsdFromData(chartview.msd_diff_data, rate)
+	self.msd = {
+		first = 0,
+		second = 0,
+	}
+
+	---@type osu.ui.Msd?
+	local msd
+
+	if chartview.msd_diff_data then
+		pcall(function ()
+			msd = Msd(chartview.msd_diff_data)
+		end)
 		if msd then
-			local overall = msd.overall
-			local pattern = minacalc.simplifySsr(minacalc.getFirstFromMsd(msd), chartview.chartdiff_inputmode)
-			difficulty = ("%0.02f %s"):format(overall, pattern)
-			diff_hue = convertDiffToHue((math.min(msd.overall, 40) / 40) / 1.3)
-			self.difficultyShowcase = difficulty
+			self:setMsd(msd, rate)
 		end
+	end
+
+	if diff_column == "msd_diff" and msd then
+		local sorted = msd:getSorted(rate)
+		local overall = msd.getFromTable("overall", sorted)
+		local pattern = msd.simplifyName(sorted[2][1], chartview.chartdiff_inputmode)
+		difficulty = ("%0.02f %s"):format(overall, pattern)
+		diff_hue = msdHue(overall)
+		self.difficultyShowcase = difficulty
 	elseif diff_column == "enps_diff" then
 		difficulty = ("%0.02f ENPS"):format((chartview.enps_diff or 0) * rate)
 		diff_hue = convertDiffToHue(math.min(chartview.enps_diff, 35) / 35)

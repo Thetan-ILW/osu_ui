@@ -257,8 +257,8 @@ end
 function Component:autoSize()
 	local w, h = 0, 0
 	for _, child in pairs(self.children) do
-		w = math.max(w, child.x + child.width)
-		h = math.max(h, child.y + child.height)
+		w = math.max(w, child.x + child.width * child.scaleX)
+		h = math.max(h, child.y + child.height * child.scaleY)
 	end
 	self.width, self.height = w, h
 end

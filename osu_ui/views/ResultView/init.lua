@@ -139,7 +139,7 @@ function View:load(score_loaded)
 		return
 	end
 
-	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.minacalc, scene.ui.pkgs.manipFactor)
+	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.manipFactor)
 	display_info:load()
 
 	local assets = scene.assets
@@ -782,8 +782,8 @@ function View:load(score_loaded)
 		y = 768 + 550,
 		z = 0.02
 	}))
-	if display_info.msds then
-		self:addMsdTable(display_info.msds, display_info.keyMode)
+	if display_info.msd then
+		self:addMsdTable(display_info.msd, display_info.timeRate, display_info.keyMode)
 	end
 
 	self.beatmapInfoTable = area:addChild("beatmapInfoTable", Component({
@@ -984,17 +984,20 @@ local msd_alias = {
 	technical = "TECH"
 }
 
----@param msds {[string]: number}
+---@param msd osu.ui.Msd
+---@param time_rate number
 ---@param key_mode string
-function View:addMsdTable(msds, key_mode)
+function View:addMsdTable(msd, time_rate, key_mode)
 	local scale = self.width / 1366
 	local w = 75 * scale
-	for i, k in ipairs(msd_order) do
-		local value = msds[k]
-		local label = key_mode == "4K" and msd_4k_alias[k] or msd_alias[k]
+	local order = msd:getOrderedByPattern(time_rate)
+
+	for i, kv in ipairs(order) do
+		local value = kv[2]
+		local label = msd.simplifyName(kv[1], key_mode)
 
 		local x = ((i - 1) * (w + 2)) * scale
-		self.msdTable:addChild(k .. "Bg", Rectangle({
+		self.msdTable:addChild(label .. "Bg", Rectangle({
 			x = x, y = 20,
 			width = w,
 			height = 36,
@@ -1002,7 +1005,7 @@ function View:addMsdTable(msds, key_mode)
 			z = 0.01
 		}))
 
-		self.msdTable:addChild(k .. "label", Label({
+		self.msdTable:addChild(label .. "label", Label({
 			x = x,
 			boxWidth = w,
 			alignX = "center",
@@ -1013,7 +1016,7 @@ function View:addMsdTable(msds, key_mode)
 			z = 0.02,
 		}))
 
-		self.msdTable:addChild(k .. "value", Label({
+		self.msdTable:addChild(label .. "value", Label({
 			x = x, y = 20,
 			boxWidth = w,
 			boxHeight = 36,

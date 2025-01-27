@@ -277,7 +277,7 @@ function View:load()
 	viewport:listenForEvent(self, "event_modsChanged")
 
 	self.selectApi = scene.ui.selectApi
-	self.displayInfo = DisplayInfo(scene.localization, self.selectApi, scene.ui.pkgs.minacalc)
+	self.displayInfo = DisplayInfo(scene.localization, self.selectApi)
 	self.displayInfo:updateInfo()
 	self.notechartChangeTime = -1
 	self.modLineString = ""
