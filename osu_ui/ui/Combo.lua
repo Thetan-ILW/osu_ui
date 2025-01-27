@@ -100,6 +100,9 @@ function Combo:load()
 		end,
 		update = function(this)
 			if self.locked then
+				this.color[1] = 0.3
+				this.color[2] = 0.3
+				this.color[3] = 0.3
 				return
 			end
 			local h_color = self.hoverColor
@@ -108,7 +111,7 @@ function Combo:load()
 			this.color[3] = h_color[3] * this.hoverState.progress
 		end,
 		mouseClick = function(this)
-			if this.mouseOver then
+			if this.mouseOver and not self.locked then
 				self:processState("toggle")
 				return true
 			end

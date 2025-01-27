@@ -8,7 +8,7 @@ local math_util = require("math_util")
 ---@operator call: osu.ui.Checkbox
 ---@field label string
 ---@field toggled boolean
----@field disabled boolean
+---@field locked boolean?
 ---@field clickTime number
 ---@field getValue fun(): boolean
 ---@field clicked function
@@ -31,7 +31,7 @@ function Checkbox:load()
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage("menu-checkbox-off"),
 		alpha = 0,
-		color = self.disabled and { 0.3, 1, 1, 1 } or { 1, 1, 1, 1 }
+		color = self.locked and { 0.5, 0.5, 0.5, 1 } or { 0.92, 0.45, 0.54, 1 }
 	}))
 
 	local on_img = self:addChild("on", Image({
@@ -40,7 +40,7 @@ function Checkbox:load()
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage("menu-checkbox-on"),
 		alpha = 0,
-		color = self.disabled and { 0.3, 1, 1, 1 } or { 1, 1, 1, 1 }
+		color = self.locked and { 0.5, 0.5, 0.5, 1 } or { 0.92, 0.45, 0.54, 1 }
 	}))
 
 	local img = self.toggled and on_img or off_img
@@ -62,7 +62,7 @@ function Checkbox:load()
 end
 
 function Checkbox:mouseClick()
-	if not self.mouseOver or self.disabled then
+	if not self.mouseOver or self.locked then
 		return false
 	end
 	self.clicked()

@@ -107,6 +107,7 @@ Options_Gameplay_TimeBeforePause=Time before pause
 Options_Gameplay_TimeFormat=%0.01f segundos
 
 Options_Gameplay_Scoring=Puntuación
+Options_Gameplay_CustomizeScoreSystem=Customize score system
 Options_Gameplay_ScoreSystem=Sistema de puntuación:
 Options_Gameplay_Judgement=Juicio:
 Options_Gameplay_NearestInput=Input mas cercano

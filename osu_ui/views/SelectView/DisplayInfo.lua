@@ -32,7 +32,7 @@ end
 ---@return number
 local function getOD(chartview)
 	if chartview.osu_od then
-		return math_util.round(chartview.osu_od, 1)
+		return math_util.round(math_util.clamp(chartview.osu_od, 0, 10), 1)
 	end
 
 	---@type string

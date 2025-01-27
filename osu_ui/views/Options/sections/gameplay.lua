@@ -272,9 +272,23 @@ return function(section)
 			"Etterna",
 			"Lunatic rave 2",
 		}
+
+		group:checkbox({
+			label = text.Options_Gameplay_CustomizeScoreSystem,
+			getValue = function ()
+				return osu.customizeScoreSystem
+			end,
+			clicked = function ()
+				osu.customizeScoreSystem = not osu.customizeScoreSystem
+				group:reload()
+			end
+		})
+
+		local locked = not osu.customizeScoreSystem
 		group:combo({
 			label = text.Options_Gameplay_ScoreSystem,
 			items = score_systems,
+			locked = locked,
 			getValue = function()
 				return osu.scoreSystem
 			end,
@@ -306,6 +320,7 @@ return function(section)
 			group:combo({
 				label = text.Options_Gameplay_Judgement,
 				items = judges,
+				locked = locked,
 				getValue = function ()
 					return osu.judgement
 				end,
@@ -332,6 +347,7 @@ return function(section)
 			group:checkbox({
 				label = text.Options_Gameplay_NearestInput,
 				key = { play_context.timings, "nearest" },
+				locked = locked,
 			})
 		end
 	end)

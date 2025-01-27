@@ -42,11 +42,13 @@ function Group:load()
 	self.textBoxes = 0
 	self.sliders = 0
 
+	self.container = self:addChild("container", Component())
+
 	self.height = 0
 	self.startY = 25
 	self:buildFunction()
 
-	for _, child in pairs(self.children) do
+	for _, child in pairs(self.container.children) do
 		self.height = math.max(self.height, child.y + child.height)
 	end
 
@@ -58,7 +60,7 @@ function Group:load()
 	self:addChild("rectangle", Rectangle({
 		width = 5,
 		height = self.height,
-		color = { 1, 1, 1, 0.2 }
+		color = { 1, 1, 1, 0.2 },
 	}))
 
 	self:addChild("label", Label({
@@ -73,8 +75,8 @@ function Group:reload()
 	if self.alphaTween then
 		self.alphaTween:stop()
 	end
-	self.alpha = 0
-	self.alphaTween = flux.to(self, 0.5, { alpha = 1 }):ease("cubicout")
+	self.container.alpha = 0
+	self.alphaTween = flux.to(self.container, 0.5, { alpha = 1 }):ease("cubicout")
 end
 
 function Group:showTooltip(text)
@@ -118,7 +120,7 @@ function Group:textBox(params)
 		return
 	end
 
-	local container = self:addChild("textBoxContainer" .. self.textBoxes, Component({
+	local container = self.container:addChild("textBoxContainer" .. self.textBoxes, Component({
 		x = self.indent - 2, y = self:getCurrentY(),
 		width = self:getWidth(),
 		height = 66,
@@ -165,7 +167,7 @@ function Group:button(params)
 		error("dumbass, specify 'label', not 'text'")
 	end
 
-	local container = self:addChild("button_container" .. self.buttons, Component({
+	local container = self.container:addChild("button_container" .. self.buttons, Component({
 		x = self.indent - 5, y = self:getCurrentY(),
 		width = self:getWidth(),
 		height = 45,
@@ -201,7 +203,7 @@ function Group:label(params)
 		return
 	end
 
-	local container = self:addChild("label_container" .. self.labels, Component({
+	local container = self.container:addChild("label_container" .. self.labels, Component({
 		x = self.indent, y = self:getCurrentY(),
 		width = 388,
 		height = params.height,
@@ -242,7 +244,7 @@ function Group:label(params)
 	return label
 end
 
----@param params { label: string, items: any[], getValue: (fun(): any), setValue: fun(index: integer), format: (fun(any): string)?, key?: [ {[string]: any}, string ]  }
+---@param params { label: string, items: any[], getValue: (fun(): any), setValue: fun(index: integer), format: (fun(any): string)?, key?: [ {[string]: any}, string ], locked: boolean }
 ---@return osu.ui.Combo?
 function Group:combo(params)
 	if not self:canAdd(params.label) then
@@ -273,7 +275,7 @@ function Group:combo(params)
 		end
 	end
 
-	local container = self:addChild("combo_container" .. self.combos, Component({
+	local container = self.container:addChild("combo_container" .. self.combos, Component({
 		x = self.indent, y = self:getCurrentY(),
 		width = 388,
 		height = 37,
@@ -304,6 +306,7 @@ function Group:combo(params)
 		getValue = params.getValue,
 		setValue = params.setValue,
 		format = params.format,
+		locked = params.locked,
 		justHovered = function () end
 	}))
 	---@cast combo osu.ui.Combo
@@ -313,7 +316,7 @@ function Group:combo(params)
 	return combo
 end
 
----@param params { label: string, tooltip: string?, getValue?: (fun(): boolean), clicked: function?, key?: [ {[string]: boolean}, string ] }
+---@param params { label: string, tooltip: string?, getValue?: (fun(): boolean), clicked: function?, key?: [ {[string]: boolean}, string ], locked: boolean }
 ---@return osu.ui.Checkbox?
 function Group:checkbox(params)
 	if not self:canAdd(params.label) then
@@ -331,7 +334,7 @@ function Group:checkbox(params)
 		end
 	end
 
-	local checkbox = self:addChild("checkbox" .. self.checkboxes, Checkbox({
+	local checkbox = self.container:addChild("checkbox" .. self.checkboxes, Checkbox({
 		x = self.indent + 5,
 		y = self:getCurrentY(),
 		width = self.width,
@@ -340,6 +343,7 @@ function Group:checkbox(params)
 		label = params.label,
 		getValue = params.getValue,
 		clicked = params.clicked,
+		locked = params.locked,
 		z = self:getCurrentZ(),
 		update = function(checkbox)
 			Checkbox.update(checkbox)
@@ -372,7 +376,7 @@ function Group:slider(params)
 		end
 	end
 
-	local container = self:addChild("slider_container" .. self.sliders, Component({
+	local container = self.container:addChild("slider_container" .. self.sliders, Component({
 		x = self.indent, y = self:getCurrentY(),
 		width = self:getWidth(),
 		height = 37,
