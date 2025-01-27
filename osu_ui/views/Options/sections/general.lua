@@ -276,6 +276,16 @@ return function(section)
 		})
 
 		group:checkbox({
+			label = text.Options_Result_AlwaysDisplayScores,
+			key = { osu.result, "alwaysDisplayScores" }
+		})
+
+		group:checkbox({
+			label = text.Options_Result_DisplayJudgmentName,
+			key = { osu.result, "judgmentName" }
+		})
+
+		group:checkbox({
 			label = text.Options_Result_DisplayDifficultyAndRate,
 			key = { osu.result, "difficultyAndRate" }
 		})

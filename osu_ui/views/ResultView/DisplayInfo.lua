@@ -175,16 +175,12 @@ function DisplayInfo:getJudgement()
 	end
 
 	local configs = self.configs
+	---@type osu.ui.OsuConfig
 	local osu = configs.osu_ui
 	local ss = osu.scoreSystem
 	local judge = osu.judgement
 
-	local range_alias = scoring[ss].metadata.rangeValueAlias
-	if range_alias then
-		judge = range_alias[judge]
-	end
-
-	local judge_name = scoring[ss].metadata.name:format(judge)
+	local judge_name = Scoring.getJudgeName(ss, judge)
 
 	self.judgement = judgements[judge_name]
 	self.judgements = judgements

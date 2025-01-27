@@ -52,7 +52,8 @@ function ScoreListView:load()
 	self:addChild("noScores", Image({
 		x = self.width / 2, y = self.height / 2,
 		origin = { x = 0.5, y = 0.5 },
-		image = scene.assets:loadImage("selection-norecords")
+		image = scene.assets:loadImage("selection-norecords"),
+		alpha = 0
 	}))
 
 	local stencil = self:addChild("stencil", StencilComponent({
@@ -235,7 +236,7 @@ function ScoreListView:loadScores()
 	local prev_score_count = self.scoreCount
 	self.scoreCount = score_index - 1
 
-	if prev_score_count ~= self.scoreCount then
+	if prev_score_count ~= self.scoreCount and self.screen == "select" then
 		local no_scores_img = self.children.noScores
 		if self.noScoresTween then
 			self.noScoresTween:stop()

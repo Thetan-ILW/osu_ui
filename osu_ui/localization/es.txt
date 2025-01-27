@@ -54,6 +54,8 @@ Options_SongSelect_PreciseRates=Incremento de velocidad de la música del 0,025x
 Options_Result=PANTALLA DE RESULTADOS
 Options_Result_DisplayDifficultyAndRate=Mostrar dificultad y rate
 Options_Result_DisplayHitGraph=Mostrar gráfico de pulsaciones
+Options_Result_DisplayJudgmentName=Display judgment name
+Options_Result_AlwaysDisplayScores=Always display scores
 
 Options_Screen=Pantalla
 Options_Graphics_Renderer=Renderizado

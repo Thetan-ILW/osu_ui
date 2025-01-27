@@ -19,7 +19,6 @@ local Image = require("ui.Image")
 local Label = require("ui.Label")
 local ScrollBar = require("osu_ui.ui.ScrollBar")
 
-local Scoring = require("osu_ui.Scoring")
 local DisplayInfo = require("osu_ui.views.ResultView.DisplayInfo")
 
 local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
@@ -147,6 +146,9 @@ function View:load(score_loaded)
 	local fonts = scene.fontManager
 	local text = scene.localization.text
 	self.fonts = fonts
+
+	local configs = self.selectApi:getConfigs()
+	local osu_cfg = configs.osu_ui ---@type osu.ui.OsuConfig
 
 	local width, height = self.width, self.height
 
@@ -417,26 +419,29 @@ function View:load(score_loaded)
 	end
 
 	local judge_name = display_info.judgeName
-	local judge_name_bg = area:addChild("judgeNameBackground", Rectangle({
-		x = 268,
-		y = 722,
-		width = 240,
-		height = 28,
-		rounding = 5,
-		color = { 0, 0, 0, 0.5 },
-		z = 0.9
-	}))
 
-	local judge_name_label = area:addChild("judgeName", Label({
-		x = 273,
-		y = 723,
-		height = 28,
-		alignY = "center",
-		text = judge_name,
-		font = fonts:loadFont("Regular", 20),
-		z = 0.91,
-	}))
-	judge_name_bg.width = judge_name_label:getWidth() + 10
+	if osu_cfg.result.judgmentName then
+		local judge_name_bg = area:addChild("judgeNameBackground", Rectangle({
+			x = 268,
+			y = 722,
+			width = 240,
+			height = 28,
+			rounding = 5,
+			color = { 0, 0, 0, 0.5 },
+			z = 0.9
+		}))
+
+		local judge_name_label = area:addChild("judgeName", Label({
+			x = 273,
+			y = 723,
+			height = 28,
+			alignY = "center",
+			text = judge_name,
+			font = fonts:loadFont("Regular", 20),
+			z = 0.91,
+		}))
+		judge_name_bg.width = judge_name_label:getWidth() + 10
+	end
 
 	---- GRADE ----
 	local overlay = area:addChild("backgroundOverlay", Image({
@@ -565,6 +570,7 @@ function View:load(score_loaded)
 		width = 400,
 		height = 220,
 		scoresX = prev_scores_x,
+		alwaysVisible = osu_cfg.result.alwaysDisplayScores,
 		z = 1,
 		onOpenScore = function(id)
 			self.selectApi:setScoreIndex(id)

@@ -156,7 +156,8 @@ function View:transitIn()
 	self.selectApi:loadController()
 end
 
-function View:applyChartScoreSystem()
+---@param specific_score_system string?
+function View:applyChartScoreSystem(specific_score_system)
 	local play_context = self.selectApi:getPlayContext()
 	local chartview = self.selectApi:getChartview()
 	local configs = self.selectApi:getConfigs()
@@ -166,7 +167,7 @@ function View:applyChartScoreSystem()
 		return
 	end
 
-	local score_system = osu_cfg.scoreSystem
+	local score_system = specific_score_system or osu_cfg.scoreSystem
 	local new_judgement = 0
 
 	if Scoring.isOsu(score_system) then
@@ -175,6 +176,7 @@ function View:applyChartScoreSystem()
 		new_judgement = 4
 	end
 
+	osu_cfg.scoreSystem = score_system
 	osu_cfg.judgement = new_judgement
 	play_context.timings = Scoring.getTimings(score_system, new_judgement)
 	configs.select.judgements = Scoring.getJudgeName(score_system, new_judgement)
@@ -220,7 +222,22 @@ function View:transitToResult()
 	self.prevPlayContext = {}
 	self.selectApi:getPlayContext():save(self.prevPlayContext)
 
-	self:applyChartScoreSystem()
+	local score_source = self.selectApi:getScoreSource()
+	local score_system ---@type string?
+
+	if score_source == "local" then
+		score_system = "soundsphere"
+	elseif score_source == "osuv1"then
+		score_system = "osu!legacy"
+	elseif score_source == "osuv2" then
+		score_system = "osu!mania"
+	elseif score_source == "etterna" then
+		score_system = "Etterna"
+	elseif score_source == "quaver" then
+		score_system = "Quaver"
+	end
+
+	self:applyChartScoreSystem(score_system)
 
 	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({

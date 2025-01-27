@@ -5,6 +5,7 @@ local ScoreListView = require("osu_ui.views.ScoreListView")
 ---@operator call: osu.ui.ResultScores
 ---@field onOpenScore fun(id: integer)
 ---@field scoresX number
+---@field alwaysVisible boolean
 local ResultScores = Component + {}
 
 local scores_inactive_x = 510
@@ -29,6 +30,11 @@ function ResultScores:load()
 end
 
 function ResultScores:update(dt)
+	if self.alwaysVisible then
+		self.scoreList.x = 0
+		return
+	end
+
 	local x_destination = self.mouseOver and 0 or scores_inactive_x
 	local distance_x = x_destination - self.scoresX
 	distance_x = distance_x * math.pow(decay_factor_x_normal, dt / frame_aim_time)

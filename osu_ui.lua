@@ -32,8 +32,9 @@ local t = {
 	},
 	result = {
 		hitGraph = false,
-		pp = false,
 		difficultyAndRate = true,
+		judgmentName = true,
+		alwaysDisplayScores = false
 	},
 	gameplay = {
 		nativeRes = false,

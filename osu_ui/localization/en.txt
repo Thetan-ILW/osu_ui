@@ -54,6 +54,8 @@ Options_SongSelect_PreciseRates=Precise rates (0.025x)
 Options_Result=Result screen
 Options_Result_DisplayDifficultyAndRate=Display difficulty and rate
 Options_Result_DisplayHitGraph=Display hit graph
+Options_Result_DisplayJudgmentName=Display judgment name
+Options_Result_AlwaysDisplayScores=Always display scores
 
 Options_Screen=Screen
 Options_Graphics_Renderer=Renderer
