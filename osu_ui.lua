@@ -5,6 +5,7 @@ local t = {
 	uiVolume = 0.4,
 	scoreSystem = "soundsphere",
 	judgement = 0,
+	customizeScoreSystem = false,
 	copyScreenshotToClipboard = true,
 	dangerous = {
 		mountOsuSkins = false,
