@@ -23,6 +23,7 @@ local ChartTree = require("osu_ui.views.SelectView.ChartTree")
 local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
 
 local getModifierString = require("osu_ui.views.modifier_string")
+local Scoring = require("osu_ui.Scoring")
 
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 
@@ -155,12 +156,37 @@ function View:transitIn()
 	self.selectApi:loadController()
 end
 
+function View:applyChartScoreSystem()
+	local play_context = self.selectApi:getPlayContext()
+	local chartview = self.selectApi:getChartview()
+	local configs = self.selectApi:getConfigs()
+	local osu_cfg = configs.osu_ui ---@type osu.ui.OsuConfig
+
+	if osu_cfg.overrideJudges then
+		return
+	end
+
+	local score_system = osu_cfg.scoreSystem
+	local new_judgement = 0
+
+	if Scoring.isOsu(score_system) then
+		new_judgement = Scoring.getOD(chartview.format, chartview.osu_od)
+	elseif score_system == "Etterna" then
+		new_judgement = 4
+	end
+
+	osu_cfg.judgement = new_judgement
+	play_context.timings = Scoring.getTimings(score_system, new_judgement)
+	configs.select.judgements = Scoring.getJudgeName(score_system, new_judgement)
+end
+
 function View:transitToGameplay()
 	if not self.selectApi:notechartExists() then
 		return
 	end
 
 	self.playSound(self.gameplaySound)
+	self:applyChartScoreSystem()
 
 	local showcase = self.scene:getChild("chartShowcase")
 	if not showcase then
@@ -193,6 +219,8 @@ end
 function View:transitToResult()
 	self.prevPlayContext = {}
 	self.selectApi:getPlayContext():save(self.prevPlayContext)
+
+	self:applyChartScoreSystem()
 
 	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({

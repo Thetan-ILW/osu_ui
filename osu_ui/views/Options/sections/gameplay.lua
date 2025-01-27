@@ -274,12 +274,12 @@ return function(section)
 		}
 
 		group:checkbox({
-			label = text.Options_Gameplay_CustomizeScoreSystem,
+			label = text.Options_Gameplay_OverrideJudges,
 			getValue = function ()
-				return osu.customizeScoreSystem
+				return osu.overrideJudges
 			end,
 			clicked = function ()
-				osu.customizeScoreSystem = not osu.customizeScoreSystem
+				osu.overrideJudges = not osu.overrideJudges
 				group:reload()
 			end
 		})
@@ -288,7 +288,6 @@ return function(section)
 		group:combo({
 			label = text.Options_Gameplay_ScoreSystem,
 			items = score_systems,
-			locked = locked,
 			getValue = function()
 				return osu.scoreSystem
 			end,
@@ -331,6 +330,9 @@ return function(section)
 					updateScoringOptions(osu.scoreSystem, judge, play_context)
 				end,
 				format = function(v)
+					if locked then
+						return "Depends on the chart"
+					end
 					if osu.scoreSystem == "Lunatic rave 2" then
 						return lunatic_rave_judges[v]
 					end

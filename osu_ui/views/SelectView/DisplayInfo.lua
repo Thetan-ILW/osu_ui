@@ -1,7 +1,7 @@
 local class = require("class")
 
+local Scoring = require("osu_ui.Scoring")
 local time_util = require("time_util")
-local math_util = require("math_util")
 local Format = require("sphere.views.Format")
 
 ---@class osu.ui.SelectViewDisplayInfo
@@ -28,24 +28,6 @@ function DisplayInfo:updateInfo()
 	end
 end
 
----@param chartview table
----@return number
-local function getOD(chartview)
-	if chartview.osu_od then
-		return math_util.round(math_util.clamp(chartview.osu_od, 0, 10), 1)
-	end
-
-	---@type string
-	local format = chartview.format
-
-	if format == "sm" or format == "ssc" then
-		return 9
-	elseif format == "ojn" then
-		return 7
-	else
-		return 8
-	end
-end
 
 ---@param h number
 ---@param s number
@@ -155,7 +137,7 @@ function DisplayInfo:setChartInfo()
 	end
 
 	local length_hue = convertDiffToHue(math.min(chartview.duration * 0.8, 420) / 420)
-	local od = tostring(getOD(chartview))
+	local od = tostring(Scoring.getOD(chartview.format, chartview.osu_od))
 	local hp = tostring(chartview.osu_hp or 8)
 	self.difficulty = difficulty
 	self.difficultyColor = HSV(diff_hue, 0.7, 1)
