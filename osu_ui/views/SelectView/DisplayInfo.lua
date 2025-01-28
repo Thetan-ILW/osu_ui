@@ -177,20 +177,21 @@ function DisplayInfo:setChartInfo()
 		diff_hue = msdHue(overall)
 		self.difficultyShowcase = difficulty
 	elseif diff_column == "enps_diff" then
-		difficulty = ("%0.02f ENPS"):format((chartview.enps_diff or 0) * rate)
-		diff_hue = convertDiffToHue(math.min(chartview.enps_diff, 35) / 35)
+		local enps = (chartview.enps_diff or 0) * rate
+		difficulty = ("%0.02f ENPS"):format(enps)
+		diff_hue = convertDiffToHue(math.min(enps, 35) / 35)
 		self.difficultyShowcase = difficulty
 	elseif diff_column == "osu_diff" then
 		local osu_diff = (chartview.osu_diff or 0) * rate ---@type number
 		difficulty = ("%0.02f*"):format(osu_diff)
-		diff_hue = convertDiffToHue(math.min(10, chartview.osu_diff) / 10)
+		diff_hue = convertDiffToHue(math.min(10, osu_diff) / 10)
 		self.difficultyShowcase = ("%0.02f "):format((chartview.osu_diff or 0) * rate)
 	else
 		difficulty = ("%0.02f"):format((chartview.user_diff or 0) * rate)
 		self.difficultyShowcase = ("%0.02f"):format((chartview.user_diff or 0) * rate)
 	end
 
-	local length_hue = convertDiffToHue(math.min(chartview.duration * 0.8, 420) / 420)
+	local length_hue = convertDiffToHue(math.min(self.lengthNumber * 0.8, 420) / 420)
 	local od = tostring(Scoring.getOD(chartview.format, chartview.osu_od))
 	local hp = tostring(chartview.osu_hp or 8)
 	self.difficulty = difficulty

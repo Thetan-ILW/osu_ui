@@ -30,7 +30,6 @@ function OsuWindowList:load()
 	self.groups = self.groups == nil and false or self.groups
 	self.charts = self.charts == nil and false or self.charts
 	self.groupSets = self.groupSets == nil and false or self.groupSets
-	WindowList.load(self)
 
 	self.yPositions = {} ---@type number[]
 	self.yDestinations = {} ---@type number[]
@@ -42,7 +41,7 @@ function OsuWindowList:load()
 	self.selectedItemHole = self.selectedItemHole or 16
 	self.wrap = 1
 
-	self.height = self.itemCount * self.panelHeight
+	WindowList.load(self)
 
 	if self.itemCount == 0 then
 		return
@@ -65,15 +64,17 @@ function OsuWindowList:load()
 			table.insert(self.setIndex, 0)
 		end
 	end
+
+	self.height = self.itemCount * self.panelHeight
 end
 
 ---@return number
 function OsuWindowList:getHeight()
-	local h = self.height * self.wrap
+	local h = self.height + self.holeSize
 	if self.childList then
-		h = h + self.childList:getHeight()
+		h = h + self.childList.holeSize
 	end
-	return h
+	return h * self.wrap
 end
 
 ---@return number

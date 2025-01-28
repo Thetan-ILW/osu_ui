@@ -47,9 +47,6 @@ function ChartList:load()
 				self.selectedSetIndex = self:getSelectedItemSetIndex()
 				self.scrollToPosition(self.y + this:getSelectedItemScrollPosition())
 			end,
-			getHeight = function(this)
-				return this.height - this.panelHeight
-			end
 		})) ---@cast list osu.ui.ChartList
 		self.childList = list
 		self:createHole()
@@ -230,10 +227,7 @@ function ChartList:updatePanelInfo(panel, index)
 
 	self.selectT[index] = 0
 	self.setSelectT[index] = 0
-
-	if index > self:getSelectedItemIndex() then
-		self:updateYItemPosition(index, 1)
-	end
+	self:updateYItemPosition(index, 1)
 end
 
 return ChartList
