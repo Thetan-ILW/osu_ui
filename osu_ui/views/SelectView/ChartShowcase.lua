@@ -144,31 +144,17 @@ end
 ---@param diff_level 1 | 2 | 3
 ---@param mods string
 ---@param image love.Image
-function ChartShowcase:show(chart_name, length, difficulty, diff_level, mods, image)
+function ChartShowcase:show(chart_name, length, length_color, difficulty, diff_color, mods, image)
 	self.chartName = chart_name
 	self.length = (" %s"):format(time_util.format(length))
 	self.difficulty = difficulty
 	self.mods = mods
 	self.image = image
+	self.lengthColor = length_color
+	self.difficultyColor = diff_color
 
 	if mods == "" then
 		self.mods = "No modifiers"
-	end
-
-	if length < 120 then
-		self.lengthColor = { 0.4, 1, 0.38, 1}
-	elseif length < 240 then
-		self.lengthColor = { 1, 0.92, 0.27, 1 }
-	else
-		self.lengthColor = { 0.95, 0.13, 0.59, 1 }
-	end
-
-	if diff_level == 1 then
-		self.difficultyColor = { 0.4, 1, 0.38, 1}
-	elseif diff_level == 2 then
-		self.difficultyColor = { 1, 0.92, 0.27, 1 }
-	else
-		self.difficultyColor = { 0.95, 0.13, 0.59, 1 }
 	end
 
 	self:clearTree()

@@ -40,7 +40,14 @@ function GroupList:load()
 
 	self.childList = list
 	self:createHole()
+	self:teleportPanels()
 
+	self.selectedGroupExpanded = true
+	self.stateCounter = self.selectApi:getNotechartSetStateCounter()
+	self.loadingGroup = false
+end
+
+function GroupList:teleportPanels()
 	local selected_index = self:getSelectedItemIndex()
 	for i = 1, self.itemCount do
 		local y = self.panelHeight * (i - 1)
@@ -50,9 +57,6 @@ function GroupList:load()
 		self.yDestinations[i] = y
 	end
 
-	self.selectedGroupExpanded = true
-	self.stateCounter = self.selectApi:getNotechartSetStateCounter()
-	self.loadingGroup = false
 end
 
 function GroupList:getItems()
@@ -90,6 +94,7 @@ function GroupList:groupLoaded()
 	self.loadingGroup = false
 
 	self:expand()
+	self:createHole()
 
 	local si = self:getSelectedItemIndex()
 	local x_dest = self.xDestinations[si]
@@ -100,6 +105,10 @@ function GroupList:groupLoaded()
 			self.childList.xDestinations[i] = x_dest
 			self.childList.yDestinations[i] = 0
 		end
+	end
+
+	if self.childList.itemCount > self.childList.windowSize then
+		self:teleportPanels()
 	end
 end
 
@@ -143,21 +152,6 @@ end
 function GroupList:createHole()
 	self.holeSize = self.childList:getHeight() + 45
 	self.holeY = self.panelHeight * self:getSelectedItemIndex() + 30
-end
-
-function GroupList:getCurrentVisualIndex()
-	local visual_index = math.floor(math.max(0, self.scrollPosition - self.y) / self.panelHeight)
-
-	if self.childList and self.selectedGroupExpanded then
-		local child_index = math.ceil(self.childList.y / self.panelHeight)
-		local height = self.childList.itemCount
-		local skip = math_util.clamp(visual_index - child_index, 0, height)
-		visual_index = math.max(0, visual_index - skip)
-	end
-
-	visual_index = math.min(visual_index, self.itemCount - self.windowSize)
-
-	return visual_index
 end
 
 ---@param dt number

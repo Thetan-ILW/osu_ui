@@ -272,6 +272,19 @@ return function(section)
 			"Etterna",
 			"Lunatic rave 2",
 		}
+
+		group:checkbox({
+			label = text.Options_Gameplay_OverrideJudges,
+			getValue = function ()
+				return osu.overrideJudges
+			end,
+			clicked = function ()
+				osu.overrideJudges = not osu.overrideJudges
+				group:reload()
+			end
+		})
+
+		local locked = not osu.overrideJudges
 		group:combo({
 			label = text.Options_Gameplay_ScoreSystem,
 			items = score_systems,
@@ -306,6 +319,7 @@ return function(section)
 			group:combo({
 				label = text.Options_Gameplay_Judgement,
 				items = judges,
+				locked = locked,
 				getValue = function ()
 					return osu.judgement
 				end,
@@ -316,6 +330,9 @@ return function(section)
 					updateScoringOptions(osu.scoreSystem, judge, play_context)
 				end,
 				format = function(v)
+					if locked then
+						return "Depends on the chart"
+					end
 					if osu.scoreSystem == "Lunatic rave 2" then
 						return lunatic_rave_judges[v]
 					end
@@ -332,6 +349,7 @@ return function(section)
 			group:checkbox({
 				label = text.Options_Gameplay_NearestInput,
 				key = { play_context.timings, "nearest" },
+				locked = locked,
 			})
 		end
 	end)

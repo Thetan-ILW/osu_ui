@@ -33,6 +33,11 @@ Update_Complete=gucci!mania is up-to-date!\nYou are now running %s.
 Update_NotComplete=gucci!mania is not up-to-date. Enable automatic updates and restart the game to apply new updates.
 Options_OpenOsuFolder=Open gucci!mania folder
 
+Options_ReleaseStream=Release stream:
+Options_ReleaseStrategy_Stable=Stable
+Options_ReleaseStrategy_Beta=Beta
+Options_ReleaseStrategy_CuttingEdge=Cutting Edge (Experimental)
+
 Options_MainMenu=Main menu
 Options_Menu_DisableIntro=Disable intro
 Options_Menu_ShowTips=Menu tips
@@ -54,6 +59,8 @@ Options_SongSelect_PreciseRates=Precise rates (0.025x)
 Options_Result=Result screen
 Options_Result_DisplayDifficultyAndRate=Display difficulty and rate
 Options_Result_DisplayHitGraph=Display hit graph
+Options_Result_DisplayJudgmentName=Display judgment name
+Options_Result_AlwaysDisplayScores=Always display scores
 
 Options_Screen=Screen
 Options_Graphics_Renderer=Renderer
@@ -107,6 +114,7 @@ Options_Gameplay_TimeBeforePause=Time before pause
 Options_Gameplay_TimeFormat=%0.01f seconds
 
 Options_Gameplay_Scoring=Scoring
+Options_Gameplay_OverrideJudges=Override judgement
 Options_Gameplay_ScoreSystem=Score system:
 Options_Gameplay_Judgement=Judgement:
 Options_Gameplay_NearestInput=Nearest input

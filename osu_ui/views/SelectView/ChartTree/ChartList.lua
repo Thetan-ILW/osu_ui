@@ -37,8 +37,8 @@ function ChartList:load()
 			getSelectedItemIndex = function()
 				return self.selectApi:getNotechartSetChildrenIndex()
 			end,
-			selectItem = function(this, index)
-				if index == this:getSelectedItemIndex() then
+			selectItem = function(this, index, mouse_click)
+				if mouse_click and index == this:getSelectedItemIndex() then
 					this.startChart()
 					return
 				end
@@ -47,9 +47,6 @@ function ChartList:load()
 				self.selectedSetIndex = self:getSelectedItemSetIndex()
 				self.scrollToPosition(self.y + this:getSelectedItemScrollPosition())
 			end,
-			getHeight = function(this)
-				return this.height - this.panelHeight
-			end
 		})) ---@cast list osu.ui.ChartList
 		self.childList = list
 		self:createHole()
@@ -90,11 +87,13 @@ end
 ---@param mouse_click boolean?
 function ChartList:selectItem(index, mouse_click)
 	local prev_set_index = self.selectedSetIndex
+	local prev_index = self:getSelectedItemIndex()
+	local prev_hole_size = self.holeSize
 
 	if self.groupSets then
-		self.xDestinations[self:getSelectedItemIndex()] = self.childList.xDestinations[1]
+		self.xDestinations[prev_index] = self.childList.xDestinations[1]
 	else
-		if mouse_click and index == self:getSelectedItemIndex() then
+		if mouse_click and index == prev_index then
 			self.startChart()
 			return
 		end
@@ -124,6 +123,12 @@ function ChartList:selectItem(index, mouse_click)
 				self.childList.xDestinations[i] = x_dest
 				self.childList.yDestinations[i] = 0
 			end
+		end
+	end
+
+	if self.scrollPosition - 500 > self.yDestinations[prev_index] then
+		for i = prev_index, math.min(self.itemCount, prev_index + self.windowSize * 2) do
+			self.yDestinations[i] = self.yDestinations[i] - prev_hole_size
 		end
 	end
 
@@ -230,10 +235,7 @@ function ChartList:updatePanelInfo(panel, index)
 
 	self.selectT[index] = 0
 	self.setSelectT[index] = 0
-
-	if index > self:getSelectedItemIndex() then
-		self:updateYItemPosition(index, 1)
-	end
+	self:updateYItemPosition(index, 1)
 end
 
 return ChartList

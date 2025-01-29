@@ -5,6 +5,7 @@ local t = {
 	uiVolume = 0.4,
 	scoreSystem = "soundsphere",
 	judgement = 0,
+	overrideJudges = false,
 	copyScreenshotToClipboard = true,
 	dangerous = {
 		mountOsuSkins = false,
@@ -31,8 +32,9 @@ local t = {
 	},
 	result = {
 		hitGraph = false,
-		pp = false,
 		difficultyAndRate = true,
+		judgmentName = true,
+		alwaysDisplayScores = false
 	},
 	gameplay = {
 		nativeRes = false,
@@ -44,6 +46,10 @@ local t = {
 		blur = true,
 		blurQuality = 0.5,
 	},
+	gucci = {
+		branch = "stable",
+		disableUpdates = false
+	}
 }
 
 return t

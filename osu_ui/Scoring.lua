@@ -1,3 +1,11 @@
+local osuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
+local osuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScoring")
+local etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
+local lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
+local timings = require("sphere.models.RhythmModel.ScoreEngine.timings")
+
+local math_util = require("math_util")
+
 local Scoring = {}
 
 function Scoring.getGrade(scoreSystemName, accuracy)
@@ -84,6 +92,81 @@ function Scoring.convertGradeToOsu(grade)
 	end
 
 	return grade
+end
+
+---@param format string
+---@param osu_od number?
+---@return number
+function Scoring.getOD(format, osu_od)
+	if osu_od then
+		return math_util.round(math_util.clamp(osu_od, 0, 10), 1)
+	end
+
+	if format == "sm" or format == "ssc" then
+		return 9
+	elseif format == "ojn" then
+		return 7
+	else
+		return 8
+	end
+end
+
+---@param score_system string
+---@param judgement number
+---@return table
+function Scoring.getTimings(score_system, judgement)
+	if score_system == "soundsphere" then
+		return timings.soundsphere
+	elseif score_system == "osu!legacy" then
+		return timings.osuLegacy(judgement)
+	elseif score_system == "osu!mania" then
+		return timings.osuMania(judgement)
+	elseif score_system == "Quaver" then
+		return timings.quaver
+	elseif score_system == "Etterna" then
+		return timings.etterna
+	elseif score_system == "Lunatic rave 2" then
+		return timings.lr2
+	end
+
+	error("Not implemented")
+end
+
+---@param score_system string
+---@return boolean
+function Scoring.isOsu(score_system)
+	if score_system == "osu!legacy" then
+		return true
+	elseif score_system == "osu!mania" then
+		return true
+	end
+	return false
+end
+
+local judge_format = {
+	["osu!mania"] = osuMania.metadata.name,
+	["osu!legacy"] = osuLegacy.metadata.name,
+	["Etterna"] = etterna.metadata.name,
+	["Lunatic rave 2"] = lr2.metadata.name,
+}
+
+local lunatic_rave_judges = {
+	[0] = "Easy",
+	[1] = "Normal",
+	[2] = "Hard",
+	[3] = "Very hard",
+}
+
+---@param score_system string
+---@param judgement number
+function Scoring.getJudgeName(score_system, judgement)
+	if score_system == "Lunatic rave 2" then
+		judgement = math_util.clamp(judgement, 0, 3)
+		return judge_format[score_system]:format(lunatic_rave_judges[judgement])
+	elseif judge_format[score_system] then
+		return judge_format[score_system]:format(judgement)
+	end
+	return score_system
 end
 
 Scoring.counterColors = {

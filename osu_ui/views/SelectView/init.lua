@@ -13,7 +13,7 @@ local Label = require("ui.Label")
 local Combo = require("osu_ui.ui.Combo")
 local TabButton = require("osu_ui.ui.TabButton")
 local PlayerInfoView = require("osu_ui.views.PlayerInfoView")
-local ScoreListView = require("osu_ui.views.SelectView.ScoreListView")
+local ScoreListView = require("osu_ui.views.ScoreListView")
 local ScrollBar = require("osu_ui.ui.ScrollBar")
 local Rectangle = require("ui.Rectangle")
 local ChartShowcase = require("osu_ui.views.SelectView.ChartShowcase")
@@ -23,6 +23,7 @@ local ChartTree = require("osu_ui.views.SelectView.ChartTree")
 local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
 
 local getModifierString = require("osu_ui.views.modifier_string")
+local Scoring = require("osu_ui.Scoring")
 
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 
@@ -153,6 +154,34 @@ function View:transitIn()
 
 	self.scene:showOverlay(0.4, self:getBackgroundDim())
 	self.selectApi:loadController()
+
+	self.playerInfo:reload()
+end
+
+---@param specific_score_system string?
+function View:applyChartScoreSystem(specific_score_system)
+	local play_context = self.selectApi:getPlayContext()
+	local chartview = self.selectApi:getChartview()
+	local configs = self.selectApi:getConfigs()
+	local osu_cfg = configs.osu_ui ---@type osu.ui.OsuConfig
+
+	if osu_cfg.overrideJudges then
+		return
+	end
+
+	local score_system = specific_score_system or osu_cfg.scoreSystem
+	local new_judgement = 0
+
+	if Scoring.isOsu(score_system) then
+		new_judgement = Scoring.getOD(chartview.format, chartview.osu_od)
+	elseif score_system == "Etterna" then
+		new_judgement = 4
+	end
+
+	osu_cfg.scoreSystem = score_system
+	osu_cfg.judgement = new_judgement
+	play_context.timings = Scoring.getTimings(score_system, new_judgement)
+	configs.select.judgements = Scoring.getJudgeName(score_system, new_judgement)
 end
 
 function View:transitToGameplay()
@@ -161,6 +190,7 @@ function View:transitToGameplay()
 	end
 
 	self.playSound(self.gameplaySound)
+	self:applyChartScoreSystem()
 
 	local showcase = self.scene:getChild("chartShowcase")
 	if not showcase then
@@ -173,8 +203,9 @@ function View:transitToGameplay()
 	showcase:show(
 		self.displayInfo.chartName,
 		self.displayInfo.lengthNumber,
-		self.displayInfo.difficulty,
-		self.displayInfo.difficultyLevel,
+		self.displayInfo.lengthColor,
+		self.displayInfo.difficultyShowcase,
+		self.displayInfo.difficultyColor,
 		self.modLineString,
 		self.selectApi:getBackgroundImages()[1]
 	)
@@ -192,6 +223,23 @@ end
 function View:transitToResult()
 	self.prevPlayContext = {}
 	self.selectApi:getPlayContext():save(self.prevPlayContext)
+
+	local score_source = self.selectApi:getScoreSource()
+	local score_system ---@type string?
+
+	if score_source == "local" then
+		score_system = "soundsphere"
+	elseif score_source == "osuv1"then
+		score_system = "osu!legacy"
+	elseif score_source == "osuv2" then
+		score_system = "osu!mania"
+	elseif score_source == "etterna" then
+		score_system = "Etterna"
+	elseif score_source == "quaver" then
+		score_system = "Quaver"
+	end
+
+	self:applyChartScoreSystem(score_system)
 
 	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
@@ -231,7 +279,7 @@ function View:load()
 	viewport:listenForEvent(self, "event_modsChanged")
 
 	self.selectApi = scene.ui.selectApi
-	self.displayInfo = DisplayInfo(scene.localization, self.selectApi, scene.ui.pkgs.minacalc)
+	self.displayInfo = DisplayInfo(scene.localization, self.selectApi)
 	self.displayInfo:updateInfo()
 	self.notechartChangeTime = -1
 	self.modLineString = ""
@@ -708,27 +756,28 @@ function View:load()
 		end
 	}))
 
-	bottom:addChild("playerInfo", PlayerInfoView({
+	self.playerInfo = bottom:addChild("playerInfo", PlayerInfoView({
 		x = 624, y = height + 4,
 		origin = { x = 0, y = 1 },
 		z = 0.29,
 		onClick = function () end
 	}))
 
+	local is_gucci = scene.ui.isGucci
+	local logo_img = is_gucci and assets:loadImage("menu-gucci-logo") or assets:loadImage("menu-sphere-logo")
 	bottom:addChild("osuLogo", Image({
 		x = width - 64, y = height - 49,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.4,
-		image = assets:loadImage("menu-osu-logo"),
+		image = logo_img,
 		z = 0.1
 	}))
-
 
 	bottom:addChild("osuLogo2", Image({
 		x = width - 64, y = height - 49,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.4,
-		image = assets:loadImage("menu-osu-logo"),
+		image = logo_img,
 		alpha = 0.3,
 		z = 0.11,
 		update = function(this)
@@ -753,11 +802,18 @@ function View:load()
 	}))
 	self:updateModsLine()
 
+	local open_score_sound = assets:loadAudio("menuhit")
 	local score_list = center:addChild("scoreList", ScoreListView({
 		x = 5, y = 145,
 		width = 385,
 		height = 430,
-		z = 0.1
+		z = 0.1,
+		screen = "select",
+		onOpenScore = function(id)
+			self.selectApi:setScoreIndex(id)
+			self.playSound(open_score_sound)
+			self:transitToResult()
+		end
 	}))
 	---@cast score_list osu.ui.ScoreListView
 

@@ -24,20 +24,25 @@ return function(section)
 	end)
 
 	section:group(text.Options_Audio_Offset, function(group)
+		local formatMs = function (v)
+			return ("%ims"):format(v * 1000)
+		end
 		group:slider({
 			label = text.Options_Input_InputOffset,
-			min = -300,
-			max = 300,
-			step = 1,
-			key = { gp.offset, "input" }
+			min = -0.3,
+			max = 0.3,
+			step = 0.001,
+			key = { gp.offset, "input" },
+			format = formatMs
 		})
 
 		group:slider({
 			label = text.Options_Input_VisualOffset,
-			min = -300,
-			max = 300,
-			step = 1,
-			key = { gp.offset, "visual" }
+			min = -0.3,
+			max = 0.3,
+			step = 0.001,
+			key = { gp.offset, "visual" },
+			format = formatMs
 		})
 
 		group:checkbox({

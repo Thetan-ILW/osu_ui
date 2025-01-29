@@ -20,6 +20,7 @@ local flux = require("flux")
 ---@field borderColor number[]
 ---@field cellHeight number
 ---@field minCellHeight number
+---@field locked boolean?
 ---@field setValue fun(index: integer)
 ---@field getValue fun(): any
 ---@field format? fun(any): string
@@ -98,13 +99,19 @@ function Combo:load()
 			this.mouseOver = false
 		end,
 		update = function(this)
+			if self.locked then
+				this.color[1] = 0.3
+				this.color[2] = 0.3
+				this.color[3] = 0.3
+				return
+			end
 			local h_color = self.hoverColor
 			this.color[1] = h_color[1] * this.hoverState.progress
 			this.color[2] = h_color[2] * this.hoverState.progress
 			this.color[3] = h_color[3] * this.hoverState.progress
 		end,
 		mouseClick = function(this)
-			if this.mouseOver then
+			if this.mouseOver and not self.locked then
 				self:processState("toggle")
 				return true
 			end

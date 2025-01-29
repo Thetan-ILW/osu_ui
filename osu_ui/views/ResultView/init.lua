@@ -11,6 +11,7 @@ local BackButton = require("osu_ui.ui.BackButton")
 local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
 local PlayerInfo = require("osu_ui.views.PlayerInfoView")
+local ResultScores = require("osu_ui.views.ResultView.Scores")
 
 local thread = require("thread")
 local Rectangle = require("ui.Rectangle")
@@ -101,8 +102,6 @@ function View:transitToGameplay()
 
 		flux.to(self, 0.5, { y = 100 }):ease("quadout")
 	end)
-
-
 end
 
 function View:keyPressed(event)
@@ -140,13 +139,16 @@ function View:load(score_loaded)
 		return
 	end
 
-	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.minacalc, scene.ui.pkgs.manipFactor)
+	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.manipFactor)
 	display_info:load()
 
 	local assets = scene.assets
 	local fonts = scene.fontManager
 	local text = scene.localization.text
 	self.fonts = fonts
+
+	local configs = self.selectApi:getConfigs()
+	local osu_cfg = configs.osu_ui ---@type osu.ui.OsuConfig
 
 	local width, height = self.width, self.height
 
@@ -163,7 +165,7 @@ function View:load(score_loaded)
 		width = 10,
 		container = area,
 		windowHeight = 768 - 96 - 6,
-		z = 1,
+		z = 0.98,
 	}))
 
 	---- HEADER ----
@@ -257,7 +259,7 @@ function View:load(score_loaded)
 	area:addChild("marvelousCount", ImageValueView({
 		x = text_x2, y = row1,
 		origin = { x = 0, y = 0.5 },
-		scale = 1.1,
+		scale = 1.12,
 		files = score_font,
 		overlap = overlap,
 		z = 0.55,
@@ -277,7 +279,7 @@ function View:load(score_loaded)
 	area:addChild("perfectCount", ImageValueView({
 		x = text_x1, y = row1,
 		origin = { x = 0, y = 0.5 },
-		scale = 1.1,
+		scale = 1.12,
 		files = score_font,
 		overlap = overlap,
 		z = 0.55,
@@ -298,7 +300,7 @@ function View:load(score_loaded)
 		area:addChild("greatCount", ImageValueView({
 			x = text_x1, y = row2,
 			origin = { x = 0, y = 0.5 },
-			scale = 1.1,
+			scale = 1.12,
 			files = score_font,
 			overlap = overlap,
 			z = 0.55,
@@ -320,7 +322,7 @@ function View:load(score_loaded)
 		area:addChild("goodCount", ImageValueView({
 			x = text_x2, y = row2,
 			origin = { x = 0, y = 0.5 },
-			scale = 1.1,
+			scale = 1.12,
 			files = score_font,
 			overlap = overlap,
 			z = 0.55,
@@ -342,6 +344,7 @@ function View:load(score_loaded)
 		area:addChild("badCount", ImageValueView({
 			x = text_x1, y = row3,
 			origin = { x = 0, y = 0.5 },
+			scale = 1.12,
 			files = score_font,
 			overlap = overlap,
 			z = 0.55,
@@ -364,7 +367,7 @@ function View:load(score_loaded)
 		origin = { x = 0, y = 0.5 },
 		files = score_font,
 		overlap = overlap,
-		z = 1.1,
+		z = 1.12,
 		update = function(this)
 			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.miss)))
 		end
@@ -373,7 +376,7 @@ function View:load(score_loaded)
 	area:addChild("combo", ImageValueView({
 		x = combo_x, y = combo_y,
 		origin = { x = 0, y = 0.5 },
-		scale = 1.1,
+		scale = 1.12,
 		files = score_font,
 		overlap = overlap,
 		z = 0.55,
@@ -386,7 +389,7 @@ function View:load(score_loaded)
 		area:addChild("accuracy", ImageValueView({
 			x = acc_x , y = acc_y,
 			origin = { x = 0, y = 0.5 },
-			scale = 1.1,
+			scale = 1.12,
 			files = score_font,
 			overlap = overlap,
 			z = 0.55,
@@ -397,7 +400,6 @@ function View:load(score_loaded)
 
 		area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), z = 0.54 }))
 	end
-
 
 	area:addChild("comboText", Image({ x = 8, y = 480, image = assets:loadImage("ranking-maxcombo"), z = 0.54 }))
 
@@ -414,6 +416,31 @@ function View:load(score_loaded)
 			hpScoreSystem = score_system.hp,
 			z = 0.55,
 		}))
+	end
+
+	local judge_name = display_info.judgeName
+
+	if osu_cfg.result.judgmentName then
+		local judge_name_bg = area:addChild("judgeNameBackground", Rectangle({
+			x = 268,
+			y = 722,
+			width = 240,
+			height = 28,
+			rounding = 5,
+			color = { 0, 0, 0, 0.5 },
+			z = 0.9
+		}))
+
+		local judge_name_label = area:addChild("judgeName", Label({
+			x = 273,
+			y = 723,
+			height = 28,
+			alignY = "center",
+			text = judge_name,
+			font = fonts:loadFont("Regular", 20),
+			z = 0.91,
+		}))
+		judge_name_bg.width = judge_name_label:getWidth() + 10
 	end
 
 	---- GRADE ----
@@ -526,16 +553,44 @@ function View:load(score_loaded)
 		addModIcon(assets:loadImage("selection-mode-halftime"))
 	end
 
-	local judge_name = display_info.judgeName
-	if judge_name == "Etterna J4" then
-		addModIcon(assets:loadImage("selection-mod-j4"))
-	elseif judge_name == "Etterna J7" then
-		addModIcon(assets:loadImage("selection-mod-j7"))
-	elseif judge_name:find("osu!mania") then
+	if judge_name:find("osu!mania") then
 		addModIcon(assets:loadImage("selection-mod-scorev2"))
 	end
 
 	self.modIcons:autoSize()
+
+	---@type number?
+	local prev_scores_x
+	if self.scores then
+		prev_scores_x = self.scores.scoresX
+	end
+	local scores = self:addChild("scores", ResultScores({
+		x = width, y = 145,
+		origin = { x = 1 },
+		width = 400,
+		height = 220,
+		scoresX = prev_scores_x,
+		alwaysVisible = osu_cfg.result.alwaysDisplayScores,
+		z = 1,
+		onOpenScore = function(id)
+			self.selectApi:setScoreIndex(id)
+			self:receive({ name = "loseFocus" })
+			self.handleEvents = false
+			scene:hideOverlay(0.2, 0.5)
+			flux.to(self, 0.3, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
+				local f = thread.coro(function()
+					self.resultApi:replayNotechartAsync("result")
+					self:reload()
+					self.handleEvents = true
+					scene:showOverlay(0.2, 0.35)
+					flux.to(self, 0.3, { alpha = 1}):ease("cubicout")
+				end)
+				f()
+			end)
+		end
+	})) ---@cast scores osu.ui.ResultScores
+	self.scores = scores
+
 
 	---- FAKE BUTTONS ----
 	self:addChild("showChat", ImageButton({
@@ -565,7 +620,7 @@ function View:load(score_loaded)
 		width = 320,
 		height = 48,
 		color = { 0.46, 0.09, 0.8, 1 },
-		z = 0.95,
+		z = 0.8,
 		onClick = function ()
 			area:scrollToPosition(768 - 96, 0)
 		end
@@ -727,8 +782,8 @@ function View:load(score_loaded)
 		y = 768 + 550,
 		z = 0.02
 	}))
-	if display_info.msds then
-		self:addMsdTable(display_info.msds, display_info.keyMode)
+	if display_info.msd then
+		self:addMsdTable(display_info.msd, display_info.timeRate, display_info.keyMode)
 	end
 
 	self.beatmapInfoTable = area:addChild("beatmapInfoTable", Component({
@@ -929,17 +984,20 @@ local msd_alias = {
 	technical = "TECH"
 }
 
----@param msds {[string]: number}
+---@param msd osu.ui.Msd
+---@param time_rate number
 ---@param key_mode string
-function View:addMsdTable(msds, key_mode)
+function View:addMsdTable(msd, time_rate, key_mode)
 	local scale = self.width / 1366
 	local w = 75 * scale
-	for i, k in ipairs(msd_order) do
-		local value = msds[k]
-		local label = key_mode == "4K" and msd_4k_alias[k] or msd_alias[k]
+	local order = msd:getOrderedByPattern(time_rate)
+
+	for i, kv in ipairs(order) do
+		local value = kv[2]
+		local label = msd.simplifyName(kv[1], key_mode)
 
 		local x = ((i - 1) * (w + 2)) * scale
-		self.msdTable:addChild(k .. "Bg", Rectangle({
+		self.msdTable:addChild(label .. "Bg", Rectangle({
 			x = x, y = 20,
 			width = w,
 			height = 36,
@@ -947,7 +1005,7 @@ function View:addMsdTable(msds, key_mode)
 			z = 0.01
 		}))
 
-		self.msdTable:addChild(k .. "label", Label({
+		self.msdTable:addChild(label .. "label", Label({
 			x = x,
 			boxWidth = w,
 			alignX = "center",
@@ -958,7 +1016,7 @@ function View:addMsdTable(msds, key_mode)
 			z = 0.02,
 		}))
 
-		self.msdTable:addChild(k .. "value", Label({
+		self.msdTable:addChild(label .. "value", Label({
 			x = x, y = 20,
 			boxWidth = w,
 			boxHeight = 36,

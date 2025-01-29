@@ -94,7 +94,9 @@ function Slider:keyPressed(event)
 		return false
 	end
 
-	self.setValue(math_util.clamp(self.getValue() + direction * self.step, self.min, self.max))
+	local value = math_util.clamp(self.getValue() + direction * self.step, self.min, self.max)
+	self.setValue(value)
+	self.target = value
 	self.playSound(self.sliderBar, 0.065)
 	return true
 end

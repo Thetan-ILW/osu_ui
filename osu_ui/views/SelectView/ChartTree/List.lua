@@ -42,11 +42,12 @@ function WindowList:load()
 
 	self.panelContainer = panel_container
 	self.panels = panel_container.children
+	self.height = self:getHeight()
 end
 
 ---@return number
 function WindowList:getHeight()
-	return #self:getItems()	* self.panelHeight + self.holeSize
+	return self.itemCount * self.panelHeight + self.holeSize
 end
 
 ---@return {[string]: any}
@@ -69,8 +70,8 @@ function WindowList:getCurrentVisualIndex()
 	local visual_index = math.floor(math.max(0, self.scrollPosition - self.y) / self.panelHeight)
 
 	if self.childList then
-		local child_index = self:getSelectedItemIndex()--math.ceil(self.childList.y / self.panelHeight)
-		local height = self.childList.itemCount
+		local child_index = self:getSelectedItemIndex()
+		local height = math.floor(self.childList:getHeight() / self.panelHeight)
 		local skip = math_util.clamp(visual_index - child_index, 0, height)
 		visual_index = math.max(0, visual_index - skip)
 	end
@@ -87,7 +88,6 @@ function WindowList:update(dt)
 	end
 
 	self.relativeScrollPosition = self.scrollPosition - self.y
-	self.height = self.itemCount * self.panelHeight
 
 	self.hoverIndex = self.NOT_HOVERING
 	for _, v in pairs(self.panels) do
