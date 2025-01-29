@@ -33,6 +33,11 @@ Update_Complete=gucci!mania is up-to-date!\nYou are now running %s.
 Update_NotComplete=gucci!mania is not up-to-date. Enable automatic updates and restart the game to apply new updates.
 Options_OpenOsuFolder=Open gucci!mania folder
 
+Options_ReleaseStream=Release stream:
+Options_ReleaseStrategy_Stable=Stable
+Options_ReleaseStrategy_Beta=Beta
+Options_ReleaseStrategy_CuttingEdge=Cutting Edge (Experimental)
+
 Options_MainMenu=Main menu
 Options_Menu_DisableIntro=Disable intro
 Options_Menu_ShowTips=Menu tips

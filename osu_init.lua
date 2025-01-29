@@ -16,6 +16,7 @@ local packages = require("osu_ui.packages")
 local other_games = require("osu_ui.other_games")
 local physfs = require("physfs")
 local path_util = require("path_util")
+local delay = require("delay")
 
 ---@class osu.ui.UserInterface
 ---@operator call: osu.ui.UserInterface
@@ -38,6 +39,14 @@ function UserInterface:new(game, mount_path)
 	self.resultApi = ResultAPI(game)
 	self.locationsApi = LocationsAPI(game)
 
+	GUCCI_MANIA = true
+	self.isGucci = GUCCI_MANIA ~= nil
+
+	if self.isGucci then
+		local GucciUpdater = require("gucci_updater")
+		self.updater = GucciUpdater(self.chatModel:getChannel("#general"))
+	end
+
 	if love.system.getOS() == "Windows" then
 		other_games:findOtherGames()
 	end
@@ -52,6 +61,7 @@ function UserInterface:new(game, mount_path)
 	end
 
 	require("ui.Component_test")
+	self.update = self.afterLoad
 end
 
 function UserInterface:load()
@@ -70,19 +80,40 @@ function UserInterface:load()
 		targetHeight = 768,
 	})
 	self.viewport:load()
-	local scene = self.viewport:addChild("scene", Scene({ game = self.game, ui = self })) ---@cast scene osu.ui.Scene
-	self.scene = scene
 
 	love.mouse.setVisible(false)
 	love.keyboard.setKeyRepeat(true)
+
 end
 
 function UserInterface:unload()
 	self.selectApi:unloadController()
 end
 
+function UserInterface:checkForUpdates()
+	---@type osu.ui.OsuConfig
+	local osu_cfg = self.selectApi:getConfigs().osu_ui
+	if not osu_cfg.gucci.disableUpdates then
+		self.updater:checkForUpdates(osu_cfg.gucci.branch)
+	else
+		print("Updates are disabled")
+	end
+end
+
+function UserInterface:afterLoad(dt)
+	local scene = self.viewport:addChild("scene", Scene({ game = self.game, ui = self })) ---@cast scene osu.ui.Scene
+	self.scene = scene
+
+	if self.isGucci then
+		delay.debounce(self, "checkingForUpdates", 3, self.checkForUpdates, self)
+	end
+
+	self.update = self.updateLoop
+	self:update(dt)
+end
+
 ---@param dt number
-function UserInterface:update(dt)
+function UserInterface:updateLoop(dt)
 	self.viewport:updateTree(dt)
 end
 
@@ -118,7 +149,7 @@ function UserInterface:mountOsuSkins(unmount)
 
 	if unmount and osu_skins_mounted then
 		local success, err = physfs.unmount(skins_path)
-		
+
 		if not success then
 			print(err)
 			return

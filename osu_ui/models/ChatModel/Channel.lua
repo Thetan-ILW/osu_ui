@@ -13,6 +13,7 @@ function Channel:new(name)
 	self.name = name
 	self.messages = {}
 	self.formattedMessages = {}
+	self.stateCounter = 0
 end
 
 ---@param message osu.ui.ChatMessage
@@ -21,6 +22,7 @@ function Channel:addMessage(message)
 	message.messageColor = message.messageColor or { 1, 1, 1, 1 }
 	table.insert(self.messages, message)
 	self:formatAndAdd(message)
+	self.stateCounter = self.stateCounter + 1
 end
 
 function Channel:formatAndAdd(message)

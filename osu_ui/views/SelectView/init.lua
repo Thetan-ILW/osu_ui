@@ -154,6 +154,8 @@ function View:transitIn()
 
 	self.scene:showOverlay(0.4, self:getBackgroundDim())
 	self.selectApi:loadController()
+
+	self.playerInfo:reload()
 end
 
 ---@param specific_score_system string?
@@ -754,27 +756,28 @@ function View:load()
 		end
 	}))
 
-	bottom:addChild("playerInfo", PlayerInfoView({
+	self.playerInfo = bottom:addChild("playerInfo", PlayerInfoView({
 		x = 624, y = height + 4,
 		origin = { x = 0, y = 1 },
 		z = 0.29,
 		onClick = function () end
 	}))
 
+	local is_gucci = scene.ui.isGucci
+	local logo_img = is_gucci and assets:loadImage("menu-gucci-logo") or assets:loadImage("menu-sphere-logo")
 	bottom:addChild("osuLogo", Image({
 		x = width - 64, y = height - 49,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.4,
-		image = assets:loadImage("menu-osu-logo"),
+		image = logo_img,
 		z = 0.1
 	}))
-
 
 	bottom:addChild("osuLogo2", Image({
 		x = width - 64, y = height - 49,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.4,
-		image = assets:loadImage("menu-osu-logo"),
+		image = logo_img,
 		alpha = 0.3,
 		z = 0.11,
 		update = function(this)

@@ -104,31 +104,82 @@ return function(section)
 		})
 	end)
 
-	section:group(text.Options_Updates, function(group)
-		group:checkbox({
-			label = text.Options_Updates_AutoUpdate,
-			key = { m, "autoUpdate" }
-		})
+	if not scene.ui.isGucci then
+		section:group(text.Options_Updates, function(group)
+			group:checkbox({
+				label = text.Options_Updates_AutoUpdate,
+				key = { m, "autoUpdate" }
+			})
 
-		if game_updated == nil then
-			game_updated = m.autoUpdate
-		end
-
-		local git = love.filesystem.getInfo(".git")
-		local version_label = git and text.Update_Git or (game_updated and text.Update_Complete:format(version.commit:sub(1, 6)) or text.Update_NotComplete)
-
-		group:label({
-			label = version_label,
-			alignX = "left"
-		})
-
-		group:button({
-			label = text.Options_OpenOsuFolder,
-			onClick = function()
-				love.system.openURL(love.filesystem.getSource())
+			if game_updated == nil then
+				game_updated = m.autoUpdate
 			end
-		})
-	end)
+
+			local git = love.filesystem.getInfo(".git")
+			local version_label = git and text.Update_Git or (game_updated and text.Update_Complete:format(version.commit:sub(1, 6)) or text.Update_NotComplete)
+
+			group:label({
+				label = version_label,
+				alignX = "left",
+			})
+
+			group:button({
+				label = text.Options_OpenOsuFolder,
+				onClick = function()
+					love.system.openURL(love.filesystem.getSource())
+				end
+			})
+		end)
+	else
+		section:group(text.Options_Updates, function(group)
+			local updater = scene.ui.updater
+
+			local label = group:label({
+				label = updater.status,
+				alignX = "left",
+				height = 100,
+			})
+			---@param this ui.Label
+			function label.update(this)
+				---@type string
+				local status = updater.status
+				if this.text ~= status then
+					this:replaceText(updater.status)
+				end
+			end
+
+			group:combo({
+				label = text.Options_ReleaseStream,
+				items = updater.branches,
+				getValue = function ()
+					return osu.gucci.branch
+				end,
+				setValue = function(index)
+					osu.gucci.branch = updater.branches[index]
+					if label then
+						label:replaceText("Restart the game")
+					end
+					scene.notification:show("Restart the game.")
+				end,
+				format = function(v)
+					if v == "stable" then
+						return text.Options_ReleaseStrategy_Stable
+					elseif v == "develop" then
+						return text.Options_ReleaseStrategy_CuttingEdge
+					end
+					return v
+				end
+			})
+
+			group:button({
+				label = text.Options_OpenOsuFolder,
+				onClick = function()
+					love.system.openURL(love.filesystem.getSource())
+				end
+			})
+		end)
+	end
+
 
 	section:group(text.Options_OtherGames, function(group)
 		local other_games = scene.ui.otherGames

@@ -211,6 +211,7 @@ function View:load()
 	local text = scene.localization.text
 	self.scene = scene
 	self.selectApi = scene.ui.selectApi
+	local is_gucci = scene.ui.isGucci
 
 	local music_fft = scene.musicFft
 	self.musicFft = music_fft
@@ -329,11 +330,12 @@ function View:load()
 		color = { 0, 0, 0, 0.4 }
 	}))
 
+	local copyright_img = is_gucci and assets:loadImage("menu-gucci-copyright") or assets:loadImage("menu-copyright")
 	self:addChild("copyright", Image({
 		x = 4,
 		y = self.height - 3,
 		origin = { y = 1 },
-		image = assets:loadImage("menu-copyright"),
+		image = copyright_img,
 		z = 0.6,
 		hoverState = HoverState("elasticout", 1),
 		---@param this ui.Image
@@ -440,7 +442,7 @@ function View:load()
 
 	local logo_x = self.width / 2
 	local logo_y = self.height / 2
-	local logo_img = assets:loadImage("menu-osu-logo")
+	local logo_img = is_gucci and assets:loadImage("menu-gucci-logo") or assets:loadImage("menu-sphere-logo")
 	local logo_w, logo_h = logo_img:getDimensions()
 	self.logo = self:addChild("logo", Image({
 		x = logo_x, y = logo_y,
@@ -556,7 +558,7 @@ function View:load()
 	self.firstMenu:addChild("options", LogoButton({
 		x = 0, y = 257,
 		idleImage = assets:loadImage("menu-button-options"),
-		hoverImage = assets:loadImage("menu-button-options-over"),
+		hoverImage = is_gucci and assets:loadImage("menu-button-options-over-gucci") or assets:loadImage("menu-button-options-over"),
 		clickSound = assets:loadAudio("menuhit"),
 		onClick = function()
 			self.scene.options:toggle()

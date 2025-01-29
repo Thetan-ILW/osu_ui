@@ -19,6 +19,7 @@ function Chat:fade(target_value)
 		self.disabled = false
 	end
 
+	self.stateCounter = 0
 	self.state = target_value == 0 and "closed" or "open"
 	flux.to(self, 0.4, { alpha = target_value }):ease("quadout")
 end
@@ -32,6 +33,11 @@ function Chat:update()
 
 	if self.alpha == 0 then
 		self.disabled = true
+	end
+
+	if self.stateCounter ~= self.selectedChannel.stateCounter then
+		self.stateCounter = self.selectedChannel.stateCounter
+		self:updateChannel()
 	end
 end
 
@@ -177,6 +183,7 @@ function Chat:openChannel(name)
 	tab.z = 1
 	self.selectedChannel = self.chatModel:getChannel(name)
 	self:updateChannel()
+	self.stateCounter = self.selectedChannel.stateCounter
 	self.tabs.deferBuild = true
 
 	local area = self.area ---@cast area osu.ui.ScrollAreaContainer

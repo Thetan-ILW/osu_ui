@@ -284,7 +284,7 @@ return function(section)
 			end
 		})
 
-		local locked = not osu.customizeScoreSystem
+		local locked = not osu.overrideJudges
 		group:combo({
 			label = text.Options_Gameplay_ScoreSystem,
 			items = score_systems,
