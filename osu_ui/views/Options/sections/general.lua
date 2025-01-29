@@ -139,12 +139,14 @@ return function(section)
 				alignX = "left",
 				height = 100,
 			})
-			---@param this ui.Label
-			function label.update(this)
-				---@type string
-				local status = updater.status
-				if this.text ~= status then
-					this:replaceText(updater.status)
+			if label then
+				---@param this ui.Label
+				function label.update(this)
+					---@type string
+					local status = updater.status
+					if this.text ~= status then
+						this:replaceText(updater.status)
+					end
 				end
 			end
 

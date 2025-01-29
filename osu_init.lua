@@ -39,7 +39,6 @@ function UserInterface:new(game, mount_path)
 	self.resultApi = ResultAPI(game)
 	self.locationsApi = LocationsAPI(game)
 
-	GUCCI_MANIA = true
 	self.isGucci = GUCCI_MANIA ~= nil
 
 	if self.isGucci then
