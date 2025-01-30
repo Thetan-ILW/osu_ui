@@ -48,10 +48,6 @@ local t = {
 		blur = true,
 		blurQuality = 0.5,
 	},
-	gucci = {
-		branch = "stable",
-		disableUpdates = false
-	}
 }
 
 return t

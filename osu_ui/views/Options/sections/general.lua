@@ -150,29 +150,6 @@ return function(section)
 				end
 			end
 
-			group:combo({
-				label = text.Options_ReleaseStream,
-				items = updater.branches,
-				getValue = function ()
-					return osu.gucci.branch
-				end,
-				setValue = function(index)
-					osu.gucci.branch = updater.branches[index]
-					if label then
-						label:replaceText("Restart the game")
-					end
-					scene.notification:show("Restart the game.")
-				end,
-				format = function(v)
-					if v == "stable" then
-						return text.Options_ReleaseStrategy_Stable
-					elseif v == "develop" then
-						return text.Options_ReleaseStrategy_CuttingEdge
-					end
-					return v
-				end
-			})
-
 			group:button({
 				label = text.Options_OpenOsuFolder,
 				onClick = function()
