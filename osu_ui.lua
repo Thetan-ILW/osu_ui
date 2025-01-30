@@ -28,7 +28,9 @@ local t = {
 		groupCharts = false,
 		scoreSource = "local",
 		preciseRates = false,
-		spaceBetweenPanels = 77
+		spaceBetweenPanels = 77,
+		diffTable = true,
+		diffTableImageMsd = true,
 	},
 	result = {
 		hitGraph = false,
@@ -46,10 +48,6 @@ local t = {
 		blur = true,
 		blurQuality = 0.5,
 	},
-	gucci = {
-		branch = "stable",
-		disableUpdates = false
-	}
 }
 
 return t

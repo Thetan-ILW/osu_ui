@@ -42,8 +42,8 @@ function UserInterface:new(game, mount_path)
 	self.isGucci = GUCCI_MANIA ~= nil
 
 	if self.isGucci then
-		local GucciUpdater = require("gucci_updater")
-		self.updater = GucciUpdater(self.chatModel:getChannel("#general"))
+		---@type table
+		self.updater = game.gucciUpdater
 	end
 
 	if love.system.getOS() == "Windows" then
@@ -89,22 +89,16 @@ function UserInterface:unload()
 	self.selectApi:unloadController()
 end
 
-function UserInterface:checkForUpdates()
-	---@type osu.ui.OsuConfig
-	local osu_cfg = self.selectApi:getConfigs().osu_ui
-	if not osu_cfg.gucci.disableUpdates then
-		self.updater:checkForUpdates(osu_cfg.gucci.branch)
-	else
-		print("Updates are disabled")
-	end
-end
-
 function UserInterface:afterLoad(dt)
 	local scene = self.viewport:addChild("scene", Scene({ game = self.game, ui = self })) ---@cast scene osu.ui.Scene
 	self.scene = scene
 
-	if self.isGucci then
-		delay.debounce(self, "checkingForUpdates", 3, self.checkForUpdates, self)
+	local msd_calc = self.pkgs.msdCalc
+	if msd_calc then
+		if msd_calc.error and type(msd_calc.error) == "string" then
+			local chat = self.chatModel:getChannel("#general")
+			chat:addMessage({ text = msd_calc.error .."\n", messageColor = { 1, 0.2, 0.2, 1 }})
+		end
 	end
 
 	self.update = self.updateLoop

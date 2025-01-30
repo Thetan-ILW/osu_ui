@@ -2,7 +2,6 @@ local Component = require("ui.Component")
 
 local Image = require("ui.Image")
 local Label = require("ui.Label")
-local Blur = require("ui.Blur")
 local StencilComponent = require("ui.StencilComponent")
 
 local flux = require("flux")
@@ -130,11 +129,6 @@ function ChartShowcase:load()
 		font = chart_name_font,
 		text = self.chartName or "chartName",
 		z = 0.5,
-	}))
-
-	self:addChild("blur", Blur({
-		percent = 0.4,
-		z = -0.01
 	}))
 end
 

@@ -144,7 +144,7 @@ function PlayerInfoView:load()
 	self:addChild("mode", Image({
 		x = self.width - 6, y = 6,
 		origin = { x = 1, y = 0 },
-		image = assets:loadImage("mode-mania-small"),
+		image = assets:loadImage("mode-mania-small-for-charts"),
 		alpha = 0.15,
 		z = 0.1
 	}))

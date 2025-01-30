@@ -12,6 +12,7 @@ local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
 local PlayerInfo = require("osu_ui.views.PlayerInfoView")
 local ResultScores = require("osu_ui.views.ResultView.Scores")
+local RankingElement = require("osu_ui.views.ResultView.RankingElement")
 
 local thread = require("thread")
 local Rectangle = require("ui.Rectangle")
@@ -27,35 +28,32 @@ local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 ---@operator call: osu.ui.ResultViewContainer
 local View = Screen + {}
 
-function View:presentScore()
-	local result_dim =  self.selectApi:getConfigs().settings.graphics.dim.result
-	flux.to(self.scene.cursor, 0.4, { alpha = 1 }):ease("quadout")
-	flux.to(self.scene.background, 0.4, { dim = result_dim, parallax = 0.01 }):ease("quadout")
-	self.transitionTween = flux.to(self, 0.5, { alpha = 1 }):ease("quadout")
-	self.scoreReveal = 0
-	self.scoreRevealTween = flux.to(self, 1, { scoreReveal = 1 }):ease("cubicout")
-
-	self:clearTree()
-	self:load(true)
-end
-
 function View:transitIn()
 	self.y = 0
 	self.resultApi:loadController()
-	Screen.transitIn(self)
+
+	self:clearTree()
+	self.alpha = 0
+	local result_dim =  self.selectApi:getConfigs().settings.graphics.dim.result
 
 	if self.scene.previousScreenId == "gameplay" then
 		self.selectApi:loadController()
+		self.playAnimations = true
+		self.scene:showOverlay(0.5, result_dim)
+		self:load(true)
+		Screen.transitIn(self)
 	elseif self.scene.previousScreenId == "select" then
 		local f = thread.coro(function()
 			self.resultApi:replayNotechartAsync("result")
-			self:presentScore()
+			self.scene:showOverlay(0.5, result_dim)
+			self:load(true)
+			Screen.transitIn(self)
 		end)
 		f()
+
+		self.playAnimations = false
 		return
 	end
-
-	self:presentScore()
 end
 
 function View:transitToSelect()
@@ -120,6 +118,18 @@ function View:keyPressed(event)
 	end
 end
 
+function View:mousePressed()
+	if not self.loaded then
+		return
+	end
+
+	for _, v in pairs(self.rankingElements.children) do
+		---@cast v osu.ui.ResultView.RankingElement
+		v:stopAnimation()
+	end
+	self.scoreTween:stop()
+end
+
 function View:reload()
 	self:clearTree()
 	self:load(true)
@@ -135,9 +145,11 @@ function View:load(score_loaded)
 	self.resultApi = scene.ui.resultApi
 	self.selectApi = scene.ui.selectApi
 
+	self.loaded = false
 	if not score_loaded then
 		return
 	end
+	self.loaded = true
 
 	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.manipFactor)
 	display_info:load()
@@ -225,183 +237,129 @@ function View:load(score_loaded)
 	local row2 = 220 * ppy
 	local row3 = 280 * ppy
 	local row4 = 320 * ppy
+	local row4_offset = assets.useNewLayout and 32 or 12.8
 
-	local combo_x = text_x1 - 65 * ppy
-	local combo_y = row4 + 38
-	local acc_x = text_x2 - 86 * ppy
-	local acc_y = row4 + 38
-
-	local overlap = assets.params.scoreOverlap
 	local score_font = assets.imageFonts.scoreFont
-	local judge_format = "%ix"
-	---@cast overlap number
 
-	area:addChild("score", ImageValueView({
+	local score = area:addChild("score", ImageValueView({
 		x = score_x, y = score_y,
 		origin = { x = 0.5, y = 0.5 },
-		scale = 1.3,
+		scale = assets.useNewLayout and 1.3 or 1.05,
 		files = score_font,
-		overlap = overlap,
+		overlap = assets.useNewLayout and -2 or 0,
+		displayValue = 0,
+		constantSpacing = true,
 		z = 0.55,
-		update = function(this)
-			this:setText(("%08d"):format(math.ceil(self.scoreReveal * display_info.score)))
-		end
 	}))
 
-	area:addChild("marvelousImage", Image({
-		x = img_x2, y = row1,
-		origin = { x = 0.5, y = 0.5 },
-		scale = 0.5,
-		image = assets:loadImage("mania-hit300g"),
-		z = 0.54,
-	}))
+	local pa = self.playAnimations
 
-	area:addChild("marvelousCount", ImageValueView({
-		x = text_x2, y = row1,
-		origin = { x = 0, y = 0.5 },
-		scale = 1.12,
-		files = score_font,
-		overlap = overlap,
-		z = 0.55,
-		update = function(this)
-			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.marvelous)))
-		end
-	}))
+	self.scoreTween = flux.to(score, 1, { displayValue = display_info.score }):ease("cubicout"):onupdate(function()
+		score:setText(("%07d"):format(score.displayValue))
+	end)
 
-	area:addChild("perfectImage", Image({
+	if not pa then
+		self.scoreTween:stop()
+		score:setText(("%07d"):format(display_info.score))
+	end
+
+	local re = area:addChild("rankingElements", Component({ z = 0.55 }))
+
+	local delay = 0.06
+	re:addChild("perfect", RankingElement({
 		x = img_x1, y = row1,
-		origin = { x = 0.5, y = 0.5 },
-		scale = 0.5,
-		image = assets:loadImage("mania-hit300"),
-		z = 0.54,
+		imgName = "mania-hit300",
+		value = display_info.perfect,
+		format = "%ix",
+		playAnimation = pa,
+		delay = delay,
 	}))
 
-	area:addChild("perfectCount", ImageValueView({
-		x = text_x1, y = row1,
-		origin = { x = 0, y = 0.5 },
-		scale = 1.12,
-		files = score_font,
-		overlap = overlap,
-		z = 0.55,
-		update = function(this)
-			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.perfect)))
-		end
+	re:addChild("marvelous", RankingElement({
+		x = img_x2, y = row1,
+		imgName = "mania-hit300g",
+		value = display_info.marvelous,
+		format = "%ix",
+		playAnimation = pa,
+		delay = delay * 2,
 	}))
 
-	if display_info.great then
-		area:addChild("greatImage", Image({
-			x = img_x1, y = row2,
-			origin = { x = 0.5, y = 0.5 },
-			scale = 0.5,
-			image = assets:loadImage("mania-hit200"),
-			z = 0.54,
-		}))
+	re:addChild("great", RankingElement({
+		x = img_x1, y = row2,
+		imgName = "mania-hit200",
+		value = display_info.great,
+		format = "%ix",
+		playAnimation = pa,
+		delay = delay * 3,
+	}))
 
-		area:addChild("greatCount", ImageValueView({
-			x = text_x1, y = row2,
-			origin = { x = 0, y = 0.5 },
-			scale = 1.12,
-			files = score_font,
-			overlap = overlap,
-			z = 0.55,
-			update = function(this)
-				this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.great)))
-			end
-		}))
-	end
+	re:addChild("good", RankingElement({
+		x = img_x2, y = row2,
+		imgName = "mania-hit100",
+		value = display_info.good,
+		format = "%ix",
+		playAnimation = pa,
+		delay = delay * 4,
+	}))
 
-	if display_info.good then
-		area:addChild("goodImage", Image({
-			x = img_x2, y = row2,
-			origin = { x = 0.5, y = 0.5 },
-			scale = 0.5,
-			image = assets:loadImage("mania-hit100"),
-			z = 0.54,
-		}))
+	re:addChild("bad", RankingElement({
+		x = img_x1, y = row3,
+		imgName = "mania-hit50",
+		value = display_info.bad,
+		format = "%ix",
+		playAnimation = pa,
+		delay = delay * 5,
+	}))
 
-		area:addChild("goodCount", ImageValueView({
-			x = text_x2, y = row2,
-			origin = { x = 0, y = 0.5 },
-			scale = 1.12,
-			files = score_font,
-			overlap = overlap,
-			z = 0.55,
-			update = function(this)
-				this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.good)))
-			end
-		}))
-	end
-
-	if display_info.bad then
-		area:addChild("badImage", Image({
-			x = img_x1, y = row3,
-			origin = { x = 0.5, y = 0.5 },
-			scale = 0.5,
-			image = assets:loadImage("mania-hit50"),
-			z = 0.54,
-		}))
-
-		area:addChild("badCount", ImageValueView({
-			x = text_x1, y = row3,
-			origin = { x = 0, y = 0.5 },
-			scale = 1.12,
-			files = score_font,
-			overlap = overlap,
-			z = 0.55,
-			update = function(this)
-				this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.bad)))
-			end
-		}))
-	end
-
-	area:addChild("missImage", Image({
+	re:addChild("miss", RankingElement({
 		x = img_x2, y = row3,
-		origin = { x = 0.5, y = 0.5 },
-		scale = 0.5,
-		image = assets:loadImage("mania-hit0"),
-		z = 0.54,
+		imgName = "mania-hit0",
+		value = display_info.miss,
+		format = "%ix",
+		playAnimation = pa,
+		delay = delay * 6,
 	}))
 
-	area:addChild("missCount", ImageValueView({
-		x = text_x2, y = row3,
-		origin = { x = 0, y = 0.5 },
-		files = score_font,
-		overlap = overlap,
-		z = 1.12,
-		update = function(this)
-			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.miss)))
-		end
+	local combo = re:addChild("comboImg", RankingElement({
+		x = img_x1 - 56, y = row4 - row4_offset,
+		imgName = "ranking-maxcombo",
+		playAnimation = pa,
+		delay = delay * 7,
+		targetImageScale = 1,
 	}))
+	combo.image.origin = { x = 0, y = 0 }
 
-	area:addChild("combo", ImageValueView({
-		x = combo_x, y = combo_y,
-		origin = { x = 0, y = 0.5 },
-		scale = 1.12,
-		files = score_font,
-		overlap = overlap,
-		z = 0.55,
-		update = function(this)
-			this:setText(("%ix"):format(math.ceil(self.scoreReveal * display_info.combo)))
-		end
+	re:addChild("combo", RankingElement({
+		x = text_x1 - 168,
+		y = row4 + 16 + 25.5,
+		value = display_info.combo,
+		format = "%ix",
+		playAnimation = pa,
+		delay = delay * 7,
 	}))
 
 	if display_info.accuracy then
-		area:addChild("accuracy", ImageValueView({
-			x = acc_x , y = acc_y,
-			origin = { x = 0, y = 0.5 },
-			scale = 1.12,
-			files = score_font,
-			overlap = overlap,
-			z = 0.55,
-			update = function(this)
-				this:setText(("%0.02f%%"):format(self.scoreReveal * display_info.accuracy * 100))
-			end
+		local acc = re:addChild("accImg", RankingElement({
+			x = img_x2 - 92.8, y = row4 - row4_offset,
+			imgName = "ranking-accuracy",
+			playAnimation = pa,
+			delay = delay * 8,
+			targetImageScale = 1,
 		}))
+		acc.image.origin = { x = 0, y = 0 }
 
-		area:addChild("accuracyText", Image({ x = 291, y = 480, image = assets:loadImage("ranking-accuracy"), z = 0.54 }))
+		re:addChild("acc", RankingElement({
+			x = text_x2 - 201.5,
+			y = row4 + 16 + 25.5,
+			value = display_info.accuracy * 100,
+			format = "%0.2f%%",
+			playAnimation = pa,
+			delay = delay * 8,
+			dontCeil = true,
+		}))
 	end
 
-	area:addChild("comboText", Image({ x = 8, y = 480, image = assets:loadImage("ranking-maxcombo"), z = 0.54 }))
+	self.rankingElements = re
 
 	---- GRAPH ----
 	local score_system = self.resultApi:getScoreSystem()
@@ -456,16 +414,12 @@ function View:load(score_loaded)
 		Image.update(overlay, dt)
 	end
 
-	local grade = area:addChild("grade", Image({
+	area:addChild("grade", Image({
 		x = width - 192, y = 320,
 		origin = { x = 0.5, y = 0.5 },
 		image = assets:loadImage(("ranking-%s"):format(display_info.grade)),
 		z = 0.6,
 	}))
-	function grade.update(this, dt)
-		grade.scale = 1 + (1 - self.scoreReveal) * 0.2
-		Image.update(grade, dt)
-	end
 
 	---- BUTTONS ----
 	area:addChild("retryButton", ImageButton({
@@ -796,6 +750,8 @@ function View:load(score_loaded)
 	self:addBeatmapInfo("stars", -114, "Stars", ("%0.02f*"):format(display_info.osuDiff))
 	self:addBeatmapInfo("ln", -114 * 2, "LN", ("%i%%"):format(display_info.lnPercent * 100))
 	self.beatmapInfoTable:autoSize()
+
+	self.playAnimations = false
 end
 
 function View:update()

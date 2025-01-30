@@ -1,6 +1,7 @@
 local Component = require("ui.Component")
 
 ---@class ui.Image : ui.Component
+---@operator call: ui.Image
 ---@field image love.Image
 ---@field blendMode love.BlendMode
 local Image = Component + {}

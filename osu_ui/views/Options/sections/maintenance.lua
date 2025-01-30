@@ -22,5 +22,11 @@ return function(section)
 			end
 		})
 
+		group:button({
+			label = "Пить пиво играть танки",
+			onClick = function()
+				scene.notification:show("Flооb1nk — Today at 12:40 PM а где кнопка пить пиво играть танки")
+			end
+		})
 	end)
 end

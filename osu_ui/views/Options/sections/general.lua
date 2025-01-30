@@ -150,29 +150,6 @@ return function(section)
 				end
 			end
 
-			group:combo({
-				label = text.Options_ReleaseStream,
-				items = updater.branches,
-				getValue = function ()
-					return osu.gucci.branch
-				end,
-				setValue = function(index)
-					osu.gucci.branch = updater.branches[index]
-					if label then
-						label:replaceText("Restart the game")
-					end
-					scene.notification:show("Restart the game.")
-				end,
-				format = function(v)
-					if v == "stable" then
-						return text.Options_ReleaseStrategy_Stable
-					elseif v == "develop" then
-						return text.Options_ReleaseStrategy_CuttingEdge
-					end
-					return v
-				end
-			})
-
 			group:button({
 				label = text.Options_OpenOsuFolder,
 				onClick = function()
@@ -293,6 +270,17 @@ return function(section)
 		})
 
 		group:checkbox({
+			label = text.Options_SongSelect_DisplayDifficultyTable,
+			getValue = function ()
+				return osu.songSelect.diffTable
+			end,
+			clicked = function ()
+				osu.songSelect.diffTable = not osu.songSelect.diffTable
+				scene:reloadUI()
+			end
+		})
+
+		group:checkbox({
 			label = text.Options_SongSelect_Thumbnails,
 			key = { osu.songSelect, "previewIcon" }
 		})
@@ -318,7 +306,7 @@ return function(section)
 				return dim.result
 			end,
 			setValue = function(v)
-				dim.select = v
+				dim.result = v
 				if scene.currentScreenId == "result" then
 					scene.background.dim = v
 				end

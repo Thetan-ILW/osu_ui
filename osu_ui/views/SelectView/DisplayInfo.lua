@@ -4,6 +4,7 @@ local Scoring = require("osu_ui.Scoring")
 local time_util = require("time_util")
 local Format = require("sphere.views.Format")
 local Msd = require("osu_ui.Msd")
+local ui = require("osu_ui.ui.init")
 
 ---@class osu.ui.SelectViewDisplayInfo
 ---@operator call: osu.ui.SelectViewDisplayInfo
@@ -19,51 +20,13 @@ end
 function DisplayInfo:updateInfo()
 	self.chartview = self.selectApi:getChartview()
 	self.playContext = self.selectApi:getPlayContext()
+	self:setChartInfoDefaults()
 
 	if self.chartview then
 		self:setChartInfo()
-	else
-		self:setChartInfoDefaults()
 	end
 end
 
----@param h number
----@param s number
----@param v number
----@return number[]
-local function HSV(h, s, v)
-	if s <= 0 then return { v, v, v, 1 } end
-	h = h*6
-	local c = v*s
-	local x = (1-math.abs((h%2)-1))*c
-	local m,r,g,b = (v-c), 0, 0, 0
-	if h < 1 then
-		r, g, b = c, x, 0
-	elseif h < 2 then
-		r, g, b = x, c, 0
-	elseif h < 3 then
-		r, g, b = 0, c, x
-	elseif h < 4 then
-		r, g, b = 0, x, c
-	elseif h < 5 then
-		r, g, b = x, 0, c
-	else
-		r, g, b = c, 0, x
-	end
-	return { r+m, g+m, b+m, 1 }
-end
-
----@param x number
----@return number
-local function convertDiffToHue(x)
-	if x <= 0.5 then
-		return 0.5 - x
-	elseif x <= 0.75 then
-		return 1 - (x - 0.5) * (1 - 0.8) / 0.25
-	else
-		return 0.8
-	end
-end
 
 function DisplayInfo:setChartInfoDefaults()
 	self.chartName = "No chart name - No chart name"
@@ -79,19 +42,18 @@ function DisplayInfo:setChartInfoDefaults()
 	self.lengthColor = { 1, 1, 1, 1 }
 	self.msd = {
 		first = 0,
-		second = 0,
+		firstPattern = "No patterns",
+		secondPattern = "",
 	}
-end
-
----@param msd number
----@return number
-local function msdHue(msd)
-	return convertDiffToHue((math.min(msd, 40) / 40) / 1.3)
+	self.lnPercent = 0
+	self.lnPercentColor = { 1, 1, 1, 1 }
+	self.formatLevel = ""
 end
 
 ---@param msd osu.ui.Msd
 ---@param time_rate number
-function DisplayInfo:setMsd(msd, time_rate)
+---@param key_mode string
+function DisplayInfo:setMsd(msd, time_rate, key_mode)
 	local sorted = msd:getSorted(time_rate)
 
 	local second = false
@@ -104,12 +66,9 @@ function DisplayInfo:setMsd(msd, time_rate)
 			if num >= max * 0.93 then
 				if not second then
 					self.msd.first = num
-					self.msd.firstPattern = pattern:upper()
-					self.msd.firstColor = HSV(msdHue(num), 1, 1)
+					self.msd.firstPattern = msd.getPatternName(pattern, key_mode):upper()
 				else
-					self.msd.second = num
-					self.msd.secondPattern = pattern:upper()
-					self.msd.secondColor = HSV(msdHue(num), 1, 1)
+					self.msd.secondPattern = msd.getPatternName(pattern, key_mode):upper()
 				end
 			end
 
@@ -147,15 +106,16 @@ function DisplayInfo:setChartInfo()
 
 	local columns_str = Format.inputMode(chartview.chartdiff_inputmode)
 
+	if note_count ~= 0 then
+		self.lnPercent = ln_count / note_count
+	else
+		self.lnPercent = 0
+	end
+
 	---@type string
 	local diff_column = self.selectApi:getSelectedDiffColumn()
 	local difficulty = "-9999"
 	local diff_hue = 0
-
-	self.msd = {
-		first = 0,
-		second = 0,
-	}
 
 	---@type osu.ui.Msd?
 	local msd
@@ -165,7 +125,7 @@ function DisplayInfo:setChartInfo()
 			msd = Msd(chartview.msd_diff_data)
 		end)
 		if msd then
-			self:setMsd(msd, rate)
+			self:setMsd(msd, rate, chartview.chartdiff_inputmode)
 		end
 	end
 
@@ -174,32 +134,40 @@ function DisplayInfo:setChartInfo()
 		local overall = msd.getFromTable("overall", sorted)
 		local pattern = msd.simplifyName(sorted[2][1], chartview.chartdiff_inputmode)
 		difficulty = ("%0.02f %s"):format(overall, pattern)
-		diff_hue = msdHue(overall)
+		diff_hue = ui.convertDiffToHue((math.min(overall, 40) / 40) / 1.3)
 		self.difficultyShowcase = difficulty
 	elseif diff_column == "enps_diff" then
 		local enps = (chartview.enps_diff or 0) * rate
 		difficulty = ("%0.02f ENPS"):format(enps)
-		diff_hue = convertDiffToHue(math.min(enps, 35) / 35)
+		diff_hue = ui.convertDiffToHue(math.min(enps, 35) / 35)
 		self.difficultyShowcase = difficulty
 	elseif diff_column == "osu_diff" then
 		local osu_diff = (chartview.osu_diff or 0) * rate ---@type number
 		difficulty = ("%0.02f*"):format(osu_diff)
-		diff_hue = convertDiffToHue(math.min(10, osu_diff) / 10)
+		diff_hue = ui.convertDiffToHue(math.min(10, osu_diff) / 10)
 		self.difficultyShowcase = ("%0.02f "):format((chartview.osu_diff or 0) * rate)
 	else
 		difficulty = ("%0.02f"):format((chartview.user_diff or 0) * rate)
 		self.difficultyShowcase = ("%0.02f"):format((chartview.user_diff or 0) * rate)
 	end
 
-	local length_hue = convertDiffToHue(math.min(self.lengthNumber * 0.8, 420) / 420)
+	local length_hue = ui.convertDiffToHue(math.min(self.lengthNumber * 0.8, 420) / 420)
 	local od = tostring(Scoring.getOD(chartview.format, chartview.osu_od))
 	local hp = tostring(chartview.osu_hp or 8)
 	self.difficulty = difficulty
-	self.difficultyColor = HSV(diff_hue, 0.7, 1)
-	self.lengthColor = HSV(length_hue, 0.7, 1)
+	self.difficultyColor = ui.HSV(diff_hue, 0.7, 1)
+	self.lengthColor = ui.HSV(length_hue, 0.7, 1)
+	self.lnPercentColor = ui.HSV(ui.convertDiffToHue(math.min(self.lnPercent * 1.3)), self.lnPercent, 1)
 	self.chartInfoFirstRow = text.SongSelection_BeatmapInfo:format(self.length, bpm, objects)
 	self.chartInfoSecondRow = text.SongSelection_BeatmapInfo2:format(note_count_str, ln_count_str, "0")
 	self.chartInfoThirdRow = text.SongSelection_BeatmapInfo3:format(columns_str, od, hp, difficulty)
+
+	local format = chartview.format or "NONE"
+	if format == "bms" or format == "ksh" or format == "ojn" then
+		self.formatLevel = ("%s LV.%i"):format(format:upper(), chartview.level or 1)
+	else
+		self.formatLevel = format:upper()
+	end
 end
 
 return DisplayInfo

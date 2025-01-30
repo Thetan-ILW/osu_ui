@@ -55,6 +55,7 @@ Options_DifficultyCalculator=Difficulty calculator:
 Options_SongSelect_Thumbnails=Show thumbnails (Only shifts text)
 Options_SongSelect_BeatmapPreview=Beatmap preview
 Options_SongSelect_PreciseRates=Precise rates (0.025x)
+Options_SongSelect_DisplayDifficultyTable=Display difficulty table
 
 Options_Result=Result screen
 Options_Result_DisplayDifficultyAndRate=Display difficulty and rate
