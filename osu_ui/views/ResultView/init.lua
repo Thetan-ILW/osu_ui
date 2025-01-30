@@ -239,16 +239,14 @@ function View:load(score_loaded)
 	local row4 = 320 * ppy
 	local row4_offset = assets.useNewLayout and 32 or 12.8
 
-	local overlap = assets.params.scoreOverlap
 	local score_font = assets.imageFonts.scoreFont
-	---@cast overlap number
 
 	local score = area:addChild("score", ImageValueView({
 		x = score_x, y = score_y,
 		origin = { x = 0.5, y = 0.5 },
 		scale = assets.useNewLayout and 1.3 or 1.05,
 		files = score_font,
-		overlap = overlap,
+		overlap = assets.useNewLayout and -2 or 0,
 		displayValue = 0,
 		constantSpacing = true,
 		z = 0.55,
@@ -262,19 +260,19 @@ function View:load(score_loaded)
 
 	if not pa then
 		self.scoreTween:stop()
-		--score:setText(("%07d"):format(display_info.score))
-		score:setText(("%08d"):format(3839702))--display_info.score))
+		score:setText(("%07d"):format(display_info.score))
 	end
 
 	local re = area:addChild("rankingElements", Component({ z = 0.55 }))
 
+	local delay = 0.06
 	re:addChild("perfect", RankingElement({
 		x = img_x1, y = row1,
 		imgName = "mania-hit300",
 		value = display_info.perfect,
 		format = "%ix",
 		playAnimation = pa,
-		delay = 0.1,
+		delay = delay,
 	}))
 
 	re:addChild("marvelous", RankingElement({
@@ -283,7 +281,7 @@ function View:load(score_loaded)
 		value = display_info.marvelous,
 		format = "%ix",
 		playAnimation = pa,
-		delay = 0.2,
+		delay = delay * 2,
 	}))
 
 	re:addChild("great", RankingElement({
@@ -292,7 +290,7 @@ function View:load(score_loaded)
 		value = display_info.great,
 		format = "%ix",
 		playAnimation = pa,
-		delay = 0.3,
+		delay = delay * 3,
 	}))
 
 	re:addChild("good", RankingElement({
@@ -301,7 +299,7 @@ function View:load(score_loaded)
 		value = display_info.good,
 		format = "%ix",
 		playAnimation = pa,
-		delay = 0.4,
+		delay = delay * 4,
 	}))
 
 	re:addChild("bad", RankingElement({
@@ -310,7 +308,7 @@ function View:load(score_loaded)
 		value = display_info.bad,
 		format = "%ix",
 		playAnimation = pa,
-		delay = 0.5,
+		delay = delay * 5,
 	}))
 
 	re:addChild("miss", RankingElement({
@@ -319,14 +317,14 @@ function View:load(score_loaded)
 		value = display_info.miss,
 		format = "%ix",
 		playAnimation = pa,
-		delay = 0.6,
+		delay = delay * 6,
 	}))
 
 	local combo = re:addChild("comboImg", RankingElement({
 		x = img_x1 - 56, y = row4 - row4_offset,
 		imgName = "ranking-maxcombo",
 		playAnimation = pa,
-		delay = 0.7,
+		delay = delay * 7,
 		targetImageScale = 1,
 	}))
 	combo.image.origin = { x = 0, y = 0 }
@@ -337,7 +335,7 @@ function View:load(score_loaded)
 		value = display_info.combo,
 		format = "%ix",
 		playAnimation = pa,
-		delay = 0.7,
+		delay = delay * 7,
 	}))
 
 	if display_info.accuracy then
@@ -345,7 +343,7 @@ function View:load(score_loaded)
 			x = img_x2 - 92.8, y = row4 - row4_offset,
 			imgName = "ranking-accuracy",
 			playAnimation = pa,
-			delay = 0.8,
+			delay = delay * 8,
 			targetImageScale = 1,
 		}))
 		acc.image.origin = { x = 0, y = 0 }
@@ -356,7 +354,7 @@ function View:load(score_loaded)
 			value = display_info.accuracy * 100,
 			format = "%0.2f%%",
 			playAnimation = pa,
-			delay = 0.8,
+			delay = delay * 8,
 			dontCeil = true,
 		}))
 	end

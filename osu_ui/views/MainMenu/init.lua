@@ -94,8 +94,6 @@ function View:toNextView(screen_name)
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	scene.options:fade(0)
 
-
-
 	if scene:getChild(screen_name) then
 		self:transitOut({ time = 0.5, ease = "sineout" })
 		scene:transitInScreen(screen_name)
@@ -299,7 +297,6 @@ function View:load()
 		origin = { x = 1 },
 		z = 0.098
 	}))
-
 
 	local np_background = top:addChild("nowPlaying", Image({
 		x = self.width,

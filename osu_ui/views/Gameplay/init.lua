@@ -57,6 +57,9 @@ function View:transitIn()
 	self.handleEvents = true
 	self.introSkipped = false
 	love.keyboard.setKeyRepeat(false)
+	self.scaleX = 1.05
+	self.scaleY = 1.05
+	flux.to(self, 0.8, { scaleX = 1, scaleY = 1}):ease("cubicout")
 end
 
 function View:quit()
@@ -112,6 +115,9 @@ end
 function View:load()
 	self.width, self.height = self.parent:getDimensions()
 	self:createCanvas(self.width, self.height)
+	self.x = self.width / 2
+	self.y = self.height / 2
+	self.origin = { x = 0.5, y = 0.5 }
 
 	self:getViewport():listenForResize(self)
 

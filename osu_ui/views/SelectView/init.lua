@@ -22,6 +22,7 @@ local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local ChartTree = require("osu_ui.views.SelectView.ChartTree")
 local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
 local DiffTable = require("osu_ui.views.SelectView.DiffTable")
+local Blur = require("ui.Blur")
 
 local getModifierString = require("osu_ui.views.modifier_string")
 local Scoring = require("osu_ui.Scoring")
@@ -212,7 +213,7 @@ function View:transitToGameplay()
 		self.selectApi:getBackgroundImages()[1]
 	)
 
-	self.scene:hideOverlay(0.7, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
+	self.scene:hideOverlay(0.7, 1 - (1 * self:getBackgroundBrightness()) * 0.3)
 	self:transitOut({
 		time = 0.8,
 		ease = "cubicout",
