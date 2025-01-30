@@ -21,6 +21,7 @@ local BottomButton = require("osu_ui.views.SelectView.BottomButton")
 local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local ChartTree = require("osu_ui.views.SelectView.ChartTree")
 local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
+local DiffTable = require("osu_ui.views.SelectView.DiffTable")
 
 local getModifierString = require("osu_ui.views.modifier_string")
 local Scoring = require("osu_ui.Scoring")
@@ -193,6 +194,7 @@ function View:transitToGameplay()
 	self:applyChartScoreSystem()
 
 	local showcase = self.scene:getChild("chartShowcase")
+	---@cast showcase osu.ui.ChartShowcase?
 	if not showcase then
 		showcase = self.scene:addChild("chartShowcase", ChartShowcase({
 			z = 0.7,
@@ -262,6 +264,10 @@ end
 function View:updateInfo()
 	self.displayInfo:updateInfo()
 	self:updateModsLine()
+
+	if self.diffTable then
+		self.diffTable:updateInfo(self.displayInfo)
+	end
 end
 
 function View:event_modsChanged()
@@ -794,13 +800,26 @@ function View:load()
 		z = 0.09,
 	}))
 
+	local mods_x = 104
+	if osu.songSelect.diffTable then
+		self.diffTable = bottom:addChild("diffTable", DiffTable({
+			x = 5,
+			y = height - 105,
+			origin = { y = 1 },
+			z = 0.3
+		}))
+		self.diffTable:updateInfo(display_info)
+		mods_x = mods_x + 290
+	end
+
 	self.modsLine = bottom:addChild("modsLine", Label({
-		x = 104, y = 633,
+		x = mods_x, y = 633,
 		font = fonts:loadFont("Regular", 41),
 		text = "",
 		color = { 1, 1, 1, 0.75 },
 	}))
 	self:updateModsLine()
+
 
 	local open_score_sound = assets:loadAudio("menuhit")
 	local score_list = center:addChild("scoreList", ScoreListView({

@@ -55,6 +55,7 @@ Options_DifficultyCalculator=Sistema de dificultad:
 Options_SongSelect_Thumbnails=Icono de vista previa (solo desplaza el texto)
 Options_SongSelect_BeatmapPreview=Previsualización del mapa
 Options_SongSelect_PreciseRates=Incremento de velocidad de la música del 0,025x
+Options_SongSelect_DisplayDifficultyTable=Display difficulty table
 
 Options_Result=PANTALLA DE RESULTADOS
 Options_Result_DisplayDifficultyAndRate=Mostrar dificultad y rate

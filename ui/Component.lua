@@ -172,9 +172,10 @@ end
 function Component:bindEvents() end
 function Component:unbindEvents() end
 
+---@generic T : ui.Component
 ---@param id string
----@param child ui.Component
----@return ui.Component
+---@param child T
+---@return T
 function Component:addChild(id, child)
 	if self.children[id] then
 		print(("Duplicate child with the id %s added to %s"):format(id, self.id))

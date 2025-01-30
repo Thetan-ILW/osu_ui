@@ -28,7 +28,8 @@ local t = {
 		groupCharts = false,
 		scoreSource = "local",
 		preciseRates = false,
-		spaceBetweenPanels = 77
+		spaceBetweenPanels = 77,
+		diffTable = true
 	},
 	result = {
 		hitGraph = false,

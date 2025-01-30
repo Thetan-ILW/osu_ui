@@ -19,11 +19,10 @@ end
 function DisplayInfo:updateInfo()
 	self.chartview = self.selectApi:getChartview()
 	self.playContext = self.selectApi:getPlayContext()
+	self:setChartInfoDefaults()
 
 	if self.chartview then
 		self:setChartInfo()
-	else
-		self:setChartInfoDefaults()
 	end
 end
 
@@ -79,8 +78,15 @@ function DisplayInfo:setChartInfoDefaults()
 	self.lengthColor = { 1, 1, 1, 1 }
 	self.msd = {
 		first = 0,
+		firstPattern = "",
+		firstColor = { 1, 1, 1, 1 },
 		second = 0,
+		secondPattern = "",
+		secondColor = { 1, 1, 1, 1 }
 	}
+	self.lnPercent = 0
+	self.lnPercentColor = { 1, 1, 1, 1 }
+	self.formatLevel = ""
 end
 
 ---@param msd number
@@ -152,11 +158,6 @@ function DisplayInfo:setChartInfo()
 	local difficulty = "-9999"
 	local diff_hue = 0
 
-	self.msd = {
-		first = 0,
-		second = 0,
-	}
-
 	---@type osu.ui.Msd?
 	local msd
 
@@ -197,9 +198,17 @@ function DisplayInfo:setChartInfo()
 	self.difficulty = difficulty
 	self.difficultyColor = HSV(diff_hue, 0.7, 1)
 	self.lengthColor = HSV(length_hue, 0.7, 1)
+	self.lnPercent = ln_count / note_count
+	self.lnPercentColor = HSV(convertDiffToHue(math.min(self.lnPercent * 1.3)), self.lnPercent, 1)
 	self.chartInfoFirstRow = text.SongSelection_BeatmapInfo:format(self.length, bpm, objects)
 	self.chartInfoSecondRow = text.SongSelection_BeatmapInfo2:format(note_count_str, ln_count_str, "0")
 	self.chartInfoThirdRow = text.SongSelection_BeatmapInfo3:format(columns_str, od, hp, difficulty)
+
+	if chartview.format == "bms" or chartview.format == "ksh" or chartview.format == "ojn" then
+		self.formatLevel = ("%s LV.%i"):format(chartview.format:upper(), chartview.level or 1)
+	else
+		self.formatLevel = chartview.format:upper()
+	end
 end
 
 return DisplayInfo

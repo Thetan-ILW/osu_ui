@@ -118,19 +118,6 @@ return function(section)
 			end
 		})
 
-		group:combo({
-			label = text.Options_Graphics_FullscreenType,
-			items = { "desktop", "exclusive" },
-			key = { flags, "fullscreentype" },
-			format = function(v)
-				if v == "desktop" then
-					return text.Options_Graphics_FullscreenDesktop
-				else
-					return text.Options_Graphics_FullscreenExclusive
-				end
-			end
-		})
-
 		local modes = love.window.getFullscreenModes()
 		group:combo({
 			label = text.Options_Graphics_SelectResolution,
@@ -150,6 +137,20 @@ return function(section)
 				return v.width .. "x" .. v.height
 			end
 		})
+
+		group:combo({
+			label = text.Options_Graphics_FullscreenType,
+			items = { "desktop", "exclusive" },
+			key = { flags, "fullscreentype" },
+			format = function(v)
+				if v == "desktop" then
+					return text.Options_Graphics_FullscreenDesktop
+				else
+					return text.Options_Graphics_FullscreenExclusive
+				end
+			end
+		})
+
 
 		group:checkbox({
 			label = text.Options_Graphics_Fullscreen,
