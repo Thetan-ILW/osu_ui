@@ -52,7 +52,8 @@ end
 
 ---@param msd osu.ui.Msd
 ---@param time_rate number
-function DisplayInfo:setMsd(msd, time_rate)
+---@param key_mode string
+function DisplayInfo:setMsd(msd, time_rate, key_mode)
 	local sorted = msd:getSorted(time_rate)
 
 	local second = false
@@ -65,9 +66,9 @@ function DisplayInfo:setMsd(msd, time_rate)
 			if num >= max * 0.93 then
 				if not second then
 					self.msd.first = num
-					self.msd.firstPattern = pattern:upper()
+					self.msd.firstPattern = msd.getPatternName(pattern, key_mode):upper()
 				else
-					self.msd.secondPattern = pattern:upper()
+					self.msd.secondPattern = msd.getPatternName(pattern, key_mode):upper()
 				end
 			end
 
@@ -105,6 +106,12 @@ function DisplayInfo:setChartInfo()
 
 	local columns_str = Format.inputMode(chartview.chartdiff_inputmode)
 
+	if note_count ~= 0 then
+		self.lnPercent = ln_count / note_count
+	else
+		self.lnPercent = 0
+	end
+
 	---@type string
 	local diff_column = self.selectApi:getSelectedDiffColumn()
 	local difficulty = "-9999"
@@ -118,7 +125,7 @@ function DisplayInfo:setChartInfo()
 			msd = Msd(chartview.msd_diff_data)
 		end)
 		if msd then
-			self:setMsd(msd, rate)
+			self:setMsd(msd, rate, chartview.chartdiff_inputmode)
 		end
 	end
 
@@ -150,13 +157,6 @@ function DisplayInfo:setChartInfo()
 	self.difficulty = difficulty
 	self.difficultyColor = ui.HSV(diff_hue, 0.7, 1)
 	self.lengthColor = ui.HSV(length_hue, 0.7, 1)
-
-	if note_count ~= 0 then
-		self.lnPercent = ln_count / note_count
-	else
-		self.lnPercent = 0
-	end
-
 	self.lnPercentColor = ui.HSV(ui.convertDiffToHue(math.min(self.lnPercent * 1.3)), self.lnPercent, 1)
 	self.chartInfoFirstRow = text.SongSelection_BeatmapInfo:format(self.length, bpm, objects)
 	self.chartInfoSecondRow = text.SongSelection_BeatmapInfo2:format(note_count_str, ln_count_str, "0")

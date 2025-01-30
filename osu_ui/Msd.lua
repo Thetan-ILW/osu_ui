@@ -108,6 +108,16 @@ function Msd.getFromTable(pattern, t)
 	return -1
 end
 
+function Msd.getPatternName(pattern, key_mode)
+	if pattern == "jumpstream" and key_mode ~= "4key" then
+		return "chordstream"
+	elseif pattern == "handstream" and key_mode ~= "4key" then
+		return "bracket"
+	end
+
+	return pattern
+end
+
 ---@param pattern  string
 ---@param key_mode string
 ---@return string
