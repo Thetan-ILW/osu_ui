@@ -94,6 +94,8 @@ function View:toNextView(screen_name)
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	scene.options:fade(0)
 
+
+
 	if scene:getChild(screen_name) then
 		self:transitOut({ time = 0.5, ease = "sineout" })
 		scene:transitInScreen(screen_name)

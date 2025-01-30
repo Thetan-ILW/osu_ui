@@ -54,5 +54,9 @@ return function(game)
 	local manip_factor_pkg = package_manager:getPackage("manip_factor")
 	pkgs.manipFactor = manip_factor_pkg and require("manip_factor") or nil
 
+	local msd_calc = package_manager:getPackage("msd_calculator")
+	---@type table
+	pkgs.msdCalc = msd_calc and require("minacalc.lib")
+
 	return pkgs
 end

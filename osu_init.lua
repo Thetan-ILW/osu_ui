@@ -107,6 +107,14 @@ function UserInterface:afterLoad(dt)
 		delay.debounce(self, "checkingForUpdates", 3, self.checkForUpdates, self)
 	end
 
+	local msd_calc = self.pkgs.msdCalc
+	if msd_calc then
+		if msd_calc.error and type(msd_calc.error) == "string" then
+			local chat = self.chatModel:getChannel("#general")
+			chat:addMessage({ text = msd_calc.error .."\n", messageColor = { 1, 0.2, 0.2, 1 }})
+		end
+	end
+
 	self.update = self.updateLoop
 	self:update(dt)
 end
