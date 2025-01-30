@@ -14,7 +14,9 @@ function ImageValueView:load()
 	self.overlap = self.overlap or 0
 	self.align = self.align or "left"
 
-	self.constantSpacing = false
+	self.constantSpacing = self.constantSpacing or false
+	self.constantWidth = -1
+	self.spaceWidth = -1
 	self.lastMeasureWidth = 0
 	self.lastMeasureHeight = 0
 	self.renderImages = {}
@@ -44,7 +46,6 @@ function ImageValueView:refreshTextures(text)
 
 	self.renderImages = {} ---@type love.Image[]
 	self.renderCoordinateX = {} ---@type number[]
-	self.renderCoordinateY = {} ---@type number[]
 
 	local current_x = 0
 	local height = 0
@@ -52,7 +53,7 @@ function ImageValueView:refreshTextures(text)
 	local text_len = #text
 
 	for i = 0, text_len - 1 do
-		current_x = current_x - ((self.constantSpacing or i == 0) and 0 or self.overlap)
+		current_x = current_x - ((self.constantSpacing or (i == 0)) and 0 or self.overlap)
 
 		local x = current_x
 		local c = text:sub(i + 1, i + 1)
@@ -76,10 +77,8 @@ function ImageValueView:refreshTextures(text)
 
 			if self.constantSpacing then
 				table.insert(self.renderCoordinateX, current_x - x)
-				table.insert(self.renderCoordinateY, 0)
 			else
 				table.insert(self.renderCoordinateX, x)
-				table.insert(self.renderCoordinateY, 0)
 			end
 
 			table.insert(self.renderImages, image)
@@ -90,8 +89,36 @@ function ImageValueView:refreshTextures(text)
 		end
 	end
 
+	--[[
+                if (spaceWidth < 0)
+                {
+                    pTexture pt = TextureManager.Load(TextFontPrefix + @"5", source, atlas);
+                    constantWidth = pt != null ? pt.DisplayWidth : 40;
+                    pt = TextureManager.Load(TextFontPrefix + @"dot", source, atlas);
+                    spaceWidth = pt != null ? pt.DisplayWidth : 40;
+                }
+		]]
 	if self.constantSpacing then
-		error("Not implemented")
+		if self.spaceWidth < 0 then
+			local img = self.images["5"]
+			self.constantWidth = img and img:getWidth() or 40
+			img = self.images["."]
+			self.spaceWidth = img and img:getWidth() or 40
+		end
+
+		current_x = 0
+
+		for i = 1, #self.renderCoordinateX do
+			local special = self.renderCoordinateX[i]
+
+			if special == 0 then
+				self.renderCoordinateX[i] = current_x + math.max(0, (self.constantWidth - self.renderImages[i]:getWidth()) / 2, 0)
+				current_x = current_x + (self.constantWidth - self.overlap)
+			else
+				self.renderCoordinateX[i] = current_x
+				current_x = current_x + (special - self.overlap)
+			end
+		end
 	end
 
 	self.lastMeasureWidth = current_x
@@ -107,7 +134,7 @@ end
 
 function ImageValueView:draw()
 	for i, image in ipairs(self.renderImages) do
-		love.graphics.draw(image, self.renderCoordinateX[i], self.renderCoordinateY[i])
+		love.graphics.draw(image, self.renderCoordinateX[i], 0)
 	end
 end
 

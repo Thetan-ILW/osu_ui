@@ -31,26 +31,29 @@ local View = Screen + {}
 function View:transitIn()
 	self.y = 0
 	self.resultApi:loadController()
-	Screen.transitIn(self)
+
+	self:clearTree()
+	self.alpha = 0
+	local result_dim =  self.selectApi:getConfigs().settings.graphics.dim.result
 
 	if self.scene.previousScreenId == "gameplay" then
 		self.selectApi:loadController()
 		self.playAnimations = true
+		self.scene:showOverlay(0.5, result_dim)
+		self:load(true)
+		Screen.transitIn(self)
 	elseif self.scene.previousScreenId == "select" then
 		local f = thread.coro(function()
 			self.resultApi:replayNotechartAsync("result")
-			self:clearTree()
-			self:load(true)
-			local result_dim =  self.selectApi:getConfigs().settings.graphics.dim.result
 			self.scene:showOverlay(0.5, result_dim)
+			self:load(true)
+			Screen.transitIn(self)
 		end)
 		f()
 
 		self.playAnimations = false
 		return
 	end
-
-	self:presentScore()
 end
 
 function View:transitToSelect()
@@ -259,7 +262,8 @@ function View:load(score_loaded)
 
 	if not pa then
 		self.scoreTween:stop()
-		score:setText(("%07d"):format(display_info.score))
+		--score:setText(("%07d"):format(display_info.score))
+		score:setText(("%08d"):format(3839702))--display_info.score))
 	end
 
 	local re = area:addChild("rankingElements", Component({ z = 0.55 }))

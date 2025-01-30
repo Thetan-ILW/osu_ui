@@ -56,6 +56,7 @@ function DiffTable:load()
 		origin = { x = 0.5, y = 0.5 },
 		files = score_font,
 		overlap = overlap,
+		constantSpacing = true,
 		z = 0.1,
 		disabled = not osu_cfg.songSelect.diffTableImageMsd
 	}))
