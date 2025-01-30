@@ -300,6 +300,7 @@ function View:load()
 		z = 0.098
 	}))
 
+
 	local np_background = top:addChild("nowPlaying", Image({
 		x = self.width,
 		image = assets:loadImage("menu-np"),
