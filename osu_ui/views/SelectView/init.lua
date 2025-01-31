@@ -821,7 +821,6 @@ function View:load()
 	}))
 	self:updateModsLine()
 
-
 	local open_score_sound = assets:loadAudio("menuhit")
 	local score_list = center:addChild("scoreList", ScoreListView({
 		x = 5, y = 145,

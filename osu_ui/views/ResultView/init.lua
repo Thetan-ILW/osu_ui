@@ -719,14 +719,14 @@ function View:load(score_loaded)
 		z = 0.01,
 	}))
 	self:addStat("pp", 0, "Performance", ("%i PP"):format(display_info.pp))
-	self:addStat("spam", -114, "Spam", ("%ix\n%i%%"):format(display_info.spam, display_info.spamPercent * 100))
-	self:addStat("normalScore", -(114 * 2), "NS", ("%0.02f"):format(display_info.normalScore * 1000))
-
 	if display_info.manipFactorPercent ~= 0 then
-		self:addStat("manip", -(114 * 3), "Manip", ("%0.02f%%"):format(display_info.manipFactorPercent * 100))
+		self:addStat("manip", -114, "Manip", ("%0.02f%%"):format(display_info.manipFactorPercent * 100))
 	else
-		self:addStat("mean", -(114 * 3), "Mean", ("%0.02fms"):format(display_info.mean * 1000))
+		self:addStat("spam", -114, "Spam", ("%ix\n%i%%"):format(display_info.spam, display_info.spamPercent * 100))
 	end
+
+	self:addStat("normalScore", -(114 * 2), "NS", ("%0.02f"):format(display_info.normalScore * 1000))
+	self:addStat("mean", -(114 * 3), "Mean", ("%0.02fms"):format(display_info.mean * 1000))
 
 	self:addStat("keyMode", -(114 * 4), "Key Mode", display_info.keyMode)
 	self.statTable:autoSize()
@@ -906,39 +906,6 @@ function View:addStat(id, x, label, value)
 		z = 0.02,
 	}))
 end
-
-local msd_order = {
-	"overall",
-	"stream",
-	"jumpstream",
-	"handstream",
-	"stamina",
-	"jackspeed",
-	"chordjack",
-	"technical"
-}
-
-local msd_4k_alias = {
-	overall = "ALL",
-	stream = "STR",
-	jumpstream = "JS",
-	handstream = "HS",
-	stamina = "STMN",
-	jackspeed = "JACK",
-	chordjack = "CJ",
-	technical = "TECH"
-}
-
-local msd_alias = {
-	overall = "ALL",
-	stream = "STR",
-	jumpstream = "CHSTR",
-	handstream = "BRKT",
-	stamina = "STMN",
-	jackspeed = "JACK",
-	chordjack = "CJ",
-	technical = "TECH"
-}
 
 ---@param msd osu.ui.Msd
 ---@param time_rate number
