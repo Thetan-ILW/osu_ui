@@ -160,11 +160,12 @@ function Scene:load()
 	if self.ui.isGucci then
 		self.ui.updater:notifyState(function(state)
 			if state == "downloading" then
-				self.notification:show("Downloading a new update")
+				self.notification:show(self.localization.text.Update_Downloading)
 			elseif state == "restart" then
 				---@type osu.ui.MainMenuView
 				local main_menu = self.defaultScreens.mainMenu
 				main_menu:addRestartButton()
+				self.restartRequired = true
 			end
 		end)
 	end
@@ -233,6 +234,10 @@ function Scene:transitInScreen(screen_name)
 	self.currentScreenId = screen_name
 	screen:transitIn()
 	love.mouse.setVisible(false)
+
+	if self.restartRequired and screen_name ~= "mainMenu" then
+		self.notification:show(self.localization.text.CommonUpdater_RestartRequired)
+	end
 end
 
 ---@param name string

@@ -256,3 +256,5 @@ ChartImport_Preparation=Status: Preparation for processing
 ChartImport_Processing=Status: Processing
 
 CommonUpdater_RestartRequired=A restart is required to complete an update.
+Update_ClickToUpdate2=Click here to restart now!
+Update_Downloading=Downloading an update...

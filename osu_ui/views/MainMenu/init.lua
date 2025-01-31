@@ -253,7 +253,7 @@ function View:addRestartButton()
 	update:addChild("newUpdate", Label({
 		scale = 0.8,
 		font = self.fonts:loadFont("Regular", 32),
-		text = "Click here to restart now.",
+		text = self.text.Update_ClickToUpdate2,
 		shadow = true,
 		shadowOffset = 2.5,
 		z = 0.1,
@@ -286,6 +286,7 @@ function View:load()
 	self.selectApi = scene.ui.selectApi
 	self.assets = assets
 	self.fonts = fonts
+	self.text = text
 	local is_gucci = scene.ui.isGucci
 
 	local music_fft = scene.musicFft
