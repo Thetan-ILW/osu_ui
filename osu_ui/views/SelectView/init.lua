@@ -227,6 +227,7 @@ function View:transitToResult()
 	self.prevPlayContext = {}
 	self.selectApi:getPlayContext():save(self.prevPlayContext)
 
+	--[[
 	local score_source = self.selectApi:getScoreSource()
 	local score_system ---@type string?
 
@@ -241,8 +242,8 @@ function View:transitToResult()
 	elseif score_source == "quaver" then
 		score_system = "Quaver"
 	end
+	]]
 
-	self:applyChartScoreSystem(score_system)
 
 	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({

@@ -1,12 +1,5 @@
 local class = require("class")
 
-local Soundsphere = require("sphere.models.RhythmModel.ScoreEngine.SoundsphereScoring")
-local OsuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
-local OsuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScoring")
-local Etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
-local Lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
-local Quaver = require("sphere.models.RhythmModel.ScoreEngine.QuaverScoring")
-
 local osuPP = require("osu_ui.osu_pp")
 local Format = require("sphere.views.Format")
 
@@ -40,13 +33,6 @@ function DisplayInfo:load()
 
 	self.rank = 0
 	self.score = 10000000
-	self.marvelous = 0
-	self.perfect = 0
-	self.great = 0
-	self.good = 0
-	self.bad = 0
-	self.miss = 0
-	self.accuracy = 0
 	self.combo = 0
 	self.grade = "D"
 	self.pp = 0
@@ -68,12 +54,60 @@ function DisplayInfo:load()
 		self:getChartInfo()
 	end
 
-	self:getJudgement()
+	local score_system = self.resultApi:getScoreSystem()
+	if self.manipFactor and self.keyMode == "4K" then
+		self.manipFactorPercent = self.manipFactor(score_system.hits)
+	end
+end
 
-	if self.judgement then
+---@type table<string, number>
+local selected_judge_nums = {
+	["osu!mania"] = 8,
+	["osu!legacy"] = 8,
+	["Etterna"] = 4,
+	["Lunatic rave 2"] = 1,
+}
+
+function DisplayInfo:calcForJudge(score_system_name, judge_num)
+	local score_system_container = self.resultApi:getScoreSystem()
+	local score_system_judgements = score_system_container.judgements
+
+	if not score_system_judgements then
+		return
+	end
+
+	self.marvelous = 0
+	self.perfect = 0
+	self.great = nil ---@type number?
+	self.good = nil ---@type number?
+	self.bad = nil ---@type number?
+	self.miss = 0
+	self.accuracy = nil ---@type number?
+
+	self.scoreSystemContainerJudgements = score_system_judgements
+
+	judge_num = Scoring.clampJudgeNum(score_system_name, judge_num)
+	local judge_name = Scoring.getJudgeName(score_system_name, judge_num)
+	---@type sphere.Judge
+	self.scoreSystemJudgement = score_system_judgements[judge_name]
+	self.scoreSystemName = score_system_name
+	self.judgeName = judge_name
+	self.judgeNum = judge_num
+	selected_judge_nums[self.scoreSystemName] = self.judgeNum
+
+	if self.scoreSystemJudgement then
 		self:getGrade()
 		self:getStats()
 	end
+end
+
+function DisplayInfo:switchJudgeNum(direction)
+	self:calcForJudge(self.scoreSystemName, self.judgeNum + direction)
+end
+
+function DisplayInfo:switchScoreSystem(direction)
+	local score_system = Scoring.scrollScoreSystem(self.scoreSystemName, direction)
+	self:calcForJudge(score_system, selected_judge_nums[score_system] or 0)
 end
 
 function DisplayInfo:getDifficulty()
@@ -152,42 +186,52 @@ function DisplayInfo:getChartInfo()
 
 	self.chartSource = second_row
 	self.playInfo = text.RankingDialog_PlayedBy:format(username, time)
+
+	local chartdiff = self.chartdiff
+
+	if chartdiff then
+		self.keyMode = Format.inputMode(chartdiff.inputmode)
+	end
+
 end
 
 function DisplayInfo:getJudgement()
-	local score_system = self.resultApi:getScoreSystem()
-	local judgements = score_system.judgements
+	local score_system_container = self.resultApi:getScoreSystem()
+	local score_system_judgements = score_system_container.judgements
 
-	if not judgements then
+	if not score_system_judgements then
 		return
 	end
 
 	local configs = self.configs
 	---@type osu.ui.OsuConfig
 	local osu = configs.osu_ui
-	local ss = osu.scoreSystem
-	local judge = osu.judgement
+	local score_system_name = osu.scoreSystem
+	local judge_num = osu.judgement
 
-	local judge_name = Scoring.getJudgeName(ss, judge)
+	judge_num = Scoring.clampJudgeNum(score_system_name, judge_num)
+	local judge_name = Scoring.getJudgeName(score_system_name, judge_num)
 
-	self.judgement = judgements[judge_name]
-	self.judgements = judgements
+	---@type sphere.Judge
+	self.scoreSystemJudgement = score_system_judgements[judge_name]
 	self.judgeName = judge_name
+	self.judgeNum = judge_num
+	self.scoreSystemName = score_system_name
 end
 
 function DisplayInfo:getGrade()
-	local judge = self.judgement
-	local scoreSystemName = judge.scoreSystemName
+	local judge = self.scoreSystemJudgement
+	local score_system_name = judge.scoreSystemName
 
-	self.grade = Scoring.getGrade(scoreSystemName, judge.accuracy)
+	self.grade = Scoring.getGrade(score_system_name, judge.accuracy)
 
-	if scoreSystemName ~= "osuMania" or scoreSystemName ~= "osuLegacy" then
+	if score_system_name ~= "osuMania" or score_system_name ~= "osuLegacy" then
 		self.grade = Scoring.convertGradeToOsu(self.grade)
 	end
 end
 
 function DisplayInfo:getStats()
-	local judge = self.judgement
+	local judge = self.scoreSystemJudgement
 	local counters = judge.counters
 	local counter_names = judge.orderedCounters
 
@@ -208,28 +252,26 @@ function DisplayInfo:getStats()
 	end
 
 	local score_system = self.resultApi:getScoreSystem()
+
+	---@type sphere.BaseScoreSystem
 	local base = score_system["base"]
 	self.combo = base.maxCombo
 	self.accuracy = judge.accuracy
-	self.score = judge.score or self.judgements["osu!legacy OD9"].score or 0
+	self.score = judge.score or self.scoreSystemContainerJudgements["osu!legacy OD9"].score or 0
 	self.judgeName = judge.judgeName
 
 	local chartdiff = self.chartdiff
 	if chartdiff then
 		self.pp = osuPP(base.notesCount, chartdiff.osu_diff, 9, self.score)
-		self.keyMode = Format.inputMode(chartdiff.inputmode)
 	end
 
 	self.spam = base.earlyHitCount
 	self.spamPercent = base.earlyHitCount / base.notesCount
 
+	---@type sphere.NormalscoreScoreSystem
 	local normalscore = score_system["normalscore"]
 	self.normalScore = normalscore.accuracyAdjusted
 	self.mean = normalscore.normalscore.mean
-
-	if self.manipFactor and self.keyMode == "4K" then
-		self.manipFactorPercent = self.manipFactor(score_system.hits)
-	end
 end
 
 return DisplayInfo
