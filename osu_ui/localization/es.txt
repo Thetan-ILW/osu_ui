@@ -254,3 +254,5 @@ FiltersModal_Lamp=Lamp:
 
 ChartImport_Preparation=Status: Preparation for processing
 ChartImport_Processing=Status: Processing
+
+CommonUpdater_RestartRequired=A restart is required to complete an update.

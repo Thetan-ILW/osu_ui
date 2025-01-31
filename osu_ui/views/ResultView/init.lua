@@ -907,39 +907,6 @@ function View:addStat(id, x, label, value)
 	}))
 end
 
-local msd_order = {
-	"overall",
-	"stream",
-	"jumpstream",
-	"handstream",
-	"stamina",
-	"jackspeed",
-	"chordjack",
-	"technical"
-}
-
-local msd_4k_alias = {
-	overall = "ALL",
-	stream = "STR",
-	jumpstream = "JS",
-	handstream = "HS",
-	stamina = "STMN",
-	jackspeed = "JACK",
-	chordjack = "CJ",
-	technical = "TECH"
-}
-
-local msd_alias = {
-	overall = "ALL",
-	stream = "STR",
-	jumpstream = "CHSTR",
-	handstream = "BRKT",
-	stamina = "STMN",
-	jackspeed = "JACK",
-	chordjack = "CJ",
-	technical = "TECH"
-}
-
 ---@param msd osu.ui.Msd
 ---@param time_rate number
 ---@param key_mode string

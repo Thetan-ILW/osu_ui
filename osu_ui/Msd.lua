@@ -156,7 +156,7 @@ function Msd.simplifyName(pattern, key_mode)
 		end
 	end
 
-	return "NONE"
+	return "ALL"
 end
 
 return Msd

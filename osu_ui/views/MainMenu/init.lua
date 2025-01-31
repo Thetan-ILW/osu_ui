@@ -204,6 +204,79 @@ function View:update()
 	self.selectApi:updateController()
 end
 
+function View:addRestartButton()
+	self.restartRequired = true
+	local bottom = self:getChild("bottomLayer")
+
+	if not bottom then
+		return
+	end
+
+	local hover_sound = self.assets:loadAudio("click-short")
+	local click_sound = self.assets:loadAudio("select-expand")
+
+	local update = bottom:addChild("update", Component({
+		x = self.width / 2,
+		y = self.height - 86 / 2,
+		origin = { x = 0.5, y = 0.5 },
+		alpha = 0,
+		hoverState = HoverState("elasticout", 0.6),
+		z = 0.1,
+		---@param this ui.Component
+		---@param mx number
+		---@param my number
+		setMouseFocus = function(this, mx, my)
+			this.mouseOver = this.hoverState:checkMouseFocus(this:getWidth(), this:getHeight(), mx, my)
+		end,
+		noMouseFocus = function(this)
+			this.mouseOver = false
+			this.hoverState:loseFocus()
+		end,
+		update = function(this)
+			---@type number
+			local s = this.hoverState.progress
+			this.scaleX = 1 + s * 0.1
+			this.scaleY = 1 + s * 0.1
+		end,
+		justHovered = function()
+			self.playSound(hover_sound)
+		end,
+		mousePressed = function(this)
+			if not this.mouseOver then
+				return
+			end
+			self.playSound(click_sound)
+			love.event.push("quit", "restart")
+		end
+	}))
+
+	update:addChild("newUpdate", Label({
+		scale = 0.8,
+		font = self.fonts:loadFont("Regular", 32),
+		text = "Click here to restart now.",
+		shadow = true,
+		shadowOffset = 2.5,
+		z = 0.1,
+	}))
+	update:autoSize()
+
+	update:addChild("refresh", Label({
+		x = update:getWidth() / 2,
+		y = update:getHeight() / 2,
+		text = "",
+		scale = 0.8,
+		font = self.fonts:loadFont("Awesome", 60),
+		origin = { x = 0.5, y = 0.5 },
+		---@param this ui.Label
+		---@param dt number
+		update = function(this, dt)
+			this.angle = this.angle + dt
+		end
+	}))
+
+	flux.to(update, 1, { alpha = 1 }):ease("cubicout")
+end
+
 function View:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	local assets = scene.assets
@@ -211,6 +284,8 @@ function View:load()
 	local text = scene.localization.text
 	self.scene = scene
 	self.selectApi = scene.ui.selectApi
+	self.assets = assets
+	self.fonts = fonts
 	local is_gucci = scene.ui.isGucci
 
 	local music_fft = scene.musicFft
@@ -439,6 +514,10 @@ function View:load()
 			end
 		end
 	}))
+
+	if self.restartRequired then
+		self:addRestartButton()
+	end
 
 	local logo_x = self.width / 2
 	local logo_y = self.height / 2

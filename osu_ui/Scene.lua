@@ -154,7 +154,20 @@ function Scene:load()
 	self:preloadScreen("lobbyList")
 	self:transitInScreen("mainMenu")
 
+	self.viewport.alpha = 0
 	flux.to(self.viewport, 0.3, { alpha = 1 }):ease("cubicout")
+
+	if self.ui.isGucci then
+		self.ui.updater:notifyState(function(state)
+			if state == "downloading" then
+				self.notification:show("Downloading a new update")
+			elseif state == "restart" then
+				---@type osu.ui.MainMenuView
+				local main_menu = self.defaultScreens.mainMenu
+				main_menu:addRestartButton()
+			end
+		end)
+	end
 end
 
 function Scene:reloadUI()
