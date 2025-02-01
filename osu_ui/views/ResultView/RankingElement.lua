@@ -20,6 +20,7 @@ function RankingElement:load()
 	self.format = self.format or "%i"
 	self.delay = self.delay or 0
 	self.targetImageScale = self.targetImageScale or 0.5
+	self.transitionTime = 1.2
 
 	self.tweens = {}
 
@@ -40,6 +41,7 @@ function RankingElement:stopAnimation()
 	for _, v in ipairs(self.tweens) do
 		v:stop()
 	end
+	self.tweens = {}
 
 	if self.imgName then
 		self.image.scaleX = self.targetImageScale
@@ -85,11 +87,32 @@ function RankingElement:addValue()
 	if self.playAnimation then
 		self.displayValue = 0
 		table.insert(self.tweens, flux.to(self.text, 0.3, { x = 64, alpha = 1 }):ease("cubicout"):delay(self.delay))
-		table.insert(self.tweens, flux.to(self, 1.2, { displayValue = self.value }):ease("cubicout"):delay(self.delay):onupdate(function ()
-			local v = self.dontCeil and self.displayValue or math.ceil(self.displayValue)
-			self.text:setText(self.format:format(v))
-		end))
+		self:transitionValue()
 	end
+end
+
+function RankingElement:transitionValue()
+	table.insert(self.tweens, flux.to(self, self.transitionTime, { displayValue = self.value }):ease("cubicout"):delay(self.delay):onupdate(function ()
+		local v = self.dontCeil and self.displayValue or math.ceil(self.displayValue)
+		self.text:setText(self.format:format(v))
+	end))
+end
+
+function RankingElement:setValue(value)
+	self:stopAnimation()
+	self.delay = 0
+	self.transitionTime = 0.4
+	self.displayValue = self.value
+	self.value = value
+	self:transitionValue()
+end
+
+function RankingElement:fade(alpha)
+	if self.alphaTween then
+		self.alphaTween:stop()
+	end
+	---@type table
+	self.alphaTween = flux.to(self, 0.4, { alpha = alpha }):ease("cubicout")
 end
 
 return RankingElement

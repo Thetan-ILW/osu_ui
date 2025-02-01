@@ -1,4 +1,3 @@
-local Component = require("ui.Component")
 local OsuList = require("osu_ui.views.SelectView.ChartTree.OsuList")
 local ChartEntry = require("osu_ui.views.SelectView.ChartTree.ChartEntry")
 local math_util = require("math_util")
@@ -14,6 +13,9 @@ function ChartList:load()
 
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.musicFft = scene.musicFft
+
+	local osu_cfg = scene.ui.selectApi:getConfigs().osu_ui ---@type osu.ui.OsuConfig
+	self.previewIcon = osu_cfg.songSelect.previewIcon
 
 	for i = 1, self.windowSize do
 		local panel = self.panelContainer:insertChild(i, ChartEntry({

@@ -87,7 +87,7 @@ local function commaValue(n) -- credit http://richard.warburton.it
 end
 
 local grade_images = {
-	SS = "ranking-X-small",
+	X = "ranking-X-small",
 	S = "ranking-S-small",
 	A = "ranking-A-small",
 	B = "ranking-B-small",
@@ -167,7 +167,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 
 	local score_num = score.score
 	if score_num > 9800 then
-		grade = grade_images.SS
+		grade = grade_images.X
 	elseif score_num > 8000 then
 		grade = grade_images.S
 	elseif score_num > 7000 then

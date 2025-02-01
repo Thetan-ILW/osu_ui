@@ -83,8 +83,8 @@ function Scoring.getGrade(scoreSystemName, accuracy)
 end
 
 function Scoring.convertGradeToOsu(grade)
-	if grade == "AAAAA" or grade == "AAAA" or grade == "AAA" or grade == "X" then
-		return "SS"
+	if grade == "AAAAA" or grade == "AAAA" or grade == "AAA" or grade == "SS" then
+		return "X"
 	elseif grade == "AA" then
 		return "S"
 	elseif grade == "F" then
@@ -143,11 +143,27 @@ function Scoring.isOsu(score_system)
 	return false
 end
 
+local score_systems = {
+	"soundsphere",
+	"osu!mania",
+	"osu!legacy",
+	"Etterna",
+	"Quaver standard",
+	"Lunatic rave 2"
+}
+
 local judge_format = {
 	["osu!mania"] = osuMania.metadata.name,
 	["osu!legacy"] = osuLegacy.metadata.name,
 	["Etterna"] = etterna.metadata.name,
 	["Lunatic rave 2"] = lr2.metadata.name,
+}
+
+local judge_ranges = {
+	["osu!mania"] = osuMania.metadata.range,
+	["osu!legacy"] = osuLegacy.metadata.range,
+	["Etterna"] = etterna.metadata.range,
+	["Lunatic rave 2"] = lr2.metadata.range,
 }
 
 local lunatic_rave_judges = {
@@ -157,16 +173,33 @@ local lunatic_rave_judges = {
 	[3] = "Very hard",
 }
 
----@param score_system string
----@param judgement number
-function Scoring.getJudgeName(score_system, judgement)
-	if score_system == "Lunatic rave 2" then
-		judgement = math_util.clamp(judgement, 0, 3)
-		return judge_format[score_system]:format(lunatic_rave_judges[judgement])
-	elseif judge_format[score_system] then
-		return judge_format[score_system]:format(judgement)
+function Scoring.clampJudgeNum(score_system_name, judge_num)
+	local ranges = judge_ranges[score_system_name]
+	if ranges then
+		return math_util.clamp(judge_num, ranges[1], ranges[2])
 	end
-	return score_system
+	return judge_num
+end
+
+---@param score_system_name string
+---@param judge_num number
+function Scoring.getJudgeName(score_system_name, judge_num)
+	if score_system_name == "Lunatic rave 2" then
+		return judge_format[score_system_name]:format(lunatic_rave_judges[judge_num])
+	elseif judge_format[score_system_name] then
+		return judge_format[score_system_name]:format(judge_num)
+	end
+
+	return score_system_name
+end
+
+function Scoring.scrollScoreSystem(score_system_name, direction)
+	for i, v in ipairs(score_systems) do
+		if score_system_name == v then
+			return score_systems[math_util.clamp(i + direction, 1, #score_systems)]
+		end
+	end
+	return score_systems[1]
 end
 
 Scoring.counterColors = {

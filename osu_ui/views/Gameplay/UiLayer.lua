@@ -8,6 +8,7 @@ local GameplayAssets = require("osu_ui.OsuGameplayAssets")
 
 ---@class osu.ui.UiLayerView : ui.Component
 ---@operator call: osu.ui.UiLayerView
+---@field gameplayView osu.ui.GameplayViewContainer
 local UiLayer = Component + {}
 
 function UiLayer:loadAssets(asset_model)
@@ -30,13 +31,7 @@ function UiLayer:loadAssets(asset_model)
 	self.gameplayAssets:updateVolume(configs)
 end
 
-function UiLayer:introSkipped()
-	self.playSound(self.skipSound)
-	self.fadeRect.skipTime = love.timer.getTime()
-end
-
 function UiLayer:retry()
-	self.playSound(self.retrySound)
 	self.skipImage.disabled = false
 end
 
@@ -79,9 +74,7 @@ function UiLayer:load()
 		z = 1,
 		---@param this osu.ui.Gameplay.FadeRect
 		update = function(this, dt)
-			local skip_alpha = 1 - math_util.clamp((love.timer.getTime() - this.skipTime) * 2, 0, 1)
-			this.restartProgress = math_util.clamp(this.restartProgress + (gameplay_api:isRestarting() and dt * 3 or -dt * 6), 0, 1)
-			this.alpha = skip_alpha + this.restartProgress
+			this.alpha = self.gameplayView.screenFade + self.gameplayView.retryProgress
 		end
 	}))
 
@@ -89,6 +82,7 @@ function UiLayer:load()
 		width = width,
 		height = height,
 		alpha = 0,
+		gameplayView = self.gameplayView,
 		disabled = true,
 		z = 0.5,
 	}))

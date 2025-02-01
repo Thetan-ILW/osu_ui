@@ -545,7 +545,7 @@ function View:load()
 			this.x = logo_x + (logo_x - mx) * 0.008 + (self.slide * -logo_slide)
 			this.y = logo_y + (logo_y - my) * 0.008
 
-			this.hoverScale = math_util.clamp(this.hoverScale + (this.mouseOver and dt * 0.5 or -dt * 0.5), 0, 0.05)
+			this.hoverScale = math_util.clamp(this.hoverScale + (this.mouseOver and dt * 0.5 or -dt * 0.5), 0, 0.08)
 			local total_scale = this.hoverScale + this.clickScale
 			this.scaleX = 1 + total_scale
 			this.scaleY = 1 + total_scale
@@ -565,7 +565,7 @@ function View:load()
 			if this.clickTween then
 				this.clickTween:stop()
 			end
-			this.clickTween = flux.to(this, 0.04, { clickScale = -0.05 }):ease("quadout"):oncomplete(function ()
+			this.clickTween = flux.to(this, 0.04, { clickScale = -0.08 }):ease("quadout"):oncomplete(function ()
 				this.clickTween = flux.to(this, 0.2, { clickScale = 0 }):ease("quadout")
 			end)
 		end

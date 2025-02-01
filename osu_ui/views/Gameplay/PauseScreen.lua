@@ -1,5 +1,4 @@
 local Component = require("ui.Component")
-local ImageButton = require("osu_ui.ui.ImageButton")
 local Rectangle = require("ui.Rectangle")
 local Image = require("ui.Image")
 local HoverState = require("ui.HoverState")
@@ -13,28 +12,39 @@ local flux = require("flux")
 ---@field gameplayView osu.ui.GameplayView
 local View = Component + {}
 
-function View:toggle()
+function View:display()
 	love.mouse.setVisible(false)
 
-	local state = self.gameplayApi:getPlayState()
-	if state == "pause" then
-		self.disabled = false
-		flux.to(self, 0.4, { alpha = 1 }):ease("cubicout")
-		flux.to(self.scene.cursor, 0.3, { alpha = 1 }):ease("cubicout")
-		self.audioLoop:play()
-	elseif state == "pause-play" then
-		flux.to(self, self.unpauseTime, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
-			self.disabled = true
-			self.audioLoop:stop()
-		end)
-		flux.to(self.scene.cursor, self.unpauseTime * 0.9, { alpha = 0 }):ease("cubicout")
-	elseif state == "pause-retry" then
-		flux.to(self, self.retryTime, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
-			self.disabled = true
-			self.audioLoop:stop()
-		end)
-		flux.to(self.scene.cursor, self.retryTime * 0.9, { alpha = 0 }):ease("cubicout")
+	if self.alphaTween then
+		self.alphaTween:stop()
 	end
+
+	self.disabled = false
+	self.handleEvents = true
+	self.alphaTween = flux.to(self, 0.4, { alpha = 1 }):ease("cubicout")
+	flux.to(self.scene.cursor, 0.3, { alpha = 1 }):ease("cubicout")
+	self.audioLoop:play()
+end
+
+---@param instant boolean
+function View:hide(instant)
+	if self.alphaTween then
+		self.alphaTween:stop()
+	end
+
+	self.handleEvents = false
+	if instant then
+		self.alpha = 0
+		self.disabled = true
+		self.audioLoop:stop()
+		return
+	end
+
+	self.alphaTween = flux.to(self, self.unpauseTime, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
+		self.disabled = true
+		self.audioLoop:stop()
+	end)
+	flux.to(self.scene.cursor, self.unpauseTime * 0.9, { alpha = 0 }):ease("cubicout")
 end
 
 function View:quit()
@@ -110,20 +120,14 @@ function View:keyPressed(event)
 	end
 end
 
-function View:reload()
-	self:toggle()
-end
-
 function View:load()
 	local width, height = self.width, self.height
 
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
-	local gameplay_api = scene.ui.gameplayApi
 	local assets = scene.assets
 	local configs = scene.ui.selectApi:getConfigs()
 	self:getViewport():listenForResize(self)
 	self.scene = scene
-	self.gameplayApi = gameplay_api
 	self.unpauseTime = configs.settings.gameplay.time.pausePlay
 	self.retryTime = configs.settings.gameplay.time.pauseRetry
 	self.audioLoop = assets:loadAudio("pause-loop")
@@ -139,8 +143,7 @@ function View:load()
 		assets:loadAudio("pause-continue-hover"),
 		assets:loadAudio("pause-continue-click"),
 		function ()
-			self.gameplayApi:changePlayState("play")
-			self:toggle()
+			self.gameplayView:unpause()
 		end
 	))
 
@@ -151,8 +154,7 @@ function View:load()
 		assets:loadAudio("pause-retry-hover"),
 		assets:loadAudio("pause-retry-click"),
 		function ()
-			self.gameplayApi:changePlayState("retry")
-			self:toggle()
+			self.gameplayView:retry()
 		end
 	))
 
@@ -163,10 +165,7 @@ function View:load()
 		assets:loadAudio("pause-back-hover"),
 		assets:loadAudio("pause-back-click"),
 		function ()
-			local gameplay = self:findComponent("gameplay")
-			assert(gameplay, "where is the gameplay hm hm")
-			---@cast gameplay osu.ui.GameplayViewContainer
-			gameplay:quit()
+			self.gameplayView:quit()
 		end
 	))
 

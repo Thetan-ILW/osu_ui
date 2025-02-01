@@ -13,6 +13,7 @@ local HpGraph = require("osu_ui.views.ResultView.HpGraph")
 local PlayerInfo = require("osu_ui.views.PlayerInfoView")
 local ResultScores = require("osu_ui.views.ResultView.Scores")
 local RankingElement = require("osu_ui.views.ResultView.RankingElement")
+local Grade = require("osu_ui.views.ResultView.Grade")
 
 local thread = require("thread")
 local Rectangle = require("ui.Rectangle")
@@ -115,7 +116,66 @@ function View:keyPressed(event)
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5
 		}))
+	elseif event[2] == "right" then
+		self:changeJudge(1)
+	elseif event[2] == "left" then
+		self:changeJudge(-1)
+	elseif event[2] == "up" then
+		self:changeScoreSystem(-1)
+	elseif event[2] == "down" then
+		self:changeScoreSystem(1)
 	end
+end
+
+function View:changeScoreSystem(direction)
+	self.displayInfo:switchScoreSystem(direction)
+	self:scoreSystemChanged()
+end
+
+---@param direction number
+function View:changeJudge(direction)
+	self.displayInfo:switchJudgeNum(direction)
+	self:scoreSystemChanged()
+end
+
+function View:scoreSystemChanged()
+	local di = self.displayInfo
+	self.marvelous:setValue(di.marvelous)
+	self.perfect:setValue(di.perfect)
+	self.miss:setValue(di.miss)
+
+	---@param ranking_element osu.ui.ResultView.RankingElement
+	---@param value number?
+	local function setValue(ranking_element, value)
+		if value then
+			ranking_element:setValue(value)
+			ranking_element:fade(1)
+		else
+			ranking_element:fade(0)
+		end
+	end
+
+	setValue(self.great, di.great)
+	setValue(self.good, di.good)
+	setValue(self.bad, di.bad)
+	setValue(self.accuracy, di.accuracy and di.accuracy * 100 or nil)
+
+	if self.scoreTween then
+		self.scoreTween:stop()
+	end
+	---@type table
+	self.scoreTween = flux.to(self.score, 0.3, { displayValue = di.score }):ease("cubicout"):onupdate(function()
+		self.score:setText(("%07d"):format(self.score.displayValue))
+	end)
+
+	if self.judgeNameLabel then
+		self.judgeNameLabel:replaceText(di.judgeName)
+		self.judgeNameBg.width = self.judgeNameLabel:getWidth() + 10
+	else
+		self.scene.notification:show(di.judgeName)
+	end
+
+	self.grade:switchTo(di.grade)
 end
 
 function View:mousePressed()
@@ -151,16 +211,19 @@ function View:load(score_loaded)
 	end
 	self.loaded = true
 
+	local configs = self.selectApi:getConfigs()
+	local osu_cfg = configs.osu_ui ---@type osu.ui.OsuConfig
+
 	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.manipFactor)
 	display_info:load()
+	display_info:calcForJudge(osu_cfg.scoreSystem, osu_cfg.judgement)
+	self.displayInfo = display_info
 
 	local assets = scene.assets
 	local fonts = scene.fontManager
 	local text = scene.localization.text
 	self.fonts = fonts
 
-	local configs = self.selectApi:getConfigs()
-	local osu_cfg = configs.osu_ui ---@type osu.ui.OsuConfig
 
 	local width, height = self.width, self.height
 
@@ -241,7 +304,8 @@ function View:load(score_loaded)
 
 	local score_font = assets.imageFonts.scoreFont
 
-	local score = area:addChild("score", ImageValueView({
+	---@class osu.ui.ResultView.Score : osu.ui.ImageValueView
+	self.score = area:addChild("score", ImageValueView({
 		x = score_x, y = score_y,
 		origin = { x = 0.5, y = 0.5 },
 		scale = assets.useNewLayout and 1.3 or 1.05,
@@ -254,19 +318,20 @@ function View:load(score_loaded)
 
 	local pa = self.playAnimations
 
-	self.scoreTween = flux.to(score, 1, { displayValue = display_info.score }):ease("cubicout"):onupdate(function()
-		score:setText(("%07d"):format(score.displayValue))
+	self.scoreTween = flux.to(self.score, 1, { displayValue = display_info.score }):ease("cubicout"):onupdate(function()
+		self.score:setText(("%07d"):format(self.score.displayValue))
 	end)
 
 	if not pa then
+		self.score.displayValue = display_info.score
 		self.scoreTween:stop()
-		score:setText(("%07d"):format(display_info.score))
+		self.score:setText(("%07d"):format(display_info.score))
 	end
 
 	local re = area:addChild("rankingElements", Component({ z = 0.55 }))
 
 	local delay = 0.06
-	re:addChild("perfect", RankingElement({
+	self.perfect = re:addChild("perfect", RankingElement({
 		x = img_x1, y = row1,
 		imgName = "mania-hit300",
 		value = display_info.perfect,
@@ -275,7 +340,7 @@ function View:load(score_loaded)
 		delay = delay,
 	}))
 
-	re:addChild("marvelous", RankingElement({
+	self.marvelous = re:addChild("marvelous", RankingElement({
 		x = img_x2, y = row1,
 		imgName = "mania-hit300g",
 		value = display_info.marvelous,
@@ -284,34 +349,37 @@ function View:load(score_loaded)
 		delay = delay * 2,
 	}))
 
-	re:addChild("great", RankingElement({
+	self.great = re:addChild("great", RankingElement({
 		x = img_x1, y = row2,
 		imgName = "mania-hit200",
-		value = display_info.great,
+		value = display_info.great or 0,
 		format = "%ix",
 		playAnimation = pa,
 		delay = delay * 3,
+		alpha = display_info.great and 1 or 0
 	}))
 
-	re:addChild("good", RankingElement({
+	self.good = re:addChild("good", RankingElement({
 		x = img_x2, y = row2,
 		imgName = "mania-hit100",
-		value = display_info.good,
+		value = display_info.good or 0,
 		format = "%ix",
 		playAnimation = pa,
 		delay = delay * 4,
+		alpha = display_info.good and 1 or 0
 	}))
 
-	re:addChild("bad", RankingElement({
+	self.bad = re:addChild("bad", RankingElement({
 		x = img_x1, y = row3,
 		imgName = "mania-hit50",
-		value = display_info.bad,
+		value = display_info.bad or 0,
 		format = "%ix",
 		playAnimation = pa,
 		delay = delay * 5,
+		alpha = display_info.bad and 1 or 0
 	}))
 
-	re:addChild("miss", RankingElement({
+	self.miss = re:addChild("miss", RankingElement({
 		x = img_x2, y = row3,
 		imgName = "mania-hit0",
 		value = display_info.miss,
@@ -338,26 +406,28 @@ function View:load(score_loaded)
 		delay = delay * 7,
 	}))
 
-	if display_info.accuracy then
-		local acc = re:addChild("accImg", RankingElement({
-			x = img_x2 - 92.8, y = row4 - row4_offset,
-			imgName = "ranking-accuracy",
-			playAnimation = pa,
-			delay = delay * 8,
-			targetImageScale = 1,
-		}))
-		acc.image.origin = { x = 0, y = 0 }
+	local acc = re:addChild("accImg", RankingElement({
+		x = img_x2 - 92.8, y = row4 - row4_offset,
+		imgName = "ranking-accuracy",
+		playAnimation = pa,
+		delay = delay * 8,
+		targetImageScale = 1,
+		update = function(this)
+			this.alpha = self.accuracy.alpha
+		end
+	}))
+	acc.image.origin = { x = 0, y = 0 }
 
-		re:addChild("acc", RankingElement({
-			x = text_x2 - 201.5,
-			y = row4 + 16 + 25.5,
-			value = display_info.accuracy * 100,
-			format = "%0.2f%%",
-			playAnimation = pa,
-			delay = delay * 8,
-			dontCeil = true,
-		}))
-	end
+	self.accuracy = re:addChild("acc", RankingElement({
+		x = text_x2 - 201.5,
+		y = row4 + 16 + 25.5,
+		value = (display_info.accuracy or 0) * 100,
+		format = "%0.2f%%",
+		playAnimation = pa,
+		delay = delay * 8,
+		dontCeil = true,
+		alpha = display_info.accuracy and 1 or 0
+	}))
 
 	self.rankingElements = re
 
@@ -399,6 +469,8 @@ function View:load(score_loaded)
 			z = 0.91,
 		}))
 		judge_name_bg.width = judge_name_label:getWidth() + 10
+		self.judgeNameLabel = judge_name_label
+		self.judgeNameBg = judge_name_bg
 	end
 
 	---- GRADE ----
@@ -414,10 +486,9 @@ function View:load(score_loaded)
 		Image.update(overlay, dt)
 	end
 
-	area:addChild("grade", Image({
+	self.grade = area:addChild("grade", Grade({
 		x = width - 192, y = 320,
-		origin = { x = 0.5, y = 0.5 },
-		image = assets:loadImage(("ranking-%s"):format(display_info.grade)),
+		grade = display_info.grade,
 		z = 0.6,
 	}))
 
