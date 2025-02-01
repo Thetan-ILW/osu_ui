@@ -93,7 +93,7 @@ function View:quit()
 		self.gameplayApi:stop()
 	end
 
-	if self.gameplayApi:hasResult() then
+	if self.gameplayApi:hasResult() and self.gameplayApi.shouldShowResult then
 		self:transitOut({
 			time = 0.27,
 			onComplete = function ()

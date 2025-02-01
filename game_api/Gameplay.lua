@@ -11,6 +11,7 @@ function Gameplay:new(game)
 	self.sequenceView = SequenceView()
 	self.loaded = false
 	self.chartEnded = false
+	self.shouldShowResult = false
 end
 
 function Gameplay:start()
@@ -29,6 +30,7 @@ function Gameplay:start()
 	sequence_view:load()
 	self.loaded = true
 	self.chartEnded = false
+	self.shouldShowResult = false
 end
 
 function Gameplay:stop()
@@ -40,6 +42,7 @@ function Gameplay:stop()
 	self.game.rhythmModel.observable:remove(self.sequenceView)
 	self.sequenceView:unload()
 	self.loaded = false
+	self.shouldShowResult = false
 end
 
 function Gameplay:retry()
@@ -59,6 +62,10 @@ function Gameplay:update(dt)
 	local time_engine = self.game.rhythmModel.timeEngine
 	if time_engine.currentTime >= time_engine.maxTime + 1 then
 		self.chartEnded = true
+	end
+
+	if time_engine.currentTime >= math.max(0, time_engine.maxTime - 5) then
+		self.shouldShowResult = true
 	end
 
 	self.sequenceView:update(dt)
