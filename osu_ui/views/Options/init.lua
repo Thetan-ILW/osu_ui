@@ -116,8 +116,25 @@ function Options:newSection(id, name, icon, build_function)
 	table.insert(Options.sectionsOrder, id)
 end
 
+---@return { scrollPosition: number, wasOpen: boolean }
+function Options:getState()
+	return {
+		scrollPosition = self.panel.scrollPosition,
+		wasOpen = self.alpha == 1
+	}
+end
+
+---@param state { scrollPosition: number, wasOpen: boolean }
+function Options:setState(state)
+	if state.wasOpen then
+		self.panel.scrollPosition = state.scrollPosition
+		self.alpha = 1
+		self.disabled = false
+		self.handleEvents = true
+	end
+end
+
 function Options:reload()
-	self.prevScrollPosition = self:getScrollPosition()
 	self:clearTree()
 	self:load()
 end
@@ -220,11 +237,6 @@ function Options:load()
 		end
 	}))
 	---@cast panel osu.ui.ScrollAreaContainer
-
-	if self.prevScrollPosition then
-		panel.scrollPosition = self.prevScrollPosition
-		self.prevScrollPosition = nil
-	end
 
 	panel:addChild("optionsLabel", Label({
 		y = 60,

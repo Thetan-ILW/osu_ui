@@ -12,7 +12,7 @@ local Format = require("sphere.views.Format")
 ---@operator call: osu.ui.ChartEntry
 ---@field index integer
 ---@field setIndex integer
----@field list osu.ui.WindowList
+---@field list osu.ui.ChartList
 ---@field flashT number
 ---@field selectedT number
 ---@field selectedSetT number
@@ -50,7 +50,7 @@ function ChartEntry:load()
 	}))
 
 	local y = 5
-	local preview_icon_w = 108 -- or 0
+	local preview_icon_w = self.list.previewIcon and 108 or 0
 	self.icon = self:addChild("icon", Image({
 		x = 20 + preview_icon_w, y = y + 2,
 		image = assets:loadImage("mode-mania-small-for-charts"),

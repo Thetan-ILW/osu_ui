@@ -69,6 +69,7 @@ function Scene:new(params)
 	self.assets = OsuAssets(self.ui.assetModel)
 	self.localization = Localization(path_util.join(self.ui.mountPath, "osu_ui/localization"), "en.txt")
 	self.fontManager = FontManager(768, fonts, fallbacks)
+
 end
 
 function Scene:load()
@@ -173,7 +174,9 @@ end
 
 function Scene:reloadUI()
 	flux.to(self.viewport, 0.3, { alpha = 0 }):ease("cubicout"):oncomplete(function ()
+		local options_state = self.options:getState()
 		self:load()
+		self.options:setState(options_state)
 	end)
 end
 

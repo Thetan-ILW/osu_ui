@@ -282,7 +282,13 @@ return function(section)
 
 		group:checkbox({
 			label = text.Options_SongSelect_Thumbnails,
-			key = { osu.songSelect, "previewIcon" }
+			getValue = function ()
+				return osu.songSelect.previewIcon
+			end,
+			clicked = function ()
+				osu.songSelect.previewIcon = not osu.songSelect.previewIcon
+				scene:reloadUI()
+			end
 		})
 
 		group:checkbox({
