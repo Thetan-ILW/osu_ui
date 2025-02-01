@@ -48,6 +48,18 @@ local t = {
 		blur = true,
 		blurQuality = 0.5,
 	},
+	keybinds = {
+		---@class osu.ui.GameplayKeybinds
+		gameplay = {
+			retry = "`",
+			pause = "escape",
+			skipIntro = "space",
+			decreaseScrollSpeed = "f3",
+			increaseScrollSpeed = "f4",
+			decreaseLocalOffset = "-",
+			increaseLocalOffset = "=",
+		}
+	}
 }
 
 return t

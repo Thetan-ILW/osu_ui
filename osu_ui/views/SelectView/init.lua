@@ -773,12 +773,39 @@ function View:load()
 
 	local is_gucci = scene.ui.isGucci
 	local logo_img = is_gucci and assets:loadImage("menu-gucci-logo") or assets:loadImage("menu-sphere-logo")
-	bottom:addChild("osuLogo", Image({
+	local logo_w, logo_h = logo_img:getDimensions()
+	local frame_aim_time = 1 / 60
+	local decay_factor = 0.69
+	local logo = bottom:addChild("osuLogo", Image({
 		x = width - 64, y = height - 49,
 		origin = { x = 0.5, y = 0.5 },
 		scale = 0.4,
 		image = logo_img,
-		z = 0.1
+		z = 0.1,
+		blockMouseFocus = true,
+		---@param this ui.Image
+		---@param dt number
+		update = function(this, dt)
+			local scale_dest = this.mouseOver and 0.47 or 0.4
+			local diff = scale_dest - this.scaleX
+			diff = diff * math.pow(decay_factor, dt / frame_aim_time)
+			this.scaleX = scale_dest - diff
+			this.scaleY = scale_dest - diff
+
+		end,
+		setMouseFocus = function(this, mx, my)
+			mx, my = love.graphics.inverseTransformPoint(mx, my)
+			local dx = logo_w / 2 - mx
+			local dy = logo_h / 2 - my
+			local distance = math.sqrt(math.pow(dx, 2) + math.pow(dy, 2))
+			this.mouseOver = distance < 255
+		end,
+		mousePressed = function(this)
+			if not this.mouseOver then
+				return
+			end
+			self:transitToGameplay()
+		end,
 	}))
 
 	bottom:addChild("osuLogo2", Image({
@@ -789,8 +816,8 @@ function View:load()
 		alpha = 0.3,
 		z = 0.11,
 		update = function(this)
-			this.scaleX = 0.4 + music_fft.beatValue * 1.5
-			this.scaleY = 0.4 + music_fft.beatValue * 1.5
+			this.scaleX = logo.scaleX + music_fft.beatValue * 1.5
+			this.scaleY = logo.scaleY + music_fft.beatValue * 1.5
 		end
 	}))
 

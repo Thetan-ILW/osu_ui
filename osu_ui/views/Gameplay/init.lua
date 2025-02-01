@@ -10,15 +10,7 @@ local delay = require("delay")
 ---@field gameplayApi game.GameplayAPI
 local View = CanvasScreen + {}
 
-local keybinds = {
-	retry = "`",
-	pause = "escape",
-	skipIntro = "space",
-	decreaseScrollSpeed = "f3",
-	increaseScrollSpeed = "f4",
-	decreaseLocalOffset = "-",
-	increaseLocalOffset = "=",
-}
+local keybinds = {}
 
 function View:transitIn()
 	self.uiLayer:reload()
@@ -111,8 +103,10 @@ function View:load()
 
 	local assets = scene.assets
 	local configs = self.selectApi:getConfigs()
+	local osu_cfg = configs.osu_ui ---@type osu.ui.OsuConfig
 	self.configs = configs
 	self.backgroundDim = configs.settings.graphics.dim.gameplay
+	keybinds = osu_cfg.keybinds.gameplay
 
 	local gameplay_cfg = configs.osu_ui.gameplay
 	local render_at_native_res = gameplay_cfg.nativeRes
