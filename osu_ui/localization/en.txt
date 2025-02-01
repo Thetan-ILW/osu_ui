@@ -186,7 +186,7 @@ Options_SwitchToLegacyUI=Switch to legacy UI
 Options_UISwitchConfirm=Are you sure you want to switch back to the old UI? Do you even know how to get back?
 
 SongSelection_BeatmapInfoCreator=Mapped by %s
-SongSelection_BeatmapInfoPack=From %s
+SongSelection_BeatmapInfoPack=Mapped by %s (From %s)
 SongSelection_BeatmapInfo=Length: %s BPM: %i Objects: %i
 SongSelection_BeatmapInfo2=Circles: %i Sliders: %i Spinners: %i
 SongSelection_BeatmapInfo3=Keys: %s OD:%s HP:%i Star rate: %s
