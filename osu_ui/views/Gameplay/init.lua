@@ -143,7 +143,6 @@ function View:load()
 	self.unpauseTime = time.pausePlay
 	self.restartTime = time.playRetry
 	self.nextAllowedUnpauseTime = -math.huge
-	self.nextAllowedPauseTime = -math.huge
 	self.introSkipped = false
 	self.retryProgress = 0
 	self.retrying = true
@@ -154,11 +153,6 @@ function View:load()
 end
 
 function View:pause()
-	if love.timer.getTime() < self.nextAllowedPauseTime then
-		self.notification:show(self.text.Player_WaitBeforePausing)
-		return
-	end
-
 	self.nextAllowedUnpauseTime = 0
 	self.gameplayApi:pause()
 	self.uiLayer.pause:display()
@@ -171,7 +165,6 @@ function View:unpause()
 
 	self.uiLayer.pause:hide(false)
 	self.nextAllowedUnpauseTime = love.timer.getTime() + self.unpauseTime + 1
-	self.nextAllowedPauseTime = self.nextAllowedUnpauseTime
 	delay.debounce(self, "unpauseDelay", self.unpauseTime, self.gameplayApi.play, self.gameplayApi)
 end
 
@@ -182,7 +175,6 @@ function View:retry()
 	self.playSound(self.retrySound)
 	self.screenFade = 1
 	flux.to(self, 0.7, { screenFade = 0 }):ease("cubicout")
-	self.nextAllowedPauseTime = love.timer.getTime() + 1
 	self.retryProgress = 0
 	self.retrying = false
 	self.introSkipped = false
@@ -196,7 +188,7 @@ function View:update(dt)
 
 	local restart_dt = dt / self.restartTime
 	self.retryProgress = math_util.clamp(
-		self.retryProgress + ((love.keyboard.isDown(keybinds.retry) and self.retrying) and restart_dt or -restart_dt),
+		self.retryProgress + ((love.keyboard.isScancodeDown(keybinds.retry) and self.retrying) and restart_dt or -restart_dt),
 		0, 1
 	)
 
