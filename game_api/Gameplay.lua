@@ -128,15 +128,19 @@ function Gameplay:changePlayState(state)
 	self.game.gameplayController:changePlayState(state)
 end
 
----@return boolean
-function Gameplay:isRestarting()
-	local state = self.game.pauseModel.state
-	if state == "play-retry" then
-		return true
-	elseif state == "pause-retry" then
-		return true
-	end
-	return false
+function Gameplay:play()
+	self.game.gameplayController:play()
+	self.paused = false
+end
+
+function Gameplay:pause()
+	self.paused = true
+	self.game.gameplayController:pause()
+end
+
+function Gameplay:retry()
+	self.paused = false
+	self.game.gameplayController:retry()
 end
 
 ---@return boolean

@@ -2,42 +2,23 @@ local CanvasScreen = require("osu_ui.views.CanvasScreen")
 local Playfield = require("osu_ui.views.Gameplay.Playfield")
 local UiLayer = require("osu_ui.views.Gameplay.UiLayer")
 local flux = require("flux")
+local math_util = require("math_util")
+local delay = require("delay")
 
 ---@class osu.ui.GameplayViewContainer : osu.ui.CanvasScreen
 ---@operator call: osu.ui.GameplayViewContainer
 ---@field gameplayApi game.GameplayAPI
----@field state "play" | "pausing" | "pause" | "unpausing"
 local View = CanvasScreen + {}
 
-function View:setPauseAlpha(a)
-	if self.pauseTween then
-		self.pauseTween:stop()
-	end
-	self.pauseTween = flux.to(self.pause, 0.4, { alpha = a }):ease("quadout")
-end
-
----@param game_state "play" | "pause" | "force_play"
-function View:processGameState(game_state)
-	if self.state == "play" then
-		if game_state == "pause" then
-			self.state = "pausing"
-			self:setPauseAlpha(1)
-		end
-	elseif self.state == "pausing" then
-		if self.pause.alpha == 1 then
-			self.state = "pause"
-		end
-	elseif self.state == "pause" then
-		if game_state == "force_play" or game_state == "play" then
-			self:setPauseAlpha(0)
-			self.state = "unpausing"
-		end
-	elseif self.state == "unpausing" then
-		if self.pause.alpha == 0 then
-			self.state = "play"
-		end
-	end
-end
+local keybinds = {
+	retry = "`",
+	pause = "escape",
+	skipIntro = "space",
+	decreaseScrollSpeed = "f3",
+	increaseScrollSpeed = "f4",
+	decreaseLocalOffset = "-",
+	increaseLocalOffset = "=",
+}
 
 function View:transitIn()
 	self.uiLayer:reload()
@@ -123,15 +104,15 @@ function View:load()
 
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.scene = scene
-
 	self.selectApi = scene.ui.selectApi
 	self.gameplayApi = scene.ui.gameplayApi
+	self.notification = scene.notification
+	self.text = scene.localization.text
+
+	local assets = scene.assets
 	local configs = self.selectApi:getConfigs()
 	self.configs = configs
 	self.backgroundDim = configs.settings.graphics.dim.gameplay
-
-	self.state = "play"
-	self.introSkipped = false
 
 	local gameplay_cfg = configs.osu_ui.gameplay
 	local render_at_native_res = gameplay_cfg.nativeRes
@@ -158,8 +139,59 @@ function View:load()
 		}))
 	end
 
-	local ui_layer = self:addChild("uiLayer", UiLayer({ z = 0.2 })) ---@cast ui_layer osu.ui.UiLayerView
+	local ui_layer = self:addChild("uiLayer", UiLayer({
+		gameplayView = self,
+		z = 0.2
+	}))
 	self.uiLayer = ui_layer
+
+	local time = self.configs.settings.gameplay.time
+	self.unpauseTime = time.pausePlay
+	self.restartTime = time.playRetry
+	self.nextAllowedUnpauseTime = -math.huge
+	self.nextAllowedPauseTime = -math.huge
+	self.introSkipped = false
+	self.retryProgress = 0
+	self.retrying = true
+	self.screenFade = 0
+
+	self.retrySound = assets:loadAudio("pause-retry-click")
+	self.skipSound = assets:loadAudio("menuhit")
+end
+
+function View:pause()
+	if love.timer.getTime() < self.nextAllowedPauseTime then
+		self.notification:show(self.text.Player_WaitBeforePausing)
+		return
+	end
+
+	self.nextAllowedUnpauseTime = 0
+	self.gameplayApi:pause()
+	self.uiLayer.pause:display()
+end
+
+function View:unpause()
+	if love.timer.getTime() < self.nextAllowedUnpauseTime then
+		return
+	end
+
+	self.uiLayer.pause:hide(false)
+	self.nextAllowedUnpauseTime = love.timer.getTime() + self.unpauseTime + 1
+	self.nextAllowedPauseTime = self.nextAllowedUnpauseTime
+	delay.debounce(self, "unpauseDelay", self.unpauseTime, self.gameplayApi.play, self.gameplayApi)
+end
+
+function View:retry()
+	self.gameplayApi:retry()
+	self.uiLayer:retry()
+	self.uiLayer.pause:hide(true)
+	self.playSound(self.retrySound)
+	self.screenFade = 1
+	flux.to(self, 0.7, { screenFade = 0 }):ease("cubicout")
+	self.nextAllowedPauseTime = love.timer.getTime() + 1
+	self.retryProgress = 0
+	self.retrying = false
+	self.introSkipped = false
 end
 
 function View:update(dt)
@@ -168,10 +200,14 @@ function View:update(dt)
 		self:quit()
 	end
 
-	if self.gameplayApi:needRetry() then
-		self.gameplayApi:retry()
-		self.uiLayer:retry()
-		self.introSkipped = false
+	local restart_dt = dt / self.restartTime
+	self.retryProgress = math_util.clamp(
+		self.retryProgress + ((love.keyboard.isDown(keybinds.retry) and self.retrying) and restart_dt or -restart_dt),
+		0, 1
+	)
+
+	if self.retryProgress == 1 then
+		self:retry()
 	end
 end
 
@@ -181,68 +217,62 @@ function View:draw()
 	love.graphics.draw(self.canvas)
 end
 
+---@param event table
 function View:keyPressed(event)
-	local key = event[2]
+	local key = event[2] ---@type string
 	local shift = love.keyboard.isScancodeDown("lshift") or love.keyboard.isScancodeDown("rshift")
 
-	if key == "escape" and shift then
+	if key == keybinds.pause and shift then
 		self:quit()
 		return true
-	elseif key == "space" and not self.introSkipped then
+	elseif key == keybinds.skipIntro and not self.introSkipped then
 		if self.gameplayApi:canSkipIntro() then
+			self.playSound(self.skipSound)
+			self.screenFade = 1
+			flux.to(self, 0.4, { screenFade = 0 }):ease("cubicout")
 			self.introSkipped = true
 			self.gameplayApi:skipIntro()
-			self.uiLayer:introSkipped()
 		end
 		local showcase = self.scene:getChild("chartShowcase") ---@cast showcase osu.ui.ChartShowcase
 		if showcase then
 			showcase:hide(0)
 		end
 		return
-	elseif key == "f3" then
+	elseif key == keybinds.decreaseScrollSpeed then
 		local new_speed = self.gameplayApi:increasePlaySpeed(-1)
 		self.scene.notification:show("Scroll speed: " .. new_speed)
-	elseif key == "f4" then
+	elseif key == keybinds.increaseScrollSpeed then
 		local new_speed = self.gameplayApi:increasePlaySpeed(1)
 		self.scene.notification:show("Scroll speed: " .. new_speed)
-	elseif key == "-" and shift then
+	elseif key == keybinds.decreaseLocalOffset and shift then
 		local new_offset = self.gameplayApi:increaseLocalOffset(-0.001) * 1000
 		self.scene.notification:show(("Local offset: %ims"):format(new_offset))
-	elseif key == "=" and shift then
+	elseif key == keybinds.increaseLocalOffset and shift then
 		local new_offset = self.gameplayApi:increaseLocalOffset(0.001) * 1000
 		self.scene.notification:show(("Local offset: %ims"):format(new_offset))
-	elseif key == "-" then
+	elseif key == keybinds.decreaseLocalOffset then
 		local new_offset = self.gameplayApi:increaseLocalOffset(-0.005) * 1000
 		self.scene.notification:show(("Local offset: %ims"):format(new_offset))
-	elseif key == "=" then
+	elseif key == keybinds.increaseLocalOffset then
 		local new_offset = self.gameplayApi:increaseLocalOffset(0.005) * 1000
 		self.scene.notification:show(("Local offset: %ims"):format(new_offset))
-	end
-
-	local state = self.gameplayApi:getPlayState()
-	if state == "play" then
-		if key == "`" then
-			self.gameplayApi:changePlayState("retry")
-		elseif key == "escape" then
-			self.gameplayApi:changePlayState("pause")
-			self.uiLayer.pause:toggle()
+	elseif key == keybinds.pause then
+		if self.gameplayApi.paused then
+			self:unpause()
+		else
+			self:pause()
 		end
-	elseif state == "pause" then
-		if key == "escape" then
-			self.gameplayApi:changePlayState("play")
-			self.uiLayer.pause:toggle()
-		end
+	elseif key == keybinds.retry then
+		self.retrying = true
 	end
 end
 
+---@param event table
 function View:keyReleased(event)
-	local key = event[2]
-	local state = self.gameplayApi:getPlayState()
+	local key = event[2] ---@type string
 
-	if state == "play-retry" then
-		if key == "`" then
-			self.gameplayApi:changePlayState("play")
-		end
+	if key == keybinds.retry then
+		self.retrying = false
 	end
 end
 
