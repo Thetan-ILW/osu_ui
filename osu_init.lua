@@ -16,7 +16,6 @@ local packages = require("osu_ui.packages")
 local other_games = require("osu_ui.other_games")
 local physfs = require("physfs")
 local path_util = require("path_util")
-local delay = require("delay")
 
 ---@class osu.ui.UserInterface
 ---@operator call: osu.ui.UserInterface
@@ -169,11 +168,12 @@ end
 
 function UserInterface:mountOtherGamesCharts()
 	for game_name, path in pairs(self.otherGames.games) do
+		local songs_path = path_util.join(path, "Songs")
 		local items = self.locationsApi:getLocations()
 		local exists = false
 
 		for i, v in ipairs(items) do
-			if path == v.path then
+			if songs_path == v.path then
 				exists = true
 				break
 			end
@@ -182,7 +182,7 @@ function UserInterface:mountOtherGamesCharts()
 		if not exists then
 			self.locationsApi:createLocation()
 			self.locationsApi:changeName(game_name)
-			self.locationsApi:changePath(path)
+			self.locationsApi:changePath(songs_path)
 		end
 	end
 end
