@@ -6,6 +6,7 @@ local Chat = require("osu_ui.views.Chat")
 local Options = require("osu_ui.views.Options")
 local Tooltip = require("osu_ui.views.Tooltip")
 local Notification = require("osu_ui.views.NotificationView")
+local PopupContainer = require("osu_ui.views.PopupContainer")
 local FpsDisplay = require("osu_ui.views.FpsDisplay")
 
 local FontManager = require("ui.FontManager")
@@ -104,7 +105,6 @@ function Scene:load()
 	self.fontManager:setVieportHeight(self.viewport.height)
 
 	local music_fft = self:addChild("musicFft", MusicFft())
-	---@cast music_fft osu.ui.MusicFft
 	self.musicFft = music_fft
 
 	local cursor = self:addChild("cursor", CursorView({
@@ -116,7 +116,7 @@ function Scene:load()
 
 	local tooltip = self:addChild("tooltip", Tooltip({
 		z = 0.981
-	})) ---@cast tooltip osu.ui.TooltipView
+	}))
 	self.tooltip = tooltip
 
 	local options = self:addChild("options", Options({
@@ -138,17 +138,16 @@ function Scene:load()
 	local fps_display = self:addChild("fpsDisplay", FpsDisplay({
 		z = 0.9,
 	}))
+	local popup_container = self:addChild("popupContainer", PopupContainer({
+		z = 0.8
+	}))
 
-	---@cast cursor osu.ui.CursorView
-	---@cast options osu.ui.OptionsView
-	---@cast chat osu.ui.ChatView
-	---@cast background osu.ui.ParallaxBackground
-	---@cast fps_display osu.ui.FpsDisplayView
 	self.fpsDisplay = fps_display
 	self.cursor = cursor
 	self.options = options
 	self.chat = chat
 	self.background = background
+	self.popupContainer = popup_container
 
 	self.currentScreenId = ""
 	self.previousScreenId = ""
@@ -161,11 +160,12 @@ function Scene:load()
 	if self.ui.isGucci then
 		self.ui.updater:notifyState(function(state)
 			if state == "downloading" then
-				self.notification:show(self.localization.text.Update_Downloading)
+				self.popupContainer:add(self.localization.text.Update_Downloading, "purple")
 			elseif state == "restart" then
 				---@type osu.ui.MainMenuView
 				local main_menu = self.defaultScreens.mainMenu
 				main_menu:addRestartButton()
+				self.popupContainer:add(self.localization.text.CommonUpdater_RestartRequired, "green")
 				self.restartRequired = true
 			end
 		end)
@@ -237,10 +237,6 @@ function Scene:transitInScreen(screen_name)
 	self.currentScreenId = screen_name
 	screen:transitIn()
 	love.mouse.setVisible(false)
-
-	if self.restartRequired and screen_name ~= "mainMenu" then
-		self.notification:show(self.localization.text.CommonUpdater_RestartRequired)
-	end
 end
 
 ---@param name string
@@ -291,9 +287,11 @@ end
 function Scene:makeScreenshot()
 	local canvas = self:getViewport().canvas
 	local image = canvas:newImageData()
-	local path = ("userdata/screenshots/screenshot %s.jpg"):format(os.date("%d.%m.%Y %H-%M-%S", os.time()))
+	local path = ("userdata/screenshots/screenshot %s.png"):format(os.date("%d.%m.%Y %H-%M-%S", os.time()))
 	image:encode("png", path)
 	image:release()
+
+	self.popupContainer:add(("Saved screenshot to %s"):format(path), "purple")
 
 	local configs = self.ui.selectApi:getConfigs()
 	if not configs.osu_ui.copyScreenshotToClipboard then

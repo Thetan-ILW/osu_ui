@@ -199,7 +199,7 @@ return function(section)
 					return osu.dangerous.mountOsuSkins
 				end,
 				clicked = function ()
-					osu.dangerous.mountOsuSkins	= not osu.dangerous.mountOsuSkins
+					osu.dangerous.mountOsuSkins = not osu.dangerous.mountOsuSkins
 					scene.ui:mountOsuSkins()
 					scene:reloadUI()
 				end,

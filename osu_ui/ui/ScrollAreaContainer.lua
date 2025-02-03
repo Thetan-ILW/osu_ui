@@ -207,6 +207,7 @@ function ScrollAreaContainer:mousePressed(event)
 	end
 
 	if self.mouseOver then
+		self.scrollVelocity = 0
 		self.isDragging = true
 		self.accumulatedTimeSinceLastMovement = 0;
 		self.lastMouseY = 0

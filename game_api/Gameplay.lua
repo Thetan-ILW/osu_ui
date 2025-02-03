@@ -31,6 +31,7 @@ function Gameplay:start()
 	self.loaded = true
 	self.chartEnded = false
 	self.shouldShowResult = false
+	self.paused = false
 end
 
 function Gameplay:stop()

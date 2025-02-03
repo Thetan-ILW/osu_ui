@@ -87,6 +87,13 @@ function WindowList:update(dt)
 		return
 	end
 
+	if self.highScrollSpeed and math.abs(self.scrollVelocity) <= self.speedLimit then
+		self.highScrollSpeed = false
+		for i = 1, self.windowSize do
+			self:updatePanelInfo(self.panels[i], self.visualIndex + i)
+		end
+	end
+
 	self.relativeScrollPosition = self.scrollPosition - self.y
 
 	self.hoverIndex = self.NOT_HOVERING
@@ -102,13 +109,6 @@ function WindowList:update(dt)
 		self.previousVisualIndex = self.visualIndex
 		self.visualIndex = current_visual_index
 		self:shiftPanels()
-	end
-
-	if self.highScrollSpeed and math.abs(self.scrollVelocity) <= self.speedLimit then
-		self.highScrollSpeed = false
-		for i = 1, self.windowSize do
-			self:updatePanelInfo(self.panels[i], self.visualIndex + i)
-		end
 	end
 
 	local first = math.max(1, current_visual_index - self.positionUpdateRange)
@@ -130,10 +130,9 @@ function WindowList:shiftPanels()
 		table.insert(new_list, self.panels[1 + (i + delta) % self.windowSize])
 	end
 
+	self.highScrollSpeed = math.abs(self.scrollVelocity) > self.speedLimit
 	self.panels = new_list
 	self.panelContainer.children = new_list
-
-	self.highScrollSpeed = math.abs(self.scrollVelocity) > self.speedLimit
 
 	local delta_c = math.min(self.windowSize, math.abs(delta))
 	local start_index = delta > 0 and self.windowSize or delta_c

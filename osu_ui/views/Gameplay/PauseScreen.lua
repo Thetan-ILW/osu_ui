@@ -35,6 +35,7 @@ function View:hide(instant)
 	self.handleEvents = false
 	if instant then
 		self.alpha = 0
+		self.scene.cursor.alpha = 0
 		self.disabled = true
 		self.audioLoop:stop()
 		return
