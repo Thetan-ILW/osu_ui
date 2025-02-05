@@ -142,7 +142,6 @@ function View:load()
 	local time = self.configs.settings.gameplay.time
 	self.unpauseTime = time.pausePlay
 	self.restartTime = time.playRetry
-	self.nextAllowedUnpauseTime = -math.huge
 	self.introSkipped = false
 	self.retryProgress = 0
 	self.retrying = true
@@ -153,19 +152,23 @@ function View:load()
 end
 
 function View:pause()
-	self.nextAllowedUnpauseTime = 0
 	self.gameplayApi:pause()
 	self.uiLayer.pause:display()
 end
 
 function View:unpause()
-	if love.timer.getTime() < self.nextAllowedUnpauseTime then
+	if self.unpauseTween then
+		self.unpauseTween:stop()
+		self.unpauseTween = nil
+		self:pause()
 		return
 	end
 
 	self.uiLayer.pause:hide(false)
-	self.nextAllowedUnpauseTime = love.timer.getTime() + self.unpauseTime + 1
-	delay.debounce(self, "unpauseDelay", self.unpauseTime, self.gameplayApi.play, self.gameplayApi)
+	self.unpauseTween = flux.to(self, self.unpauseTime, {}):oncomplete(function ()
+		self.gameplayApi:play()
+		self.unpauseTween = false
+	end)
 end
 
 function View:retry()
@@ -194,6 +197,14 @@ function View:update(dt)
 
 	if self.retryProgress == 1 then
 		self:retry()
+	end
+
+	if
+		not love.window.hasFocus() and
+		self.gameplayApi:getPlayState() == "play" and
+		not self.gameplayApi:isAutoplay()
+	then
+		self:pause()
 	end
 end
 

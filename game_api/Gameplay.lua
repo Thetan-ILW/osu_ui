@@ -165,4 +165,9 @@ function Gameplay:increaseLocalOffset(delta)
 	return self.game.selectModel.chartview.offset
 end
 
+---@return boolean
+function Gameplay:isAutoplay()
+	return self.game.rhythmModel.logicEngine.autoplay
+end
+
 return Gameplay
