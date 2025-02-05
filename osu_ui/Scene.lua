@@ -52,6 +52,7 @@ function Scene:new(params)
 		["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf",
 		["MonoRegular"] = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Regular.ttf",
 		["MonoBold"] = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Bold.ttf",
+		["Quicksand"] = "osu_ui/assets/ui_font/Quicksand/Quicksand-Regular.ttf",
 		["QuicksandSemiBold"] = "osu_ui/assets/ui_font/Quicksand/Quicksand-SemiBold.ttf",
 		["QuicksandBold"] = "osu_ui/assets/ui_font/Quicksand/Quicksand-Bold.ttf"
 	}
