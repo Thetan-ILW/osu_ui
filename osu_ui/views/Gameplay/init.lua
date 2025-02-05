@@ -157,8 +157,18 @@ function View:pause()
 end
 
 function View:unpause()
+	if self.unpauseTween then
+		self.unpauseTween:stop()
+		self.unpauseTween = nil
+		self:pause()
+		return
+	end
+
 	self.uiLayer.pause:hide(false)
-	delay.debounce(self, "unpauseDelay", self.unpauseTime, self.gameplayApi.play, self.gameplayApi)
+	self.unpauseTween = flux.to(self, self.unpauseTime, {}):oncomplete(function ()
+		self.gameplayApi:play()
+		self.unpauseTween = false
+	end)
 end
 
 function View:retry()
