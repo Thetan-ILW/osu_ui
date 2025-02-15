@@ -46,13 +46,6 @@ function Gameplay:stop()
 	self.shouldShowResult = false
 end
 
-function Gameplay:retry()
-	self.game.gameplayController:retry()
-	self.sequenceView:unload()
-	self.sequenceView:load()
-	self.chartEnded = false
-end
-
 function Gameplay:update(dt)
 	if not self.loaded then
 		return
@@ -140,8 +133,10 @@ function Gameplay:pause()
 end
 
 function Gameplay:retry()
-	self.paused = false
 	self.game.gameplayController:retry()
+	self.sequenceView:unload()
+	self.sequenceView:load()
+	self.chartEnded = false
 end
 
 ---@return boolean

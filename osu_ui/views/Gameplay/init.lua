@@ -3,7 +3,6 @@ local Playfield = require("osu_ui.views.Gameplay.Playfield")
 local UiLayer = require("osu_ui.views.Gameplay.UiLayer")
 local flux = require("flux")
 local math_util = require("math_util")
-local delay = require("delay")
 
 ---@class osu.ui.GameplayViewContainer : osu.ui.CanvasScreen
 ---@operator call: osu.ui.GameplayViewContainer

@@ -26,10 +26,23 @@ local PATTERN_ORDER = {
 
 ---@param encoded string
 function Msd:new(encoded)
-	---@type table<string, number>[]
-	local decoded = json.decode(encoded)
-
 	self.rates = {}
+
+	---@type boolean, table<string, number>[]
+	local success, decoded = pcall(json.decode, encoded)
+
+	if not success then
+		for rate = MIN_RATE, MAX_RATE do
+			self.rates[rate] = {}
+
+			for _, pattern_name in ipairs(PATTERN_ORDER) do
+				table.insert(self.rates[rate], {
+					pattern_name, 0
+				})
+			end
+		end
+		return
+	end
 
 	for rate = MIN_RATE, MAX_RATE do
 		self.rates[rate] = {}
