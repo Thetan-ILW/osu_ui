@@ -1,8 +1,8 @@
 local class = require("class")
-local ffi = require("ffi")
 local path_util = require("path_util")
 local simplifyNotechart = require("libchart.simplify_notechart")
 local time_util = require("time_util")
+local ffi = require("ffi")
 
 local Viewport = require("ui.Viewport")
 local ExporterView = require("osu_ui.views.VideoExporter.ExporterView")
@@ -67,33 +67,40 @@ function VideoExporter:setChart(chart, chartview, background_path)
 		stars = ("%0.02f*"):format((chartview.osu_diff or 0))
 	}
 
+	local video_cmd = ([[ffmpeg -loglevel verbose -y -f rawvideo -pix_fmt rgba -s %ix%i -r %i -i "-" -c:v libx264 -vb 2500k -c:a aac -ab 200k -pix_fmt yuv420p video.mp4]]):format(self.canvasWidth, self.canvasHeight, self.framerate)
+
+	local gif_w = 16 * 20
+	local gif_h = 9 * 20
+	local gif_cmd = ([[ffmpeg -loglevel verbose -y -f rawvideo -pix_fmt rgba -s %ix%i -r %i -i "-" output.gif -vf fps=30,scale=320:-1:flags=lanczos,split[s0][s1];[s0]palettegen[p];[s1][p]paletteuse]]):format(gif_w, gif_h, self.framerate)
+
 	if self.mode == "preview_5s" then
 		local preview_time = chartview.preview_time ---@type number
 		self.duration = 5
 		self.startTime = preview_time
+		self.videoCmd = video_cmd
 	elseif self.mode == "preview_10s" then
 		local preview_time = chartview.preview_time ---@type number
 		self.duration = 10
 		self.startTime = preview_time
+		self.videoCmd = video_cmd
 	elseif self.mode == "full_chart" then
 		local max_time = self.notes[#self.notes].time ---@type number
 		self.duration = max_time
 		self.startTime = 0
+		self.videoCmd = video_cmd
+	elseif self.mode == "gif_preview" then
+		local preview_time = chartview.preview_time ---@type number
+		self.duration = 5
+		self.startTime = preview_time
+		self.videoCmd = gif_cmd
+		self.canvasWidth = gif_w
+		self.canvasHeight = gif_h
 	else
 		error(("%s mode is not implemented"):format(self.mode))
 	end
 end
 
 function VideoExporter:export()
-	---@type FFmpegPipe
-	local ffmpeg
-
-	if love.system.getOS() == "Linux" then
-		ffmpeg = require("osu_ui.views.VideoExporter.ffmpeg_linux")
-	else
-		error("Install a real OS: https://linuxmint.com/download.php")
-	end
-
 	self.viewport.width = self.canvasWidth
 	self.viewport.height = self.canvasHeight
 	self.viewport:load()
@@ -104,7 +111,12 @@ function VideoExporter:export()
 		fontManager = self.fontManager
 	}))
 
-	ffmpeg:startRendering()
+	local ffmpeg = io.popen(self.videoCmd, "w")
+
+	if not ffmpeg then
+		print("ERROR: Failed to open ffmpeg process")
+		return
+	end
 
 	local frames = self.framerate * self.duration
 	local duration = self.duration
@@ -121,12 +133,12 @@ function VideoExporter:export()
 
 		local filedata = self.viewport.canvas:newImageData()
 		local ptr = ffi.cast("uint8_t*", filedata:getFFIPointer())
-		ffmpeg:sendFrame(ptr, self.canvasWidth, self.canvasHeight)
+		ffmpeg:write(ffi.string(ptr, filedata:getSize()))
 		filedata:release()
 	end
 	love.graphics.pop()
 
-	ffmpeg:endRendering()
+	ffmpeg:close()
 
 	if self.mode == "preview_5s" or self.mode == "preview_10s" then
 		os.execute(([[ffmpeg -y -i "%s" -ss %0.02f -t %0.02f audiocut.mp3]]):format(self.audioPath, self.startTime, self.duration))

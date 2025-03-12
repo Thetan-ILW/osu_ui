@@ -41,7 +41,7 @@ function DisplayInfo:setChartInfoDefaults()
 	self.difficultyColor = { 1, 1, 1, 1 }
 	self.lengthColor = { 1, 1, 1, 1 }
 	self.msd = {
-		first = 0,
+		max = 0,
 		firstPattern = "No patterns",
 		secondPattern = "",
 	}
@@ -59,13 +59,14 @@ function DisplayInfo:setMsd(msd, time_rate, key_mode)
 	local second = false
 	local max = sorted[1][2]
 
+	self.msd.max = max
+
 	for i, v in ipairs(sorted) do
 		local pattern = v[1]
 		local num = v[2]
 		if pattern ~= "overall" then
 			if num >= max * 0.93 then
 				if not second then
-					self.msd.first = num
 					self.msd.firstPattern = msd.getPatternName(pattern, key_mode):upper()
 				else
 					self.msd.secondPattern = msd.getPatternName(pattern, key_mode):upper()

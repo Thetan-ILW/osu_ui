@@ -182,7 +182,7 @@ end
 
 ---@param display_info osu.ui.SelectViewDisplayInfo
 function DiffTable:updateInfo(display_info)
-	self.msdValue = display_info.msd.first
+	self.msdValue = display_info.msd.max
 
 	self.firstPattern:replaceText(display_info.msd.firstPattern)
 

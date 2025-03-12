@@ -45,21 +45,7 @@ function UserInterface:new(game, mount_path)
 		self.updater = game.gucciUpdater
 	end
 
-	if love.system.getOS() == "Windows" then
-		other_games:findOtherGames()
-	end
-	self.otherGames = other_games
-
-	---@type osu.ui.OsuConfig
-	local osu_cfg = self.selectApi:getConfigs().osu_ui
-	local osu_path = self.otherGames.games["osu!"]
-
-	if osu_cfg.dangerous.mountOsuSkins and osu_path then
-		self:mountOsuSkins()
-	end
-
 	require("ui.Component_test")
-	self.update = self.afterLoad
 end
 
 function UserInterface:load()
@@ -74,6 +60,19 @@ function UserInterface:load()
 		end
 	end
 
+	if love.system.getOS() == "Windows" then
+		other_games:findOtherGames()
+	end
+	self.otherGames = other_games
+
+	---@type osu.ui.OsuConfig
+	local osu_cfg = self.selectApi:getConfigs().osu_ui
+	local osu_path = self.otherGames.games["osu!"]
+
+	if osu_cfg.dangerous.mountOsuSkins and osu_path then
+		self:mountOsuSkins()
+	end
+
 	self.viewport = Viewport({
 		targetHeight = 768,
 	})
@@ -82,6 +81,7 @@ function UserInterface:load()
 	love.mouse.setVisible(false)
 	love.keyboard.setKeyRepeat(true)
 
+	self.update = self.afterLoad
 end
 
 function UserInterface:unload()
