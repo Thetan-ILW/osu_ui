@@ -270,7 +270,7 @@ end
 
 ---@return string?
 function Select:getBackgroundImagePath()
-	return self.selectModel:getBackgroundPath()
+	return self.game.backgroundModel.path
 end
 
 ---@return sphere.Configs

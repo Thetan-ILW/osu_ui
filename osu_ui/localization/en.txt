@@ -228,6 +228,10 @@ RankingDialog_SubmitReplay=Submit Replay
 
 ModSelection_Title=Mods provide different ways to enjoy gameplay. Some have an effect on the score you can achieve during ranked play. Others are just for fun.
 ModSelection_Reset=Reset All Mods
+ModSelection_NewPreset=New preset
+ModSelection_DeletePreset=Delete preset
+ModSelection_NewPreset_Title=Select a name for the new preset. The applied modifiers are copied to the new preset.
+ModSelection_NewPreset_Create=Create
 
 LocationsModal_Title=Add new songs from your hard drive by specifying the path. The game will read directly from these directories without copying anything.
 LocationsModal_UpdateAll=Update all locations

@@ -83,6 +83,9 @@ function View:keyPressed(event)
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5
 		}))
+    elseif key == "f10" then
+        local LaserChart = require("LaserChart")
+		LaserChart(self.selectApi:getChart(), self.selectApi:getChartview(), self.selectApi:getBackgroundImagePath())
 	elseif key == "o" then
 		if love.keyboard.isDown("lctrl") then
 			self.scene.options:fade(1)

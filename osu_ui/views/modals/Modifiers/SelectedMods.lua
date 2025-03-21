@@ -148,7 +148,9 @@ function SelectedMods:addSettingsToCell(cell, item, modifier, type)
 end
 
 function SelectedMods:moveCursor()
-	local target = (self.selectApi:getSelectedModifiersCursor() - 1) * self:getCellHeight()
+	local mod_count = #self.selectApi:getSelectedMods()
+	local position = math.min(mod_count, self.selectApi:getSelectedModifiersCursor() - 1)
+	local target = position * self:getCellHeight()
 	flux.to(self.awwow, 0.2, { y = target }):ease("cubicout")
 end
 
