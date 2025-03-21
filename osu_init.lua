@@ -2,6 +2,7 @@ local class = require("class")
 
 local AssetModel = require("osu_ui.models.AssetModel")
 local ChatModel = require("osu_ui.models.ChatModel")
+local ModPresetModel = require("osu_ui.models.ModPresetModel")
 
 local SelectAPI = require("game_api.Select")
 local MultiplayerAPI = require("game_api.Multiplayer")
@@ -31,6 +32,7 @@ function UserInterface:new(game, mount_path)
 
 	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
 	self.chatModel = ChatModel()
+	self.modPresetModel = ModPresetModel(game.playContext)
 
 	self.selectApi = SelectAPI(game)
 	self.multiplayerApi = MultiplayerAPI(game)
@@ -85,6 +87,7 @@ function UserInterface:load()
 end
 
 function UserInterface:unload()
+	self.modPresetModel:save()
 	self.selectApi:unloadController()
 end
 
