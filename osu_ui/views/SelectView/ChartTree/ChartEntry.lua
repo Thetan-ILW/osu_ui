@@ -96,7 +96,7 @@ function ChartEntry:load()
 		updateBatch = function(this)
 			local iw, ih = star_image:getDimensions()
 			this.batch:clear()
-			for i = 1, math.min(10, math.ceil(self.starRate)) do
+			for i = 1, math.min(10, math.ceil(self.starRate or 0)) do
 				local s = math_util.clamp(self.starRate - i + 1, 0.2, 1) + (i * 0.03)
 				this.batch:add(iw * 1.7 * (i - 1), 0, 0, s, s, 0, ih / 2)
 			end
