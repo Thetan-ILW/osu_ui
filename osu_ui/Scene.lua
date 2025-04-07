@@ -30,6 +30,7 @@ local MusicFft = require("osu_ui.MusicFft")
 local flux = require("flux")
 local path_util = require("path_util")
 local math_util = require("math_util")
+local string_util = require("string_util")
 
 ---@alias osu.ui.SceneParams { game: sphere.GameController, ui: osu.ui.UserInterface }
 
@@ -190,7 +191,7 @@ function Scene:loadAssets()
 	local osu = configs.osu_ui
 
 	---@type string
-	local skin_path = ("userdata/skins/%s"):format(osu.skin:trim())
+	local skin_path = ("userdata/skins/%s"):format(string_util.trim(osu.skin))
 
 	for k, v in pairs(self.screens) do
 		if v.parent then

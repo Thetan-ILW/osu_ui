@@ -1,6 +1,7 @@
 local Assets = require("osu_ui.models.AssetModel.Assets")
 
 local path_util = require("path_util")
+local string_util = require("string_util")
 
 local OsuNoteSkin = require("sphere.models.NoteSkinModel.OsuNoteSkin")
 local utf8validate = require("utf8validate")
@@ -115,7 +116,7 @@ local function strToColor(str)
 	if not str then
 		return { 1, 1, 1, 1 }
 	end
-	local color = string.split(str, ",")
+	local color = string_util.split(str, ",")
 	return { love.math.colorFromBytes(tonumber(color[1]), tonumber(color[2]), tonumber(color[3]), 255) }
 end
 
