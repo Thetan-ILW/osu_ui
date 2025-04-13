@@ -191,6 +191,15 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		grade = grade_images.C
 	end
 
+	local improvement = "-"
+	local next_score = self.items[score_index + 1] ---@type table?
+	if next_score then
+		local d = score_num - next_score.score
+		if d > 0 then
+			improvement = ("+%i"):format(d)
+		end
+	end
+
 	self.scores:addChild(tostring(score_index), ScoreEntryView({
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
@@ -199,7 +208,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		score = ("Score: %s (%ix)"):format(commaValue(math_util.round(score_num, 1)), score.max_combo),
 		accuracy = ("%0.02fNS"):format(score.accuracy * 1000),
 		mods = mods_line,
-		improvement = "-",
+		improvement = improvement,
 		slideInDelay = self.panelSlideInDelay * (score_index - 1),
 		z = 1 - (score_index * 0.0001),
 		time = score.time,
