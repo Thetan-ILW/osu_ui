@@ -176,7 +176,7 @@ function DisplayInfo:getChartInfo()
 	local time = os.date("%d/%m/%Y %H:%M:%S.", score_item.time)
 	local set_dir = chartview.set_dir
 	local creator = chartview.creator
-	local username = self.configs.online.user.name or text.UserProfile_Guest
+	local username = self.configs.online.user.name or self.configs.osu_ui.offlineNickname
 
 	local second_row = text.SongSelection_BeatmapInfoCreator:format(set_dir)
 

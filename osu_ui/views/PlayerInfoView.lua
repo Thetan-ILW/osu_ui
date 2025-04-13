@@ -29,9 +29,14 @@ local function getRankColor(rank)
 	end
 end
 
+function PlayerInfoView:bindEvents()
+	self:getViewport():listenForEvent(self, "event_nicknameChanged")
+end
+
 function PlayerInfoView:setProfileInfo()
 	local profile = self.scene.ui.pkgs.playerProfile
-	local username = self.scene.game.configModel.configs.online.user.name or "Guest"
+	local configs = self.scene.ui.selectApi:getConfigs()
+	local username = configs.online.user.name or configs.osu_ui.offlineNickname
 	local pp = profile.pp
 	local accuracy = profile.accuracy
 	local level = profile.osuLevel
@@ -52,6 +57,10 @@ function PlayerInfoView:setProfileInfo()
 	self.level = level
 	self.levelPercent = level_percent
 	self.rank = rank
+end
+
+function PlayerInfoView:event_nicknameChanged()
+	self:reload()
 end
 
 function PlayerInfoView:load()

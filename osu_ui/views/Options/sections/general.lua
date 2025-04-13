@@ -159,7 +159,6 @@ return function(section)
 		end)
 	end
 
-
 	section:group(text.Options_OtherGames, function(group)
 		local other_games = scene.ui.otherGames
 

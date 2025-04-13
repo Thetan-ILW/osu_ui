@@ -24,11 +24,23 @@ ScoreListView.panelHeight = 58
 ScoreListView.panelSpacing = 53
 ScoreListView.panelSlideInDelay = 0.08
 
+function ScoreListView:event_nicknameChanged()
+	self.items = nil
+	self:reload()
+end
+
+function ScoreListView:bindEvents()
+	self:getViewport():listenForEvent(self, "event_nicknameChanged")
+end
+
 function ScoreListView:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.scene = scene
 	self.selectApi = scene.ui.selectApi
 	self.playerProfile = scene.ui.pkgs.playerProfile
+
+	local configs = self.selectApi:getConfigs()
+	self.localNickname = configs.online.user.name or configs.osu_ui.offlineNickname ---@type string
 
 	local stencil_x = 0
 	local stencil_y = 0
@@ -135,7 +147,7 @@ function ScoreListView:addProfileScore(score_index, score, source)
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
 		gradeImageName = grade_images[Scoring.convertGradeToOsu(grade)],
-		username = "Player",
+		username = self.localNickname,
 		score = score_str,
 		accuracy = ("%0.02f%%"):format(acc * 100),
 		mods = mods_line,
@@ -182,7 +194,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
 		gradeImageName = grade,
-		username = "Player",
+		username = self.localNickname,
 		score = ("Score: %s (%ix)"):format(commaValue(math_util.round(score_num, 1)), score.max_combo),
 		accuracy = ("%0.02fNS"):format(score.accuracy * 1000),
 		mods = mods_line,

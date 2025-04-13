@@ -7,6 +7,7 @@ local t = {
 	judgement = 0,
 	overrideJudges = false,
 	copyScreenshotToClipboard = true,
+	offlineNickname = "Guest",
 	dangerous = {
 		mountOsuSkins = false,
 		gucciInstalled = false
