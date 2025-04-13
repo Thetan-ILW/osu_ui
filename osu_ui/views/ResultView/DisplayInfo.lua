@@ -1,4 +1,5 @@
 local class = require("class")
+local math_util = require("math_util")
 
 local osuPP = require("osu_ui.osu_pp")
 local Format = require("sphere.views.Format")
@@ -69,12 +70,7 @@ local selected_judge_nums = {
 }
 
 function DisplayInfo:calcForJudge(score_system_name, judge_num)
-	local score_system_container = self.resultApi:getScoreSystem()
-	local score_system_judgements = score_system_container.judgements
-
-	if not score_system_judgements then
-		return
-	end
+	local meta = self.selectApi:getScoreSystemMetadata(score_system_name)
 
 	self.marvelous = 0
 	self.perfect = 0
@@ -84,10 +80,15 @@ function DisplayInfo:calcForJudge(score_system_name, judge_num)
 	self.miss = 0
 	self.accuracy = nil ---@type number?
 
-	self.scoreSystemContainerJudgements = score_system_judgements
+	local judge_name = meta.judgeKeyFormat
 
-	judge_num = Scoring.clampJudgeNum(score_system_name, judge_num)
-	local judge_name = Scoring.getJudgeName(score_system_name, judge_num)
+	if meta.hasJudges then
+		judge_num = math_util.clamp(judge_num, meta.judges[1], meta.judges[#meta.judges])
+		judge_name = meta.judgeKeyFormat:format(meta.judgeLabels[judge_num])
+	end
+
+	local score_system_judgements = self.resultApi:getScoreSystem().judgements
+
 	---@type sphere.Judge
 	self.scoreSystemJudgement = score_system_judgements[judge_name]
 	self.scoreSystemName = score_system_name
@@ -192,7 +193,6 @@ function DisplayInfo:getChartInfo()
 	if chartdiff then
 		self.keyMode = Format.inputMode(chartdiff.inputmode)
 	end
-
 end
 
 function DisplayInfo:getJudgement()
@@ -257,7 +257,7 @@ function DisplayInfo:getStats()
 	local base = score_system["base"]
 	self.combo = base.maxCombo
 	self.accuracy = judge.accuracy
-	self.score = judge.score or self.scoreSystemContainerJudgements["osu!legacy OD9"].score or 0
+	self.score = judge.score or score_system.judgements["osu!legacy OD9"].score or 0
 	self.judgeName = judge.judgeName
 
 	local chartdiff = self.chartdiff

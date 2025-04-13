@@ -23,7 +23,7 @@ local flux = require("flux")
 ---@field locked boolean?
 ---@field setValue fun(index: integer)
 ---@field getValue fun(): any
----@field format? fun(any): string
+---@field format? fun(any: any, index: integer): string
 ---@field state "hidden" | "fade_in" | "open" | "fade_out"
 ---@field visibility number
 ---@field visibilityTween table?
@@ -171,7 +171,7 @@ function Combo:addItems()
 		cell:addChild("comboCellLabel", Label({
 			x = 15,
 			boxHeight = cell:getHeight(),
-			text = self.format and self.format(v) or tostring(v),
+			text = self.format and self.format(v, i) or tostring(v),
 			alignY = "center",
 			font = self.font,
 			z = 0.1,

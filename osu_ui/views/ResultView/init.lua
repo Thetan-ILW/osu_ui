@@ -224,7 +224,6 @@ function View:load(score_loaded)
 	local text = scene.localization.text
 	self.fonts = fonts
 
-
 	local width, height = self.width, self.height
 
 	local area = self:addChild("scrollArea", ScrollAreaContainer({
