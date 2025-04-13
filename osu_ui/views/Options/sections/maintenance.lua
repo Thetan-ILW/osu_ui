@@ -18,7 +18,7 @@ return function(section)
 				label = text.General_Apply,
 				onClick = function()
 					if configs.osu_ui.offlineNickname ~= nickname_textbox.input then
-						configs.osu_ui.offlineNickname = nickname_textbox.input
+						configs.osu_ui.offlineNickname = nickname_textbox.input:sub(1, 20)
 						section:getViewport():triggerEvent("event_nicknameChanged")
 					end
 				end
