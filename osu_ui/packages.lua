@@ -11,6 +11,8 @@ local function getPlayerProfile(game, pkg_manager)
 		player_profile = {
 			notInstalled = true,
 			pp = 0,
+			ssr = 0,
+			liveSsr = 0,
 			accuracy = 0,
 			osuLevel = 0,
 			osuLevelPercent = 0,

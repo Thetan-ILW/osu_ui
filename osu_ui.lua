@@ -8,6 +8,7 @@ local t = {
 	overrideJudges = false,
 	copyScreenshotToClipboard = true,
 	offlineNickname = "Guest",
+	playerInfoRating = "pp",
 	dangerous = {
 		mountOsuSkins = false,
 		gucciInstalled = false
