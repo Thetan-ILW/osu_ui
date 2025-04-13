@@ -157,6 +157,7 @@ function ScoreListView:addProfileScore(score_index, score, source)
 		time = score.time,
 		recentIconSide = self.recentIconSide,
 		slide = self.screen == "select",
+		tooltip = ("Date: %s"):format(os.date("%d/%m/%Y", score.time)),
 		onClick = function()
 			self:openScore(score_index)
 		end
@@ -204,6 +205,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		time = score.time,
 		recentIconSide = self.recentIconSide,
 		slide = self.screen == "select",
+		tooltip = ("Date: %s"):format(os.date("%d/%m/%Y", score.time)),
 		onClick = function()
 			self:openScore(score_index)
 		end
