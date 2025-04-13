@@ -202,6 +202,7 @@ SongSelection_ByDifficulty=By Difficulty
 SongSelection_ByLength=By Length
 SongSelection_ByTitle=By Title
 SongSelection_ByLevel=By Level
+SongSelection_ByObjectCount=By Object Count
 SongSelection_ByRecentlyPlayed=By Recently Played
 SongSelection_ByGames=By Games
 SongSelection_ByFolders=By Folders

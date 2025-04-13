@@ -483,8 +483,9 @@ function View:load()
 		difficulty = text.SongSelection_ByDifficulty,
 		level = text.SongSelection_ByLevel,
 		duration = text.SongSelection_ByLength,
-		bpm = text.SongSelection_ByBPM,
+		tempo = text.SongSelection_ByBPM,
 		modtime = text.SongSelection_ByDateAdded,
+		["notes count"] = text.SongSelection_ByObjectCount,
 		["set modtime"] = text.bySetModTime,
 		["last played"] = text.SongSelection_ByRecentlyPlayed,
 	}
