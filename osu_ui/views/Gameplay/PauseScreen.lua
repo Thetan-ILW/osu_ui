@@ -166,6 +166,7 @@ function View:load()
 		assets:loadAudio("pause-back-hover"),
 		assets:loadAudio("pause-back-click"),
 		function ()
+			self.audioLoop:stop()
 			self.gameplayView:quit()
 		end
 	))
