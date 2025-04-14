@@ -7,6 +7,25 @@ return function(section)
 	local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
 	local text = scene.localization.text
 
+	section:group(text.Options_Other, function (group)
+		local nickname_textbox = group:textBox({
+			label = text.Options_OfflineNickname,
+			value = configs.osu_ui.offlineNickname
+		})
+
+		if nickname_textbox then
+			group:button({
+				label = text.General_Apply,
+				onClick = function()
+					if configs.osu_ui.offlineNickname ~= nickname_textbox.input then
+						configs.osu_ui.offlineNickname = nickname_textbox.input:sub(1, 20)
+						section:getViewport():triggerEvent("event_nicknameChanged")
+					end
+				end
+			})
+		end
+	end)
+
 	section:group(text.Options_TabMaintenance, function(group)
 		group:button({
 			label = text.Options_SwitchToLegacyUI,

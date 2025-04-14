@@ -207,6 +207,9 @@ function Component:kill()
 end
 
 function Component:clearTree()
+	for _, child in pairs(self.children) do
+		child:kill()
+	end
 	self.eventListeners = {}
 	self.children = {}
 	self.childrenOrder = {}

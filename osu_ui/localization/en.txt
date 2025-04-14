@@ -182,6 +182,9 @@ Options_TabSkin_CustonKey=Press the key/button on your keyboard/joystick for the
 Options_Input_Keyboard=Keyboard
 Options_OsuManiaLayout=gucci!mania layout
 
+Options_Other=Other
+Options_OfflineNickname=Offline nickname
+
 Options_SwitchToLegacyUI=Switch to legacy UI
 Options_UISwitchConfirm=Are you sure you want to switch back to the old UI? Do you even know how to get back?
 
@@ -199,6 +202,7 @@ SongSelection_ByDifficulty=By Difficulty
 SongSelection_ByLength=By Length
 SongSelection_ByTitle=By Title
 SongSelection_ByLevel=By Level
+SongSelection_ByObjectCount=By Object Count
 SongSelection_ByRecentlyPlayed=By Recently Played
 SongSelection_ByGames=By Games
 SongSelection_ByFolders=By Folders

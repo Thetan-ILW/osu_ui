@@ -29,10 +29,17 @@ local function getRankColor(rank)
 	end
 end
 
+function PlayerInfoView:bindEvents()
+	self:getViewport():listenForEvent(self, "event_nicknameChanged")
+end
+
 function PlayerInfoView:setProfileInfo()
 	local profile = self.scene.ui.pkgs.playerProfile
-	local username = self.scene.game.configModel.configs.online.user.name or "Guest"
+	local configs = self.scene.ui.selectApi:getConfigs()
+	local username = configs.online.user.name or configs.osu_ui.offlineNickname
 	local pp = profile.pp
+	local msd_ssr = profile.ssr
+	local msd_livessr = profile.liveSsr
 	local accuracy = profile.accuracy
 	local level = profile.osuLevel
 	local level_percent = profile.osuLevelPercent
@@ -47,11 +54,23 @@ function PlayerInfoView:setProfileInfo()
 	end
 
 	self.username = username
-	self.firstRow = ("Performance: %ipp"):format(pp)
+
+	if self.rating == "pp" then
+		self.firstRow = ("Performance: %ipp"):format(pp)
+	elseif self.rating == "msd_ssr" then
+		self.firstRow = ("Performance: %0.02f MSD"):format(msd_ssr)
+	elseif self.rating == "msd_livessr" then
+		self.firstRow = ("Performance: %0.02f Live MSD"):format(msd_livessr)
+	end
+
 	self.secondRow = ("Accuracy: %0.02f%%"):format(accuracy * 100)
 	self.level = level
 	self.levelPercent = level_percent
 	self.rank = rank
+end
+
+function PlayerInfoView:event_nicknameChanged()
+	self:reload()
 end
 
 function PlayerInfoView:load()
@@ -61,6 +80,7 @@ function PlayerInfoView:load()
 
 	self.selectApi = scene.ui.selectApi
 	self.scene = scene
+	self.rating = self.selectApi:getConfigs().osu_ui.playerInfoRating ---@type string
 	self:setProfileInfo()
 
 	self.width, self.height = 330, 86
@@ -153,12 +173,23 @@ function PlayerInfoView:load()
 end
 
 function PlayerInfoView:mousePressed()
-	if self.mouseOver then
-		self.onClick()
-		return true
+	if not self.mouseOver then
+		return false
 	end
 
-	return false
+	local r = "pp"
+	if self.rating == "pp" then
+		r = "msd_ssr"
+	elseif self.rating == "msd_ssr" then
+		r = "msd_livessr"
+	elseif self.rating == "msd_livessr" then
+		r = "pp"
+	end
+
+	self.selectApi:getConfigs().osu_ui.playerInfoRating = r
+	self:reload()
+
+	return true
 end
 
 function PlayerInfoView:setMouseFocus(mx, my)

@@ -166,6 +166,7 @@ function View:load()
 		assets:loadAudio("pause-back-hover"),
 		assets:loadAudio("pause-back-click"),
 		function ()
+			self.audioLoop:stop()
 			self.gameplayView:quit()
 		end
 	))
@@ -174,6 +175,13 @@ function View:load()
 		width = width,
 		height = height,
 		color = { 0.05, 0.05, 0.8, 0.2 },
+	}))
+
+	self:addChild("overlay", Image({
+		x = width / 2,
+		y = height / 2,
+		origin = { x = 0.5, y = 0.5 },
+		image = assets:loadImage("pause-overlay")
 	}))
 end
 

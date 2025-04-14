@@ -4,6 +4,7 @@ local Component = require("ui.Component")
 local flux = require("flux")
 local easing = require("osu_ui.ui.easing")
 local text_input = require("ui.text_input")
+local math_util = require("math_util")
 
 local Image = require("ui.Image")
 local QuadImage = require("ui.QuadImage")
@@ -176,17 +177,24 @@ function View:applyChartScoreSystem(specific_score_system)
 
 	local score_system = specific_score_system or osu_cfg.scoreSystem
 	local new_judgement = 0
+	local meta = self.selectApi:getScoreSystemMetadata(score_system)
 
 	if Scoring.isOsu(score_system) then
 		new_judgement = Scoring.getOD(chartview.format, chartview.osu_od)
-	elseif score_system == "Etterna" then
-		new_judgement = 4
+	end
+
+	if meta.hasJudges then
+		new_judgement = math_util.clamp(new_judgement, meta.judges[1], meta.judges[#meta.judges])
 	end
 
 	osu_cfg.scoreSystem = score_system
 	osu_cfg.judgement = new_judgement
-	play_context.timings = Scoring.getTimings(score_system, new_judgement)
-	configs.select.judgements = Scoring.getJudgeName(score_system, new_judgement)
+	local timings = Scoring.getTimings(score_system, new_judgement)
+
+	if timings then
+		play_context.timings = timings
+		configs.select.judgements = meta.judgeKeyFormat:format(meta.judgeLabels[new_judgement])
+	end
 end
 
 function View:transitToGameplay()
@@ -229,24 +237,7 @@ end
 function View:transitToResult()
 	self.prevPlayContext = {}
 	self.selectApi:getPlayContext():save(self.prevPlayContext)
-
-	--[[
-	local score_source = self.selectApi:getScoreSource()
-	local score_system ---@type string?
-
-	if score_source == "local" then
-		score_system = "soundsphere"
-	elseif score_source == "osuv1"then
-		score_system = "osu!legacy"
-	elseif score_source == "osuv2" then
-		score_system = "osu!mania"
-	elseif score_source == "etterna" then
-		score_system = "Etterna"
-	elseif score_source == "quaver" then
-		score_system = "Quaver"
-	end
-	]]
-
+	self:applyChartScoreSystem()
 
 	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
@@ -492,8 +483,9 @@ function View:load()
 		difficulty = text.SongSelection_ByDifficulty,
 		level = text.SongSelection_ByLevel,
 		duration = text.SongSelection_ByLength,
-		bpm = text.SongSelection_ByBPM,
+		tempo = text.SongSelection_ByBPM,
 		modtime = text.SongSelection_ByDateAdded,
+		["notes count"] = text.SongSelection_ByObjectCount,
 		["set modtime"] = text.bySetModTime,
 		["last played"] = text.SongSelection_ByRecentlyPlayed,
 	}

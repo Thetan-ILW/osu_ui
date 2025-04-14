@@ -244,7 +244,7 @@ function Group:label(params)
 	return label
 end
 
----@param params { label: string, items: any[], getValue: (fun(): any), setValue: fun(index: integer), format: (fun(any): string)?, key?: [ {[string]: any}, string ], locked: boolean }
+---@param params { label: string, items: any[], getValue: (fun(): any), setValue: fun(index: integer), format: (fun(any: any, index: integer): string)?, key?: [ {[string]: any}, string ], locked: boolean }
 ---@return osu.ui.Combo?
 function Group:combo(params)
 	if not self:canAdd(params.label) then
@@ -252,8 +252,8 @@ function Group:combo(params)
 	end
 
 	local found_something = false
-	for _, v in ipairs(params.items) do
-		if self:canAdd(params.format and params.format(v) or tostring(v)) then
+	for i, v in ipairs(params.items) do
+		if self:canAdd(params.format and params.format(v, i) or tostring(v)) then
 			found_something = true
 			break
 		end

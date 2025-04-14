@@ -29,6 +29,7 @@ end
 ---@param group osu.ui.OptionsGroup
 local function loggedIn(group)
 	local username = group.game.configModel.configs.online.user.name
+	group.section:getViewport():triggerEvent("event_nicknameChanged")
 	group:label({
 		height = 100,
 		label = ("You are logged in as %s"):format(username or "?"),
@@ -71,6 +72,7 @@ return function(section)
 				local logged_in = next(group.game.configModel.configs.online.session)
 				if not logged_in then
 					wait_for_logout = false
+					section:getViewport():triggerEvent("event_nicknameChanged")
 					group:load()
 					section.options:recalcPositions()
 				end
@@ -158,7 +160,6 @@ return function(section)
 			})
 		end)
 	end
-
 
 	section:group(text.Options_OtherGames, function(group)
 		local other_games = scene.ui.otherGames

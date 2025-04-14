@@ -1,86 +1,5 @@
 local table_util = require("table_util")
-
-local osuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
-local osuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScoring")
-local etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
-local lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
-local timings = require("sphere.models.RhythmModel.ScoreEngine.timings")
-
-local function getJudges(range)
-	local t = {}
-
-	for i = range[1], range[2], 1 do
-		table.insert(t, i)
-	end
-
-	return t
-end
-
-local available_judges = {
-	["osu!mania"] = getJudges(osuMania.metadata.range),
-	["osu!legacy"] = getJudges(osuLegacy.metadata.range),
-	["Etterna"] = getJudges(etterna.metadata.range),
-	["Lunatic rave 2"] = getJudges(lr2.metadata.range),
-}
-
-local judge_format = {
-	["osu!mania"] = osuMania.metadata.name,
-	["osu!legacy"] = osuLegacy.metadata.name,
-	["Etterna"] = etterna.metadata.name,
-	["Lunatic rave 2"] = lr2.metadata.name,
-}
-
-local lunatic_rave_judges = {
-	[0] = "Easy",
-	[1] = "Normal",
-	[2] = "Hard",
-	[3] = "Very hard",
-}
-
-local timings_list = {
-	["soundsphere"] = timings.soundsphere,
-	["osu!mania"] = timings.osuMania,
-	["osu!legacy"] = timings.osuLegacy,
-	["Etterna"] = timings.etterna,
-	["Quaver"] = timings.quaver,
-	["Lunatic rave 2"] = timings.lr2,
-}
-
-local judge_prefix = {
-	["osu!mania"] = "V2 OD %i",
-	["osu!legacy"] = "OD %i",
-	["Etterna"] = "J%i",
-}
-
----@param score_system string
----@param judge number
----@param play_context sphere.PlayContext
-local function updateScoringOptions(score_system, judge, play_context)
-	local ss_timings = timings_list[score_system]
-	if type(ss_timings) == "function" then
-		play_context.timings = table_util.deepcopy(ss_timings(judge))
-	else
-		play_context.timings = table_util.deepcopy(ss_timings)
-	end
-end
-
-local function judgeToString(score_system, judge)
-	local format = judge_format[score_system]
-	if format then
-		return format:format(judge)
-	end
-	return score_system
-end
-
----@param score_system string
-local function isNearestDefault(score_system)
-	local ss_timings = timings_list[score_system]
-	if type(ss_timings) == "function" then
-		return ss_timings(0).nearest
-	else
-		return ss_timings.nearest
-	end
-end
+local math_util = require("math_util")
 
 ---@param section osu.ui.OptionsSection
 return function(section)
@@ -89,11 +8,12 @@ return function(section)
 	local g = settings.gameplay
 	local gf = settings.graphics
 	local dim = gf.dim
-	local time= g.time
+	local time = g.time
 	local osu = config.osu_ui ---@type osu.ui.OsuConfig
 
 	local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
 	local text = scene.localization.text
+	local select_api = scene.ui.selectApi
 
 	local gucci = scene.ui.pkgs.gucci
 	local speed_model = scene.ui.game.speedModel
@@ -264,14 +184,23 @@ return function(section)
 	end)
 
 	section:group(text.Options_Gameplay_Scoring, function(group)
-		local score_systems = {
-			"soundsphere",
-			"osu!mania",
-			"osu!legacy",
-			"Quaver",
-			"Etterna",
-			"Lunatic rave 2",
-		}
+		local metadatas = select_api:getScoreSystemMetadatas()
+
+		---@param meta ScoreSystemMetadata
+		---@param judge number
+		local function selectScoreSystem(meta, judge)
+			if meta.hasJudges then
+				judge = math_util.clamp(judge, meta.judges[1], meta.judges[#meta.judges])
+			end
+			osu.scoreSystem = meta.name
+			osu.judgement = judge
+			config.select.judgements = meta.judgeKeyFormat:format(judge)
+			play_context.timings = table_util.deepcopy(meta.getTimings(nil, judge))
+		end
+
+		---@type ScoreSystemMetadata
+		local selected_meta = select_api:getScoreSystemMetadata(osu.scoreSystem)
+		selectScoreSystem(selected_meta, osu.judgement)
 
 		group:checkbox({
 			label = text.Options_Gameplay_OverrideJudges,
@@ -287,60 +216,42 @@ return function(section)
 		local locked = not osu.overrideJudges
 		group:combo({
 			label = text.Options_Gameplay_ScoreSystem,
-			items = score_systems,
+			items = metadatas,
 			getValue = function()
 				return osu.scoreSystem
 			end,
 			setValue = function(index)
-				local score_system = score_systems[index]
-				local new_judges = available_judges[score_system]
-				osu.scoreSystem = score_system
-				osu.judgement = new_judges and new_judges[1] or 0
-				config.select.judgements = judgeToString(score_system, osu.judgement)
-				updateScoringOptions(score_system, osu.judgement, play_context)
+				local meta = metadatas[index]
+				selectScoreSystem(meta, meta.judges[1])
 				group:load()
 				section.options:recalcPositions()
 			end,
+			---@param v string | ScoreSystemMetadata
 			format = function(v)
-				if v == "osu!legacy" then
-					return "osu!mania (scoreV1)"
-				elseif v == "osu!mania" then
-					return "osu!mania (scoreV2)"
-				elseif gucci and v == "soundsphere" then
-					return "Normalscore V2"
+				if type(v) == "string" then -- Maybe we should just rename score systems already so I don't have to do THIS
+					return selected_meta.nameLabel
 				end
-				return v
+				return v.nameLabel
 			end
 		})
 
-		local judges = available_judges[osu.scoreSystem]
-
-		if judges then
+		if selected_meta.hasJudges then
 			group:combo({
 				label = text.Options_Gameplay_Judgement,
-				items = judges,
+				items = selected_meta.judges,
 				locked = locked,
 				getValue = function ()
 					return osu.judgement
 				end,
 				setValue = function(index)
-					local judge = judges[index]
-					osu.judgement = judge
-					config.select.judgements = judgeToString(osu.scoreSystem, judge)
-					updateScoringOptions(osu.scoreSystem, judge, play_context)
+					local judge = selected_meta.judges[index]
+					selectScoreSystem(selected_meta, judge)
 				end,
 				format = function(v)
 					if locked then
 						return "Depends on the chart"
 					end
-					if osu.scoreSystem == "Lunatic rave 2" then
-						return lunatic_rave_judges[v]
-					end
-					local prefix = judge_prefix[osu.scoreSystem]
-					if prefix then
-						return prefix:format(v)
-					end
-					return v
+					return selected_meta.judgeLabels[v]
 				end
 			})
 		end

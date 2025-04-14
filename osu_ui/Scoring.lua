@@ -3,6 +3,7 @@ local osuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScorin
 local etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
 local lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
 local timings = require("sphere.models.RhythmModel.ScoreEngine.timings")
+local ScoreSystemContainer = require("sphere.models.RhythmModel.ScoreEngine.ScoreSystemContainer")
 
 local math_util = require("math_util")
 
@@ -111,95 +112,49 @@ function Scoring.getOD(format, osu_od)
 	end
 end
 
----@param score_system string
+---@param score_system_name string
 ---@param judgement number
----@return table
-function Scoring.getTimings(score_system, judgement)
-	if score_system == "soundsphere" then
-		return timings.soundsphere
-	elseif score_system == "osu!legacy" then
-		return timings.osuLegacy(judgement)
-	elseif score_system == "osu!mania" then
-		return timings.osuMania(judgement)
-	elseif score_system == "Quaver" then
-		return timings.quaver
-	elseif score_system == "Etterna" then
-		return timings.etterna
-	elseif score_system == "Lunatic rave 2" then
-		return timings.lr2
+---@return table?
+function Scoring.getTimings(score_system_name, judgement)
+	for _, score_system in ipairs(ScoreSystemContainer.modules) do
+		if score_system.name == score_system_name then
+			return score_system.getTimings(nil, judgement)
+		end
 	end
-
-	error("Not implemented")
 end
 
 ---@param score_system string
 ---@return boolean
 function Scoring.isOsu(score_system)
-	if score_system == "osu!legacy" then
+	if score_system == "osuLegacy" then
 		return true
-	elseif score_system == "osu!mania" then
+	elseif score_system == "osuMania" then
 		return true
 	end
 	return false
 end
 
-local score_systems = {
-	"soundsphere",
-	"osu!mania",
-	"osu!legacy",
-	"Etterna",
-	"Quaver standard",
-	"Lunatic rave 2"
-}
-
-local judge_format = {
-	["osu!mania"] = osuMania.metadata.name,
-	["osu!legacy"] = osuLegacy.metadata.name,
-	["Etterna"] = etterna.metadata.name,
-	["Lunatic rave 2"] = lr2.metadata.name,
-}
-
-local judge_ranges = {
-	["osu!mania"] = osuMania.metadata.range,
-	["osu!legacy"] = osuLegacy.metadata.range,
-	["Etterna"] = etterna.metadata.range,
-	["Lunatic rave 2"] = lr2.metadata.range,
-}
-
-local lunatic_rave_judges = {
-	[0] = "Easy",
-	[1] = "Normal",
-	[2] = "Hard",
-	[3] = "Very hard",
-}
-
-function Scoring.clampJudgeNum(score_system_name, judge_num)
-	local ranges = judge_ranges[score_system_name]
-	if ranges then
-		return math_util.clamp(judge_num, ranges[1], ranges[2])
-	end
-	return judge_num
-end
-
 ---@param score_system_name string
----@param judge_num number
-function Scoring.getJudgeName(score_system_name, judge_num)
-	if score_system_name == "Lunatic rave 2" then
-		return judge_format[score_system_name]:format(lunatic_rave_judges[judge_num])
-	elseif judge_format[score_system_name] then
-		return judge_format[score_system_name]:format(judge_num)
-	end
-
-	return score_system_name
-end
-
+---@param direction 1 | -1
+---@return string score_system_name
 function Scoring.scrollScoreSystem(score_system_name, direction)
-	for i, v in ipairs(score_systems) do
-		if score_system_name == v then
-			return score_systems[math_util.clamp(i + direction, 1, #score_systems)]
+	local s = {}
+
+	local score_systems = ScoreSystemContainer.modules
+	for i, score_system in ipairs(score_systems) do
+		if score_system.getTimings then
+			table.insert(s, score_system)
+			print(score_system.name)
 		end
 	end
-	return score_systems[1]
+
+	for i, score_system in ipairs(s) do
+		if score_system_name == score_system.name then
+			return s[math_util.clamp(i + direction, 1, #s)].name
+		end
+	end
+
+	return s[1]
 end
 
 Scoring.counterColors = {

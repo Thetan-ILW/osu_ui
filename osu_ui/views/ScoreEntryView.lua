@@ -36,6 +36,7 @@ function ScoreEntryView:load()
 	local fonts = scene.fontManager
 	self.blockMouseFocus = true
 
+	self.tooltipView = scene.tooltip
 	self.hoverSound = assets:loadAudio("menuclick")
 
 	self:addChild("background", Image({
@@ -234,6 +235,10 @@ end
 function ScoreEntryView:update(dt)
 	self:updateTimeSinceScore()
 	self.x = (40 * self.slideInProgress) - 40
+
+	if self.mouseOver then
+		self.tooltipView:setText(self.tooltip)
+	end
 end
 
 return ScoreEntryView

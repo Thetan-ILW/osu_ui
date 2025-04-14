@@ -108,7 +108,7 @@ function DiffTable:load()
 	}))
 end
 
-function DiffTable:mouseClick()
+function DiffTable:mousePressed()
 	if not self.mouseOver then
 		return false
 

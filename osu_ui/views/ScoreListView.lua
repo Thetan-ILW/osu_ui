@@ -24,11 +24,23 @@ ScoreListView.panelHeight = 58
 ScoreListView.panelSpacing = 53
 ScoreListView.panelSlideInDelay = 0.08
 
+function ScoreListView:event_nicknameChanged()
+	self.items = nil
+	self:reload()
+end
+
+function ScoreListView:bindEvents()
+	self:getViewport():listenForEvent(self, "event_nicknameChanged")
+end
+
 function ScoreListView:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.scene = scene
 	self.selectApi = scene.ui.selectApi
 	self.playerProfile = scene.ui.pkgs.playerProfile
+
+	local configs = self.selectApi:getConfigs()
+	self.localNickname = configs.online.user.name or configs.osu_ui.offlineNickname ---@type string
 
 	local stencil_x = 0
 	local stencil_y = 0
@@ -135,7 +147,7 @@ function ScoreListView:addProfileScore(score_index, score, source)
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
 		gradeImageName = grade_images[Scoring.convertGradeToOsu(grade)],
-		username = "Player",
+		username = self.localNickname,
 		score = score_str,
 		accuracy = ("%0.02f%%"):format(acc * 100),
 		mods = mods_line,
@@ -145,6 +157,7 @@ function ScoreListView:addProfileScore(score_index, score, source)
 		time = score.time,
 		recentIconSide = self.recentIconSide,
 		slide = self.screen == "select",
+		tooltip = ("Date: %s"):format(os.date("%d/%m/%Y", score.time)),
 		onClick = function()
 			self:openScore(score_index)
 		end
@@ -178,20 +191,30 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		grade = grade_images.C
 	end
 
+	local improvement = "-"
+	local next_score = self.items[score_index + 1] ---@type table?
+	if next_score then
+		local d = score_num - next_score.score
+		if d > 0 then
+			improvement = ("+%i"):format(d)
+		end
+	end
+
 	self.scores:addChild(tostring(score_index), ScoreEntryView({
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
 		gradeImageName = grade,
-		username = "Player",
+		username = self.localNickname,
 		score = ("Score: %s (%ix)"):format(commaValue(math_util.round(score_num, 1)), score.max_combo),
 		accuracy = ("%0.02fNS"):format(score.accuracy * 1000),
 		mods = mods_line,
-		improvement = "-",
+		improvement = improvement,
 		slideInDelay = self.panelSlideInDelay * (score_index - 1),
 		z = 1 - (score_index * 0.0001),
 		time = score.time,
 		recentIconSide = self.recentIconSide,
 		slide = self.screen == "select",
+		tooltip = ("Date: %s"):format(os.date("%d/%m/%Y", score.time)),
 		onClick = function()
 			self:openScore(score_index)
 		end
