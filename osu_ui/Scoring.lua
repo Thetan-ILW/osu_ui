@@ -138,13 +138,23 @@ end
 ---@param direction 1 | -1
 ---@return string score_system_name
 function Scoring.scrollScoreSystem(score_system_name, direction)
+	local s = {}
+
 	local score_systems = ScoreSystemContainer.modules
 	for i, score_system in ipairs(score_systems) do
-		if score_system_name == score_system.name then
-			return score_systems[math_util.clamp(i + direction, 1, #score_systems)].name
+		if score_system.getTimings then
+			table.insert(s, score_system)
+			print(score_system.name)
 		end
 	end
-	return score_systems[1]
+
+	for i, score_system in ipairs(s) do
+		if score_system_name == score_system.name then
+			return s[math_util.clamp(i + direction, 1, #s)].name
+		end
+	end
+
+	return s[1]
 end
 
 Scoring.counterColors = {
