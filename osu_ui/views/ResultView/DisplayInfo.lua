@@ -34,6 +34,7 @@ function DisplayInfo:load()
 
 	self.rank = 0
 	self.score = 10000000
+	self.scoreFormat = "%07d"
 	self.combo = 0
 	self.grade = "D"
 	self.pp = 0
@@ -72,6 +73,8 @@ local selected_judge_nums = {
 function DisplayInfo:calcForJudge(score_system_name, judge_num)
 	local meta = self.selectApi:getScoreSystemMetadata(score_system_name)
 
+	self.counters = {
+	}
 	self.marvelous = 0
 	self.perfect = 0
 	self.great = nil ---@type number?
@@ -242,12 +245,13 @@ function DisplayInfo:getStats()
 
 	local counters_count = #counter_names
 
-	if counters_count >= 4 then
+	if counters_count > 2 then
 		self.great = counters[counter_names[3]]
+	end
+	if counters_count > 3 then
 		self.good = counters[counter_names[4]]
 	end
-
-	if counters_count >= 5 then
+	if counters_count > 4 then
 		self.bad = counters[counter_names[5]]
 	end
 
@@ -255,9 +259,11 @@ function DisplayInfo:getStats()
 
 	---@type sphere.BaseScoreSystem
 	local base = score_system["base"]
+	local selected_score_system = score_system[judge.scoreSystemName] ---@type sphere.ScoreSystem
 	self.combo = base.maxCombo
 	self.accuracy = judge.accuracy
 	self.score = judge.score or score_system.judgements["osu!legacy OD9"].score or 0
+	self.scoreFormat = selected_score_system.metadata.scoreFormat or "%07d"
 	self.judgeName = judge.judgeName
 
 	local chartdiff = self.chartdiff

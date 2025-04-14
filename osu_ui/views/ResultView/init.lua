@@ -165,7 +165,7 @@ function View:scoreSystemChanged()
 	end
 	---@type table
 	self.scoreTween = flux.to(self.score, 0.3, { displayValue = di.score }):ease("cubicout"):onupdate(function()
-		self.score:setText(("%07d"):format(self.score.displayValue))
+		self.score:setText((self.displayInfo.scoreFormat):format(self.score.displayValue))
 	end)
 
 	if self.judgeNameLabel then
@@ -318,13 +318,13 @@ function View:load(score_loaded)
 	local pa = self.playAnimations
 
 	self.scoreTween = flux.to(self.score, 1, { displayValue = display_info.score }):ease("cubicout"):onupdate(function()
-		self.score:setText(("%07d"):format(self.score.displayValue))
+		self.score:setText((self.displayInfo.scoreFormat):format(self.score.displayValue))
 	end)
 
 	if not pa then
 		self.score.displayValue = display_info.score
 		self.scoreTween:stop()
-		self.score:setText(("%07d"):format(display_info.score))
+		self.score:setText((self.displayInfo.scoreFormat):format(display_info.score))
 	end
 
 	local re = area:addChild("rankingElements", Component({ z = 0.55 }))
