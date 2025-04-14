@@ -1,4 +1,5 @@
 local path_util = require("path_util")
+local string_util = require("string_util")
 
 local other_games = {}
 other_games.games = {}
@@ -23,7 +24,7 @@ function other_games:readOsuConfig()
 
 	while(line) do
 		if line:sub(1, 1) ~= "#" then
-			local kv_split = line:split("=")
+			local kv_split = string_util.split(line, "=")
 			if #kv_split == 2 then
 				local k = kv_split[1]:sub(1, -2)
 				local v = kv_split[2]:sub(2)
@@ -62,7 +63,7 @@ function other_games:findOtherGames()
 	)
 
 	if osu_reg_path then
-		local split = string.split(osu_reg_path, '"')
+		local split = string_util.split(osu_reg_path, '"')
 		if #split > 1 then
 			self.games["osu!"] = split[2]:gsub("osu!.exe", ""):gsub("\\", "/")
 		end
@@ -83,7 +84,7 @@ function other_games:findOtherGames()
 	)
 
 	if quaver_reg_path then
-		local split = string.split(quaver_reg_path, '"')
+		local split = string_util.split(quaver_reg_path, '"')
 		if #split > 1 then
 			self.games["Quaver"] = split[2]:gsub("Quaver.exe", ""):gsub("\\", "/")
 		end
