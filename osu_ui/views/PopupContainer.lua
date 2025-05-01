@@ -66,13 +66,16 @@ function PopupContainer:add(text, color_name, on_click)
 	self.index = self.index + 1
 
 	local label = c:addChild("label", Label({
-		x = 9, y = 9,
+		x = 9, y = 7,
 		boxWidth = 225,
+		alignY = "center",
 		font = self.fonts:loadFont("Regular", 13),
 		text = text,
 		z = 1,
 	}))
 	local middle_scale = math.max(1, label:getHeight() / 20)
+	label.boxHeight = 13 + 13 * middle_scale + 13
+	label:updateSizeAndPos()
 
 	local color = self.colors[color_name]
 	c:addChild("top", QuadImage({
