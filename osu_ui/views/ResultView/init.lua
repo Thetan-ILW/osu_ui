@@ -431,21 +431,20 @@ function View:load(score_loaded)
 	self.rankingElements = re
 
 	---- GRAPH ----
-	local score_system = self.resultApi:getScoreSystem()
+	local score_engine = self.resultApi:getScoreEngine()
+	local hp = score_engine:getScoreSystem("hp")
 	area:addChild("graph", Image({ x = 256, y = 608, image = assets:loadImage("ranking-graph"), z = 0.5 }))
 
-	--[[
-	if score_system.sequence then
+	if hp then
 		area:addChild("hpGraph", HpGraph({
 			x = 265, y = 617,
 			width = 300,
 			height = 135,
-			points = score_system.sequence,
-			hpScoreSystem = score_system.hp,
+			sequence = score_engine.sequence,
+			hpScore = hp,
 			z = 0.55,
 		}))
 	end
-	]]
 
 	local judge_name = display_info.judgeName
 

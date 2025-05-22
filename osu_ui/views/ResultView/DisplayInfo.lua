@@ -56,7 +56,7 @@ function DisplayInfo:load()
 		self:getChartInfo()
 	end
 
-	local score_system = self.resultApi:getScoreSystem()
+	local score_system = self.resultApi:getScoreEngine()
 	if self.manipFactor and self.keyMode == "4K" then
 		self.manipFactorPercent = self.manipFactor(score_system.hits)
 	end

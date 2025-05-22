@@ -44,9 +44,9 @@ function Result:getScoreItem()
 	return self.game.selectModel.scoreItem
 end
 
----@return sphere.ScoreSystemContainer
-function Result:getScoreSystem()
-	return self.game.rhythmModel.scoreEngine.scoreSystem
+---@return sphere.ScoreEngine
+function Result:getScoreEngine()
+	return self.game.rhythmModel.scoreEngine
 end
 
 ---@return ncdk2.Chart?
