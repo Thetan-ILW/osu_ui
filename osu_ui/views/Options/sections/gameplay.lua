@@ -17,7 +17,7 @@ return function(section)
 
 	local gucci = scene.ui.pkgs.gucci
 	local speed_model = scene.ui.game.speedModel
-	local play_context = scene.ui.selectApi:getPlayContext()
+	local replay_base = select_api:getReplayBase()
 
 	section:group(text.Options_Screen, function(group)
 		group:checkbox({
@@ -158,7 +158,7 @@ return function(section)
 
 		group:checkbox({
 			label = text.Options_Gameplay_ConstantScrollSpeed,
-			key = { play_context, "const" }
+			key = { replay_base, "const" }
 		})
 
 		group:checkbox({
@@ -184,36 +184,23 @@ return function(section)
 	end)
 
 	section:group(text.Options_Gameplay_Scoring, function(group)
-		local metadatas = select_api:getScoreSystemMetadatas()
-
-		---@param meta ScoreSystemMetadata
-		---@param judge number
-		local function selectScoreSystem(meta, judge)
-			if meta.hasJudges then
-				judge = math_util.clamp(judge, meta.judges[1], meta.judges[#meta.judges])
-			end
-			osu.scoreSystem = meta.name
-			osu.judgement = judge
-			config.select.judgements = meta.judgeKeyFormat:format(judge)
-			play_context.timings = table_util.deepcopy(meta.getTimings(nil, judge))
-		end
-
-		---@type ScoreSystemMetadata
-		local selected_meta = select_api:getScoreSystemMetadata(osu.scoreSystem)
-		selectScoreSystem(selected_meta, osu.judgement)
-
 		group:checkbox({
-			label = text.Options_Gameplay_OverrideJudges,
+			label = text.Options_Gameplay_OverrideScoreSystem,
 			getValue = function ()
-				return osu.overrideJudges
+				return replay_base.auto_timings
 			end,
 			clicked = function ()
-				osu.overrideJudges = not osu.overrideJudges
+				replay_base.auto_timings = not replay_base.auto_timings
 				group:reload()
 			end
 		})
 
-		local locked = not osu.overrideJudges
+		if replay_base.auto_timings then
+			return
+		end
+
+
+		--[[
 		group:combo({
 			label = text.Options_Gameplay_ScoreSystem,
 			items = metadatas,
@@ -263,6 +250,7 @@ return function(section)
 				locked = locked,
 			})
 		end
+		]]
 	end)
 
 	section:group(text.Options_Gameplay_Timings, function(group)

@@ -4,7 +4,7 @@ local Scoring = require("osu_ui.Scoring")
 local time_util = require("time_util")
 local Format = require("sphere.views.Format")
 local Msd = require("osu_ui.Msd")
-local ui = require("osu_ui.ui.init")
+local ui = require("osu_ui.ui")
 
 ---@class osu.ui.SelectViewDisplayInfo
 ---@operator call: osu.ui.SelectViewDisplayInfo
@@ -19,7 +19,7 @@ end
 
 function DisplayInfo:updateInfo()
 	self.chartview = self.selectApi:getChartview()
-	self.playContext = self.selectApi:getPlayContext()
+	self.replayBase = self.selectApi:getReplayBase()
 	self:setChartInfoDefaults()
 
 	if self.chartview then
@@ -101,7 +101,7 @@ function DisplayInfo:setChartInfo()
 
 	local note_count = chartview.notes_count or 0
 	local ln_count = chartview.long_notes_count or 0
-	local rate = self.playContext.rate
+	local rate = self.replayBase.rate
 
 	self.lengthNumber = (chartview.duration or 0) / rate
 	self.length = time_util.format((chartview.duration or 0) / rate)

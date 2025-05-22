@@ -32,7 +32,7 @@ function UserInterface:new(game, mount_path)
 
 	self.assetModel = AssetModel(game.persistence.configModel, mount_path)
 	self.chatModel = ChatModel()
-	self.modPresetModel = ModPresetModel(game.playContext)
+	self.modPresetModel = ModPresetModel(game.replayBase)
 
 	self.selectApi = SelectAPI(game)
 	self.multiplayerApi = MultiplayerAPI(game)
@@ -87,7 +87,7 @@ function UserInterface:load()
 end
 
 function UserInterface:unload()
-	self.modPresetModel:save()
+	--self.modPresetModel:save()
 	self.selectApi:unloadController()
 end
 

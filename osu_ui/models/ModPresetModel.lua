@@ -10,9 +10,9 @@ local ModPresetModel = class()
 
 local preset_file_path = "userdata/mod_presets.json"
 
----@param play_context sphere.PlayContext
-function ModPresetModel:new(play_context)
-	self.playContext = play_context
+---@param replay_base sphere.ReplayBase
+function ModPresetModel:new(replay_base)
+	self.replayBase = replay_base
 	self.presets = {}
 	self.selectedPresetIndex = 1
 	self:load()
@@ -56,7 +56,7 @@ end
 
 function ModPresetModel:save()
 	local t = {}
-	self.playContext:save(t)
+	self.replayBase:exportReplayBase(t)
 
 	local preset = self.presets[self.selectedPresetIndex]
 	preset.modifiers = t.modifiers
@@ -73,14 +73,14 @@ function ModPresetModel:select(index)
 	local preset = self.presets[self.selectedPresetIndex]
 
 	local t = {}
-	self.playContext:save(t)
+	self.replayBase:exportReplayBase(t)
 	t.modifiers = preset.modifiers
-	self.playContext:load(t)
+	self.replayBase:importReplayBase(t)
 end
 
 function ModPresetModel:createNew(name)
 	local t = {}
-	self.playContext:save(t)
+	self.replayBase:exportReplayBase(t)
 
 	local modifiers_copy = {}
 	for _, v in ipairs(t.modifiers) do
@@ -105,7 +105,7 @@ end
 function ModPresetModel:saveCurrentPreset()
 	local preset = self.presets[self.selectedPresetIndex]
 	local t = {}
-	self.playContext:save(t)
+	self.replayBase:exportReplayBase(t)
 	t.modifiers = preset.modifiers
 end
 

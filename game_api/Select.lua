@@ -1,5 +1,6 @@
 local class = require("class")
-local ScoreSystemContainer = require("sphere.models.RhythmModel.ScoreEngine.ScoreSystemContainer")
+local Timings = require("sea.chart.Timings")
+local Subtimings = require("sea.chart.Subtimings")
 
 ---@class game.SelectAPI
 ---@operator call: game.SelectAPI
@@ -112,10 +113,10 @@ function Select:setAutoplay(state)
 	self.game.rhythmModel:setAutoplay(state)
 end
 
----@return sphere.PlayContext
+---@return sphere.ReplayBase
 --- Mods, rate and timings
-function Select:getPlayContext()
-	return self.game.playContext
+function Select:getReplayBase()
+	return self.game.replayBase
 end
 
 ---@return sphere.CollectionLibrary
@@ -286,7 +287,7 @@ end
 
 ---@return table
 function Select:getMods()
-	return self.game.playContext.modifiers
+	return self.game.replayBase.modifiers
 end
 
 function Select:removeAllMods()
@@ -357,7 +358,7 @@ end
 
 ---@return table
 function Select:getSelectedMods()
-	return self.game.playContext.modifiers
+	return self.game.replayBase.modifiers
 end
 
 ---@return integer
@@ -441,12 +442,9 @@ end
 
 ---@class ScoreSystemMetadata 
 ---@field name string Actual name of the score system
----@field nameLabel string Name of the score system you see in the UI
----@field hasJudges boolean
----@field judges number[]
----@field judgeLabels {[number]: string}
----@field judgeKeyFormat string
----@field getTimings fun(t: nil, judge: number): table
+---@field name_label string Name of the score system you see in the UI
+---@field judge_type "number" | "string"
+---@field judge_range { min: number, max: number }
 
 local score_system_name_alias = {
 	osuLegacy = "osu!mania V1",
@@ -467,29 +465,7 @@ function Select:getScoreSystemMetadatas()
 
 	local t = {}
 
-	for _, score_system in ipairs(ScoreSystemContainer.modules) do
-		if score_system.getTimings then -- Not really the best way to differentiate score system with judges and other score systems...
-			local metadata = score_system.metadata
-			local judges = {}
-			local judge_labels = {} ---@type {[number]: string}
-
-			if metadata.range then
-				for i = metadata.range[1], metadata.range[2], 1 do
-					table.insert(judges, i)
-					judge_labels[i] = metadata.rangeValueAlias and metadata.rangeValueAlias[i] or tostring(i)
-				end
-			end
-
-			table.insert(t, {
-				name = score_system.name,
-				nameLabel = score_system_name_alias[score_system.name] or score_system.name,
-				hasJudges = #judges ~= 0,
-				judges = judges,
-				judgeLabels = judge_labels,
-				judgeKeyFormat = metadata.name,
-				getTimings = score_system.getTimings
-			})
-		end
+	for _, score_system in ipairs(Timings.names) do
 	end
 
 	score_system_metadatas_cache = t

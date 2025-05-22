@@ -36,7 +36,7 @@ end
 
 ---@return table
 function Result:getChartdiffFromScore()
-	return self.game.playContext.chartdiff
+	return self.game.rhythmModel.chartdiff
 end
 
 ---@return table
@@ -58,7 +58,7 @@ end
 function Result:getChartWithMods()
 	local chart = self.game.selectModel:loadChartAbsolute(self.game.gameplayController:getImporterSettings())
 	if chart then
-		ModifierModel:apply(self.game.playContext.modifiers, chart)
+		ModifierModel:apply(self.game.replayBase.modifiers, chart)
 	end
 	return chart
 end

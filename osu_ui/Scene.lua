@@ -72,7 +72,6 @@ function Scene:new(params)
 	self.assets = OsuAssets(self.ui.assetModel)
 	self.localization = Localization(path_util.join(self.ui.mountPath, "osu_ui/localization"), "en.txt")
 	self.fontManager = FontManager(768, fonts, fallbacks)
-
 end
 
 function Scene:load()
@@ -80,7 +79,7 @@ function Scene:load()
 
 	self.defaultScreens = {
 		mainMenu = MainMenu({ z = 0.1 }),
-		lobbyList = LobbyList({ z = 0.08, alpha = 0 }),
+		--lobbyList = LobbyList({ z = 0.08, alpha = 0 }),
 		select = Select({ z = 0.09, alpha = 0 }),
 		gameplay = Gameplay({ z = 0.07, alpha = 0 }),
 		result = Result({ z = 0.08, alpha = 0 }),
@@ -153,7 +152,7 @@ function Scene:load()
 
 	self.currentScreenId = ""
 	self.previousScreenId = ""
-	self:preloadScreen("lobbyList")
+	--self:preloadScreen("lobbyList")
 	self:transitInScreen("mainMenu")
 
 	self.viewport.alpha = 0

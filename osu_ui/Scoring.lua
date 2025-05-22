@@ -1,9 +1,9 @@
-local osuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
-local osuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScoring")
-local etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
-local lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
-local timings = require("sphere.models.RhythmModel.ScoreEngine.timings")
-local ScoreSystemContainer = require("sphere.models.RhythmModel.ScoreEngine.ScoreSystemContainer")
+--local osuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
+--local osuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScoring")
+--local etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
+--local lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
+--local timings = require("sphere.models.RhythmModel.ScoreEngine.timings")
+--local ScoreSystemContainer = require("sphere.models.RhythmModel.ScoreEngine.ScoreSystemContainer")
 
 local math_util = require("math_util")
 

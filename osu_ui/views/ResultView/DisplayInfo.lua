@@ -25,7 +25,7 @@ end
 function DisplayInfo:load()
 	self.chartview = self.selectApi:getChartview()
 	self.chartdiff = self.resultApi:getChartdiffFromScore()
-	self.playContext = self.selectApi:getPlayContext()
+	self.replayBase = self.selectApi:getReplayBase()
 	self.scoreItem = self.resultApi:getScoreItem()
 
 	self.chartName = "No chart name - No chart name"
@@ -117,7 +117,7 @@ end
 function DisplayInfo:getDifficulty()
 	local chartview = self.chartview
 	local chartdiff = self.chartdiff
-	local rate = self.playContext.rate ---@type number
+	local rate = self.replayBase.rate ---@type number
 	local diff_column = self.selectApi:getSelectedDiffColumn()
 
 	local difficulty = (chartview.difficulty or 0) * rate
@@ -126,7 +126,7 @@ function DisplayInfo:getDifficulty()
 
 	self.enpsDiff = chartdiff.enps_diff
 	self.osuDiff = chartdiff.osu_diff
-	self.lnPercent = chartdiff.long_notes_count / chartdiff.notes_count
+	self.lnPercent = (chartdiff.judges_count - chartdiff.notes_count) / chartdiff.notes_count
 
 	---@type osu.ui.Msd?
 	local msd
@@ -158,7 +158,7 @@ function DisplayInfo:getChartInfo()
 	local text = self.text
 
 	local title = ("%s - %s"):format(chartview.artist, chartview.title)
-	local rate = self.playContext.rate
+	local rate = self.replayBase.rate
 	self.timeRate = rate
 
 	if osu.result.difficultyAndRate then
