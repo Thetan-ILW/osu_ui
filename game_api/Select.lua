@@ -113,7 +113,7 @@ function Select:setAutoplay(state)
 	self.game.rhythmModel:setAutoplay(state)
 end
 
----@return sphere.ReplayBase
+---@return sea.ReplayBase
 --- Mods, rate and timings
 function Select:getReplayBase()
 	return self.game.replayBase
@@ -441,18 +441,9 @@ function Select:getInputModel()
 end
 
 ---@class ScoreSystemMetadata 
----@field name string Actual name of the score system
+---@field key string Actual name of the score system
 ---@field name_label string Name of the score system you see in the UI
----@field judge_type "number" | "string"
 ---@field judge_range { min: number, max: number }
-
-local score_system_name_alias = {
-	osuLegacy = "osu!mania V1",
-	osuMania = "osu!mania V2",
-	etterna = "Etterna",
-	quaver = "Quaver",
-	lr2 = "Lunatic Rave 2",
-}
 
 ---@type ScoreSystemMetadata[]?
 local score_system_metadatas_cache

@@ -62,19 +62,37 @@ function DisplayInfo:load()
 	end
 end
 
----@type table<string, number>
-local selected_judge_nums = {
-	["osu!mania"] = 8,
-	["osu!legacy"] = 8,
-	["Etterna"] = 4,
-	["Lunatic rave 2"] = 1,
-}
+local bms_alias = { "Easy", "Normal", "Hard", "Very hard" }
 
-function DisplayInfo:calcForJudge(score_system_name, judge_num)
-	local meta = self.selectApi:getScoreSystemMetadata(score_system_name)
+---@param timings sea.Timings?
+---@param subtimings sea.Subtimings?
+---@return string
+local function formatScoreSystemName(timings, subtimings)
+	if not timings then
+		return "No timings"
+	end
 
-	self.counters = {
-	}
+	if timings.name == "sphere" then
+		return "soundsphere"
+	elseif timings.name == "osuod" then
+		---@cast subtimings -?
+		return ("osu!mania V%i OD%i"):format(subtimings.data, timings.data)
+	elseif timings.name == "etternaj" then
+		return ("Etterna J%i"):format(timings.data)
+	elseif timings.name == "quaver" then
+		return "Quaver standard"
+	elseif timings.name == "bmsrank" then
+		return ("LR2 %s"):format(bms_alias[timings.data])
+	end
+
+	return timings.name or "Unknown"
+end
+
+function DisplayInfo:calcForJudge()
+	local timings = self.replayBase.timings
+	local subtimings = self.replayBase.subtimings
+	self.judgeName = formatScoreSystemName(timings, subtimings)
+
 	self.marvelous = 0
 	self.perfect = 0
 	self.great = nil ---@type number?
@@ -83,35 +101,13 @@ function DisplayInfo:calcForJudge(score_system_name, judge_num)
 	self.miss = 0
 	self.accuracy = nil ---@type number?
 
-	local judge_name = meta.judgeKeyFormat
-
-	if meta.hasJudges then
-		judge_num = math_util.clamp(judge_num, meta.judges[1], meta.judges[#meta.judges])
-		judge_name = meta.judgeKeyFormat:format(meta.judgeLabels[judge_num])
-	end
-
-	local score_system_judgements = self.resultApi:getScoreSystem().judgements
-
-	---@type sphere.Judge
-	self.scoreSystemJudgement = score_system_judgements[judge_name]
-	self.scoreSystemName = score_system_name
-	self.judgeName = judge_name
-	self.judgeNum = judge_num
-	selected_judge_nums[self.scoreSystemName] = self.judgeNum
-
-	if self.scoreSystemJudgement then
-		self:getGrade()
-		self:getStats()
-	end
+	self:getStats()
 end
 
 function DisplayInfo:switchJudgeNum(direction)
-	self:calcForJudge(self.scoreSystemName, self.judgeNum + direction)
 end
 
 function DisplayInfo:switchScoreSystem(direction)
-	local score_system = Scoring.scrollScoreSystem(self.scoreSystemName, direction)
-	self:calcForJudge(score_system, selected_judge_nums[score_system] or 0)
 end
 
 function DisplayInfo:getDifficulty()
@@ -234,50 +230,38 @@ function DisplayInfo:getGrade()
 end
 
 function DisplayInfo:getStats()
-	local judge = self.scoreSystemJudgement
-	local counters = judge.counters
-	local counter_names = judge.orderedCounters
+	local score_engine = self.resultApi:getScoreEngine()
+	local judges_source = score_engine.judgesSource
+	local judges = judges_source:getJudges()
 
-	self.rank = self.scoreItem.rank
-	self.marvelous = counters[counter_names[1]]
-	self.perfect = counters[counter_names[2]]
-	self.miss = counters["miss"]
+	self.rank = 9999--self.scoreItem.rank
+	self.marvelous = judges[1]
+	self.perfect = judges[2]
+	self.great = judges[3]
+	self.good = judges[4]
+	self.bad = judges[5]
+	self.miss = judges_source:getLastJudge()
 
-	local counters_count = #counter_names
+	local combo_source = score_engine.comboSource
+	self.combo = combo_source:getMaxCombo()
 
-	if counters_count > 2 then
-		self.great = counters[counter_names[3]]
-	end
-	if counters_count > 3 then
-		self.good = counters[counter_names[4]]
-	end
-	if counters_count > 4 then
-		self.bad = counters[counter_names[5]]
-	end
+	local accuracy_source = score_engine.accuracySource
+	self.accuracy = accuracy_source:getAccuracy()
 
-	local score_system = self.resultApi:getScoreSystem()
+	local score_source = score_engine.scoreSource
+	self.score = score_source:getScore()
 
-	---@type sphere.BaseScoreSystem
-	local base = score_system["base"]
-	local selected_score_system = score_system[judge.scoreSystemName] ---@type sphere.ScoreSystem
-	self.combo = base.maxCombo
-	self.accuracy = judge.accuracy
-	self.score = judge.score or score_system.judgements["osu!legacy OD9"].score or 0
-	self.scoreFormat = selected_score_system.metadata.scoreFormat or "%07d"
-	self.judgeName = judge.judgeName
-
-	local chartdiff = self.chartdiff
-	if chartdiff then
-		self.pp = osuPP(base.notesCount, chartdiff.osu_diff, 9, self.score)
-	end
+	local base = score_engine:getScoreSystem("base") ---@cast base sphere.BaseScore
 
 	self.spam = base.earlyHitCount
 	self.spamPercent = base.earlyHitCount / base.notesCount
 
-	---@type sphere.NormalscoreScoreSystem
-	local normalscore = score_system["normalscore"]
+	local normalscore = score_engine:getScoreSystem("normalscore") ---@cast normalscore sphere.NormalscoreScore
 	self.normalScore = normalscore.accuracyAdjusted
 	self.mean = normalscore.normalscore.mean
+
+	local chartdiff = self.chartdiff
+	self.pp = osuPP(chartdiff.notes_count, chartdiff.osu_diff, 9, self.score)
 end
 
 return DisplayInfo

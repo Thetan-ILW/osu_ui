@@ -216,7 +216,7 @@ function View:load(score_loaded)
 
 	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.manipFactor)
 	display_info:load()
-	--display_info:calcForJudge(osu_cfg.scoreSystem, osu_cfg.judgement)
+	display_info:calcForJudge(osu_cfg.scoreSystem, osu_cfg.judgement)
 	self.displayInfo = display_info
 
 	local assets = scene.assets
