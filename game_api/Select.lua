@@ -315,22 +315,18 @@ end
 ---@param rate number
 function Select:setTimeRate(rate)
 	local time_rate_model = self.game.timeRateModel
-	self.game.modifierSelectModel:change()
 	time_rate_model:set(rate)
+	self.game.modifierSelectModel:change()
 end
 
 ---@param delta number
 function Select:addTimeRate(delta)
-	local configs = self.game.configModel.configs
-	local g = configs.settings.gameplay
 	local time_rate_model = self.game.timeRateModel
-	local range = time_rate_model.range[g.rate_type]
+	local prev = time_rate_model:get()
+	time_rate_model:increase(delta)
 
-	local new_rate = time_rate_model:get() + range[3] * delta
-
-	if new_rate ~= time_rate_model:get() then
+	if prev ~= time_rate_model:get() then
 		self.game.modifierSelectModel:change()
-		time_rate_model:set(new_rate)
 	end
 end
 
