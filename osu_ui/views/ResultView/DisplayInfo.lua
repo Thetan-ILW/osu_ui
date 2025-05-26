@@ -1,9 +1,7 @@
 local class = require("class")
-local math_util = require("math_util")
 
 local osuPP = require("osu_ui.osu_pp")
 local Format = require("sphere.views.Format")
-
 local Scoring = require("osu_ui.Scoring")
 local Msd = require("osu_ui.Msd")
 
@@ -62,36 +60,10 @@ function DisplayInfo:load()
 	end
 end
 
-local bms_alias = { "Easy", "Normal", "Hard", "Very hard" }
-
----@param timings sea.Timings?
----@param subtimings sea.Subtimings?
----@return string
-local function formatScoreSystemName(timings, subtimings)
-	if not timings then
-		return "No timings"
-	end
-
-	if timings.name == "sphere" then
-		return "soundsphere"
-	elseif timings.name == "osuod" then
-		---@cast subtimings -?
-		return ("osu!mania V%i OD%i"):format(subtimings.data, timings.data)
-	elseif timings.name == "etternaj" then
-		return ("Etterna J%i"):format(timings.data)
-	elseif timings.name == "quaver" then
-		return "Quaver standard"
-	elseif timings.name == "bmsrank" then
-		return ("LR2 %s"):format(bms_alias[timings.data])
-	end
-
-	return timings.name or "Unknown"
-end
-
-function DisplayInfo:calcForJudge()
+function DisplayInfo:loadScoreDetails()
 	local timings = self.replayBase.timings
 	local subtimings = self.replayBase.subtimings
-	self.judgeName = formatScoreSystemName(timings, subtimings)
+	self.judgeName = Scoring.formatScoreSystemName(timings, subtimings)
 
 	self.marvelous = 0
 	self.perfect = 0
@@ -101,13 +73,8 @@ function DisplayInfo:calcForJudge()
 	self.miss = 0
 	self.accuracy = nil ---@type number?
 
-	self:getStats()
-end
-
-function DisplayInfo:switchJudgeNum(direction)
-end
-
-function DisplayInfo:switchScoreSystem(direction)
+	self:setStats()
+	self:setGrade()
 end
 
 function DisplayInfo:getDifficulty()
@@ -194,42 +161,37 @@ function DisplayInfo:getChartInfo()
 	end
 end
 
-function DisplayInfo:getJudgement()
-	local score_system_container = self.resultApi:getScoreSystem()
-	local score_system_judgements = score_system_container.judgements
 
-	if not score_system_judgements then
+function DisplayInfo:setGrade()
+	local score_engine = self.resultApi:getScoreEngine()
+	local accuracy_source = score_engine.accuracySource
+
+	local soundsphere = score_engine:getScoreSystem("soundsphere")
+	---@cast soundsphere sphere.SoundsphereScore
+
+	local ss_judges = soundsphere:getJudges()
+	local score = (ss_judges[1] * 2 + ss_judges[2])
+	local max_score = (ss_judges[1] * 2 + ss_judges[2] + ss_judges[3])
+	local exscore = max_score / score
+	local exscore_grade = Scoring.convertGradeToOsu(Scoring.getGrade("bmsrank", exscore))
+
+	if not accuracy_source.timings then
+		self.grade = exscore_grade
 		return
 	end
 
-	local configs = self.configs
-	---@type osu.ui.OsuConfig
-	local osu = configs.osu_ui
-	local score_system_name = osu.scoreSystem
-	local judge_num = osu.judgement
+	local timings_key = accuracy_source.timings.name ---@type sea.TimingsName
+	local accuracy = accuracy_source:getAccuracy()
+	self.grade = Scoring.getGrade(timings_key, accuracy)
 
-	judge_num = Scoring.clampJudgeNum(score_system_name, judge_num)
-	local judge_name = Scoring.getJudgeName(score_system_name, judge_num)
-
-	---@type sphere.Judge
-	self.scoreSystemJudgement = score_system_judgements[judge_name]
-	self.judgeName = judge_name
-	self.judgeNum = judge_num
-	self.scoreSystemName = score_system_name
-end
-
-function DisplayInfo:getGrade()
-	local judge = self.scoreSystemJudgement
-	local score_system_name = judge.scoreSystemName
-
-	self.grade = Scoring.getGrade(score_system_name, judge.accuracy)
-
-	if score_system_name ~= "osuMania" or score_system_name ~= "osuLegacy" then
+	if timings_key ~= "osuod" then
 		self.grade = Scoring.convertGradeToOsu(self.grade)
 	end
+
+	self.grade = self.grade or exscore_grade
 end
 
-function DisplayInfo:getStats()
+function DisplayInfo:setStats()
 	local score_engine = self.resultApi:getScoreEngine()
 	local judges_source = score_engine.judgesSource
 	local judges = judges_source:getJudges()

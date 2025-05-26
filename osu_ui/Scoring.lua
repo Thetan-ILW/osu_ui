@@ -1,16 +1,10 @@
---local osuMania = require("sphere.models.RhythmModel.ScoreEngine.OsuManiaScoring")
---local osuLegacy = require("sphere.models.RhythmModel.ScoreEngine.OsuLegacyScoring")
---local etterna = require("sphere.models.RhythmModel.ScoreEngine.EtternaScoring")
---local lr2 = require("sphere.models.RhythmModel.ScoreEngine.LunaticRaveScoring")
---local timings = require("sphere.models.RhythmModel.ScoreEngine.timings")
---local ScoreSystemContainer = require("sphere.models.RhythmModel.ScoreEngine.ScoreSystemContainer")
-
-local math_util = require("math_util")
-
 local Scoring = {}
 
-function Scoring.getGrade(scoreSystemName, accuracy)
-	if scoreSystemName == "osuMania" or scoreSystemName == "osuLegacy" then
+---@param timings_name sea.TimingsName
+---@param accuracy number
+---@return string?
+function Scoring.getGrade(timings_name, accuracy)
+	if timings_name == "osuod" then
 		if accuracy == 1 then
 			return "SS"
 		elseif accuracy > 0.95 then
@@ -24,7 +18,7 @@ function Scoring.getGrade(scoreSystemName, accuracy)
 		else
 			return "D"
 		end
-	elseif scoreSystemName == "etterna" then
+	elseif timings_name == "etternaj" then
 		if accuracy > 0.999935 then
 			return "AAAAA"
 		elseif accuracy > 0.99955 then
@@ -42,7 +36,7 @@ function Scoring.getGrade(scoreSystemName, accuracy)
 		else
 			return "F"
 		end
-	elseif scoreSystemName == "quaver" then
+	elseif timings_name == "quaver" then
 		if accuracy == 1 then
 			return "X"
 		elseif accuracy > 0.99 then
@@ -60,7 +54,7 @@ function Scoring.getGrade(scoreSystemName, accuracy)
 		else
 			return "F"
 		end
-	elseif scoreSystemName == "lr2" then
+	elseif timings_name == "bmsrank" then
 		if accuracy > 0.8888 then
 			return "AAA"
 		elseif accuracy > 0.7777 then
@@ -79,82 +73,44 @@ function Scoring.getGrade(scoreSystemName, accuracy)
 			return "F"
 		end
 	end
-
-	return "-"
 end
 
+---@param grade string?
+---@return string
 function Scoring.convertGradeToOsu(grade)
 	if grade == "AAAAA" or grade == "AAAA" or grade == "AAA" or grade == "SS" then
 		return "X"
 	elseif grade == "AA" then
 		return "S"
-	elseif grade == "F" then
+	else
 		return "D"
 	end
-
-	return grade
 end
 
----@param format string
----@param osu_od number?
----@return number
-function Scoring.getOD(format, osu_od)
-	if osu_od then
-		return math_util.round(math_util.clamp(osu_od, 0, 10), 1)
+local bms_alias = { "Easy", "Normal", "Hard", "Very hard" }
+
+---@param timings sea.Timings?
+---@param subtimings sea.Subtimings?
+---@return string
+function Scoring.formatScoreSystemName(timings, subtimings)
+	if not timings then
+		return "No timings"
 	end
 
-	if format == "sm" or format == "ssc" then
-		return 9
-	elseif format == "ojn" then
-		return 7
-	else
-		return 8
-	end
-end
-
----@param score_system_name string
----@param judgement number
----@return table?
-function Scoring.getTimings(score_system_name, judgement)
-	for _, score_system in ipairs(ScoreSystemContainer.modules) do
-		if score_system.name == score_system_name then
-			return score_system.getTimings(nil, judgement)
-		end
-	end
-end
-
----@param score_system string
----@return boolean
-function Scoring.isOsu(score_system)
-	if score_system == "osuLegacy" then
-		return true
-	elseif score_system == "osuMania" then
-		return true
-	end
-	return false
-end
-
----@param score_system_name string
----@param direction 1 | -1
----@return string score_system_name
-function Scoring.scrollScoreSystem(score_system_name, direction)
-	local s = {}
-
-	local score_systems = ScoreSystemContainer.modules
-	for i, score_system in ipairs(score_systems) do
-		if score_system.getTimings then
-			table.insert(s, score_system)
-			print(score_system.name)
-		end
+	if timings.name == "sphere" then
+		return "soundsphere"
+	elseif timings.name == "osuod" then
+		---@cast subtimings -?
+		return ("osu!mania V%i OD%i"):format(subtimings.data, timings.data)
+	elseif timings.name == "etternaj" then
+		return ("Etterna J%i"):format(timings.data)
+	elseif timings.name == "quaver" then
+		return "Quaver standard"
+	elseif timings.name == "bmsrank" then
+		return ("LR2 %s"):format(bms_alias[timings.data])
 	end
 
-	for i, score_system in ipairs(s) do
-		if score_system_name == score_system.name then
-			return s[math_util.clamp(i + direction, 1, #s)].name
-		end
-	end
-
-	return s[1]
+	return timings.name or "Unknown"
 end
 
 Scoring.counterColors = {
