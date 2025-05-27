@@ -6,7 +6,7 @@ local Scoring = {}
 function Scoring.getGrade(timings_name, accuracy)
 	if timings_name == "osuod" then
 		if accuracy == 1 then
-			return "SS"
+			return "X"
 		elseif accuracy > 0.95 then
 			return "S"
 		elseif accuracy > 0.9 then

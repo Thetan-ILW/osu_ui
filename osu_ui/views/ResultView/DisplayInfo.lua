@@ -61,7 +61,7 @@ function DisplayInfo:load()
 end
 
 function DisplayInfo:loadScoreDetails()
-	local timings = self.replayBase.timings
+	local timings = self.replayBase.timings or self.chartview.timings
 	local subtimings = self.replayBase.subtimings
 	self.judgeName = Scoring.formatScoreSystemName(timings, subtimings)
 
@@ -202,7 +202,7 @@ function DisplayInfo:setStats()
 	self.great = judges[3]
 	self.good = judges[4]
 	self.bad = judges[5]
-	self.miss = judges_source:getLastJudge()
+	self.miss = judges[#judges_source:getJudgeNames()]
 
 	local combo_source = score_engine.comboSource
 	self.combo = combo_source:getMaxCombo()

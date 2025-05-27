@@ -196,7 +196,15 @@ function DisplayInfo:setChartInfo()
 	if not self.configs.settings.replay_base.auto_timings then
 		timings = self.replayBase.timings or Timings.decode(self.chartview.chartmeta_timings)
 	else
-		timings = Timings.decode(self.chartview.chartmeta_timings)
+		if chartview.format == "osu" then
+			timings = Timings.decode(self.chartview.chartmeta_timings)
+		else
+			local ft = self.configs.settings.format_timings
+			timings = Timings(
+				ft[chartview.format][1],
+				ft[chartview.format][2]
+			)
+		end
 	end
 
 	local length_hue = ui.convertDiffToHue(math.min(self.lengthNumber * 0.8, 420) / 420)
