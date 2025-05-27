@@ -1,6 +1,8 @@
 local Timings = require("sea.chart.Timings")
 local Subtimings = require("sea.chart.Subtimings")
 local TimingValuesFactory = require("sea.chart.TimingValuesFactory")
+local ScoreSystems = require("osu_ui.ScoreSystems")
+local math_util = require("math_util")
 
 ---@param section osu.ui.OptionsSection
 return function(section)
@@ -198,8 +200,15 @@ return function(section)
 			end
 		})
 
-		local metadatas = select_api:getScoreSystemMetadatas()
-		local meta = select_api:getScoreSystemMetadataFrom(replay_base.timings, replay_base.subtimings)
+		group:checkbox({
+			label = "Nearest input",
+			key = { replay_base, "nearest" }
+		})
+
+		local score_systems = ScoreSystems()
+
+		local metadatas = score_systems:getMetadatas()
+		local meta = score_systems:getMetadataFrom(replay_base.timings, replay_base.subtimings)
 
 		group:combo({
 			label = text.Options_Gameplay_ScoreSystem,
@@ -211,7 +220,7 @@ return function(section)
 				end
 				local timings = replay_base.timings
 				local subtimings = replay_base.subtimings
-				return select_api:getScoreSystemMetadataFrom(timings, subtimings) or "Unknown"
+				return score_systems:getMetadataFrom(timings, subtimings) or "Unknown"
 			end,
 			setValue = function (index)
 				local meta = metadatas[index]
@@ -226,6 +235,8 @@ return function(section)
 				if replay_base.timings ~= "arbitrary" then
 					replay_base.timing_values = assert(TimingValuesFactory:get(replay_base.timings, replay_base.subtimings))
 				end
+
+				replay_base.nearest = meta.nearest or false
 
 				section:getViewport():triggerEvent("event_modsChanged")
 				group:load()
