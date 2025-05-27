@@ -1,5 +1,6 @@
-local table_util = require("table_util")
-local math_util = require("math_util")
+local Timings = require("sea.chart.Timings")
+local Subtimings = require("sea.chart.Subtimings")
+local TimingValuesFactory = require("sea.chart.TimingValuesFactory")
 
 ---@param section osu.ui.OptionsSection
 return function(section)
@@ -10,6 +11,7 @@ return function(section)
 	local dim = gf.dim
 	local time = g.time
 	local osu = config.osu_ui ---@type osu.ui.OsuConfig
+	local timings_config = settings.timings
 
 	local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
 	local text = scene.localization.text
@@ -187,70 +189,96 @@ return function(section)
 		group:checkbox({
 			label = text.Options_Gameplay_OverrideScoreSystem,
 			getValue = function ()
-				return replay_base.auto_timings
+				return not settings.replay_base.auto_timings
 			end,
 			clicked = function ()
-				replay_base.auto_timings = not replay_base.auto_timings
+				settings.replay_base.auto_timings = not settings.replay_base.auto_timings
 				group:reload()
+				section.options:recalcPositions()
 			end
 		})
 
-		if replay_base.auto_timings then
-			return
-		end
+		local metadatas = select_api:getScoreSystemMetadatas()
+		local meta = select_api:getScoreSystemMetadataFrom(replay_base.timings, replay_base.subtimings)
 
-
-		--[[
 		group:combo({
 			label = text.Options_Gameplay_ScoreSystem,
 			items = metadatas,
-			getValue = function()
-				return osu.scoreSystem
+			locked = settings.replay_base.auto_timings,
+			getValue = function ()
+				if settings.replay_base.auto_timings then
+					return "Chart specific score system"
+				end
+				local timings = replay_base.timings
+				local subtimings = replay_base.subtimings
+				return select_api:getScoreSystemMetadataFrom(timings, subtimings) or "Unknown"
 			end,
-			setValue = function(index)
+			setValue = function (index)
 				local meta = metadatas[index]
-				selectScoreSystem(meta, meta.judges[1])
+				replay_base.timings = Timings(meta.timings_name, meta.timings_data_default or meta.timings_data_min)
+
+				if meta.subtimings_name then
+					replay_base.subtimings = Subtimings(meta.subtimings_name, meta.subtimings_data)
+				else
+					replay_base.subtimings = nil
+				end
+
+				if replay_base.timings ~= "arbitrary" then
+					replay_base.timing_values = assert(TimingValuesFactory:get(replay_base.timings, replay_base.subtimings))
+				end
+
+				section:getViewport():triggerEvent("event_modsChanged")
 				group:load()
 				section.options:recalcPositions()
 			end,
-			---@param v string | ScoreSystemMetadata
 			format = function(v)
-				if type(v) == "string" then -- Maybe we should just rename score systems already so I don't have to do THIS
-					return selected_meta.nameLabel
-				end
-				return v.nameLabel
+				return v.display_name
 			end
 		})
 
-		if selected_meta.hasJudges then
+		if not meta then
+			return
+		end
+
+		if settings.replay_base.auto_timings then
+			return
+		end
+
+		if meta.timings_data_type == "number" then
+			group:slider({
+				label = text.Options_Gameplay_Judgement,
+				min = meta.timings_data_min,
+				max = meta.timings_data_max,
+				step = meta.timings_data_step,
+				getValue = function ()
+					return replay_base.timings.data
+				end,
+				setValue = function (v)
+					if meta.transformTimingData then
+						v = meta.transformTimingData(v)
+					end
+					replay_base.timings = Timings(replay_base.timings.name, v)
+					replay_base.timing_values = assert(TimingValuesFactory:get(replay_base.timings, replay_base.subtimings))
+					timings_config[replay_base.timings.name] = v
+					section:getViewport():triggerEvent("event_modsChanged")
+				end
+			})
+		elseif meta.timings_data_type == "string" then
 			group:combo({
 				label = text.Options_Gameplay_Judgement,
-				items = selected_meta.judges,
-				locked = locked,
+				items = meta.timings_data_list,
 				getValue = function ()
-					return osu.judgement
+					return meta.timings_data_list[replay_base.timings.data + 1]
 				end,
-				setValue = function(index)
-					local judge = selected_meta.judges[index]
-					selectScoreSystem(selected_meta, judge)
-				end,
-				format = function(v)
-					if locked then
-						return "Depends on the chart"
-					end
-					return selected_meta.judgeLabels[v]
+				setValue = function (index)
+					index = index - 1
+					replay_base.timings = Timings(replay_base.timings.name, index)
+					replay_base.timing_values = assert(TimingValuesFactory:get(replay_base.timings, replay_base.subtimings))
+					timings_config[replay_base.timings.name] = index
+					section:getViewport():triggerEvent("event_modsChanged")
 				end
 			})
 		end
-
-		if play_context.timings then -- I don't know why, but it can be nil
-			group:checkbox({
-				label = text.Options_Gameplay_NearestInput,
-				key = { play_context.timings, "nearest" },
-				locked = locked,
-			})
-		end
-		]]
 	end)
 
 	section:group(text.Options_Gameplay_Timings, function(group)

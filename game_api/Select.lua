@@ -436,39 +436,112 @@ function Select:getInputModel()
 	return self.game.inputModel
 end
 
----@class ScoreSystemMetadata 
----@field key string Actual name of the score system
----@field name_label string Name of the score system you see in the UI
----@field judge_range { min: number, max: number }
+---@class ScoreSystemMetadata
+---@field display_name string
+---@field timings_name sea.TimingsName
+---@field timings_data_type? "number" | "string" purely visual, don't put strings in Timings, use index of timings_data_list - 1
+---@field timings_data_min number?
+---@field timings_data_max number?
+---@field timings_data_step number?
+---@field timings_data_list string[]?
+---@field timings_data_default number?
+---@field subtimings_name sea.SubtimingsName?
+---@field subtimings_data number?
+---@field transformTimingData? fun(v: number): number
 
----@type ScoreSystemMetadata[]?
-local score_system_metadatas_cache
+---@type ScoreSystemMetadata[]
+local score_system_metadatas = {
+	{
+		display_name = "osu!mania V1",
+		timings_name = "osuod",
+		timings_data_type = "number",
+		timings_data_min = 0,
+		timings_data_max = 10,
+		timings_data_step = 0.1,
+		timings_data_default = 8,
+		subtimings_name = "scorev",
+		subtimings_data = 1,
+		transformTimingData = function(od_num)
+			return math.floor(od_num * 10 + 0.5) / 10
+		end
+	},
+	{
+		display_name = "osu!mania V2",
+		timings_name = "osuod",
+		timings_data_type = "number",
+		timings_data_min = 0,
+		timings_data_max = 10,
+		timings_data_step = 0.1,
+		timings_data_default = 8,
+		subtimings_name = "scorev",
+		subtimings_data = 2,
+		transformTimingData = function(od_num)
+			return math.floor(od_num * 10 + 0.5) / 10
+		end
+	},
+	{
+		display_name = "Etterna",
+		timings_name = "etternaj",
+		timings_data_type = "number",
+		timings_data_min = 4,
+		timings_data_max = 9,
+		timings_data_step = 1,
+		timings_data_default = 4,
+	},
+	{
+		display_name = "Lunatic Rave 2",
+		timings_name = "bmsrank",
+		timings_data_type = "string",
+		timings_data_list = { "Easy", "Normal", "Hard", "Very hard" }
+	},
+	{
+		display_name = "Quaver",
+		timings_name = "quaver",
+	},
+	{
+		display_name = "soundsphere",
+		timings_name = "sphere",
+	},
+}
+
 
 ---@return ScoreSystemMetadata[]
 function Select:getScoreSystemMetadatas()
-	if score_system_metadatas_cache then
-		return score_system_metadatas_cache
-	end
-
-	local t = {}
-
-	for _, score_system in ipairs(Timings.names) do
-	end
-
-	score_system_metadatas_cache = t
-	return t
+	return score_system_metadatas
 end
 
----@param score_system_name string
----@return ScoreSystemMetadata
-function Select:getScoreSystemMetadata(score_system_name)
-	local metadatas = self:getScoreSystemMetadatas()
-	for _, v in ipairs(metadatas) do
-		if score_system_name == v.name then
-			return v
-		end
+---@param timings sea.Timings?
+---@param subtimings sea.Subtimings?
+local function getScoreSystemMetadataKey(timings, subtimings)
+	if not timings or not timings.name then
+		return
 	end
-	return metadatas[1]
+
+	if subtimings then
+		return ("%s%s%i"):format(timings.name, subtimings.name or "", subtimings.data or -1)
+	end
+
+	return timings.name
+end
+
+---@type {[string]: ScoreSystemMetadata}
+local score_system_metadatas_map = {}
+
+for _, meta in ipairs(score_system_metadatas) do
+	local key = getScoreSystemMetadataKey(
+		{ name = meta.timings_name, data = 0 },
+		meta.subtimings_name and { name = meta.subtimings_name, data = meta.subtimings_data }
+	)
+	assert(key)
+	score_system_metadatas_map[key] = meta
+end
+
+---@param timings sea.Timings?
+---@param subtimings sea.Subtimings?
+---@return ScoreSystemMetadata?
+function Select:getScoreSystemMetadataFrom(timings, subtimings)
+	local key = getScoreSystemMetadataKey(timings, subtimings)
+	return score_system_metadatas_map[key]
 end
 
 return Select
