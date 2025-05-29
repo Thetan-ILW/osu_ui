@@ -1,9 +1,7 @@
 local class = require("class")
 
-local Scoring = require("osu_ui.Scoring")
 local time_util = require("time_util")
 local Format = require("sphere.views.Format")
-local Msd = require("osu_ui.Msd")
 local ui = require("osu_ui.ui")
 local Timings = require("sea.chart.Timings")
 
@@ -50,37 +48,6 @@ function DisplayInfo:setChartInfoDefaults()
 	self.lnPercent = 0
 	self.lnPercentColor = { 1, 1, 1, 1 }
 	self.formatLevel = ""
-end
-
----@param msd osu.ui.Msd
----@param time_rate number
----@param key_mode string
-function DisplayInfo:setMsd(msd, time_rate, key_mode)
-	local sorted = msd:getSorted(time_rate)
-
-	local second = false
-	local max = sorted[1][2]
-
-	self.msd.max = max
-
-	for i, v in ipairs(sorted) do
-		local pattern = v[1]
-		local num = v[2]
-		if pattern ~= "overall" then
-			if num >= max * 0.93 then
-				if not second then
-					self.msd.firstPattern = msd.getPatternName(pattern, key_mode):upper()
-				else
-					self.msd.secondPattern = msd.getPatternName(pattern, key_mode):upper()
-				end
-			end
-
-			if second then
-				return
-			end
-			second = true
-		end
-	end
 end
 
 ---@param timings sea.Timings
@@ -153,25 +120,12 @@ function DisplayInfo:setChartInfo()
 	local diff_hue = 0
 	local calc = ""
 
-	---@type osu.ui.Msd?
-	local msd
-
-	if chartview.msd_diff_data then
-		pcall(function ()
-			msd = Msd(chartview.msd_diff_data)
-		end)
-		if msd then
-			self:setMsd(msd, rate, chartview.chartdiff_inputmode)
-		end
-	end
-
-	if diff_column == "msd_diff" and msd then
-		local sorted = msd:getSorted(rate)
-		local overall = msd.getFromTable("overall", sorted)
-		local pattern = msd.simplifyName(sorted[2][1], chartview.chartdiff_inputmode)
+	if diff_column == "msd_diff" then
+		local msd = chartview.msd_diff or 0
+		self.msd.max = msd
 		calc = "MSD"
-		difficulty = ("%0.02f %s"):format(overall, pattern)
-		diff_hue = ui.convertDiffToHue((math.min(overall, 40) / 40) / 1.3)
+		difficulty = ("%0.02f"):format(msd)
+		diff_hue = ui.convertDiffToHue((math.min(msd, 40) / 40) / 1.3)
 		self.difficultyShowcase = difficulty
 	elseif diff_column == "enps_diff" then
 		local enps = (chartview.enps_diff or 0) * rate

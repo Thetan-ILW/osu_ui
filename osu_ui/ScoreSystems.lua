@@ -9,6 +9,7 @@ local class = require("class")
 ---@field timings_data_step number?
 ---@field timings_data_list string[]?
 ---@field timings_data_default number?
+---@field timings_data_prefix string?
 ---@field subtimings_name sea.SubtimingsName?
 ---@field subtimings_data number?
 ---@field nearest boolean?
@@ -29,6 +30,7 @@ ScoreSystems.metadatas = {
 		timings_data_max = 10,
 		timings_data_step = 0.1,
 		timings_data_default = 8,
+		timings_data_prefix = "OD",
 		subtimings_name = "scorev",
 		subtimings_data = 1,
 		transformTimingData = function(od_num)
@@ -43,6 +45,7 @@ ScoreSystems.metadatas = {
 		timings_data_max = 10,
 		timings_data_step = 0.1,
 		timings_data_default = 8,
+		timings_data_prefix = "OD",
 		subtimings_name = "scorev",
 		subtimings_data = 2,
 		nearest = true,
@@ -58,6 +61,7 @@ ScoreSystems.metadatas = {
 		timings_data_max = 9,
 		timings_data_step = 1,
 		timings_data_default = 4,
+		timings_data_prefix = "J",
 		nearest = true,
 	},
 	{
@@ -78,6 +82,7 @@ ScoreSystems.metadatas = {
 
 ---@param timings sea.Timings?
 ---@param subtimings sea.Subtimings?
+---@return string?
 local function getMetadataKey(timings, subtimings)
 	if not timings or not timings.name then
 		return
@@ -114,6 +119,42 @@ end
 function ScoreSystems:getMetadataFrom(timings, subtimings)
 	local key = getMetadataKey(timings, subtimings)
 	return self.metadata_map[key]
+end
+
+---@param timings sea.Timings?
+---@param subtimings sea.Subtimings?
+---@return string?
+function ScoreSystems:getJudgeName(timings, subtimings)
+	local key = getMetadataKey(timings, subtimings)
+	if not key or not timings then
+		return
+	end
+
+	---@cast key string
+
+	local metadata = self.metadata_map[key]
+
+	local s = metadata.display_name
+
+	if metadata.timings_data_type == "number" then
+		if metadata.timings_data_prefix then
+			s = ("%s %s%i"):format(s, metadata.timings_data_prefix, timings.data)
+			return s
+		else
+			s = ("%s %i"):format(s, metadata.timings.data)
+		end
+	elseif metadata.timings_data_type == "string" then
+		local judge_s = metadata.timings_data_list[timings.data + 1]
+
+		if metadata.timings_data_prefix then
+			s = ("%s %s%s"):format(s, metadata.timings_data_prefix, judge_s)
+			return s
+		else
+			s = ("%s %i"):format(s, judge_s)
+		end
+	end
+
+	return s
 end
 
 return ScoreSystems

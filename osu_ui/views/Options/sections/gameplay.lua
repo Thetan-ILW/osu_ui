@@ -2,7 +2,6 @@ local Timings = require("sea.chart.Timings")
 local Subtimings = require("sea.chart.Subtimings")
 local TimingValuesFactory = require("sea.chart.TimingValuesFactory")
 local ScoreSystems = require("osu_ui.ScoreSystems")
-local math_util = require("math_util")
 
 ---@param section osu.ui.OptionsSection
 return function(section)
