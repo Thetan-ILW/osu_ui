@@ -4,6 +4,7 @@ local time_util = require("time_util")
 local Format = require("sphere.views.Format")
 local ui = require("osu_ui.ui")
 local Timings = require("sea.chart.Timings")
+local Msd = require("osu_ui.Msd")
 
 ---@class osu.ui.SelectViewDisplayInfo
 ---@operator call: osu.ui.SelectViewDisplayInfo
@@ -41,9 +42,9 @@ function DisplayInfo:setChartInfoDefaults()
 	self.difficultyColor = { 1, 1, 1, 1 }
 	self.lengthColor = { 1, 1, 1, 1 }
 	self.msd = {
-		max = 0,
-		firstPattern = "No patterns",
-		secondPattern = "",
+		overall = 0,
+		firstPattern = { name = "No patterns", difficulty = 0 },
+		secondPattern = nil,
 	}
 	self.lnPercent = 0
 	self.lnPercentColor = { 1, 1, 1, 1 }
@@ -114,6 +115,21 @@ function DisplayInfo:setChartInfo()
 		self.lnPercent = 0
 	end
 
+	local inputmode = chartview.chartdiff_inputmode ---@type string
+	local msd = Msd(chartview.msd_diff_data, chartview.msd_diff_rates)
+	local msd_overall = 0
+
+	if msd.valid then
+		local msd_patterns = msd:getPatterns(rate, inputmode)
+		msd_overall = msd:getOverall(rate)
+		self.msd.overall = msd_overall
+		self.msd.firstPattern = msd_patterns[1]
+
+		if msd_patterns[2].difficulty > msd_patterns[1].difficulty * 0.93 then
+			self.msd.secondPattern = msd_patterns[2]
+		end
+	end
+
 	---@type string
 	local diff_column = self.selectApi:getSelectedDiffColumn()
 	local difficulty = "-9999"
@@ -121,11 +137,10 @@ function DisplayInfo:setChartInfo()
 	local calc = ""
 
 	if diff_column == "msd_diff" then
-		local msd = chartview.msd_diff or 0
-		self.msd.max = msd
+		local short_pattern = msd.simplifyName(self.msd.firstPattern.name)
 		calc = "MSD"
-		difficulty = ("%0.02f"):format(msd)
-		diff_hue = ui.convertDiffToHue((math.min(msd, 40) / 40) / 1.3)
+		difficulty = ("%0.02f %s"):format(msd_overall, short_pattern)
+		diff_hue = ui.convertDiffToHue((math.min(msd_overall, 40) / 40) / 1.3)
 		self.difficultyShowcase = difficulty
 	elseif diff_column == "enps_diff" then
 		local enps = (chartview.enps_diff or 0) * rate

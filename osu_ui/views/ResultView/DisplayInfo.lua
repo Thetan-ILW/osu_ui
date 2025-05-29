@@ -3,6 +3,7 @@ local class = require("class")
 local osuPP = require("osu_ui.osu_pp")
 local Format = require("sphere.views.Format")
 local Scoring = require("osu_ui.Scoring")
+local Msd = require("osu_ui.Msd")
 
 ---@class osu.ui.ResultDisplayInfo
 ---@operator call: osu.ui.ResultDisplayInfo
@@ -91,8 +92,21 @@ function DisplayInfo:getDifficulty()
 	self.lnPercent = (chartdiff.judges_count - chartdiff.notes_count) / chartdiff.notes_count
 
 	if diff_column == "msd_diff" then
-		local msd = chartdiff.msd_diff
-		self.difficulty = ("[%0.02f]"):format(msd)
+		local msd = Msd(chartdiff.msd_diff_data, chartdiff.msd_diff_rates)
+
+		if msd.valid then
+			local inputmode = chartview.chartdiff_inputmode ---@type string
+			local patterns = msd:getPatterns(rate, inputmode)
+			local s = msd.simplifyName(patterns[1].name)
+
+			if patterns[2].difficulty > patterns[1].difficulty * 0.93 then
+				 s = ("%s/%s"):format(s, msd.simplifyName(patterns[2].name))
+			end
+
+			self.difficulty = ("[%0.02f %s]"):format(chartdiff.msd_diff or 0, s)
+		else
+			self.difficulty = ""
+		end
 	elseif diff_column == "enps_diff" then
 		self.difficulty = ("[%0.02f ENPS]"):format((chartdiff.enps_diff or 0))
 	elseif diff_column == "osu_diff" then
