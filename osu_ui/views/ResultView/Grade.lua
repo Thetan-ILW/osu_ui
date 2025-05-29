@@ -39,6 +39,11 @@ function Grade:load()
 	end
 
 	local img = self.images[self.grade]
+
+	if not img then
+		return
+	end
+
 	img.disabled = false
 	img.alpha = 1
 end

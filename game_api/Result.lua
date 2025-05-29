@@ -36,7 +36,7 @@ end
 
 ---@return table
 function Result:getChartdiffFromScore()
-	return self.game.playContext.chartdiff
+	return self.game.rhythmModel.chartdiff
 end
 
 ---@return table
@@ -44,9 +44,9 @@ function Result:getScoreItem()
 	return self.game.selectModel.scoreItem
 end
 
----@return sphere.ScoreSystemContainer
-function Result:getScoreSystem()
-	return self.game.rhythmModel.scoreEngine.scoreSystem
+---@return sphere.ScoreEngine
+function Result:getScoreEngine()
+	return self.game.rhythmModel.scoreEngine
 end
 
 ---@return ncdk2.Chart?
@@ -58,7 +58,7 @@ end
 function Result:getChartWithMods()
 	local chart = self.game.selectModel:loadChartAbsolute(self.game.gameplayController:getImporterSettings())
 	if chart then
-		ModifierModel:apply(self.game.playContext.modifiers, chart)
+		ModifierModel:apply(self.game.replayBase.modifiers, chart)
 	end
 	return chart
 end

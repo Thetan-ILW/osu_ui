@@ -29,7 +29,7 @@ function Modifiers:load()
 
 	local select_api = scene.ui.selectApi
 	local mod_preset_model = scene.ui.modPresetModel
-	local play_context = select_api:getPlayContext()
+	local replay_base = select_api:getReplayBase()
 	self.modPresetModel = mod_preset_model
 
 	local precise_rates = select_api:getConfigs().osu_ui.songSelect.preciseRates
@@ -126,10 +126,10 @@ function Modifiers:load()
 		font = self.fonts:loadFont("Regular", 16),
 		label = "Constant scroll speed",
 		getValue = function ()
-			return play_context.const
+			return replay_base.const
 		end,
 		clicked = function ()
-			play_context.const = not play_context.const
+			replay_base.const = not replay_base.const
 		end
 	}))
 

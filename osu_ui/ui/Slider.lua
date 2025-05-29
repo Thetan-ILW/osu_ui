@@ -95,7 +95,7 @@ function Slider:keyPressed(event)
 	end
 
 	local value = math_util.clamp(self.getValue() + direction * self.step, self.min, self.max)
-	self.setValue(value)
+	self.setValue(math_util.round(value, self.step))
 	self.target = value
 	self.playSound(self.sliderBar, 0.065)
 	return true
@@ -119,7 +119,7 @@ function Slider:drag(mx)
 			self.tween:stop()
 		end
 		self.tween = flux.to(self, 0.1, { value = target }):ease("quadout"):onupdate(function ()
-			self.setValue(self.value)
+			self.setValue(math_util.round(self.value, self.step))
 			self.sliderBar:setRate(1 + ((self.value - self.min) / (self.max - self.min)) * 0.2)
 			self.playSound(self.sliderBar, 0.065)
 		end)

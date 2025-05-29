@@ -1,11 +1,8 @@
 local class = require("class")
-local math_util = require("math_util")
 
 local osuPP = require("osu_ui.osu_pp")
 local Format = require("sphere.views.Format")
-
 local Scoring = require("osu_ui.Scoring")
-local Msd = require("osu_ui.Msd")
 
 ---@class osu.ui.ResultDisplayInfo
 ---@operator call: osu.ui.ResultDisplayInfo
@@ -25,7 +22,7 @@ end
 function DisplayInfo:load()
 	self.chartview = self.selectApi:getChartview()
 	self.chartdiff = self.resultApi:getChartdiffFromScore()
-	self.playContext = self.selectApi:getPlayContext()
+	self.replayBase = self.selectApi:getReplayBase()
 	self.scoreItem = self.resultApi:getScoreItem()
 
 	self.chartName = "No chart name - No chart name"
@@ -56,25 +53,17 @@ function DisplayInfo:load()
 		self:getChartInfo()
 	end
 
-	local score_system = self.resultApi:getScoreSystem()
+	local score_system = self.resultApi:getScoreEngine()
 	if self.manipFactor and self.keyMode == "4K" then
 		self.manipFactorPercent = self.manipFactor(score_system.hits)
 	end
 end
 
----@type table<string, number>
-local selected_judge_nums = {
-	["osu!mania"] = 8,
-	["osu!legacy"] = 8,
-	["Etterna"] = 4,
-	["Lunatic rave 2"] = 1,
-}
+function DisplayInfo:loadScoreDetails()
+	local timings = self.replayBase.timings or self.chartview.timings
+	local subtimings = self.replayBase.subtimings
+	self.judgeName = Scoring.formatScoreSystemName(timings, subtimings)
 
-function DisplayInfo:calcForJudge(score_system_name, judge_num)
-	local meta = self.selectApi:getScoreSystemMetadata(score_system_name)
-
-	self.counters = {
-	}
 	self.marvelous = 0
 	self.perfect = 0
 	self.great = nil ---@type number?
@@ -83,41 +72,14 @@ function DisplayInfo:calcForJudge(score_system_name, judge_num)
 	self.miss = 0
 	self.accuracy = nil ---@type number?
 
-	local judge_name = meta.judgeKeyFormat
-
-	if meta.hasJudges then
-		judge_num = math_util.clamp(judge_num, meta.judges[1], meta.judges[#meta.judges])
-		judge_name = meta.judgeKeyFormat:format(meta.judgeLabels[judge_num])
-	end
-
-	local score_system_judgements = self.resultApi:getScoreSystem().judgements
-
-	---@type sphere.Judge
-	self.scoreSystemJudgement = score_system_judgements[judge_name]
-	self.scoreSystemName = score_system_name
-	self.judgeName = judge_name
-	self.judgeNum = judge_num
-	selected_judge_nums[self.scoreSystemName] = self.judgeNum
-
-	if self.scoreSystemJudgement then
-		self:getGrade()
-		self:getStats()
-	end
-end
-
-function DisplayInfo:switchJudgeNum(direction)
-	self:calcForJudge(self.scoreSystemName, self.judgeNum + direction)
-end
-
-function DisplayInfo:switchScoreSystem(direction)
-	local score_system = Scoring.scrollScoreSystem(self.scoreSystemName, direction)
-	self:calcForJudge(score_system, selected_judge_nums[score_system] or 0)
+	self:setStats()
+	self:setGrade()
 end
 
 function DisplayInfo:getDifficulty()
 	local chartview = self.chartview
 	local chartdiff = self.chartdiff
-	local rate = self.playContext.rate ---@type number
+	local rate = self.replayBase.rate ---@type number
 	local diff_column = self.selectApi:getSelectedDiffColumn()
 
 	local difficulty = (chartview.difficulty or 0) * rate
@@ -126,21 +88,11 @@ function DisplayInfo:getDifficulty()
 
 	self.enpsDiff = chartdiff.enps_diff
 	self.osuDiff = chartdiff.osu_diff
-	self.lnPercent = chartdiff.long_notes_count / chartdiff.notes_count
+	self.lnPercent = (chartdiff.judges_count - chartdiff.notes_count) / chartdiff.notes_count
 
-	---@type osu.ui.Msd?
-	local msd
-
-	if chartview.msd_diff_data then
-		msd = Msd(chartview.msd_diff_data)
-		self.msd = msd
-	end
-
-	if diff_column == "msd_diff" and msd then
-		local sorted = msd:getSorted(rate)
-		local overall = msd.getFromTable("overall", sorted)
-		local pattern = msd.simplifyName(sorted[2][1], chartview.chartdiff_inputmode)
-		self.difficulty = ("[%0.02f %s]"):format(overall, pattern)
+	if diff_column == "msd_diff" then
+		local msd = chartdiff.msd_diff
+		self.difficulty = ("[%0.02f]"):format(msd)
 	elseif diff_column == "enps_diff" then
 		self.difficulty = ("[%0.02f ENPS]"):format((chartdiff.enps_diff or 0))
 	elseif diff_column == "osu_diff" then
@@ -158,7 +110,7 @@ function DisplayInfo:getChartInfo()
 	local text = self.text
 
 	local title = ("%s - %s"):format(chartview.artist, chartview.title)
-	local rate = self.playContext.rate
+	local rate = self.replayBase.rate
 	self.timeRate = rate
 
 	if osu.result.difficultyAndRate then
@@ -198,86 +150,69 @@ function DisplayInfo:getChartInfo()
 	end
 end
 
-function DisplayInfo:getJudgement()
-	local score_system_container = self.resultApi:getScoreSystem()
-	local score_system_judgements = score_system_container.judgements
 
-	if not score_system_judgements then
+function DisplayInfo:setGrade()
+	local score_engine = self.resultApi:getScoreEngine()
+	local accuracy_source = score_engine.accuracySource
+
+	local soundsphere = score_engine:getScoreSystem("soundsphere")
+	---@cast soundsphere sphere.SoundsphereScore
+
+	local ss_judges = soundsphere:getJudges()
+	local score = (ss_judges[1] * 2 + ss_judges[2])
+	local max_score = (ss_judges[1] * 2 + ss_judges[2] + ss_judges[3])
+	local exscore = max_score / score
+	local exscore_grade = Scoring.convertGradeToOsu(Scoring.getGrade("bmsrank", exscore))
+
+	if not accuracy_source.timings then
+		self.grade = exscore_grade
 		return
 	end
 
-	local configs = self.configs
-	---@type osu.ui.OsuConfig
-	local osu = configs.osu_ui
-	local score_system_name = osu.scoreSystem
-	local judge_num = osu.judgement
+	local timings_key = accuracy_source.timings.name ---@type sea.TimingsName
+	local accuracy = accuracy_source:getAccuracy()
+	self.grade = Scoring.getGrade(timings_key, accuracy)
 
-	judge_num = Scoring.clampJudgeNum(score_system_name, judge_num)
-	local judge_name = Scoring.getJudgeName(score_system_name, judge_num)
-
-	---@type sphere.Judge
-	self.scoreSystemJudgement = score_system_judgements[judge_name]
-	self.judgeName = judge_name
-	self.judgeNum = judge_num
-	self.scoreSystemName = score_system_name
-end
-
-function DisplayInfo:getGrade()
-	local judge = self.scoreSystemJudgement
-	local score_system_name = judge.scoreSystemName
-
-	self.grade = Scoring.getGrade(score_system_name, judge.accuracy)
-
-	if score_system_name ~= "osuMania" or score_system_name ~= "osuLegacy" then
+	if timings_key ~= "osuod" then
 		self.grade = Scoring.convertGradeToOsu(self.grade)
 	end
+
+	self.grade = self.grade or exscore_grade
 end
 
-function DisplayInfo:getStats()
-	local judge = self.scoreSystemJudgement
-	local counters = judge.counters
-	local counter_names = judge.orderedCounters
+function DisplayInfo:setStats()
+	local score_engine = self.resultApi:getScoreEngine()
+	local judges_source = score_engine.judgesSource
+	local judges = judges_source:getJudges()
 
-	self.rank = self.scoreItem.rank
-	self.marvelous = counters[counter_names[1]]
-	self.perfect = counters[counter_names[2]]
-	self.miss = counters["miss"]
+	self.rank = 9999--self.scoreItem.rank
+	self.marvelous = judges[1]
+	self.perfect = judges[2]
+	self.great = judges[3]
+	self.good = judges[4]
+	self.bad = judges[5]
+	self.miss = judges[#judges_source:getJudgeNames()]
 
-	local counters_count = #counter_names
+	local combo_source = score_engine.comboSource
+	self.combo = combo_source:getMaxCombo()
 
-	if counters_count > 2 then
-		self.great = counters[counter_names[3]]
-	end
-	if counters_count > 3 then
-		self.good = counters[counter_names[4]]
-	end
-	if counters_count > 4 then
-		self.bad = counters[counter_names[5]]
-	end
+	local accuracy_source = score_engine.accuracySource
+	self.accuracy = accuracy_source:getAccuracy()
 
-	local score_system = self.resultApi:getScoreSystem()
+	local score_source = score_engine.scoreSource
+	self.score = score_source:getScore()
 
-	---@type sphere.BaseScoreSystem
-	local base = score_system["base"]
-	local selected_score_system = score_system[judge.scoreSystemName] ---@type sphere.ScoreSystem
-	self.combo = base.maxCombo
-	self.accuracy = judge.accuracy
-	self.score = judge.score or score_system.judgements["osu!legacy OD9"].score or 0
-	self.scoreFormat = selected_score_system.metadata.scoreFormat or "%07d"
-	self.judgeName = judge.judgeName
-
-	local chartdiff = self.chartdiff
-	if chartdiff then
-		self.pp = osuPP(base.notesCount, chartdiff.osu_diff, 9, self.score)
-	end
+	local base = score_engine:getScoreSystem("base") ---@cast base sphere.BaseScore
 
 	self.spam = base.earlyHitCount
 	self.spamPercent = base.earlyHitCount / base.notesCount
 
-	---@type sphere.NormalscoreScoreSystem
-	local normalscore = score_system["normalscore"]
+	local normalscore = score_engine:getScoreSystem("normalscore") ---@cast normalscore sphere.NormalscoreScore
 	self.normalScore = normalscore.accuracyAdjusted
 	self.mean = normalscore.normalscore.mean
+
+	local chartdiff = self.chartdiff
+	self.pp = osuPP(chartdiff.notes_count, chartdiff.osu_diff, 9, self.score)
 end
 
 return DisplayInfo

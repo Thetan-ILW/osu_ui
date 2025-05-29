@@ -6,7 +6,6 @@ return function(section)
 
 	local scene = section:findComponent("scene") ---@cast scene osu.ui.Scene
 	local text = scene.localization.text
-	local play_context = scene.ui.selectApi:getPlayContext()
 
 	section:group(text.Options_Input_Keyboard, function(group)
 		group:button({
@@ -20,7 +19,6 @@ return function(section)
 			label = text.Options_Input_ThreadedInput,
 			key = { g, "asynckey" }
 		})
-
 	end)
 
 	section:group(text.Options_Audio_Offset, function(group)
@@ -53,13 +51,6 @@ return function(section)
 		group:checkbox({
 			label = text.Options_Input_MultiplyVisualOffsetByRate,
 			key = { gp.offsetScale, "visual" }
-		})
-	end)
-
-	section:group(text.Options_Input_Other, function(group)
-		group:checkbox({
-			label = text.Options_Input_TaikoNoteHandler,
-			key = { play_context, "single" }
 		})
 	end)
 end

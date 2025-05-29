@@ -23,7 +23,6 @@ local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local ChartTree = require("osu_ui.views.SelectView.ChartTree")
 local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
 local DiffTable = require("osu_ui.views.SelectView.DiffTable")
-local Blur = require("ui.Blur")
 
 local getModifierString = require("osu_ui.views.modifier_string")
 local Scoring = require("osu_ui.Scoring")
@@ -35,7 +34,6 @@ local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 ---@class osu.ui.SelectViewContainer : osu.ui.Screen
 ---@operator call: osu.ui.SelectViewContainer
 ---@field selectApi game.SelectAPI
----@field prevPlayContext sphere.PlayContext?
 local View = Screen + {}
 
 function View:textInput(event)
@@ -152,49 +150,10 @@ function View:transitIn()
 	self.alpha = 0
 	self:stopTransitionTween()
 	self.transitionTween = flux.to(self, 0.7, { alpha = 1 }):ease("cubicout")
-
-	if self.prevPlayContext then
-		self.selectApi:getPlayContext():load(self.prevPlayContext)
-		self.prevPlayContext = nil
-	end
-
 	self.scene:showOverlay(0.4, self:getBackgroundDim())
 	self.selectApi:loadController()
 
 	self.playerInfo:reload()
-end
-
----@param specific_score_system string?
-function View:applyChartScoreSystem(specific_score_system)
-	local play_context = self.selectApi:getPlayContext()
-	local chartview = self.selectApi:getChartview()
-	local configs = self.selectApi:getConfigs()
-	local osu_cfg = configs.osu_ui ---@type osu.ui.OsuConfig
-
-	if osu_cfg.overrideJudges then
-		return
-	end
-
-	local score_system = specific_score_system or osu_cfg.scoreSystem
-	local new_judgement = 0
-	local meta = self.selectApi:getScoreSystemMetadata(score_system)
-
-	if Scoring.isOsu(score_system) then
-		new_judgement = Scoring.getOD(chartview.format, chartview.osu_od)
-	end
-
-	if meta.hasJudges then
-		new_judgement = math_util.clamp(new_judgement, meta.judges[1], meta.judges[#meta.judges])
-	end
-
-	osu_cfg.scoreSystem = score_system
-	osu_cfg.judgement = new_judgement
-	local timings = Scoring.getTimings(score_system, new_judgement)
-
-	if timings then
-		play_context.timings = timings
-		configs.select.judgements = meta.judgeKeyFormat:format(meta.judgeLabels[new_judgement])
-	end
 end
 
 function View:transitToGameplay()
@@ -203,7 +162,6 @@ function View:transitToGameplay()
 	end
 
 	self.playSound(self.gameplaySound)
-	self:applyChartScoreSystem()
 
 	local showcase = self.scene:getChild("chartShowcase")
 	---@cast showcase osu.ui.ChartShowcase?
@@ -235,10 +193,6 @@ function View:transitToGameplay()
 end
 
 function View:transitToResult()
-	self.prevPlayContext = {}
-	self.selectApi:getPlayContext():save(self.prevPlayContext)
-	self:applyChartScoreSystem()
-
 	self.scene:hideOverlay(0.5, 1 - (1 * self:getBackgroundBrightness()) * 0.5)
 	self:transitOut({
 		time = 0.5,

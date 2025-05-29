@@ -216,7 +216,7 @@ function View:load(score_loaded)
 
 	local display_info = DisplayInfo(scene.localization, self.selectApi, self.resultApi, scene.ui.pkgs.manipFactor)
 	display_info:load()
-	display_info:calcForJudge(osu_cfg.scoreSystem, osu_cfg.judgement)
+	display_info:loadScoreDetails()
 	self.displayInfo = display_info
 
 	local assets = scene.assets
@@ -431,16 +431,17 @@ function View:load(score_loaded)
 	self.rankingElements = re
 
 	---- GRAPH ----
-	local score_system = self.resultApi:getScoreSystem()
+	local score_engine = self.resultApi:getScoreEngine()
+	local hp = score_engine:getScoreSystem("hp")
 	area:addChild("graph", Image({ x = 256, y = 608, image = assets:loadImage("ranking-graph"), z = 0.5 }))
 
-	if score_system.sequence then
+	if hp then
 		area:addChild("hpGraph", HpGraph({
 			x = 265, y = 617,
 			width = 300,
 			height = 135,
-			points = score_system.sequence,
-			hpScoreSystem = score_system.hp,
+			sequence = score_engine.sequence,
+			hpScore = hp,
 			z = 0.55,
 		}))
 	end
@@ -541,7 +542,7 @@ function View:load(score_loaded)
 		added_mods = added_mods + 1
 	end
 
-	local mods = self.selectApi:getPlayContext().modifiers
+	local mods = self.selectApi:getReplayBase().modifiers
 	local empty_image = assets.emptyImage()
 	for i, mod in ipairs(mods) do
 		local id = mod.id
@@ -772,6 +773,7 @@ function View:load(score_loaded)
 		end
 	}))
 
+	--[[
 	self.accuracyTable = area:addChild("accuracyTable", Component({
 		x = 50,
 		y = 768 + 270,
@@ -781,6 +783,7 @@ function View:load(score_loaded)
 	self:addAccuracyColumn("osu!mania", "OD",  154, 6, { 1, 0.95, 0.9, 0.8, 0.7 } )
 	self:addAccuracyColumn("Etterna", "J",  (154 * 2), 3, { 1, 0.93, 0.85, 0.8, 0.7 } )
 	self:addAccuracyColumn("LR2", {"Easy", "Normal", "Hard", "Very hard" }, (154 * 3), 0, { 1, 0.93, 0.85, 0.8, 0.7 } )
+	]]
 
 	self.statTable = area:addChild("statTable", Component({
 		x = width - 50,
@@ -827,7 +830,7 @@ end
 function View:update()
 	if self.area then
 		local tables_in_view = self.area.scrollPosition < 260
-		self.accuracyTable.disabled = tables_in_view
+		--self.accuracyTable.disabled = tables_in_view
 		self.statTable.disabled = tables_in_view
 		self.msdTable.disabled = tables_in_view
 		self.beatmapInfoTable.disabled = tables_in_view

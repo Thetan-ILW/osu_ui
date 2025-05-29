@@ -4,8 +4,8 @@ local Component = require("ui.Component")
 
 ---@class osu.ui.HpGraph : ui.Component
 ---@overload fun(params: HpGraphParams): osu.ui.HpGraph
----@field points table
----@field hpScoreSystem table
+---@field sequence {[string]: table}
+---@field hpScore sphere.HpScore
 local HpGraph = Component + {}
 
 local colors = {
@@ -16,12 +16,13 @@ local colors = {
 function HpGraph:load()
 	local w = self.width
 	local h = self.height
-	local points = self.points
-	local hp_score_system = self.hpScoreSystem
+	local sequence = self.sequence
+	local hp_score_system = self.hpScore
+	local hp_max = hp_score_system:getMaxHealths()
 
 	local low_res = {}
 
-	for i, v in ipairs(points) do
+	for i, v in ipairs(sequence) do
 		table.insert(low_res, v)
 	end
 
@@ -38,11 +39,8 @@ function HpGraph:load()
 		local y = 0
 
 		local hp = v.hp
-		for _, something in ipairs(hp) do
-			if something.value > 0 then
-				y = something.value / hp_score_system.max
-				break
-			end
+		if hp.healths > 0 then
+			y = hp.healths / hp_max
 		end
 
 		table.insert(va, {
@@ -79,7 +77,7 @@ function HpGraph:draw()
 	gfx.setLineStyle("smooth")
 	gfx.setLineJoin("miter")
 
-	local r, g, b, a = gfx.getColor()
+	local _, _, _, a = gfx.getColor()
 	colors.green[4] = a
 	colors.red[4] = a
 

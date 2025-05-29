@@ -1,5 +1,6 @@
 local class = require("class")
-local ScoreSystemContainer = require("sphere.models.RhythmModel.ScoreEngine.ScoreSystemContainer")
+local Timings = require("sea.chart.Timings")
+local Subtimings = require("sea.chart.Subtimings")
 
 ---@class game.SelectAPI
 ---@operator call: game.SelectAPI
@@ -112,10 +113,10 @@ function Select:setAutoplay(state)
 	self.game.rhythmModel:setAutoplay(state)
 end
 
----@return sphere.PlayContext
+---@return sea.ReplayBase
 --- Mods, rate and timings
-function Select:getPlayContext()
-	return self.game.playContext
+function Select:getReplayBase()
+	return self.game.replayBase
 end
 
 ---@return sphere.CollectionLibrary
@@ -286,7 +287,7 @@ end
 
 ---@return table
 function Select:getMods()
-	return self.game.playContext.modifiers
+	return self.game.replayBase.modifiers
 end
 
 function Select:removeAllMods()
@@ -314,22 +315,18 @@ end
 ---@param rate number
 function Select:setTimeRate(rate)
 	local time_rate_model = self.game.timeRateModel
-	self.game.modifierSelectModel:change()
 	time_rate_model:set(rate)
+	self.game.modifierSelectModel:change()
 end
 
 ---@param delta number
 function Select:addTimeRate(delta)
-	local configs = self.game.configModel.configs
-	local g = configs.settings.gameplay
 	local time_rate_model = self.game.timeRateModel
-	local range = time_rate_model.range[g.rate_type]
+	local prev = time_rate_model:get()
+	time_rate_model:increase(delta)
 
-	local new_rate = time_rate_model:get() + range[3] * delta
-
-	if new_rate ~= time_rate_model:get() then
+	if prev ~= time_rate_model:get() then
 		self.game.modifierSelectModel:change()
-		time_rate_model:set(new_rate)
 	end
 end
 
@@ -357,7 +354,7 @@ end
 
 ---@return table
 function Select:getSelectedMods()
-	return self.game.playContext.modifiers
+	return self.game.replayBase.modifiers
 end
 
 ---@return integer
@@ -437,75 +434,6 @@ end
 ---@return sphere.InputModel
 function Select:getInputModel()
 	return self.game.inputModel
-end
-
----@class ScoreSystemMetadata 
----@field name string Actual name of the score system
----@field nameLabel string Name of the score system you see in the UI
----@field hasJudges boolean
----@field judges number[]
----@field judgeLabels {[number]: string}
----@field judgeKeyFormat string
----@field getTimings fun(t: nil, judge: number): table
-
-local score_system_name_alias = {
-	osuLegacy = "osu!mania V1",
-	osuMania = "osu!mania V2",
-	etterna = "Etterna",
-	quaver = "Quaver",
-	lr2 = "Lunatic Rave 2",
-}
-
----@type ScoreSystemMetadata[]?
-local score_system_metadatas_cache
-
----@return ScoreSystemMetadata[]
-function Select:getScoreSystemMetadatas()
-	if score_system_metadatas_cache then
-		return score_system_metadatas_cache
-	end
-
-	local t = {}
-
-	for _, score_system in ipairs(ScoreSystemContainer.modules) do
-		if score_system.getTimings then -- Not really the best way to differentiate score system with judges and other score systems...
-			local metadata = score_system.metadata
-			local judges = {}
-			local judge_labels = {} ---@type {[number]: string}
-
-			if metadata.range then
-				for i = metadata.range[1], metadata.range[2], 1 do
-					table.insert(judges, i)
-					judge_labels[i] = metadata.rangeValueAlias and metadata.rangeValueAlias[i] or tostring(i)
-				end
-			end
-
-			table.insert(t, {
-				name = score_system.name,
-				nameLabel = score_system_name_alias[score_system.name] or score_system.name,
-				hasJudges = #judges ~= 0,
-				judges = judges,
-				judgeLabels = judge_labels,
-				judgeKeyFormat = metadata.name,
-				getTimings = score_system.getTimings
-			})
-		end
-	end
-
-	score_system_metadatas_cache = t
-	return t
-end
-
----@param score_system_name string
----@return ScoreSystemMetadata
-function Select:getScoreSystemMetadata(score_system_name)
-	local metadatas = self:getScoreSystemMetadatas()
-	for _, v in ipairs(metadatas) do
-		if score_system_name == v.name then
-			return v
-		end
-	end
-	return metadatas[1]
 end
 
 return Select
