@@ -183,10 +183,9 @@ return function(section)
 				local modal = scene:addChild("confirmation", ConfirmationModal({
 					text = text.Options_OtherGames_AddSongsConfirm,
 					z = 0.5,
-					onClickYes = function(this)
+					onClickYes = function()
 						scene.ui:mountOtherGamesCharts()
 						scene:addChild("chartImport", ChartImport({ z = 0.6, cacheAll = true }))
-						this:close()
 					end
 				}))
 				modal:open()
