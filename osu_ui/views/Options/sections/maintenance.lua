@@ -73,5 +73,9 @@ return function(section)
 				modal:open()
 			end
 		})
+
+		group:label({
+			label = "gucci!mania supporters:\nwrongsider - 2 bottles of beer and 1 bicycle"
+		})
 	end)
 end

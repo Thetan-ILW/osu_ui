@@ -4,6 +4,7 @@ local osuPP = require("osu_ui.osu_pp")
 local Format = require("sphere.views.Format")
 local Scoring = require("osu_ui.Scoring")
 local Msd = require("osu_ui.Msd")
+local Timings = require("sea.chart.Timings")
 
 ---@class osu.ui.ResultDisplayInfo
 ---@operator call: osu.ui.ResultDisplayInfo
@@ -61,7 +62,7 @@ function DisplayInfo:load()
 end
 
 function DisplayInfo:loadScoreDetails()
-	local timings = self.replayBase.timings or self.chartview.timings
+	local timings = self.replayBase.timings or Timings.decode(self.chartview.chartmeta_timings)
 	local subtimings = self.replayBase.subtimings
 	self.judgeName = Scoring.formatScoreSystemName(timings, subtimings)
 
@@ -144,7 +145,7 @@ function DisplayInfo:getChartInfo()
 
 	self.chartName = title
 
-	local time = os.date("%d/%m/%Y %H:%M:%S.", score_item.time)
+	local time = os.date("%d/%m/%Y %H:%M:%S.", score_item.submitted_at)
 	local set_dir = chartview.set_dir
 	local creator = chartview.creator
 	local username = self.configs.online.user.name or self.configs.osu_ui.offlineNickname

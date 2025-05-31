@@ -675,7 +675,7 @@ function View:load()
 		hoverImage = assets:loadImage("menu-button-multiplayer-over"),
 		clickSound = assets:loadAudio("menu-multiplayer-click"),
 		onClick = function()
-			self:toNextView("lobbyList")
+			--self:toNextView("lobbyList")
 		end
 	}))
 	self.secondMenu:addChild("back", LogoButton({

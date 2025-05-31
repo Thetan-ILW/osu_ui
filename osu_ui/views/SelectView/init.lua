@@ -82,12 +82,9 @@ function View:keyPressed(event)
 		self.scene:addChild("videoExporterModal", VideoExporterModal({
 			z = 0.5
 		}))
-    elseif key == "f10" then
-        local LaserChart = require("LaserChart")
-		LaserChart(self.selectApi:getChart(), self.selectApi:getChartview(), self.selectApi:getBackgroundImagePath())
 	elseif key == "o" then
 		if love.keyboard.isDown("lctrl") then
-			self.scene.options:fade(1)
+			self.scene.options:toggle()
 		end
 	elseif key == "p" then
 		if love.keyboard.isDown("lctrl") then
@@ -418,8 +415,8 @@ function View:load()
 		mouseClick = function(this)
 			if this.mouseOver then
 				if self.selectApi:notechartExists() then
-					self.selectApi:openWebNotechart()
-					scene.notification:show("Opening the link. Check your browser.")
+					--self.selectApi:openWebNotechart()
+					--scene.notification:show("Opening the link. Check your browser.")
 				end
 				return true
 			end

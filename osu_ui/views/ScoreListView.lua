@@ -214,7 +214,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		time = score.created_at,
 		recentIconSide = self.recentIconSide,
 		slide = self.screen == "select",
-		tooltip = ("Date: %s"):format(os.date("%d/%m/%Y", score.time)),
+		tooltip = ("Date: %s"):format(os.date("%d/%m/%Y", score.submitted_at)),
 		onClick = function()
 			self:openScore(score_index)
 		end
