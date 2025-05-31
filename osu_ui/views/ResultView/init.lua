@@ -982,17 +982,17 @@ end
 
 ---@param msd osu.ui.Msd
 ---@param time_rate number
----@param key_mode string
-function View:addMsdTable(msd, time_rate, key_mode)
+---@param inputmode string
+function View:addMsdTable(msd, time_rate, inputmode)
 	local scale = self.width / 1366
 	local w = 75 * scale
-	local order = msd:getOrderedByPattern(time_rate)
+	local order = msd:getOrderedByPattern(time_rate, inputmode)
 
 	for i, kv in ipairs(order) do
-		local value = kv[2]
-		local label = msd.simplifyName(kv[1], key_mode)
+		local value = kv.difficulty
+		local label = msd.simplifyName(kv.name)
 
-		local x = ((i - 1) * (w + 2)) * scale
+		local x = (i - 1) * (w + 2)
 		self.msdTable:addChild(label .. "Bg", Rectangle({
 			x = x, y = 20,
 			width = w,
@@ -1019,7 +1019,7 @@ function View:addMsdTable(msd, time_rate, key_mode)
 			alignX = "center",
 			alignY = "center",
 			font = self.fonts:loadFont("Regular", 15),
-			text = tostring(value),
+			text = ("%0.02f"):format(value),
 			shadow = true,
 			z = 0.02,
 		}))

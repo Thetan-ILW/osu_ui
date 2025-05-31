@@ -293,7 +293,7 @@ end
 function Select:removeAllMods()
 	local time_rate_model = self.game.timeRateModel
 	local modifier_select_model = self.game.modifierSelectModel
-	local modifiers = self:getPlayContext().modifiers
+	local modifiers = self:getReplayBase().modifiers
 	for i = 1, #modifiers do
 		modifier_select_model:remove(1)
 	end

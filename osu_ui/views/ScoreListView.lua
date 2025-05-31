@@ -204,7 +204,7 @@ function ScoreListView:getSoundsphereScore(score_index, score)
 		y = self.panelSpacing * (score_index - 1),
 		rank = score_index,
 		gradeImageName = grade,
-		username = self.localNickname,
+		username = score.user_name or self.localNickname,
 		score = ("Score: %s (%ix)"):format(commaValue(math_util.round(score_num, 1)), score.max_combo),
 		accuracy = ("%0.02fNS"):format(score.accuracy * 1000),
 		mods = mods_line,

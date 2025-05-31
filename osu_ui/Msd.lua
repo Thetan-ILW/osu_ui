@@ -68,21 +68,42 @@ function Msd:getOverall(time_rate)
 	return self.pattern_map.overall * multiplier
 end
 
+---@param name string
+---@param inputmode string
+---@return string
+local function getPatternName(name, inputmode)
+	if name == "jumpstream" and inputmode ~= "4key" then
+		name = "chordstream"
+	elseif name == "handstream" and inputmode ~= "4key" then
+		name = "bracket"
+	end
+	return name
+end
+
 ---@param time_rate number
 ---@param inputmode string
+---@return osu.ui.Msd.KV
 function Msd:getPatterns(time_rate, inputmode)
 	local multiplier = self:getApproximateMultiplier(time_rate)
 	local t = {}
 	for _, v in ipairs(self.patterns) do
 		if v.name ~= "overall" then
-			local name = v.name
-			if name == "jumpstream" and inputmode ~= "4key" then
-				name = "chordstream"
-			elseif name == "handstream" and inputmode ~= "4key" then
-				name = "bracket"
-			end
+			local name = getPatternName(v.name, inputmode)
 			table.insert(t, { name = name, difficulty = v.difficulty * multiplier })
 		end
+	end
+	return t
+end
+
+---@param time_rate number
+---@param inputmode string
+---@return osu.ui.Msd.KV
+function Msd:getOrderedByPattern(time_rate, inputmode)
+	local multiplier = self:getApproximateMultiplier(time_rate)
+	local t = {}
+	for _, v in ipairs(PATTERN_ORDER) do
+		local name = getPatternName(v, inputmode)
+		table.insert(t, { name = name, difficulty = self.pattern_map[v] * multiplier })
 	end
 	return t
 end

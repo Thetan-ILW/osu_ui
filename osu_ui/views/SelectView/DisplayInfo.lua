@@ -28,7 +28,6 @@ function DisplayInfo:updateInfo()
 	end
 end
 
-
 function DisplayInfo:setChartInfoDefaults()
 	self.chartName = "No chart name - No chart name"
 	self.chartSource = "No chart source"

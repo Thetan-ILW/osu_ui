@@ -95,6 +95,7 @@ function DisplayInfo:getDifficulty()
 		local msd = Msd(chartdiff.msd_diff_data, chartdiff.msd_diff_rates)
 
 		if msd.valid then
+			self.msd = msd
 			local inputmode = chartview.chartdiff_inputmode ---@type string
 			local patterns = msd:getPatterns(rate, inputmode)
 			local s = msd.simplifyName(patterns[1].name)
@@ -124,7 +125,7 @@ function DisplayInfo:getChartInfo()
 	local text = self.text
 
 	local title = ("%s - %s"):format(chartview.artist, chartview.title)
-	local rate = self.replayBase.rate
+	local rate = self.scoreItem.rate
 	self.timeRate = rate
 
 	if osu.result.difficultyAndRate then

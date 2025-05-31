@@ -29,7 +29,6 @@ local chart_modifiers = {
 
 local column_swap = {
 	"Mirror",
-	"Random",
 	"Shift",
 }
 
