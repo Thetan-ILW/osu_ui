@@ -182,14 +182,14 @@ end
 
 ---@param display_info osu.ui.SelectViewDisplayInfo
 function DiffTable:updateInfo(display_info)
-	self.msdValue = display_info.msd.max
+	self.msdValue = display_info.msd.overall
 
-	self.firstPattern:replaceText(display_info.msd.firstPattern)
+	self.firstPattern:replaceText(display_info.msd.firstPattern.name:upper())
 
-	if display_info.msd.secondPattern ~= "" then
+	if display_info.msd.secondPattern then
 		self.firstPattern.y = -11
 		self.secondPattern.disabled = false
-		self.secondPattern:replaceText(display_info.msd.secondPattern)
+		self.secondPattern:replaceText(display_info.msd.secondPattern.name:upper())
 	else
 		self.firstPattern.y = 0
 		self.secondPattern.disabled = true

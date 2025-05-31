@@ -130,11 +130,6 @@ function ModPresetModel:createDefaultPresets()
 					version = 0
 				},
 				{
-					id = 17,
-					value = "all",
-					version = 0
-				},
-				{
 					id = 24,
 					value = 5,
 					version = 0
@@ -161,11 +156,6 @@ function ModPresetModel:createDefaultPresets()
 				{
 					id = 14,
 					value = "key",
-					version = 0
-				},
-				{
-					id = 17,
-					value = "all",
 					version = 0
 				},
 				{
