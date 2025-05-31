@@ -12,7 +12,10 @@ function Confirmation:load()
 	local text = scene.localization.text
 
 	self:initModal(self.text)
-	self:addOption(text.General_Yes, self.buttonColors.green, self.onClickYes)
+	self:addOption(text.General_Yes, self.buttonColors.green, function ()
+		self.onClickYes()
+		self:close()
+	end)
 	self:addOption(text.General_No, self.buttonColors.gray, function ()
 		self:close()
 	end)

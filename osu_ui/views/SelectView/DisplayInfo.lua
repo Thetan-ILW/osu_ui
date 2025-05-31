@@ -166,12 +166,14 @@ function DisplayInfo:setChartInfo()
 	else
 		if chartview.format == "osu" then
 			timings = Timings.decode(self.chartview.chartmeta_timings)
-		else
+		elseif chartview.format then
 			local ft = self.configs.settings.format_timings
 			timings = Timings(
 				ft[chartview.format][1],
 				ft[chartview.format][2]
 			)
+		else
+			timings = Timings("simple")
 		end
 	end
 

@@ -83,8 +83,13 @@ function Locations:deleteChartCache()
 	local c = self.game.cacheModel
 	c.chartfilesRepo:deleteChartfiles()
 	c.chartfilesRepo:deleteChartfileSets()
-	c.chartmetasRepo:deleteChartmetas()
-	c.chartdiffsRepo:deleteChartdiffs()
+	c.chartsRepo:deleteChartmetas()
+	c.chartsRepo:deleteChartdiffs()
+end
+
+function Locations:recalculateScores()
+	local c = self.game.cacheModel
+	c:computeChartplays()
 end
 
 ---@param id integer
