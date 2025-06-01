@@ -6,6 +6,7 @@ local QuadImage = require("ui.QuadImage")
 local HoverState = require("ui.HoverState")
 
 local LeaderboardUser = require("sea.leaderboards.LeaderboardUser")
+local User = require("sea.access.User")
 
 ---@class osu.ui.PlayerInfoView : ui.Component
 ---@operator call: osu.ui.PlayerInfoView
@@ -54,7 +55,6 @@ function PlayerInfoView:setProfileInfo(leaderboard, leaderboard_user, user)
 		self.firstRow = ("Performance: %0.02f ENPS"):format(leaderboard_user.total_rating)
 	end
 
-	setmetatable(leaderboard_user, LeaderboardUser)
 	self.secondRow = ("Accuracy: %0.02f%%"):format(leaderboard_user:getNormAccuracy() * 100)
 	self.level = 0
 	self.levelPercent = 0
@@ -104,6 +104,13 @@ function PlayerInfoView:load()
 	local leaderboard_user = self.selectApi:getSelectedLeaderboardUser()
 	local user = self.selectApi:getOnlineUser()
 
+	if leaderboard_user then
+		setmetatable(leaderboard_user, LeaderboardUser)
+	end
+	if user then
+		setmetatable(user, User)
+	end
+
 	self.osuLevels = { 0 }
 
 	---TODO: Add levels above 100
@@ -131,7 +138,7 @@ function PlayerInfoView:load()
 		z = 0.1,
 	}))
 
-	if leaderboard then
+	if leaderboard and not user:isAnon() then
 		self:addChild("firstRow", Label({
 			x = 86, y = 26,
 			text = self.firstRow,
