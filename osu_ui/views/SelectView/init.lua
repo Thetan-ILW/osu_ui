@@ -221,6 +221,11 @@ function View:event_modsChanged()
 	self:updateInfo()
 end
 
+function View:event_notechartChanged()
+	self:updateInfo()
+	self.notechartChangeTime = love.timer.getTime()
+end
+
 function View:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.scene = scene
@@ -230,17 +235,13 @@ function View:load()
 	local viewport = self:getViewport()
 	viewport:listenForResize(self)
 	viewport:listenForEvent(self, "event_modsChanged")
+	viewport:listenForEvent(self, "event_notechartChanged")
 
 	self.selectApi = scene.ui.selectApi
 	self.displayInfo = DisplayInfo(scene.localization, self.selectApi)
 	self.displayInfo:updateInfo()
 	self.notechartChangeTime = -1
 	self.modLineString = ""
-
-	self.selectApi:listenForNotechartChanges(function()
-		self:updateInfo()
-		self.notechartChangeTime = love.timer.getTime()
-	end)
 
 	local display_info = self.displayInfo
 	local assets = scene.assets

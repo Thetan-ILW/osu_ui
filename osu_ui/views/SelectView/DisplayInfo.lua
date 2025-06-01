@@ -121,6 +121,9 @@ function DisplayInfo:setChartInfo()
 	if msd.valid then
 		local msd_patterns = msd:getPatterns(rate, inputmode)
 		msd_overall = msd:getOverall(rate)
+		if msd_overall ~= msd_overall then
+			msd_overall = 0
+		end
 		self.msd.overall = msd_overall
 		self.msd.firstPattern = msd_patterns[1]
 

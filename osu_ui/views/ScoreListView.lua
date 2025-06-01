@@ -109,65 +109,6 @@ local grade_images = {
 
 ---@param score_index integer
 ---@param score table
----@param source string
----@return boolean added
-function ScoreListView:addProfileScore(score_index, score, source)
-	local player_score = self.playerProfile:getScore(score.id)
-
-	if not player_score then
-		return false
-	end
-
-	local mods_line = getModifierString(score.modifiers)
-
-	if score.rate ~= 1 and score.rate ~= 0 then
-		mods_line = ("%s %0.02fx"):format(mods_line, score.rate)
-	end
-
-	---@type string
-	local score_str = ("Score: %s (%ix)"):format(commaValue(math.floor(player_score.osuScore)), score.max_combo)
-
-	local acc = 0
-	local grade ---@type string
-	if source == "osuv1" then
-		acc = player_score.osuAccuracy
-		grade = Scoring.getGrade("osuLegacy", acc)
-	elseif source == "osuv2" then
-		acc = player_score.osuv2Accuracy
-		grade = Scoring.getGrade("osuMania", acc)
-	elseif source == "etterna" then
-		acc = player_score.etternaAccuracy
-		grade = Scoring.getGrade("etterna", acc)
-	elseif source == "quaver" then
-		acc = player_score.quaverAccuracy
-		grade = Scoring.getGrade("quaver", acc)
-	end
-
-	self.scores:addChild(tostring(score_index), ScoreEntryView({
-		y = self.panelSpacing * (score_index - 1),
-		rank = score_index,
-		gradeImageName = grade_images[Scoring.convertGradeToOsu(grade)],
-		username = self.localNickname,
-		score = score_str,
-		accuracy = ("%0.02f%%"):format(acc * 100),
-		mods = mods_line,
-		improvement = "-",
-		slideInDelay = self.panelSlideInDelay * (score_index - 1),
-		z = 1 - (score_index * 0.0001),
-		time = score.created_at or 0,
-		recentIconSide = self.recentIconSide,
-		slide = self.screen == "select",
-		tooltip = ("Date: %s"):format(os.date("%d/%m/%Y", score.time)),
-		onClick = function()
-			self:openScore(score_index)
-		end
-	}))
-
-	return true
-end
-
----@param score_index integer
----@param score table
 ---@return boolean added
 function ScoreListView:getSoundsphereScore(score_index, score)
 	local mods_line = getModifierString(score.modifiers)
@@ -240,17 +181,9 @@ function ScoreListView:loadScores()
 	score_container.childrenOrder = {}
 	score_container.scrollPosition = 0
 
-	local source = self.selectApi:getScoreSource()
-
 	local score_index = 1
 	for _, score in ipairs(self.items) do
-		local added = false
-		if source == "local" or source == "online" then
-			added = self:getSoundsphereScore(score_index, score)
-		else
-			added = self:addProfileScore(score_index, score, source)
-		end
-
+		local added = self:getSoundsphereScore(score_index, score)
 		if added then
 			score_index = score_index + 1
 		end

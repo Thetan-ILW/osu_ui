@@ -204,6 +204,17 @@ function View:update()
 	self.selectApi:updateController()
 end
 
+function View:event_notechartChanged()
+	local chartview = self.selectApi:getChartview()
+	if chartview then
+		self.songName:replaceText(("%s - %s"):format(chartview.artist or "", chartview.title or ""))
+	end
+	local np_background = self.nowPlayingBackground
+	np_background.x = self.width
+	np_background.alpha = 0
+	flux.to(np_background, 1, { x = math.max(700, self.width - self.songName:getWidth() - 20 - 103), alpha = 1 }):ease("cubicout")
+end
+
 function View:addRestartButton()
 	self.restartRequired = true
 	local bottom = self:getChild("bottomLayer")
@@ -294,6 +305,7 @@ function View:load()
 
 	self.width, self.height = self.parent:getDimensions()
 	self:getViewport():listenForResize(self)
+	self:getViewport():listenForEvent(self, "event_notechartChanged")
 	self.locked = self.locked or false
 	self.menu = "closed"
 	self.slide = 0
@@ -380,23 +392,11 @@ function View:load()
 		z = 0.1,
 	}))
 
-	local song_name = np_background:addChild("songName", Label({
+	self.nowPlayingBackground = np_background
+	self.songName = np_background:addChild("songName", Label({
 		x = 103, y = 1,
 		font = fonts:loadFont("Regular", 19),
-	})) ---@cast song_name ui.Label
-
-	local function setSongName()
-		local chartview = self.selectApi:getChartview()
-		if chartview then
-			song_name:replaceText(("%s - %s"):format(chartview.artist or "", chartview.title or ""))
-		end
-		np_background.x = self.width
-		np_background.alpha = 0
-		flux.to(np_background, 1, { x = math.max(700, self.width - song_name:getWidth() - 20 - 103), alpha = 1 }):ease("cubicout")
-	end
-
-	setSongName()
-	self.selectApi:listenForNotechartChanges(setSongName)
+	}))
 
 	bottom:addChild("footer", Rectangle({
 		y = self.height,
