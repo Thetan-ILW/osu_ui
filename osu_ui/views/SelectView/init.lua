@@ -384,10 +384,6 @@ function View:load()
 	local ranking_options = {
 		["local"] = text.SongSelection_Rank_Local,
 		online = text.SongSelection_Rank_Top,
-		osuv1 = "osu!mania V1",
-		osuv2 = "osu!mania V2",
-		etterna = "Etterna J4",
-		quaver = "Quaver"
 	}
 	local score_sources = self.selectApi:getScoreSources()
 	top:addChild("scoreSource", Combo({

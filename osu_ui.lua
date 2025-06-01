@@ -6,6 +6,7 @@ local t = {
 	copyScreenshotToClipboard = true,
 	offlineNickname = "Guest",
 	playerInfoRating = "pp",
+	leaderboardId = 1,
 	dangerous = {
 		mountOsuSkins = false,
 		gucciInstalled = false

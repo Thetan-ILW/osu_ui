@@ -21,6 +21,7 @@ Options_TabGraphics=Graphics
 Options_TabAudio=Audio
 Options_TabSkin=Skin
 Options_TabInput=Input
+Options_TabOnline=Online
 Options_TabMaintenance=Maintenance
 
 Options_Graphics_Language=Language
@@ -181,6 +182,8 @@ Options_Input_TaikoNoteHandler=[DO NOT ENABLE] Taiko note handler
 Options_TabSkin_CustonKey=Press the key/button on your keyboard/joystick for the corresponding column. Hit ESC to go back.
 Options_Input_Keyboard=Keyboard
 Options_OsuManiaLayout=gucci!mania layout
+
+Options_Online_Leaderboard=Leaderboard:
 
 Options_Other=Other
 Options_OfflineNickname=Offline nickname

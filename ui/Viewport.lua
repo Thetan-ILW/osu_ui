@@ -207,6 +207,13 @@ end
 ---@param component ui.Component
 ---@param event_name string
 function Viewport:listenForEvent(component, event_name)
+	if self.eventListeners[event_name] then
+		for _, c in ipairs(self.eventListeners[event_name]) do
+			if c == component then
+				return
+			end
+		end
+	end
 	self.eventListeners[event_name] = self.eventListeners[event_name] or {}
 	table.insert(self.eventListeners[event_name], component)
 end

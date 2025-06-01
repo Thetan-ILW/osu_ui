@@ -9,7 +9,6 @@ local flux = require("flux")
 local Rectangle = require("ui.Rectangle")
 local Label = require("ui.Label")
 local BackButton = require("osu_ui.ui.BackButton")
-local Image = require("ui.Image")
 
 local Section = require("osu_ui.views.Options.Section")
 
@@ -139,6 +138,10 @@ function Options:reload()
 	self:load()
 end
 
+function Options:event_onlineReady()
+	self:reload()
+end
+
 function Options:load()
 	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
 	self.game = scene.game
@@ -152,6 +155,7 @@ function Options:load()
 	self.assets = assets
 
 	viewport:listenForResize(self)
+	viewport:listenForEvent(self, "event_onlineReady")
 
 	self.width = self.panelWidth + self.tabsContrainerWidth
 	self.height = height
@@ -201,6 +205,12 @@ function Options:load()
 		self.text.Options_TabInput:upper(),
 		"",
 		require("osu_ui.views.Options.sections.input")
+	)
+	self:newSection(
+		"online",
+		self.text.Options_TabOnline:upper(),
+		"",
+		require("osu_ui.views.Options.sections.online")
 	)
 	self:newSection(
 		"maintenance",

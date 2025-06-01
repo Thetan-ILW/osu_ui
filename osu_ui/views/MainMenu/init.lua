@@ -121,6 +121,7 @@ function View:transitIn()
 	self.locked = false
 	self.handleEvents = true
 	self.transitionTween = flux.to(self, 0.4, { alpha = 1 }):ease("quadinout")
+	self:event_notechartChanged()
 end
 
 ---@param params table?

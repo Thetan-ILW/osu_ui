@@ -32,6 +32,9 @@ local path_util = require("path_util")
 local math_util = require("math_util")
 local string_util = require("string_util")
 
+local thread = require("thread")
+local delay = require("delay")
+
 ---@alias osu.ui.SceneParams { game: sphere.GameController, ui: osu.ui.UserInterface }
 
 ---@class osu.ui.Scene: ui.Component
@@ -170,6 +173,26 @@ function Scene:load()
 				self.restartRequired = true
 			end
 		end)
+	end
+
+	local select_api = self.ui.selectApi
+
+	if #select_api:getOnlineLeaderboards() == 0 then
+		thread.coro(function()
+			delay.wait(function ()
+				if #select_api:getOnlineLeaderboards() ~= 0 then
+					return true
+				end
+			end)
+
+			delay.wait(function ()
+				if select_api:getOnlineUser() then
+					return true
+				end
+			end)
+
+			self.viewport:triggerEvent("event_onlineReady")
+		end)()
 	end
 end
 

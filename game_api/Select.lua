@@ -195,14 +195,7 @@ function Select:getScoreSource()
 end
 ---@return string[]
 function Select:getScoreSources()
-	local profile_sources = self.game.ui.pkgs.playerProfile.scoreSources
-	self.scoreSources = { "local" }
-	if profile_sources then
-		for i, v in ipairs(profile_sources) do
-			table.insert(self.scoreSources, v)
-		end
-	end
-	table.insert(self.scoreSources, "online")
+	self.scoreSources = { "local", "online" }
 	return self.scoreSources
 end
 ---@param index integer
@@ -434,6 +427,32 @@ end
 ---@return sphere.InputModel
 function Select:getInputModel()
 	return self.game.inputModel
+end
+
+---@return sea.Leaderboard[]
+function Select:getOnlineLeaderboards()
+	return self.game.online_client.leaderboards
+end
+
+---@param id integer
+---@return sea.Leaderboard
+function Select:getOnlineLeaderboard(id)
+	return self.game.online_client:getLeaderboard(id)
+end
+
+---@return sea.Leaderboard?
+function Select:getSelectedLeaderboard()
+	return self:getOnlineLeaderboard(self.configs.osu_ui.leaderboardId)
+end
+
+---@return sea.LeaderboardUser?
+function Select:getSelectedLeaderboardUser()
+	return self.game.online_client:getLeaderboardUser(self.configs.osu_ui.leaderboardId)
+end
+
+---@return sea.User?
+function Select:getOnlineUser()
+	return self.game.online_client:getUser()
 end
 
 return Select
