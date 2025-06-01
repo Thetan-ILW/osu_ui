@@ -47,6 +47,10 @@ function UserInterface:new(game, mount_path)
 		self.updater = game.gucciUpdater
 	end
 
+	self.selectApi:listenForNotechartChanges(function()
+		self:receive({ name = "event_notechartChanged" })
+	end)
+
 	require("ui.Component_test")
 end
 

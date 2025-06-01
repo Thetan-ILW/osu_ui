@@ -22,7 +22,7 @@ local cell_spacing_y = 20
 local allowed_groups = {
 	["original input mode"] = true,
 	["actual input mode"] = true,
-	["format (used parser)"] = true,
+	["format"] = true,
 	["scratch"] = true,
 	["(not) played"] = true,
 }
@@ -66,7 +66,7 @@ function Filters:load()
 	local g_localization = {
 		["original input mode"] = text.FiltersModal_OriginalMode,
 		["actual input mode"] = text.FiltersModal_ActualMode,
-		["format (used parser)"] = text.FiltersModal_Format,
+		["format"] = text.FiltersModal_Format,
 		["scratch"] = text.FiltersModal_Scratch,
 		["(not) played"] = text.FiltersModal_Played,
 	}
@@ -75,6 +75,10 @@ function Filters:load()
 		["not played"] = text.General_No,
 		["has scratch"] = text.General_Yes,
 		["has not scratch"] = text.General_No,
+		["sphere"] = "sph",
+		["stepmania"] = "sm",
+		["o2jam"] = "ojn",
+		["quaver"] = "qua"
 	}
 
 	local added_columns = 0
