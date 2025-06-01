@@ -5,10 +5,18 @@ local Format = require("sphere.views.Format")
 local ui = require("osu_ui.ui")
 local Timings = require("sea.chart.Timings")
 local Msd = require("osu_ui.Msd")
+local dan_list = require("sea.dan.dan_list")
 
 ---@class osu.ui.SelectViewDisplayInfo
 ---@operator call: osu.ui.SelectViewDisplayInfo
 local DisplayInfo = class()
+
+---@type {[string]: boolean}
+local dan_hashes = {}
+for _, dan in pairs(dan_list) do
+	local hash = dan.chartmeta_keys[#dan.chartmeta_keys].hash
+	dan_hashes[hash] = true
+end
 
 ---@param localization Localization
 ---@param select_api game.SelectAPI
@@ -48,6 +56,7 @@ function DisplayInfo:setChartInfoDefaults()
 	self.lnPercent = 0
 	self.lnPercentColor = { 1, 1, 1, 1 }
 	self.formatLevel = ""
+	self.dan = false
 end
 
 ---@param timings sea.Timings
@@ -201,6 +210,10 @@ function DisplayInfo:setChartInfo()
 		self.formatLevel = ("%s LV.%i"):format(format:upper(), chartview.level or 1)
 	else
 		self.formatLevel = format:upper()
+	end
+
+	if dan_hashes[chartview.hash] then
+		self.dan = true
 	end
 end
 

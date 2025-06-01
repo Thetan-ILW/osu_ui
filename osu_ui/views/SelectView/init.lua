@@ -4,7 +4,6 @@ local Component = require("ui.Component")
 local flux = require("flux")
 local easing = require("osu_ui.ui.easing")
 local text_input = require("ui.text_input")
-local math_util = require("math_util")
 
 local Image = require("ui.Image")
 local QuadImage = require("ui.QuadImage")
@@ -25,7 +24,6 @@ local Spectrum = require("osu_ui.views.MainMenu.Spectrum")
 local DiffTable = require("osu_ui.views.SelectView.DiffTable")
 
 local getModifierString = require("osu_ui.views.modifier_string")
-local Scoring = require("osu_ui.Scoring")
 
 local DisplayInfo = require("osu_ui.views.SelectView.DisplayInfo")
 
@@ -33,7 +31,6 @@ local VideoExporterModal = require("osu_ui.views.VideoExporter.Modal")
 
 ---@class osu.ui.SelectViewContainer : osu.ui.Screen
 ---@operator call: osu.ui.SelectViewContainer
----@field selectApi game.SelectAPI
 local View = Screen + {}
 
 function View:textInput(event)
@@ -215,6 +212,8 @@ function View:updateInfo()
 	if self.diffTable then
 		self.diffTable:updateInfo(self.displayInfo)
 	end
+
+	self.statusIcon:replaceImage(self.displayInfo.dan and self.danIcon or self.rankedIcon)
 end
 
 function View:event_modsChanged()
@@ -299,14 +298,16 @@ function View:load()
 		z = 0,
 	}))
 
-	local st_icon = top:addChild("statusIcon", Image({
+	self.rankedIcon = assets:loadImage("selection-ranked")
+	self.danIcon = assets:loadImage("selection-dan")
+	self.statusIcon = top:addChild("statusIcon", Image({
 		x = 19, y = 19,
 		origin = { x = 0.5, y = 0.5 },
-		image = assets:loadImage("selection-ranked"),
+		image = self.displayInfo.dan and self.danIcon or self.rankedIcon,
 		z = 0.9
 	}))
-	function st_icon.update()
-		st_icon.color[4] = easing.linear(self.notechartChangeTime, 0.2)
+	function self.statusIcon.update()
+		self.statusIcon.color[4] = easing.linear(self.notechartChangeTime, 0.2)
 	end
 
 	local chart_name = top:addChild("chartName", DynamicLabel({
