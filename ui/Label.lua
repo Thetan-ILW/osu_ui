@@ -68,6 +68,8 @@ function Label:updateSizeAndPos()
 		text_height = lines * font:getHeight() * text_scale
 	end
 
+	self.textWidth = text_width
+	self.textHeight = text_height
 	self.textScale = text_scale
 
 	local x = 0
@@ -106,6 +108,16 @@ end
 ---@return number
 function Label:getHeight()
 	return math.max(self.boxHeight or 0, self.height)
+end
+
+---@return number
+function Label:getTextWidth()
+	return self.textWidth
+end
+
+---@return number
+function Label:getTextHeight()
+	return self.height
 end
 
 ---@param text string | table

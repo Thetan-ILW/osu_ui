@@ -138,7 +138,7 @@ function PlayerInfoView:load()
 		z = 0.1,
 	}))
 
-	if leaderboard and not user:isAnon() then
+	if leaderboard and user and not user:isAnon() then
 		self:addChild("firstRow", Label({
 			x = 86, y = 26,
 			text = self.firstRow,
@@ -153,7 +153,7 @@ function PlayerInfoView:load()
 		}))
 		self:addChild("level", Label({
 			x = 86, y = 58,
-			text = ("Lv%i"):format(self.level),
+			text = ("Lv%i"):format(self.level or 0),
 			font = fonts:loadFont("Regular", 13),
 			z = 0.1,
 		}))
@@ -162,9 +162,9 @@ function PlayerInfoView:load()
 			boxWidth = self.width - 7,
 			boxHeight = self.height,
 			alignX = "right",
-			text = ("#%i"):format(self.rank),
+			text = ("#%i"):format(self.rank or 0),
 			font = fonts:loadFont("Light", 50),
-			color = getRankColor(self.rank),
+			color = getRankColor(self.rank or 0),
 			z = 0.1
 		}))
 		self:addChild("levelbarBackground", Image({
@@ -179,7 +179,7 @@ function PlayerInfoView:load()
 		self:addChild("levelbar", QuadImage({
 			x = 86 + 40, y = 56 + 13,
 			image = levelbar,
-			quad = love.graphics.newQuad(0, 0, iw * self.levelPercent, ih, levelbar),
+			quad = love.graphics.newQuad(0, 0, iw * (self.levelPercent or 0), ih, levelbar),
 			color = {love.math.colorFromBytes(252, 184, 6, 255)},
 			z = 0.15
 		}))
