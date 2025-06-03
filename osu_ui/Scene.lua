@@ -49,32 +49,39 @@ local Scene = Component + {}
 function Scene:new(params)
 	Component.new(self, params)
 
+	self.assets = OsuAssets(self.ui.assetModel)
+	self.localization = Localization(path_util.join(self.ui.mountPath, "osu_ui/localization"), "en.txt")
+	self.fontManager = FontManager(768)
+
 	local fonts = {
-		["Regular"] = "osu_ui/assets/ui_font/Aller/Aller_Rg.ttf",
-		["Light"] = "osu_ui/assets/ui_font/Aller/Aller_Lt.ttf",
-		["Bold"] = "osu_ui/assets/ui_font/Aller/Aller_Bd.ttf",
-		["Awesome"] = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf",
-		["MonoRegular"] = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Regular.ttf",
-		["MonoBold"] = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Bold.ttf",
-		["Quicksand"] = "osu_ui/assets/ui_font/Quicksand/Quicksand-Regular.ttf",
-		["QuicksandSemiBold"] = "osu_ui/assets/ui_font/Quicksand/Quicksand-SemiBold.ttf",
-		["QuicksandBold"] = "osu_ui/assets/ui_font/Quicksand/Quicksand-Bold.ttf"
-	}
-	local fallbacks = {
-		["Regular"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Regular.ttf",
-		["Light"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Light.ttf",
-		["Bold"] = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Bold.ttf",
+		aller_regular = "osu_ui/assets/ui_font/Aller/Aller_Rg.ttf",
+		aller_light = "osu_ui/assets/ui_font/Aller/Aller_Lt.ttf",
+		aller_bold = "osu_ui/assets/ui_font/Aller/Aller_Bd.ttf",
+		font_awesome = "osu_ui/assets/ui_font/FontAwesome/FontAwesome.ttf",
+		mono_regular = "osu_ui/assets/ui_font/SpaceMono/SpaceMono-Regular.ttf",
+		quicksand = "osu_ui/assets/ui_font/Quicksand/Quicksand-Regular.ttf",
+		quicksand_semi_bold = "osu_ui/assets/ui_font/Quicksand/Quicksand-SemiBold.ttf",
+		quicksand_bold = "osu_ui/assets/ui_font/Quicksand/Quicksand-Bold.ttf",
+		fallback_regular = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Regular.ttf",
+		fallback_light = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Light.ttf",
+		fallback_bold = "osu_ui/assets/ui_font/NotoSansJP/NotoSansJP-Bold.ttf"
 	}
 	for k, path in pairs(fonts) do
 		fonts[k] = path_util.join(self.ui.mountPath, path)
 	end
-	for k, path in pairs(fallbacks) do
-		fallbacks[k] = path_util.join(self.ui.mountPath, path)
-	end
 
-	self.assets = OsuAssets(self.ui.assetModel)
-	self.localization = Localization(path_util.join(self.ui.mountPath, "osu_ui/localization"), "en.txt")
-	self.fontManager = FontManager(768, fonts, fallbacks)
+	local fm = self.fontManager
+	fm:addFont("Regular", fonts.aller_regular, fonts.fallback_regular)
+	fm:addFont("Light", fonts.aller_light, fonts.fallback_light)
+	fm:addFont("Bold", fonts.aller_bold, fonts.fallback_bold)
+	fm:addFont("Awesome", fonts.font_awesome, fonts.fallback_regular)
+	fm:addFont("MonoRegular", fonts.mono_regular, fonts.fallback_regular)
+	fm:addFont("Quicksand", fonts.quicksand, fonts.fallback_regular)
+	fm:addFont("QuicksandSemiBold", fonts.quicksand_semi_bold, fonts.fallback_bold)
+	fm:addFont("QuicksandBold", fonts.quicksand_bold, fonts.fallback_bold)
+	fm:addFont("NotoSansRegular", fonts.fallback_regular)
+	fm:addFont("NotoSansLight", fonts.fallback_light)
+	fm:addFont("NotoSansBold", fonts.fallback_bold)
 end
 
 function Scene:load()

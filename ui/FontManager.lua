@@ -1,5 +1,4 @@
 local class = require("class")
-
 local Font = require("ui.Font")
 
 ---@class ui.FontManager
@@ -8,13 +7,11 @@ local Font = require("ui.Font")
 local FontManager = class()
 
 ---@param target_height number
----@param files {[string]: string}
----@param fallbacks {[string]: string}
-function FontManager:new(target_height, files, fallbacks)
+function FontManager:new(target_height)
 	self.currentViewportHeight = 0
 	self.targetHeight = target_height
-	self.fontFiles = files
-	self.fontFilesFallbacks = fallbacks
+	self.fontPaths = {} ---@type {[string]: string}
+	self.fontFallbackPaths = {} ---@type {[string]: string}
 	self.fonts = {}
 end
 
@@ -28,21 +25,27 @@ function FontManager:getTextDpiScale()
 	return math.ceil(self.currentViewportHeight / self.targetHeight)
 end
 
+---@param font_name string
+---@param font_path string
+---@param fallback_path string?
+function FontManager:addFont(font_name, font_path, fallback_path)
+	self.fontPaths[font_name] = font_path
+	if fallback_path then
+		self.fontFallbackPaths[font_name] = fallback_path
+	end
+end
+
 ---@param name string
 ---@param size number
 ---@return ui.Font
 function FontManager:loadFont(name, size)
-	if self.currentViewportHeight < 1 then
-		error("Current viewport height is less than 1")
-	end
-
 	local formatted_name = ("%s_%i@%ix"):format(name, size, self:getTextDpiScale())
 
 	if self.fonts[formatted_name] then
 		return self.fonts[formatted_name]
 	end
 
-	local filename = self.fontFiles[name]
+	local filename = self.fontPaths[name]
 
 	if not filename then
 		error(("No such font: %s"):format(filename))
@@ -53,8 +56,8 @@ function FontManager:loadFont(name, size)
 
 	local font = Font(love.graphics.newFont(filename, s), dpi_scale)
 
-	if self.fontFilesFallbacks[name] then
-		font:addFallback(love.graphics.newFont(self.fontFilesFallbacks[name], s))
+	if self.fontFallbackPaths[name] then
+		font:addFallback(love.graphics.newFont(self.fontFallbackPaths[name], s))
 	end
 
 	font:setFilter("linear", "nearest")
