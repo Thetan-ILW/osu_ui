@@ -5,6 +5,7 @@ local Label = require("ui.Label")
 local SpriteBatch = require("ui.SpriteBatch")
 local ui = require("osu_ui.ui")
 local math_util = require("math_util")
+local string_util = require("string_util")
 
 local Format = require("sphere.views.Format")
 
@@ -190,8 +191,10 @@ function ChartEntry:setInfo(chart)
 
 	self.title:replaceText(title)
 
-	if chart.format == "sm" then
-		self.secondRow:replaceText(("%s // %s"):format(chart.artist, chart.set_dir))
+	if chart.format == "stepmania" then
+		local pack = chart.set_dir or "Not in a pack" ---@type string
+		local s = string_util.split(pack, "/")
+		self.secondRow:replaceText(("%s // %s"):format(chart.artist, s[#s]))
 	else
 		self.secondRow:replaceText(("%s // %s"):format(chart.artist, chart.creator))
 	end

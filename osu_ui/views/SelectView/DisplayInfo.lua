@@ -6,6 +6,7 @@ local ui = require("osu_ui.ui")
 local Timings = require("sea.chart.Timings")
 local Msd = require("osu_ui.Msd")
 local dan_list = require("sea.dan.dan_list")
+local string_util = require("string_util")
 
 ---@class osu.ui.SelectViewDisplayInfo
 ---@operator call: osu.ui.SelectViewDisplayInfo
@@ -98,10 +99,12 @@ function DisplayInfo:setChartInfo()
 		creator = "Unknown"
 	end
 
-	if chart_format ~= "sm" then
+	if chart_format ~= "stepmania" then
 		self.chartSource = (text.SongSelection_BeatmapInfoCreator):format(creator)
 	else
-		self.chartSource = (text.SongSelection_BeatmapInfoPack):format(creator, chartview.set_dir)
+		local pack = self.chartview.set_dir or "Not in a pack" ---@type string
+		local s = string_util.split(pack, "/")
+		self.chartSource = (text.SongSelection_BeatmapInfoPack):format(creator, s[#s])
 	end
 
 	local note_count = chartview.notes_count or 0

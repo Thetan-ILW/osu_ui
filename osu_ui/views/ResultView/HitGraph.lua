@@ -65,7 +65,7 @@ function HitGraph:load()
 					color = { 1, 0, 0, 1 }
 				end
 				love.graphics.setColor(color)
-				love.graphics.circle("fill", x * x_scale, y * y_scale + y_compress / 2, 1.5)
+				love.graphics.circle("fill", x * x_scale, y * y_scale + y_compress, 1.5)
 			end
 		end
 	}))

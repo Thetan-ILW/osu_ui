@@ -5,6 +5,7 @@ local Format = require("sphere.views.Format")
 local Scoring = require("osu_ui.Scoring")
 local Msd = require("osu_ui.Msd")
 local Timings = require("sea.chart.Timings")
+local string_util = require("string_util")
 
 ---@class osu.ui.ResultDisplayInfo
 ---@operator call: osu.ui.ResultDisplayInfo
@@ -148,14 +149,14 @@ function DisplayInfo:getChartInfo()
 	self.chartName = title
 
 	local time = os.date("%d/%m/%Y %H:%M:%S.", score_item.submitted_at)
-	local set_dir = chartview.set_dir
 	local creator = chartview.creator
 	local username = self.configs.online.user.name or self.configs.osu_ui.offlineNickname
+	local second_row = text.SongSelection_BeatmapInfoCreator:format(creator)
 
-	local second_row = text.SongSelection_BeatmapInfoCreator:format(set_dir)
-
-	if chartview.format ~= "sm" then
-		second_row = text.SongSelection_BeatmapInfoCreator:format(creator)
+	if chartview.format == "stepmania" then
+		local pack = chartview.set_dir or "Not in a pack" ---@type string
+		local s = string_util.split(pack, "/")
+		second_row = text.SongSelection_BeatmapInfoPack:format(creator, s[#s])
 	end
 
 	self.chartSource = second_row
