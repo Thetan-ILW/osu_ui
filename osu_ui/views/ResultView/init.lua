@@ -10,6 +10,7 @@ local Button = require("osu_ui.ui.Button")
 local BackButton = require("osu_ui.ui.BackButton")
 local MenuBackAnimation = require("osu_ui.views.MenuBackAnimation")
 local HpGraph = require("osu_ui.views.ResultView.HpGraph")
+local HitGraph = require("osu_ui.views.ResultView.HitGraph")
 local PlayerInfo = require("osu_ui.views.PlayerInfoView")
 local ResultScores = require("osu_ui.views.ResultView.Scores")
 local RankingElement = require("osu_ui.views.ResultView.RankingElement")
@@ -435,15 +436,27 @@ function View:load(score_loaded)
 	local hp = score_engine:getScoreSystem("hp")
 	area:addChild("graph", Image({ x = 256, y = 608, image = assets:loadImage("ranking-graph"), z = 0.5 }))
 
-	if hp then
-		area:addChild("hpGraph", HpGraph({
+	if configs.osu_ui.result.hitGraph then
+		area:addChild("hitGraph", HitGraph({
 			x = 265, y = 617,
 			width = 300,
 			height = 135,
-			sequence = score_engine.sequence,
-			hpScore = hp,
 			z = 0.55,
+			score_engine = self.resultApi:getScoreEngine(),
+			timings = display_info.timings,
+			subtimings = self.selectApi:getReplayBase().subtimings,
 		}))
+	else
+		if hp then
+			area:addChild("hpGraph", HpGraph({
+				x = 265, y = 617,
+				width = 300,
+				height = 135,
+				sequence = score_engine.sequence,
+				hpScore = hp,
+				z = 0.55,
+			}))
+		end
 	end
 
 	local judge_name = display_info.judgeName

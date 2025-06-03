@@ -49,6 +49,7 @@ function DisplayInfo:load()
 	self.manipFactorPercent = 0
 	self.timeRate = 1
 	self.judgeName = ""
+	self.timings = Timings("sphere")
 
 	if self.chartview and self.chartdiff and self.scoreItem then
 		self:getDifficulty()
@@ -64,6 +65,7 @@ end
 function DisplayInfo:loadScoreDetails()
 	local timings = self.replayBase.timings or Timings.decode(self.chartview.chartmeta_timings)
 	local subtimings = self.replayBase.subtimings
+	self.timings = timings
 	self.judgeName = Scoring.formatScoreSystemName(timings, subtimings)
 
 	self.marvelous = 0

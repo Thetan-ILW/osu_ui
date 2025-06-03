@@ -1,138 +1,74 @@
-local math_util = require("math_util")
-local PointGraphView = require("sphere.views.GameplayView.PointGraphView")
+local Component = require("ui.Component")
+local CanvasComponent = require("ui.CanvasComponent")
+local TimingValuesFactory = require("sea.chart.TimingValuesFactory")
+local Label = require("ui.Label")
+local Scoring = require("osu_ui.Scoring")
 
-local Scoring = require("osu_ui.views.ResultView.Scoring")
+---@class osu.ui.HitGraph : ui.CanvasComponent
+---@operator call: osu.ui.HitGraph
+---@field score_engine sphere.ScoreEngine
+---@field timings sea.Timings
+---@field subtimings sea.Subtimings
+local HitGraph = CanvasComponent + {}
 
-local HitGraph = {}
+function HitGraph:load()
+	CanvasComponent.load(self)
+	self.redrawEveryFrame = false
 
-HitGraph.scoreSystemName = ""
-HitGraph.judge = nil
-HitGraph.counterNames = {}
-HitGraph.showLoadedScore = nil
-HitGraph.maxEarlyTiming = 0
-HitGraph.maxLateTiming = 0
-
-local hitGraphScale = 0.72
-
-local function getPointY(y)
-	local delta_time = y.misc.deltaTime
-
-	delta_time = delta_time * 1000
-
-	if delta_time > 0 then
-		delta_time = (delta_time / HitGraph.maxLateTiming) / 1000
-	else
-		delta_time = (delta_time / HitGraph.maxEarlyTiming) / 1000
+	local scene = self:findComponent("scene") ---@cast scene osu.ui.Scene
+	local fonts = scene.fontManager
+	local timing_values = TimingValuesFactory():get(self.timings, self.subtimings)
+	if not timing_values then
+		return
 	end
 
-	return math_util.clamp((delta_time * hitGraphScale) + 0.5, -1, 0.98)
-end
+	local min = timing_values.ShortNote.hit[1]
+	local max = timing_values.ShortNote.hit[2]
 
-local function getHitColor(delta_time, is_miss)
-	if is_miss then
-		return { 1, 0, 0, 1 }
+	if self.displayLabels then
+		self:addChild("early", Label({
+			x = 2, y = 2,
+			font = fonts:loadFont("Regular", 12),
+			text = ("Early(%ims)"):format(min * 1000),
+			z = 1,
+		}))
+
+		self:addChild("late", Label({
+			x = 2, y = -2,
+			boxHeight = self.height,
+			alignY = "bottom",
+			font = fonts:loadFont("Regular", 12),
+			text = ("Late(%ims)"):format(max * 1000),
+			z = 1,
+		}))
 	end
 
-	if not HitGraph.judge.windows then
-		return { 1, 1, 1, 1 }
-	end
+	self:addChild("points", Component({
+		draw = function()
+			local sequence = self.score_engine.sequence
+			local judges_source = self.score_engine.judgesSource
+			---@cast judges_source -sphere.IJudgesSource, +sphere.ScoreSystem
+			local max_time = sequence[#sequence].base.currentTime ---@type number
+			local range = math.abs(min) + max
+			local y_compress = 2
+			local x_scale = (self.width - 2) / self.width
+			local y_scale = (self.height - y_compress) / self.height
 
-	local colors = Scoring.counterColors[HitGraph.scoreSystemName]
-
-	delta_time = math.abs(delta_time)
-
-	if HitGraph.scoreSystemName == "etterna" then -- this is bad, don't forget to refactor score systems PLEASE
-		delta_time = delta_time * 1000
-	end
-
-	for _, key in ipairs(HitGraph.counterNames) do
-		local window = HitGraph.judge.windows[key]
-
-		if delta_time < window then
-			return colors[key]
-		end
-	end
-
-	return { 1, 0, 0, 1 }
-end
-
-local pointR = 3
-local padding = 5
----@param self table
-local function drawGraph(self, w, h)
-	love.graphics.translate(pointR + padding, pointR)
-	self.__index.draw(self, w - pointR - (padding * 2), h - pointR)
-	love.graphics.translate(-pointR - padding, -pointR)
-end
-
-HitGraph.hitGraph = PointGraphView({
-	draw = drawGraph,
-	radius = pointR,
-	backgroundColor = { 0, 0, 0, 0.2 },
-	backgroundRadius = 6,
-	point = function(self, point)
-		if point.base.isMiss then
-			return
-		end
-		local y = getPointY(point)
-		local color = getHitColor(point.misc.deltaTime, false)
-		return y, unpack(color)
-	end,
-	show = HitGraph.showLoadedScore,
-})
-
-HitGraph.earlyHitGraph = PointGraphView({
-	draw = drawGraph,
-	radius = pointR,
-	backgroundColor = { 0, 0, 0, 1 },
-	backgroundRadius = 0,
-	point = function(self, point)
-		if not point.base.isEarlyHit then
-			return
-		end
-		local y = getPointY(point)
-		return y, unpack(getHitColor(0, true))
-	end,
-	show = HitGraph.showLoadedScore,
-})
-
-HitGraph.missGraph = PointGraphView({
-	draw = drawGraph,
-	radius = pointR,
-	backgroundColor = { 0, 0, 0, 1 },
-	backgroundRadius = 0,
-	point = function(self, point)
-		if not point.base.isMiss then
-			return
-		end
-		local y = getPointY(point)
-		return y, unpack(getHitColor(0, true))
-	end,
-	show = HitGraph.showLoadedScore,
-})
-
-HitGraph.hpGraph = PointGraphView({
-	draw = drawGraph,
-	radius = 6,
-	backgroundColor = { 0, 0, 0, 0.2 },
-	backgroundRadius = 0,
-	point = function(self, point)
-		local value = 0
-		local _hp = self.game.rhythmModel.scoreEngine.scoreSystem.hp
-		local hp = point.hp
-		for _, h in ipairs(hp) do
-			if h.value > 0 then
-				value = h.value / _hp.max
-				break
+			for _, slice in ipairs(sequence) do
+				local dt = slice.misc.deltaTime ---@type number
+				local time = slice.base.currentTime ---@type number
+				local judge = judges_source.judge_windows:get(dt)
+				local x = (time / max_time) * self.width
+				local y = ((math.abs(min) + dt) / range) * self.height
+				local color = Scoring.judgeColors[self.timings.name][judge] or { 1, 0, 0, 1 }
+				if slice.base.isMiss or slice.base.isEarlyMiss then
+					color = { 1, 0, 0, 1 }
+				end
+				love.graphics.setColor(color)
+				love.graphics.circle("fill", x * x_scale, y * y_scale + y_compress / 2, 1.5)
 			end
 		end
-
-		if value < 0.45 then
-			return 1 - value, 0.76, 0, 0, 1
-		end
-		return 1 - value, 0.25, 0.8, 0.5, 1
-	end,
-	show = HitGraph.showLoadedScore,
-})
+	}))
+end
 
 return HitGraph
