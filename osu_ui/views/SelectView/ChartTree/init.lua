@@ -128,6 +128,9 @@ function ChartTree:random()
 		self:prevRandom()
 		return
 	end
+	if self.mainChartList.itemCount == 0 then
+		return
+	end
 	table.insert(self.randomHistory, self.mainChartList:getSelectedItemIndex())
 	local i = math.random(1, self.mainChartList.itemCount)
 	self.mainChartList:selectItem(i)

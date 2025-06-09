@@ -104,11 +104,6 @@ function Viewport:checkMouseMovement()
 	self.mouseLastX, self.mouseLastY = mx, my
 end
 
----@return true
-function Viewport:isParentFocused()
-	return true
-end
-
 ---@param dt number
 function Viewport:updateTree(dt)
 	self:resize()
