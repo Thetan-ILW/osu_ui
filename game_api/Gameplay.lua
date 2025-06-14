@@ -157,7 +157,12 @@ end
 ---@return number new_offset
 function Gameplay:increaseLocalOffset(delta)
 	self.game.gameplayController:increaseLocalOffset(delta)
-	return self.game.selectModel.chartview.offset
+	local chartmeta = self.game.computeContext.chartmeta
+	if not chartmeta then
+		return 0
+	end
+	local input_offset, visual_offset = self.game.offsetModel:getInputVisual(chartmeta.hash, chartmeta.index)
+	return visual_offset
 end
 
 ---@return boolean

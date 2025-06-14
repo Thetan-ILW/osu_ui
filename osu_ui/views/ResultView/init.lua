@@ -756,36 +756,6 @@ function View:load(score_loaded)
 		end
 	}))
 
-	area:addChild("videoExport", Button({
-		x = width - 20,
-		y = 768 + 40,
-		origin = { x = 1 },
-		width = 250,
-		height = 30,
-		font = fonts:loadFont("Regular", 17),
-		label = text.RankingDialog_ExportVideoGif,
-		color = { 0.05, 0.52, 0.65, 1 },
-		z = 0.02,
-		onClick = function()
-			scene:openModal("videoExport")
-		end
-	}))
-
-	area:addChild("submitReplay", Button({
-		x = width - 20,
-		y = 768 + 70,
-		origin = { x = 1 },
-		width = 250,
-		height = 30,
-		font = fonts:loadFont("Regular", 17),
-		label = text.RankingDialog_SubmitReplay,
-		color = { 0.05, 0.52, 0.65, 1 },
-		z = 0.02,
-		onClick = function()
-			self.resultApi:submitReplay()
-		end
-	}))
-
 	--[[
 	self.accuracyTable = area:addChild("accuracyTable", Component({
 		x = 50,
