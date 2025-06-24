@@ -57,7 +57,7 @@ function DisplayInfo:setChartInfoDefaults()
 	self.lnPercent = 0
 	self.lnPercentColor = { 1, 1, 1, 1 }
 	self.formatLevel = ""
-	self.dan = false
+	self.rankedType = "unknown" ---@type "unknown" | "ranked" | "dan"
 end
 
 ---@param timings sea.Timings
@@ -215,8 +215,12 @@ function DisplayInfo:setChartInfo()
 		self.formatLevel = format:upper()
 	end
 
+	if chartview.difftable_chartmetas and #chartview.difftable_chartmetas > 0 then
+		self.rankedType = "ranked"
+	end
+
 	if dan_hashes[chartview.hash] then
-		self.dan = true
+		self.rankedType = "dan"
 	end
 end
 

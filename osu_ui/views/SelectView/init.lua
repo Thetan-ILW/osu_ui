@@ -212,8 +212,18 @@ function View:updateInfo()
 	if self.diffTable then
 		self.diffTable:updateInfo(self.displayInfo)
 	end
+	
+	self:setStatusIcon()
+end
 
-	self.statusIcon:replaceImage(self.displayInfo.dan and self.danIcon or self.rankedIcon)
+function View:setStatusIcon()
+	if self.displayInfo.rankedType == "unknown" then
+		self.statusIcon:replaceImage(self.unrankedIcon)
+	elseif self.displayInfo.rankedType == "ranked" then
+		self.statusIcon:replaceImage(self.rankedIcon)
+	elseif self.displayInfo.rankedType == "dan" then
+		self.statusIcon:replaceImage(self.danIcon)
+	end
 end
 
 function View:event_modsChanged()
@@ -299,16 +309,18 @@ function View:load()
 	}))
 
 	self.rankedIcon = assets:loadImage("selection-ranked")
+	self.unrankedIcon = assets:loadImage("selection-unranked")
 	self.danIcon = assets:loadImage("selection-dan")
 	self.statusIcon = top:addChild("statusIcon", Image({
 		x = 19, y = 19,
 		origin = { x = 0.5, y = 0.5 },
-		image = self.displayInfo.dan and self.danIcon or self.rankedIcon,
+		image = self.unrankedIcon,
 		z = 0.9
 	}))
 	function self.statusIcon.update()
 		self.statusIcon.color[4] = easing.linear(self.notechartChangeTime, 0.2)
 	end
+	self:setStatusIcon()
 
 	local chart_name = top:addChild("chartName", DynamicLabel({
 		x = 38, y = -5,
